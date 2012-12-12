@@ -25,20 +25,27 @@ end
 
 function Retribution()
     
+    -- if TryStopTarget() and DoSpell("Молот правосудия") then return end
+    -- if TryStopTarget() and (UnitCreatureType("target") == "Гуманоид") and DoSpell("Покаяние") then return end
+    if HasDebuff("Огненный шок", 1, "player") and DoSpell("Очищение",player) then return end
+    if HasDebuff("Порча", 1, "player") and DoSpell("Очищение",player) then return end
+    if HasDebuff("Всепожирающая чума", 1, "player") and DoSpell("Очищение",player) then return end
+    if HasBuff("Искусство войны") and DoSpell("Экзорцизм") then return end       
     if DoSpell("Правосудие мудрости") then return end
     if UnitHealth100("target") < 20 and DoSpell("Молот гнева") then return end    
     if DoSpell("Удар воина Света") then return end
     if InMelee() and DoSpell("Божественная буря") then return end
-    if UnitMana100() > 30 and InMelee() and DoSpell("Освящение") then return end
-    if HasBuff("Искусство войны") and DoSpell("Экзорцизм") then return end   
+    -- if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
+    if --[[IsShiftKeyDown() == 1 and]] UnitMana100() > 30 and InMelee() and DoSpell("Освящение") then return end
     if (UnitCreatureType("target") == "Нежить") and UnitMana100() > 40 and InMelee() and DoSpell("Гнев небес") then return end    
     -- if UnitMana100() < 60 and DoSpell("Волшебный поток") then  return end
-    if DoSpell("Святая клятва") then return end
-    if InMelee() and DoSpell("Гнев карателя") then 
+    if UnitMana100() < 50 and DoSpell("Святая клятва") then return end
+    if InMelee() and DoSpell("Гнев карателя") then
         ForbearanceTime = GetTime()
         return 
     end
-    if InMelee() and UseEquippedItem("Отмщение отрекшихся") then return true end
+    if InMelee() and HasBuff("Гнев карателя") and UseItem("Сфера крови красного дракона")then return end
+    -- if InMelee() and UseEquippedItem("Отмщение отрекшихся") then return true end
     
 end
 
@@ -63,7 +70,7 @@ function Idle()
             local ret = false
             for _,unit in pairs(units) do 
                 if not ret and (GetTime() - StartComatTime < 3) and IsInteractTarget(unit) 
-                  and  UnitThreat(unit) == 2 and not IsOneUnit("player", unit) 
+                  and  UnitThreat(unit) > 1 and not IsOneUnit("player", unit) 
                   and DoSpell("Длань спасения",unit) then 
                     echo("Длань спасения " .. unit) 
                     ret = true 
@@ -101,16 +108,17 @@ end
 function TryBuffs()
 
         if HasSpell("Удар воина Света") then
-            if not HasBuff("Печать мщения") then
-                if HasBuff("Печать повиновения") or HasBuff("Печать праведности") then else DoSpell("Печать мщения") end end
-            if not FindAura("Благословение") and DoSpell("Великое благословение могущества") then return end
+            if not HasBuff("Печать праведности") then
+                if HasBuff("Печать Света") or HasBuff("Печать мщения") or HasBuff("Печать мудрости") then else DoSpell("Печать праведности") end end
+            if not FindAura("Благословение") and DoSpell("Великое благословение могущества","player") then return end
             if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
+            if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
             else
                 -- if not HasBuff("Стойкость") and not HasBuff("Молитва стойкости") and UseItem("Рунический свиток стойкости") then return true end
-            if not FindAura("Благословение") and DoSpell("Великое благословение неприкосновенности") then return end
+            if not FindAura("Благословение") and DoSpell("Великое благословение неприкосновенности","player") then return end
             if not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
             if not HasBuff("Печать мщения") and DoSpell("Печать мщения") then return end
-            if not HasBuff("Священный щит") and DoSpell("Священный щит") then return end
+            if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
             if not HasBuff("Святая клятва") and DoSpell("Святая клятва") then return end
             if not HasBuff("Щит небес",0.8) and DoSpell("Щит небес") then return end
             return false
@@ -120,8 +128,11 @@ end
 function TryHealing()
     local h = CalculateHP("player")
     if InCombatLockdown() then
+        -- if h < 40 and not HasBuff("Печать Света") and DoSpell("Печать Света") then return end
+        -- if h > 80 and not HasBuff("Печать праведности") and DoSpell("Печать праведности") then return end
         if h < 35 and UseHealPotion() then return true end
         if h < 30 and not HasDebuff("Воздержанность", 0.1, "player") and (GetTime() - ForbearanceTime > 30) and DoSpell("Возложение рук") then return true end
+        if h < 90 and HasBuff("Искусство войны") and not IsReadySpell("Экзорцизм") then DoSpell("Вспышка Света") return end
         if h < 50 and HasBuff("Искусство войны") then DoSpell("Вспышка Света") return end
         if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
     end
@@ -198,8 +209,9 @@ function TryProtect()
         if (UnitHealth100() < 50 and not (HasBuff("Затвердевшая кожа"))) then
             if UseEquippedItem("Проржавевший костяной ключ") then return true end
         end
+        if HasSpell("Удар воина Света") and (UnitHealth100() < 20) and not HasDebuff("Воздержанность", 0.1, "player") and (GetTime() - ForbearanceTime > 30) and DoSpell("Божественный щит")  then return true end
         --print(HasDebuff("Воздержанность", 0.1, "player"))
-        if (UnitHealth100() < 20) and not HasDebuff("Воздержанность", 0.1, "player") and (GetTime() - ForbearanceTime > 30) and DoSpell("Божественная защита")  then return true end   
+        if (UnitHealth100() < 15) and not HasDebuff("Воздержанность", 0.1, "player") and (GetTime() - ForbearanceTime > 30) and DoSpell("Божественная защита")  then return true end   
         end
     return false;
 end
@@ -227,11 +239,11 @@ function TryInterrupt(target)
     m = " -> " .. spell .. " ("..target..")"
     
     if not notinterrupt then 
-        --[[if InMelee(target) and DoSpell("Волшебный поток", target) then 
-            echo("Волшебный поток"..m)
+        if DoSpell("Покаяние", target) then 
+            echo("Покаяние"..m)
             InterruptTime = GetTime()
             return true 
-        end]]
+        end
         if DoSpell("Молот правосудия", target) then 
             echo("Молот правосудия"..m)
             InterruptTime = GetTime()
@@ -244,34 +256,24 @@ end
 
 local TauntTime = 0
 function TryTaunt(target)
-    if not IsValidTarget(target) then return false end
-    if UnitIsPlayer(target) then return false end
-    if UnitThreat("player",target) == 3 then return false end
+ if not IsValidTarget(target) then return false end
+ if UnitIsPlayer(target) then return false end
+ if UnitThreat("player",target) == 3 then return false end
+ if (GetTime() - TauntTime < 1.5) then return false end
+ local tt = UnitName(target .. "-target")
+ if not UnitExists(tt) then return false end
+ if IsOneUnit("player", tt) then return false end
+ 
+ if DoSpell("Длань возмездия", target) then 
+     TauntTime = GetTime()
+     -- chat("Длань возмездия на " .. UnitName(target))
+     return true  
+ end
 
-    if (GetTime() - TauntTime < 1.5) then return false end
-    if DoSpell("Длань возмездия", target) then 
-        TauntTime = GetTime()
-        chat("Длань возмездия на " .. target)
-        return true  
-    end
-
-    local tt = UnitName(target .. "-target") 
-    if IsInteractTarget(tt) and DoSpell("Праведная защита", tt) then 
-        TauntTime = GetTime()
-        chat("Праведная защита на " .. tt)
-        return true  
-    end
-    return false
+ if IsInteractTarget(tt) and DoSpell("Праведная защита", tt) then 
+     TauntTime = GetTime()
+     -- chat("Праведная защита на " .. UnitName(tt))
+     return true  
+ end
+ return false
 end
-
-
---[[function IsValidTarget(target)
-    if target == nil then target = "target" end
-    local n = UnitName(target)
-    if n == nil then return false end
-    if IsIgnored(target) then return false end
-    if UnitIsDeadOrGhost(target) then return false end
-    if UnitIsEnemy("player",target) and UnitCanAttack("player", target) then return true end 
-    if (UnitInParty(target) or UnitInRaid(target)) then return false end 
-    return UnitCanAttack("player", target)
-end]]
