@@ -1,0 +1,26 @@
+<Bindings>
+  <Binding name="SRH_OFF" description="Auto rotation OFF" header="SRH">
+    AutoRotationOff();
+  </Binding>
+  <Binding name="SRH_DEBUG" description="Toggle Debug Mode" header="SRH">
+    DebugToggle();
+  </Binding>
+  <Binding name="SRH_MOUNT" description="Mount" header="SRH">
+    Mount();
+  </Binding>
+  <Binding name="SRH_INTERRUPT" description="Toggle cust interrupt" header="SRH">
+    UseInterrupt();
+  </Binding>
+  <Binding name="SRH_BERSMODE" description="Toggle Bers Mode" header="SRH">
+    BersModeToggle();
+  </Binding>
+  <Binding name="SRH_AUTOAOE" description="Toggle Auto AOE" header="SRH">
+    AutoAOEToggle();
+  </Binding>
+  <Binding name="SRH_LISTMODE" description="Toggle List Mode" header="SRH">
+    ListModeToggle();
+  </Binding>
+  <Binding name="SRH_TOTEMS" description="Auto Install Totems" header="SRH">
+    Totems();
+  </Binding>
+</Bindings>

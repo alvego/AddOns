@@ -1,0 +1,7 @@
+## Author: Timofeev Alvexey
+## Title:|cff69ccf0 Rotation Helper|r |cffffd200 Library|r
+## Version: 0.1
+## Interface: 30300
+## OptionalDeps: LibHealComm-4.0
+## SavedVariables: HarmfulCastingSpell
+lib.lua

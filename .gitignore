@@ -1,8 +1,10 @@
 # ignore these
-*
+/*/
 # except foo
-!rhlib/*
-!srh/*
-!prh/*
-!TotemRadius/*
-!LibHealComm-4.0/*
+!.gitignore
+!/LibHealComm-4.0/
+!/rhlib/
+!/srh/
+!/prh/
+!/TotemRadius/
+

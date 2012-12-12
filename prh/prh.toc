@@ -1,0 +1,7 @@
+## Author: Timofeev Alvexey & Co
+## Title:|cff69ccf0 Paladin|r |cffffd200 Rotation Helper|r
+## Version: 0.1
+## Interface: 30300
+## Dependencies: rhlib
+rotation.lua
+binds.lua
