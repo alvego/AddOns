@@ -1,0 +1,8 @@
+# ignore these
+*
+# except foo
+!rhlib/*
+!srh/*
+!prh/*
+!TotemRadius/*
+!LibHealComm-4.0/*
