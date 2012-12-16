@@ -298,7 +298,7 @@ function HealRotation()
 
     if IsAttack() then 
         if not IsInteractTarget("target") then TryTarget(false) end
-        --if not InCombatLockdown() and not HasBuff("Щит земли") and DoSpell("Щит земли") then return end
+        --  -- if not InCombatLockdown() and not HasBuff("Щит земли") and DoSpell("Щит земли") then return end
     else
         if InCombatLockdown() and UnitName("target") and not IsInteractTarget("target") and not IsOneUnit("target-target", "player") and UnitThreat("player") == 3 then
             RunMacroText("/cleattarget")
