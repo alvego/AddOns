@@ -27,12 +27,12 @@ function TryTotems()
     local earthTotems, fireTotems, waterTotems, airTotems = {}, {}, {}, {}
     
     -- earth
-    if not InNotMyTotemRange("Тотем каменной кожи") and not HasBuff("Аура благочестия") then
+    if not HasBuff("Каменная кожа") and not HasBuff("Аура благочестия") then
         local priority = 10
         if IsHeal() then priority = 20 end
         table.insert(earthTotems, { N = "Тотем каменной кожи", P = priority })
     end
-    if not InNotMyTotemRange("Тотем силы земли") and not HasBuff("Зимний горн") then
+    if not HasBuff("Сила земли") and not HasBuff("Зимний горн") then
         local priority = 10
         if IsMDD() then priority = 20 end
         table.insert(earthTotems, { N = "Тотем силы земли", P = priority })
@@ -42,12 +42,12 @@ function TryTotems()
         force[earth] = true
     end
     if HasTotem("Тотем каменного когтя") then force[earth] = true end
-    if not InNotMyTotemRange("Тотем трепета") then
+    if IsReadySpell("Тотем трепета") then
         local priority = 10
         if IsPvP() then priority = 40 end
         table.insert(earthTotems, { N = "Тотем трепета", P = priority })
     end
-    if not InNotMyTotemRange("Тотем оков земли") then
+    if IsReadySpell("Тотем оков земли") then
         local priority = 10
         if IsPvP() then priority = 30 end
         if IsAOE() and not PlayerInPlace() then 
@@ -63,7 +63,7 @@ function TryTotems()
         totem[earth] = nil
     end
     --fire
-    if not InNotMyTotemRange("Тотем языка пламени") and not HasBuff("Чародейская гениальность Даларана") and not HasBuff("Чародейский интеллект") then
+    if IsReadySpell("Тотем языка пламени") and not HasBuff("Чародейская гениальность Даларана") and not HasBuff("Чародейский интеллект") then
         local priority = 10
         if IsHeal() then priority = 20 end
         table.insert(fireTotems, { N = "Тотем языка пламени", P = priority })
@@ -83,19 +83,19 @@ function TryTotems()
         totem[fire] = nil
     end
     --water
-    if not InNotMyTotemRange("Тотем источника маны") and (UnitMana100("player") < 50) and not HasBuff("Групповая охота") then
+    if not HasBuff("Источник маны") and (UnitMana100("player") < 50) and not HasBuff("Групповая охота") then
         local priority = 10
         if UnitMana100("player") < 50 then priority = 20 end
         table.insert(waterTotems, { N = "Тотем источника маны", P = priority })
     end
-    if HasSpell("Тотем прилива маны") and IsReadySpell("Тотем прилива маны") and not InNotMyTotemRange("Тотем прилива маны") and UnitHealth100() < 70 then
+    if HasSpell("Тотем прилива маны") and IsReadySpell("Тотем прилива маны") and UnitHealth100() < 70 then
         table.insert(waterTotems, { N = "Тотем прилива маны", P = 100 })
         if not HasTotem("Тотем прилива маны") then force[water] = true end
     end
-    if not InNotMyTotemRange("Тотем исцеляющего потока") then
+    if IsReadySpell("Тотем исцеляющего потока") then
         table.insert(waterTotems, { N = "Тотем исцеляющего потока", P = 15 })
     end
-    if not InNotMyTotemRange("Тотем очищения") then
+    if IsReadySpell("Тотем очищения") then
         local priority = 10
         if IsPvP() then priority = 70 end
         table.insert(waterTotems, { N = "Тотем очищения", P = priority })
@@ -107,12 +107,12 @@ function TryTotems()
         totem[water] = nil
     end
     --air
-    if not InNotMyTotemRange("Тотем неистовства ветра") and not HasBuff("Цепкие ледяные когти") then
+    if not HasBuff("Тотем неистовства ветра") and not HasBuff("Цепкие ледяные когти") then
         local priority = 10
         if IsMDD() then priority = 20 end
         table.insert(airTotems, { N = "Тотем неистовства ветра", P = priority })
     end
-    if not InNotMyTotemRange("Тотем гнева воздуха") and not HasBuff("Цепкие ледяные когти") then
+    if not HasBuff("Тотем гнева воздуха") then
         local priority = 15
         table.insert(airTotems, { N = "Тотем гнева воздуха", P = priority })
     end
@@ -131,7 +131,7 @@ function TryTotems()
     local try = false;
     for i = 1, 4 do
         local t, s = HasTotem(i), 132 + i
-        if not force[i] and (t and InMyTotemRange(t)) then 
+        if not force[i] and (t and HasTotem(i)) then 
             SetMultiCastSpell(s) 
         else 
             if totem[i] then
@@ -317,7 +317,7 @@ function HealRotation()
     local RiptideHeal = GetMySpellHeal("Быстрина")
     local ChainHeal = GetMySpellHeal("Цепное исцеление")
     local HealingWaveHeal = GetMySpellHeal("Волна исцеления")
-    local LesserHealingWaveHeal = GetMySpellHeal("Волна исцеления")
+    local LesserHealingWaveHeal = GetMySpellHeal("Малая волна исцеления")
     
     local members = {}
    
@@ -488,7 +488,7 @@ function HealRotation()
     --local RiptideHeal = GetMySpellHeal("Быстрина")
     --local ChainHeal = GetMySpellHeal("Цепное исцеление")
     --local HealingWaveHeal = GetMySpellHeal("Волна исцеления")
-    --local LesserHealingWaveHeal = GetMySpellHeal("Волна исцеления")
+    --local LesserHealingWaveHeal = GetMySpellHeal("Малая волна исцеления")
     
     if PlayerInPlace() then
         if h > 30 and rUnits[u] > 1 and not IsPvP() and l > ChainHeal and DoSpell("Цепное исцеление", u) then return end 
