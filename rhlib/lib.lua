@@ -181,6 +181,7 @@ frame:RegisterEvent("ZONE_CHANGED")
 frame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 frame:RegisterEvent("ZONE_CHANGED_INDOORS")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD") --This event fires before DungeonLevel(), ZoneName() and GetPlayerCoords() are updated
+frame:RegisterEvent("MERCHANT_SHOW")
 
 if HarmfulCastingSpell == nil then HarmfulCastingSpell = {} end
 local currentMap, hasLevels, zoneSize_X, zoneSize_Y
@@ -256,9 +257,24 @@ function GetYardCoords(unit)
 	return yX, yY
 end
 
+function SellGray()
+	for b=0,4 do                                   
+	  for s=1, GetContainerNumSlots(b) do          
+		n=GetContainerItemLink(b,s)               
+		if n and string.find(n, "ff9d9d9d") then                                 
+			UseContainerItem(b,s)                   
+		end                                        
+	  end                                          
+	end                                            
+end
+
 local LagTime = 0
 local sendTime = 0
 local function onEvent(self, event, ...)
+    if (event == "MERCHANT_SHOW") then
+        SellGray();
+        RepairAllItems();
+	end
     if event:match("^ZONE_CHANGED") or event == "PLAYER_ENTERING_WORLD" then 
         ZoneChanged(event)
     end
