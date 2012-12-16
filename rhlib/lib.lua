@@ -331,16 +331,18 @@ function IsPlayerCasting()
     return true
 end
 
-function IsBattleField()
-    return (GetBattlefieldInstanceRunTime() > 0)
+function IsBattleground()
+    local inInstance, instanceType = IsInInstance()
+    return (inInstance ~= nil and instanceType =="pvp")
 end
 
 function IsArena()
-    return (UnitName("arena1") or UnitName("arena2") or UnitName("arena3")  or UnitName("arena4") or UnitName("arena5"))
+    local inInstance, instanceType = IsInInstance()
+    return (inInstance ~= nil and instanceType =="arena")
 end
 
 function IsPvP()
-    return (IsBattleField() or IsArena() or (IsValidTarget("target") and UnitIsPlayer("target")))
+    return (IsBattleground() or IsArena() or (IsValidTarget("target") and UnitIsPlayer("target")))
 end
 
 function GetClass(target)
