@@ -50,19 +50,31 @@ if StealBlackList == nil then StealBlackList = {} end
 if InterruptWhiteList == nil then InterruptWhiteList = {} end
 if InterruptBlackList == nil then InterruptBlackList = {} end
 
+local Commands = {}
 
---[[local RadStealList = {
-    --Paladin
-    "Гнев карателя",
-    "Священный щит",
-    "Святая клятва",
-    --"Частица Света",
-    "Божественная защита",
-    "Длань защиты",
-    "Длань свободы",
-    --DK
-    --"Незыблемость льда",
-}]]
+function DoCommand(cmd)
+    local d = 3
+    local t = GetTime() + d
+    local spell, _, _, _, _, endTime  = UnitCastingInfo("player")
+    if not spell then spell, _, _, _, _, endTime, _, nointerrupt = UnitChannelInfo("player") end
+    if spell and endTime then 
+        t = endTime/1000 + d
+        if Commands[cmd] and Commands[cmd] == (t + d) then 
+            RunMacroText("/stopcasting") 
+            t = GetTime() + d
+        end
+    end
+    Commands[cmd] = t
+end
+
+function DoneCommand(cmd)
+    Commands[cmd] = 0
+end
+
+function IsCommand(cmd)
+    return (Commands[cmd] and (Commands[cmd] - GetTime() > 0))
+end
+
 
 function IsMDD()
     return HasSpell("Бой двумя оружиями")
@@ -179,50 +191,43 @@ end
 
 function Mount()
     
-     
-    
     if HasBuff("Призрачный волк") then
         RunMacroText("/cancelaura Призрачный волк")
-        return
+        return true
     end
     
     if CanExitVehicle() then
         VehicleExit()
-        return
+        return true
     end
     
     if IsMounted() then
         Dismount()
-        return
+        return true
     end 
     
    
-    if InGCD() then return end
+    if InGCD() or IsPlayerCasting() then return false end
     
     if (IsLeftControlKeyDown() or IsSwimming()) and not HasBuff("Хождение по воде", 1, "player") and DoSpell("Хождение по воде", "player") then return end
     
     if IsAltKeyDown() then
-        UseMount("Тундровый мамонт путешественника")
-        return
+        return UseMount("Тундровый мамонт путешественника")
     end
 
     
     if InCombatLockdown() or not PlayerInPlace() then
-        UseMount("Призрачный волк")
-        return
+        return DoSpell("Призрачный волк")
     end
     
     
     if IsFlyableArea() and not IsLeftControlKeyDown() and not InCombatLockdown() then
-        UseMount("Черный дракон")
-        return
+        return UseMount("Черный дракон")
     end
    
 
-    
     if IsOutdoors() and not InCombatLockdown() then
-        UseMount("Большой Лиловый элекк")
-        return
+        return UseMount("Большой Лиловый элекк")
     end
 end    
     

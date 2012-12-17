@@ -351,6 +351,17 @@ function GetClass(target)
     return class
 end
 
+function HasClass(units, classes) 
+    local ret = false
+    for _,u in pairs(units) do 
+        if UnitExists(u) and UnitIsPlayer(u) and CheckInteractDistance(u, 1) and tContains(classes, GetClass(u)) then 
+            ret = true 
+        end 
+    end
+    return ret 
+end
+
+
 function GetUnitType(target)
     if not target then target = "target" end
     local unitType = UnitName(target)
