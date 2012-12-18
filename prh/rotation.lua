@@ -44,7 +44,7 @@ function Retribution()
         ForbearanceTime = GetTime()
         return 
     end
-    if InMelee() and HasBuff("Гнев карателя") and UseItem("Сфера крови красного дракона")then return end
+    if InMelee() and HasBuff("Гнев карателя") and UseItem("Знак превосходства")then return end
     -- if InMelee() and UseEquippedItem("Отмщение отрекшихся") then return true end
     
 end
