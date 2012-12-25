@@ -1,5 +1,16 @@
 ﻿-- Paladin Rotation Helper by Timofeev Alexey
 local ForbearanceTime = 0
+
+SetCommand("free", 
+   function() return DoSpell("Длань свободы") end, 
+   function() return HasBuff("Длань свободы") or (not InGCD() and not IsReadySpell("Длань свободы"))  end
+)
+
+SetCommand("freedom", 
+   function() return DoSpell("Каждый за себя") end, 
+   function() return not InGCD() and not IsReadySpell("Каждый за себя")  end
+)
+
 function Tank()
     RunMacroText("/startattack")
     
@@ -110,9 +121,9 @@ function TryBuffs()
         if HasSpell("Удар воина Света") then
             if not HasBuff("Печать праведности") then
                 if HasBuff("Печать Света") or HasBuff("Печать мщения") or HasBuff("Печать мудрости") then else DoSpell("Печать праведности") end end
-            if not FindAura("Благословение") and DoSpell("Великое благословение могущества","player") then return end
-            if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
-            if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
+            -- if not FindAura("Благословение") and DoSpell("Великое благословение могущества","player") then return end
+            -- if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
+            -- if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
             else
                 -- if not HasBuff("Стойкость") and not HasBuff("Молитва стойкости") and UseItem("Рунический свиток стойкости") then return true end
             if not FindAura("Благословение") and DoSpell("Великое благословение неприкосновенности","player") then return end

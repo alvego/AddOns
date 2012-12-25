@@ -156,12 +156,16 @@ function IsAttack()
     return (IsControlKeyDown() == 1)
 end
 
+
 function IsAOE()
    if IsShiftKeyDown() == 1 then return true end
    return (IsValidTarget("target") and IsValidTarget("focus") and not IsOneUnit("target", "focus") and InMelee())
 end
 
 function onUpdate(frame, elapsed)
+
+    if ApplyCommands() then return end
+
     if (IsAttack() and Paused) then
         echo("Авто ротация: ON",true)
         Paused = false
