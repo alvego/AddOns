@@ -10,6 +10,15 @@ SetCommand("freedom",
    function() return DoSpell("Каждый за себя") end, 
    function() return not InGCD() and not IsReadySpell("Каждый за себя")  end
 )
+SetCommand("repentance", 
+   function() return DoSpell("Покаяние") end, 
+   function() return not InGCD() and not IsReadySpell("Покаяние")  end
+)
+
+SetCommand("stun", 
+   function() return DoSpell("Молот правосудия") end, 
+   function() return not InGCD() and not IsReadySpell("Молот правосудия")  end
+)
 
 function Tank()
     RunMacroText("/startattack")
