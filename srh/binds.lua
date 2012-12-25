@@ -50,32 +50,6 @@ if StealBlackList == nil then StealBlackList = {} end
 if InterruptWhiteList == nil then InterruptWhiteList = {} end
 if InterruptBlackList == nil then InterruptBlackList = {} end
 
-local Commands = {}
-
-function DoCommand(cmd)
-    local d = 3
-    local t = GetTime() + d
-    local spell, _, _, _, _, endTime  = UnitCastingInfo("player")
-    if not spell then spell, _, _, _, _, endTime, _, nointerrupt = UnitChannelInfo("player") end
-    if spell and endTime then 
-        t = endTime/1000 + d
-        if Commands[cmd] and Commands[cmd] == (t + d) then 
-            RunMacroText("/stopcasting") 
-            t = GetTime() + d
-        end
-    end
-    Commands[cmd] = t
-end
-
-function DoneCommand(cmd)
-    Commands[cmd] = 0
-end
-
-function IsCommand(cmd)
-    return (Commands[cmd] and (Commands[cmd] - GetTime() > 0))
-end
-
-
 function IsMDD()
     return HasSpell("Бой двумя оружиями")
 end
@@ -190,7 +164,6 @@ function NextIsTarget(target)
 end
 
 function Mount()
-    
     if HasBuff("Призрачный волк") then
         RunMacroText("/cancelaura Призрачный волк")
         return true
@@ -206,6 +179,10 @@ function Mount()
         return true
     end 
     
+--[[    if InCombatLockdown() or IsArena() or not PlayerInPlace() then
+        DoCommand("wolf")
+        return 
+    end]]
    
     if InGCD() or IsPlayerCasting() then return false end
     
@@ -216,9 +193,7 @@ function Mount()
     end
 
     
-    if InCombatLockdown() or not PlayerInPlace() then
-        return DoSpell("Призрачный волк")
-    end
+
     
     
     if IsFlyableArea() and not IsLeftControlKeyDown() and not InCombatLockdown() then
@@ -357,7 +332,9 @@ local stealTarget = nil
 local stealTargetGUID = nil
 local stealFailList = {}
 function TrySteal(target)
-    if stealTarget and GetTime() - stealTime < 5 then return end 
+    local t = 5
+    if not PlayerInPlace() then t = 1 end  
+    if (stealTarget and GetTime() - stealTime < t) then return end 
     if target == nil then target = "target" end
     if not IsValidTarget(target) then return false end
     local ret = false
@@ -391,7 +368,9 @@ local dispelTarget = nil
 local dispelTargetGUID = nil
 local dispelFailList = {}
 function TryDispel(target)
-    if dispelTarget and GetTime() - dispelTime < 3 then return end 
+    local t = 3
+    if not PlayerInPlace() then t = 1 end  
+    if dispelTarget and (GetTime() - dispelTime < t) then return end 
     if target == nil then target = "player" end
     if not IsInteractTarget(target) then return false end
     local ret = false
@@ -406,12 +385,12 @@ function TryDispel(target)
                 -- Яд
                 allowTypes["Poison"] = true
                 if (allowTypes[debuffType]) then
-                    if InMyTotemRange("Тотем очищения") then 
+                    if HasTotem("Тотем очищения") then 
                         return false 
                     else
                         local positiveTry = 0
                         if DispelWhiteList[name] then positiveTry = DispelWhiteList[name] end
-                        if not IsPvP() and positiveTry > 0 and CanUseInterrupt() and IsHeal() and InGroup() and not InNotMyTotemRange("Тотем очищения") and DoSpell("Тотем очищения") then return false end
+                        if not IsPvP() and positiveTry > 0 and CanUseInterrupt() and IsHeal() and InGroup() and not HasTotem("Тотем очищения") and DoSpell("Тотем очищения") then return false end
                     end 
                 end
                 if HasSpell("Очищение духа") then 
@@ -444,7 +423,7 @@ local InterruptTime = 0
 local InterruptKey = nil
 local InterruptGUID = nil
 function TryInterrupt(target)
-    if InterruptTime and (GetTime() - InterruptTime < 1) then return false end
+    if InterruptTime and (GetTime() - InterruptTime < 0.5) then return false end
     if target == nil then target = "target" end
     
     if not IsValidTarget(target) then return false end
@@ -494,10 +473,14 @@ function TryInterrupt(target)
 end
 
 function onUpdate(frame, elapsed)
+    
     local posX, posY = GetPlayerMapPosition("player")
     InPlace = (LastPosX == posX and LastPosY == posY)
     LastPosX ,LastPosY = GetPlayerMapPosition("player")
     if not InPlace then InPlaceTime = GetTime() end
+    
+    
+    
     if IsFalling() then
         if FallingTime == nil then FallingTime = GetTime() end
         if FallingTime and (GetTime() - FallingTime > 1.2) then
@@ -515,6 +498,8 @@ function onUpdate(frame, elapsed)
         Paused = false
     end
     
+    if ApplyCommands() then return end
+     
     if (CanHeal(resUnit) and (UnitCastingInfo("player") == "Дух предков"))  then RunMacroText("/stopcasting") end
     
     if InterruptKey and InterruptGUID and GetTime() - InterruptTime > 1 then 
@@ -526,15 +511,15 @@ function onUpdate(frame, elapsed)
         InterruptGUID = nil
     end
     
-    
     LastUpdate = LastUpdate + elapsed
     if LastUpdate < UpdateInterval then return end
     LastUpdate = 0
-    if TryTotems() then return end
+    
     if UnitIsDeadOrGhost("player") or UnitIsCharmed("player") or not UnitPlayerControlled("player") then return end
     if Paused then 
         return 
     end
+    
     Idle()
 end
 frame:SetScript("OnUpdate", onUpdate)

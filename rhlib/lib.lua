@@ -2,6 +2,53 @@
 SetCVar("cameraDistanceMax", 50)
 SetCVar("cameraDistanceMaxFactor", 3.4)
 
+local Commands = {}
+
+function SetCommand(name, applyFunc, checkFunc)
+    Commands[name] = {Timer = 0, Apply = applyFunc, Check = checkFunc}
+end
+
+function DoCommand(cmd)
+    if not Commands[cmd] then 
+        print("DoCommand: Ошибка! Нет такой комманды ".. cmd)
+        return
+    end 
+    
+    local d = 3
+    local t = GetTime() + d
+    
+    local spell, _, _, _, _, endTime  = UnitCastingInfo("player")
+    if not spell then spell, _, _, _, _, endTime, _, nointerrupt = UnitChannelInfo("player") end
+    if spell and endTime then 
+        t = endTime/1000 + d
+        if Commands[cmd].Timer and Commands[cmd].Timer == t then 
+            RunMacroText("/stopcasting") 
+            t = GetTime() + d
+        end
+    end
+    Commands[cmd].Timer = t
+end
+
+
+function ApplyCommands()
+    local ret = false
+    for cmd,_ in pairs(Commands) do 
+        if not ret then
+            if (Commands[cmd].Timer  - GetTime() > 0) then 
+                ret = true
+                if Commands[cmd].Check() then 
+                   Commands[cmd].Timer = 0
+                else
+                    Commands[cmd].Apply()
+                end
+            else
+                Commands[cmd].Timer = 0
+            end 
+        end
+    end
+    return ret
+end
+
 local zoneData = { -- {width, height}
 	Arathi = { 3599.9998779297, 2399.9999237061, 1},
 	Ogrimmar = { 1402.6044921875, 935.41662597656, 2},
@@ -354,7 +401,7 @@ end
 function HasClass(units, classes) 
     local ret = false
     for _,u in pairs(units) do 
-        if UnitExists(u) and UnitIsPlayer(u) and CheckInteractDistance(u, 1) and tContains(classes, GetClass(u)) then 
+        if UnitExists(u) and UnitIsPlayer(u) and tContains(classes, GetClass(u)) then 
             ret = true 
         end 
     end
@@ -450,6 +497,7 @@ function IsValidTarget(target)
 end
 
 function IsInteractTarget(t)
+    if IsValidTarget(t) then return false end
     if UnitExists(t) 
         and not IsIgnored(t) 
         and not UnitIsCharmed(t)
@@ -503,7 +551,8 @@ function GetUnitNames()
         for j = 1, #realUnits, 1 do
             if UnitName(u) and IsOneUnit(realUnits[j], u) then exists = true end
         end
-        if not exists then table.insert(realUnits, u) end
+        local d = CheckDistance(u, "player")
+        if not exists and ((d and d < 40) or IsArena()) then table.insert(realUnits, u) end
     end
     return realUnits
 end
@@ -521,7 +570,7 @@ end
 
 
 function GetHarmTarget()
-    local units = {"target","mouseover","focus","targetlastenemy","arena1","arena2","arena3","arena4","arena5","bos1","bos2","bos3","bos4"}
+    local units = {"target","mouseover","focus","arena1","arena2","arena3","arena4","arena5","bos1","bos2","bos3","bos4"}
     local members = GetPartyOrRaidMembers()
     for i = 1, #members, 1 do 
          table.insert(units, members[i] .."-target")
@@ -533,7 +582,7 @@ function GetHarmTarget()
         for j = 1, #realUnits, 1 do
             if IsOneUnit(realUnits[j], u) then exists = true end
         end
-        if not exists and IsValidTarget(u) then table.insert(realUnits, u) end
+        if not exists and IsValidTarget(u) and (IsArena() or CheckInteractDistance(u, 1)) then table.insert(realUnits, u) end
     end
     return realUnits
 end
@@ -563,22 +612,56 @@ function UseSlot(slot)
     return true
 end
 
-function HasDebuff(debuff, last, target)
-    if debuff == nil then return false end
-    if target == nil then target = "target" end
-    if last == nil then last = 0.1 end
-    local name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId  = UnitDebuff(target, debuff) 
-    if name == nil then return false end;
-    return (expirationTime - GetTime() >= last or expirationTime == 0)
-end
-
-function HasBuff(buff, last, target)
-    if buff == nil then return false end
+function HasAura(aura, last, target, method, my)
+    if aura == nil then return false end
+    if method == nil then method = UnitAura end
     if target == nil then target = "player" end
     if last == nil then last = 0.1 end
-    local name, _, _, _, _, _, Expires = UnitBuff(target, buff)
-    if name == nil then return false end;
-    return (Expires - GetTime() >= last or Expires == 0)
+    if (type(target) == 'table') then
+        local ret = false
+        for j = 1, #target, 1 do
+            if not ret and HasDebuff(aura, last, target[j]) then ret = true end
+        end
+        return ret
+    end
+    if (type(aura) == 'table') then
+        local ret = false
+        for i = 1, #aura, 1 do
+            if not ret and HasDebuff(aura[i], last, target) then ret = true end
+        end
+        return ret
+    end
+    local i = 0
+    local name, _, _, _, _, _, Expires, unitCaster  = method(target, i)
+    local result = false
+    while (i <= 40) and not result do
+        if name and strlower(name):match(strlower(aura)) and (Expires - GetTime() >= last or Expires == 0) and (not my or (unitCaster == nil or unitCaster == "player")) then
+            result = true
+        end
+        i = i + 1
+        if not result then
+            name, _, _, _, _, _, Expires, unitCaster  = method(target, i)
+        end
+    end
+    return result
+end
+
+function HasDebuff(aura, last, target, my)
+    if target == nil then target = "target" end
+    return HasAura(aura, last, target, UnitDebuff)
+end
+
+function HasBuff(aura, last, target, my)
+    if target == nil then target = "player" end
+    return HasAura(aura, last, target, UnitBuff)
+end
+
+function HasMyBuff(aura, last, target)
+    return HasBuff(aura, last, target, true)
+end
+
+function HasMyDebuff(aura, last, target)
+    return HasDebuff(aura, last, target, true)
 end
 
 function GetBuffStack(aura, target)
@@ -631,61 +714,12 @@ function GetMyDebuffTime(debuff, target)
     return left
 end
 
-
-
+-- Устарело
 function FindAura(aura, target)
-    if aura == nil then return nil end
-    if target == nil then target = "player" end
-    local i = 1
-    local name  = UnitAura(target, i)
-    local result = false
-    while (i <= 40) and not result  do
-        if name and strlower(name):match(strlower(aura)) then result = name end
-        i = i + 1
-        if not result then name = UnitAura(target, i) end
-    end
-    return result
+    return HasAura(aura, 1, target)
 end
 
-function HasMyBuff(buff, last, target)
-    if buff == nil then return false end
-    if target == nil then target = "player" end
-    if last == nil then last = 0.1 end
-    local i = 0
-    local name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId  = UnitBuff(target, i)
-    local result = false
-    while (i <= 40) and not result do
-        if name and strlower(name):match(strlower(buff)) and (unitCaster == nil or unitCaster == "player") then 
-            result = true
-        end
-        i = i + 1
-        if not result then
-            name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId  = UnitBuff(target, i)
-        end
-    end
-    if not result then return false end
-    return (expirationTime - GetTime() >= last or expirationTime == 0)
-end
 
-function HasMyDebuff(debuff, last, target)
-    if debuff == nil then return false end
-    if target == nil then target = "target" end
-    if last == nil then last = 0.1 end
-    local i = 0
-    local name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId  = UnitDebuff(target, i)
-    local result = false
-    while (i <= 40) and not result do
-        if name and strlower(name):match(strlower(debuff)) and (unitCaster == "player") then 
-            result = true
-        end
-        i = i + 1
-        if not result then
-            name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId  = UnitDebuff(target, i)
-        end
-    end
-    if not result then return false end
-    return (expirationTime - GetTime() >= last or expirationTime == 0)
-end
 
 function GetUtilityTooltips()
     if ( not RH_Tooltip1 ) then
@@ -844,9 +878,12 @@ function UseMount(mountName)
     return true
 end
 
-  
-  
-  
+
+function IsTotemPushedNow(i)
+    local _, totemName, startTime, duration = GetTotemInfo(i)
+    if totemName and startTime and (GetTime() - startTime < 5) then return true end
+    return false
+end
   
 function HasTotem(name, last)
 --[[Где (1) Это Огненный 
@@ -1024,7 +1061,7 @@ function UseSpell(spellName, target)
         if target ~= nil then cast = cast .."[target=".. target .."] "  end
         if cost and cost > 0 and UnitManaMax("player") > cost and UnitMana("player") <= cost then return false end
         if IsDebug() then
-            -- print(spellName, cost, UnitMana("player"), target)
+            print(spellName, cost, UnitMana("player"), target)
         end
         
         RunMacroText(cast .. "!" .. spellName)
