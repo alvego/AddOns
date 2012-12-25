@@ -333,7 +333,7 @@ local stealTargetGUID = nil
 local stealFailList = {}
 function TrySteal(target)
     local t = 5
-    if not PlayerInPlace() then t = 1 end  
+    if not PlayerInPlace() then t = 2 end  
     if (stealTarget and GetTime() - stealTime < t) then return end 
     if target == nil then target = "target" end
     if not IsValidTarget(target) then return false end
@@ -368,8 +368,8 @@ local dispelTarget = nil
 local dispelTargetGUID = nil
 local dispelFailList = {}
 function TryDispel(target)
-    local t = 3
-    if not PlayerInPlace() then t = 1 end  
+    local t = 5
+    if not PlayerInPlace() then t = 2 end  
     if dispelTarget and (GetTime() - dispelTime < t) then return end 
     if target == nil then target = "player" end
     if not IsInteractTarget(target) then return false end

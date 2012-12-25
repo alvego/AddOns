@@ -1,4 +1,6 @@
 ﻿-- Shaman Rotation Helper by Timofeev Alexey
+-- Жабу под конец покаяния
+-- Геру под крылья и стан
 local StartTime = GetTime()
 local StartComatTime = 0
 local TryResUnit = nil
