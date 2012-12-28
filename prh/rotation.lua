@@ -42,20 +42,17 @@ function Tank()
     -- if UnitMana100() < 60 and DoSpell("Волшебный поток") then  return end
 end
 
-
 function Retribution()
-    
     -- if TryStopTarget() and DoSpell("Молот правосудия") then return end
     -- if TryStopTarget() and (UnitCreatureType("target") == "Гуманоид") and DoSpell("Покаяние") then return end
     if HasDebuff("Огненный шок", 1, "player") and DoSpell("Очищение",player) then return end
-    if HasDebuff("Порча", 1, "player") and DoSpell("Очищение",player) then return end
-    if HasDebuff("Всепожирающая чума", 1, "player") and DoSpell("Очищение",player) then return end
+    -- if HasDebuff("Порча", 1, "player") and DoSpell("Очищение",player) then return end
+    -- if HasDebuff("Всепожирающая чума", 1, "player") and DoSpell("Очищение",player) then return end
+    if UnitHealth100("target") < 20 and DoSpell("Молот гнева") then return end
     if HasBuff("Искусство войны") and DoSpell("Экзорцизм") then return end       
     if DoSpell("Правосудие мудрости") then return end
-    if UnitHealth100("target") < 20 and DoSpell("Молот гнева") then return end    
-    if DoSpell("Удар воина Света") then return end
     if InMelee() and DoSpell("Божественная буря") then return end
-    -- if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
+    if DoSpell("Удар воина Света") then return end
     if --[[IsShiftKeyDown() == 1 and]] UnitMana100() > 30 and InMelee() and DoSpell("Освящение") then return end
     if (UnitCreatureType("target") == "Нежить") and UnitMana100() > 40 and InMelee() and DoSpell("Гнев небес") then return end    
     -- if UnitMana100() < 60 and DoSpell("Волшебный поток") then  return end
@@ -66,7 +63,8 @@ function Retribution()
     end
     if InMelee() and HasBuff("Гнев карателя") and UseItem("Знак превосходства")then return end
     -- if InMelee() and UseEquippedItem("Отмщение отрекшихся") then return true end
-    
+    if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
+    if DoSpell("Очищение",player) then return end
 end
 
 
@@ -131,7 +129,7 @@ function TryBuffs()
             if not HasBuff("Печать праведности") then
                 if HasBuff("Печать Света") or HasBuff("Печать мщения") or HasBuff("Печать мудрости") then else DoSpell("Печать праведности") end end
             -- if not FindAura("Благословение") and DoSpell("Великое благословение могущества","player") then return end
-            -- if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
+            if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
             -- if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
             else
                 -- if not HasBuff("Стойкость") and not HasBuff("Молитва стойкости") and UseItem("Рунический свиток стойкости") then return true end
@@ -152,7 +150,7 @@ function TryHealing()
         -- if h > 80 and not HasBuff("Печать праведности") and DoSpell("Печать праведности") then return end
         if h < 35 and UseHealPotion() then return true end
         if h < 30 and not HasDebuff("Воздержанность", 0.1, "player") and (GetTime() - ForbearanceTime > 30) and DoSpell("Возложение рук") then return true end
-        if h < 90 and HasBuff("Искусство войны") and not IsReadySpell("Экзорцизм") then DoSpell("Вспышка Света") return end
+        if h < 80 and HasBuff("Искусство войны") and not IsReadySpell("Экзорцизм") then DoSpell("Вспышка Света") return end
         if h < 50 and HasBuff("Искусство войны") then DoSpell("Вспышка Света") return end
         if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
     end
