@@ -43,11 +43,7 @@ function Tank()
 end
 
 function Retribution()
-    -- if TryStopTarget() and DoSpell("Молот правосудия") then return end
-    -- if TryStopTarget() and (UnitCreatureType("target") == "Гуманоид") and DoSpell("Покаяние") then return end
     if HasDebuff("Огненный шок", 1, "player") and DoSpell("Очищение",player) then return end
-    -- if HasDebuff("Порча", 1, "player") and DoSpell("Очищение",player) then return end
-    -- if HasDebuff("Всепожирающая чума", 1, "player") and DoSpell("Очищение",player) then return end
     if UnitHealth100("target") < 20 and DoSpell("Молот гнева") then return end
     if HasBuff("Искусство войны") and DoSpell("Экзорцизм") then return end       
     if DoSpell("Правосудие мудрости") then return end
@@ -55,7 +51,6 @@ function Retribution()
     if DoSpell("Удар воина Света") then return end
     if --[[IsShiftKeyDown() == 1 and]] UnitMana100() > 30 and InMelee() and DoSpell("Освящение") then return end
     if (UnitCreatureType("target") == "Нежить") and UnitMana100() > 40 and InMelee() and DoSpell("Гнев небес") then return end    
-    -- if UnitMana100() < 60 and DoSpell("Волшебный поток") then  return end
     if UnitMana100() < 50 and DoSpell("Святая клятва") then return end
     if InMelee() and DoSpell("Гнев карателя") then
         ForbearanceTime = GetTime()

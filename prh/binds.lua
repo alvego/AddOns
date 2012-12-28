@@ -8,7 +8,6 @@ BINDING_NAME_PRH_AOE = "Вкл/Выкл AOE в ротации"
 BINDING_NAME_PRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 BINDING_NAME_PRH_AUTOAGGRO = "Авто АГГРО"
 BINDING_NAME_PRH_BERSMOD = "Режим берсерка"
-BINDING_NAME_PRH_STOP = "Тормознуть цель"
 BINDING_NAME_PRH_STAN = "Снять стан"
 
 
@@ -93,10 +92,6 @@ function Mount()
 
     end
     
-end    
-    
-function TryStopTarget()
-    StopTarget = true;
 end
 
 function TryDispellStun()
@@ -182,16 +177,6 @@ function onUpdate(frame, elapsed)
         DispellStun = false    
         -- if IsEquippedItem("Медальон Орды") and UseItem("Медальон Орды") then return end
         if DoSpell("Каждый за себя") then return end
-    end
-
-    if not InGCD() and StopTarget then 
-        StopTarget = false;
-        if not HasDebuff("Покаяние") then
-            if DoSpell("Молот правосудия") then return end
-        end
-        if not HasDebuff("Молот правосудия") then
-            if DoSpell("Покаяние") then return end
-        end
     end
     
     Idle()   

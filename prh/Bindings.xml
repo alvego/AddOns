@@ -8,8 +8,6 @@
   <Binding name="PRH_MOUNT" description="Mount" header="PRH">
     Mount();
   </Binding>
-  <Binding name="PRH_STOP" description="Try Stop Traget" header="PRH">
-    TryStopTarget();
   </Binding>
   <Binding name="PRH_STAN" description="Try Dispell Stun" header="PRH">
     TryDispellStun();
