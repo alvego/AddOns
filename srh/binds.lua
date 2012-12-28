@@ -32,7 +32,7 @@ local NextGUID = nil
 local NotBehindTarget = 0
 local AutoTotems = true
 local FallingTime = nil
-local InCast = {}
+
 
 
 if Paused == nil then Paused = false end
@@ -210,7 +210,6 @@ function AutoRotationOff()
     Paused = true
     RunMacroText("/stopattack")
     wipe(resList)
-    wipe(InCast)
     echo("Авто ротация: OFF",true)
 end
 
@@ -541,7 +540,6 @@ function onEvent(self, event, ...)
                         end
                     end
                 end
-                InCast[spell] = GetTime()
             end
              if  event == "UNIT_SPELLCAST_SUCCEEDED" then
                  --if Debug then chat(spell) end
@@ -553,7 +551,6 @@ function onEvent(self, event, ...)
                 end
             end
             if event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_FAILED" then
-                InCast[spell] = nil
                 if IsHealCast(spell) then
                     lastHealCastTarget = nil
                 end
@@ -679,9 +676,5 @@ function UnitThreatAlert(u)
 end
 
 function DoSpell(spell, target, mana)
-    if not spell then return false end
-    local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spell)
-    if not castTime or castTime < 0.05 then castTime = 0.05 end
-    if (InCast[spell] and GetTime() - InCast[spell] <= castTime) then return false end
     return UseSpell(spell, target, mana)
 end

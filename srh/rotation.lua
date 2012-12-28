@@ -10,12 +10,12 @@ local units = {}
 
 SetCommand("hero", 
     function() 
-        print("Гера!")
-        return DoSpell("Героизм") 
+        if DoSpell("Героизм") then
+            print("Гера!")
+        end
     end, 
     function() 
-        if not InCombatLockdown() or HasDebuff("Изнеможение", 1, "player") or not IsReadySpell("Героизм")  then return true end
-        return false
+        return not InCombatLockdown() or HasDebuff("Изнеможение", 1, "player") or (not InGCD() and not IsReadySpell("Героизм")) 
     end
 )
 SetCommand("hex", 
@@ -23,11 +23,12 @@ SetCommand("hex",
         if HasSpell("Природная стремительность") then 
             DoSpell("Природная стремительность") 
         end
-        print("Сглаз")
-        return DoSpell("Сглаз") 
+        if DoSpell("Сглаз") then
+            print("Сглаз")
+        end
     end, 
     function() 
-        if not IsValidTarget("target") or HasDebuff("Сглаз", 1, "target") or not IsReadySpell("Сглаз")  then return true end
+        if not IsValidTarget("target") or HasDebuff("Сглаз", 1, "target") or (not InGCD() and not IsReadySpell("Сглаз"))  then return true end
         if not UnitIsPlayer("target") then
             local creatureType = UnitCreatureType("target")
             if creatureType ~= "Humanoid" or creatureType ~= "Beast" then return true end
@@ -41,7 +42,12 @@ SetCommand("wolf",
 )
 SetCommand("freedom", 
     function() return UseEquippedItem("Медальон Альянса") end, 
-    function() local item = "Медальон Альянса" return not IsEquippedItem(item) or not IsReadyItem(item) end
+    function() local item = "Медальон Альянса" return not IsEquippedItem(item) or (not InGCD() and not IsReadyItem(item)) end
+)
+
+SetCommand("dismount", 
+    function() return UseEquippedItem("Медальон Альянса") end, 
+    function() local item = "Медальон Альянса" return not IsEquippedItem(item) or (not InGCD() and not IsReadyItem(item)) end
 )
 
 local totemTime, needTotems = GetTime(), false

@@ -3,6 +3,7 @@ SetCVar("cameraDistanceMax", 50)
 SetCVar("cameraDistanceMaxFactor", 3.4)
 
 local Commands = {}
+local InCast = {}
 
 function SetCommand(name, applyFunc, checkFunc)
     Commands[name] = {Timer = 0, Apply = applyFunc, Check = checkFunc}
@@ -31,6 +32,7 @@ end
 
 
 function ApplyCommands()
+    if IsPlayerCasting() then return false end
     local ret = false
     for cmd,_ in pairs(Commands) do 
         if not ret then
@@ -229,6 +231,10 @@ frame:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 frame:RegisterEvent("ZONE_CHANGED_INDOORS")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD") --This event fires before DungeonLevel(), ZoneName() and GetPlayerCoords() are updated
 frame:RegisterEvent("MERCHANT_SHOW")
+frame:RegisterEvent("UNIT_SPELLCAST_START")
+frame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+frame:RegisterEvent("UNIT_SPELLCAST_FAILED")
+frame:RegisterEvent("UNIT_SPELLCAST_SENT")
 
 if HarmfulCastingSpell == nil then HarmfulCastingSpell = {} end
 local currentMap, hasLevels, zoneSize_X, zoneSize_Y
@@ -263,6 +269,7 @@ local function OnUpdate()
 	if ("IcecrownCitadel7" == zoneText) and (currentMap~="IcecrownCitadel7") then
         ZoneChanged("ZoneText")
 	end
+    if not InCombatLockdown() and not IsPlayerCasting() and #InCast > 0 then  wipe(InCast) end
 end
 frame:SetScript("OnUpdate", OnUpdate)
 
@@ -334,6 +341,10 @@ local function onEvent(self, event, ...)
             end
             if event == "UNIT_SPELLCAST_SENT" then
                 sendTime = GetTime()
+                InCast[spell] = GetTime()
+            end
+            if event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_FAILED" then
+                InCast[spell] = nil
             end
         end
         return
@@ -1044,6 +1055,8 @@ end
 function UseSpell(spellName, target)
     if SpellIsTargeting() then return false end 
      
+    if InCast[spell] and (GetTime() - InCast[spell] <= castTime) then return false end
+     
     if IsPlayerCasting() then return false end
 
     local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spellName)
@@ -1053,21 +1066,23 @@ function UseSpell(spellName, target)
         return false;
     end
     
+    if not castTime or castTime < 0.5 then castTime = 0.5 end
+    if InCast[spell] and (GetTime() - InCast[spell] <= castTime) then return false end
     
     if not InRange(name,target) then return false end  
     if IsReadySpell(spellName) then
-        
         local cast = "/cast "
         if target ~= nil then cast = cast .."[target=".. target .."] "  end
         if cost and cost > 0 and UnitManaMax("player") > cost and UnitMana("player") <= cost then return false end
-        if IsDebug() then
-            print(spellName, cost, UnitMana("player"), target)
-        end
-        
         RunMacroText(cast .. "!" .. spellName)
         if SpellIsTargeting() then CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() end 
-
-        return true
+        local start, duration, enabled = GetSpellCooldown(spellName)
+        if start > 0 and (GetTime() - start < 0.1) then  
+            if IsDebug() then
+                print(spellName, cost, UnitMana("player"), target)
+            end
+            return true
+        end
     end
     return false
 end
