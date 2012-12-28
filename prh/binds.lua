@@ -131,7 +131,6 @@ end
 
 function AutoRotationOff()
     Paused = true
-    wipe(InCast)
     echo("Авто ротация: OFF",true)
     RunMacroText("/stopattack")
 end
