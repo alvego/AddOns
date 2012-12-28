@@ -42,6 +42,12 @@ function Tank()
     -- if UnitMana100() < 60 and DoSpell("Волшебный поток") then  return end
 end
 
+local CleanseAllowTypes = {
+    ["Magic"] = true, -- Магический эффект
+    ["Disease"] = true, -- Болезнь
+    ["Poison"] = true  -- Яд
+}
+
 function Retribution()
     if HasDebuff("Огненный шок", 1, "player") and DoSpell("Очищение",player) then return end
     if UnitHealth100("target") < 20 and DoSpell("Молот гнева") then return end
@@ -59,7 +65,18 @@ function Retribution()
     if InMelee() and HasBuff("Гнев карателя") and UseItem("Знак превосходства")then return end
     -- if InMelee() and UseEquippedItem("Отмщение отрекшихся") then return true end
     if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
-    if DoSpell("Очищение",player) then return end
+    -- Dispel
+    if IsReadySpell("Очищение") then
+        local ret = false
+        for i = 1, 40 do
+            if not ret then
+                local name, _, _, _, debuffType, duration, expirationTime = UnitDebuff("player", i,true)
+                if name and debuffType and CleanseAllowTypes[debuffType] and (expirationTime - GetTime() >= 3) and DoSpell("Очищение", "player") then ret = true end
+            end
+        end
+        if ret then return end
+    end
+    
 end
 
 
