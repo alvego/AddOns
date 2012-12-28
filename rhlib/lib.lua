@@ -1056,7 +1056,10 @@ function UseSpell(spellName, target)
     if SpellIsTargeting() then return false end 
      
     if InCast[spell] and (GetTime() - InCast[spell] <= castTime) then return false end
-     
+--[[    for _,value in pairs(InCast) do 
+        if value then cast = true end
+    end ]]
+    
     if IsPlayerCasting() then return false end
 
     local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spellName)

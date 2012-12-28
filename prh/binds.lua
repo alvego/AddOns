@@ -36,9 +36,6 @@ local BersState = false
 local CanInterrupt = true
 local NextTarget = nil
 local NextGUID = nil
-local InCast = {}
-
-
 
 function CanUseInterrupt()
     return CanInterrupt
@@ -229,28 +226,6 @@ function TryDispell(unit)
 end
 
 function onEvent(self, event, ...)
---~ print(1,event)
-    if event:match("^UNIT_SPELLCAST") then
-        local unit, spell = select(1,...)
---~         print(event,  unit, spell )
-        if unit == "player" then
-            
-        
-            if spell and event == "UNIT_SPELLCAST_SENT" then
-                InCast[spell] = true
-            end
-            if spell and event == "UNIT_SPELLCAST_SUCCEEDED" then
---~                 if Debug then 
---~                     chat(spell)
---~                 end
-            end
-            if event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_FAILED" then
-                InCast[spell] = false
-            end
-        end
-        return
-    end
-    
     local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err = select(1, ...)
     if not(destName ~= GetUnitName("player")) and sourceName ~= nil and not UnitCanCooperate("player",sourceName) then 
         if not Paused then 
@@ -283,9 +258,5 @@ frame:SetScript("OnEvent", onEvent)
 
 
 function DoSpell(spellName, target, runes)
-    if (InCast[spellName]) then return false end
-     for _,value in pairs(InCast) do 
-        if value then cast = true end
-    end
     return UseSpell(spellName, target)
 end
