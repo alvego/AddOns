@@ -8,10 +8,6 @@
   <Binding name="PRH_MOUNT" description="Mount" header="PRH">
     Mount();
   </Binding>
-  </Binding>
-  <Binding name="PRH_STAN" description="Try Dispell Stun" header="PRH">
-    TryDispellStun();
-  </Binding>
   <Binding name="PRH_INTERRUPT" description="Use cust interrupt" header="PRH">
     UseInterrupt();
   </Binding>

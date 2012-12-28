@@ -8,7 +8,6 @@ BINDING_NAME_PRH_AOE = "Вкл/Выкл AOE в ротации"
 BINDING_NAME_PRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 BINDING_NAME_PRH_AUTOAGGRO = "Авто АГГРО"
 BINDING_NAME_PRH_BERSMOD = "Режим берсерка"
-BINDING_NAME_PRH_STAN = "Снять стан"
 
 
 --~ if GetClass() ~= 'DEATHKNIGHT' then return end
@@ -28,8 +27,6 @@ local LastUpdate = 0
 local UpdateInterval = 0.001
 local Paused = false
 local Debug = false
-local StopTarget = false
-local DispellStun = false
 local AutoAGGRO = true
 local BersState = false
 local CanInterrupt = true
@@ -92,10 +89,6 @@ function Mount()
 
     end
     
-end
-
-function TryDispellStun()
-    DispellStun = true;
 end
 
 function AutoAGGROToggle()
@@ -171,13 +164,6 @@ function onUpdate(frame, elapsed)
     end
     
     if UnitIsDeadOrGhost("player") or UnitIsCharmed("player") or not UnitPlayerControlled("player") then return end
-
-   
-    if not InGCD() and DispellStun then
-        DispellStun = false    
-        -- if IsEquippedItem("Медальон Орды") and UseItem("Медальон Орды") then return end
-        if DoSpell("Каждый за себя") then return end
-    end
     
     Idle()   
   
