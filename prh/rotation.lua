@@ -76,7 +76,6 @@ function Retribution()
         end
         if ret then return end
     end
-    
 end
 
 
