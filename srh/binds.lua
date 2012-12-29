@@ -3,9 +3,7 @@
 BINDING_HEADER_SRH = "Shaman Rotation Helper"
 BINDING_NAME_SRH_OFF = "Выкл ротацию"
 BINDING_NAME_SRH_DEBUG = "Вкл/Выкл режим отладки"
-BINDING_NAME_SRH_MOUNT = "Вкл/Выкл маунта"
 BINDING_NAME_SRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
-BINDING_NAME_SRH_BERSMODE = "Вкл/Выкл берсерка"
 BINDING_NAME_SRH_AUTOAOE = "Вкл/Выкл авто AOE"
 BINDING_NAME_SRH_LISTMODE = "Вкл/Выкл WhiteList"
 BINDING_NAME_SRH_TOTEMS = "Автоматически ставить тотемы"
@@ -24,21 +22,17 @@ frame:RegisterEvent("UNIT_SPELLCAST_SENT")
 
 local LastUpdate = 0
 local UpdateInterval = 0.025
-local LastPosX, LastPosY = GetPlayerMapPosition("player")
-local InPlace = true
+
 local resList = {}
 local NextTarget = nil
 local NextGUID = nil
 local NotBehindTarget = 0
 local AutoTotems = true
-local FallingTime = nil
-
 
 
 if Paused == nil then Paused = false end
 if Debug == nil then Debug = false end
 if CanInterrupt == nil then CanInterrupt = true end
-if BersState == nil then BersState = true end
 if AutoAOE == nil then AutoAOE = true end
 
 if DispelWhiteList == nil then DispelWhiteList = {} end
@@ -78,10 +72,6 @@ function RoleHeal()
     Notify(RoleName())
 end
 
-InPlaceTime = GetTime()
-function PlayerInPlace()
-    return InPlace and (GetTime() - InPlaceTime > 0.08) and (not IsFalling() or IsSwimming())
-end
 
 function IsNotBehindTarget()
     return GetTime() - NotBehindTarget < 1
@@ -99,7 +89,6 @@ function IsVisible(target)
         local u = UnitName(target)
         if u and UnitIsPlayer(u) and (GetTime() - sayNotVisible) > 15 and CalculateHP(u) < 50 then
             print("Не могу подхилить ".. u ..". Вне поля зрения.")
---~             RunMacroText("/с Не могу подхилить ".. u ..". Вне поля зрения.")
             sayNotVisible = GetTime()
         end
         return false
@@ -163,48 +152,6 @@ function NextIsTarget(target)
     return (UnitGUID("target") == NextGUID)
 end
 
-function Mount()
-    if HasBuff("Призрачный волк") then
-        RunMacroText("/cancelaura Призрачный волк")
-        return true
-    end
-    
-    if CanExitVehicle() then
-        VehicleExit()
-        return true
-    end
-    
-    if IsMounted() then
-        Dismount()
-        return true
-    end 
-    
---[[    if InCombatLockdown() or IsArena() or not PlayerInPlace() then
-        DoCommand("wolf")
-        return 
-    end]]
-   
-    if InGCD() or IsPlayerCasting() then return false end
-    
-    if (IsLeftControlKeyDown() or IsSwimming()) and not HasBuff("Хождение по воде", 1, "player") and DoSpell("Хождение по воде", "player") then return end
-    
-    if IsAltKeyDown() then
-        return UseMount("Тундровый мамонт путешественника")
-    end
-
-    
-
-    
-    
-    if IsFlyableArea() and not IsLeftControlKeyDown() and not InCombatLockdown() then
-        return UseMount("Черный дракон")
-    end
-   
-
-    if IsOutdoors() and not InCombatLockdown() then
-        return UseMount("Большой Лиловый элекк")
-    end
-end    
     
 function AutoRotationOff()
     Paused = true
@@ -212,19 +159,6 @@ function AutoRotationOff()
     wipe(resList)
     echo("Авто ротация: OFF",true)
 end
-
-function BersModeToggle()
-    BersState = not BersState
-    if BersState then
-        echo("Берс Мод: ON",true)
-    else
-        echo("Берс Мод: OFF",true)
-    end 
-end
-
-function GetBersState()
-    return BersState
-end 
 
 function AutoAOEToggle()
     AutoAOE = not AutoAOE
@@ -436,10 +370,10 @@ function TryInterrupt(target)
     
     if not spell then return false end
     
-    local time = endTime/1000 - GetTime()
+    local t = endTime/1000 - GetTime()
 
-    if time < 0.2 then return false end
-    if not channel and time > 0.7 then return false end
+    if t < 0.2 then return false end
+    if not channel and t > 0.7 then return false end
     
     InterruptKey = GetUnitType(target) .. '|' ..  spell
     local positiveTry = 0
@@ -447,7 +381,7 @@ function TryInterrupt(target)
     local negativeTry = 0
     if InterruptBlackList[name] then negativeTry = InterruptBlackList[name] end
     --if positiveTry > 0 then negativeTry = 0 end
-    if not ((not whiteListMode or positiveTry > 5) and  (negativeTry < 5)) then return false end
+    if not ((not whiteListMode or positiveTry > 5) and (negativeTry < 5)) then return false end
     
     if not notinterrupt and IsReadySpell("Пронизывающий ветер") and InRange("Пронизывающий ветер",target) then
         if UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
@@ -473,31 +407,14 @@ end
 
 function onUpdate(frame, elapsed)
     
-    local posX, posY = GetPlayerMapPosition("player")
-    InPlace = (LastPosX == posX and LastPosY == posY)
-    LastPosX ,LastPosY = GetPlayerMapPosition("player")
-    if not InPlace then InPlaceTime = GetTime() end
+    if ApplyCommands() then return end
     
-    
-    
-    if IsFalling() then
-        if FallingTime == nil then FallingTime = GetTime() end
-        if FallingTime and (GetTime() - FallingTime > 1.2) then
-            if HasBuff("Хождение по воде") then RunMacroText("/cancelaura Хождение по воде") end
-            if HasBuff("Льдистый путь") then RunMacroText("/cancelaura Льдистый путь") end
-        end
-    else
-        if FallingTime ~= nil then FallingTime = nil end
-    end
-    
-   
-        
     if (IsAttack() and Paused) then
         echo("Авто ротация: ON",true)
         Paused = false
     end
     
-    if ApplyCommands() then return end
+    
      
     if (CanHeal(resUnit) and (UnitCastingInfo("player") == "Дух предков"))  then RunMacroText("/stopcasting") end
     

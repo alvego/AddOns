@@ -20,9 +20,9 @@ SetCommand("hero",
 )
 SetCommand("hex", 
     function() 
-        if HasSpell("Природная стремительность") then 
+--[[        if HasSpell("Природная стремительность") then 
             DoSpell("Природная стремительность") 
-        end
+        end]]
         if DoSpell("Сглаз") then
             print("Сглаз")
         end
@@ -36,33 +36,76 @@ SetCommand("hex",
         return false
     end
 )
-SetCommand("wolf", 
-    function() return DoSpell("Призрачный волк") end, 
-    function() return HasBuff("Призрачный волк") end
-)
+
 SetCommand("freedom", 
     function() return UseEquippedItem("Медальон Альянса") end, 
     function() local item = "Медальон Альянса" return not IsEquippedItem(item) or (not InGCD() and not IsReadyItem(item)) end
 )
 
-SetCommand("dismount", 
-    function() return UseEquippedItem("Медальон Альянса") end, 
-    function() local item = "Медальон Альянса" return not IsEquippedItem(item) or (not InGCD() and not IsReadyItem(item)) end
+local tryMount = false
+SetCommand("mount", 
+    function() 
+        if InCombatLockdown() or IsArena() or not PlayerInPlace() then
+            return DoSpell("Призрачный волк") 
+        end
+        if (IsLeftControlKeyDown() or IsSwimming()) and not HasBuff("Хождение по воде", 1, "player") and DoSpell("Хождение по воде", "player") then return end
+        if InGCD() or IsPlayerCasting() or InCombatLockdown() or not IsOutdoors() then return false end
+        local mount = "Большой Лиловый элекк"
+        if IsFlyableArea() and not IsLeftControlKeyDown() then mount = "Черный дракон" end
+        if IsAltKeyDown() then mount = "Тундровый мамонт путешественника" end
+        if UseMount(mount) then tryMount = true return end
+    end, 
+    function() 
+        if (HasBuff("Призрачный волк") or IsMounted() or CanExitVehicle()) then return true end
+        if tryMount then
+            tryMount = false
+            return true
+        end
+        return false 
+    end
 )
+
+SetCommand("dismount", 
+    function() 
+        if HasBuff("Призрачный волк") then RunMacroText("/cancelaura Призрачный волк") return end
+        if CanExitVehicle() then VehicleExit() return end
+        if IsMounted() then Dismount() return end 
+    end, 
+    function() 
+        return not (HasBuff("Призрачный волк") or IsMounted() or CanExitVehicle())
+    end
+)
+
+local TryTotemsForce  = false
+local TryTotemsComplete = false
+SetCommand("totems", 
+    function() 
+        return TryTotems()
+    end, 
+    function() 
+        TryTotemsForce = true
+        if TryTotemsComplete then
+            TryTotemsForce = false
+            TryTotemsComplete = false
+            return true
+        end
+        return false
+    end
+)
+
 
 local totemTime, needTotems = GetTime(), false
 function TryTotems()
-    local tryForce = (not IsLeftControlKeyDown() and IsMouseButtonDown(3))
-
-    if tryForce then
+    if TryTotemsForce then
         needTotems = true
+        totemTime = 0
     else
         if not InCombatLockdown() or not CanAutoTotems() then
             needTotems = false
         end 
     end
      
-    if not tryForce then
+    if not TryTotemsForce then
         if  (not needTotems or (GetTime() - totemTime < 2) or InGCD() or (not PlayerInPlace() and not IsAOE())) then return false end
     end
     local fire, earth, water, air = 1,2,3,4
@@ -88,7 +131,10 @@ function TryTotems()
     if HasTotem("Тотем каменного когтя") then force[earth] = true end
     if IsReadySpell("Тотем трепета") then
         local priority = 10
-        if HasClass(harmTarget, {"WARLOCK", "PRIEST"}) then priority = 90 end
+        if HasClass(harmTarget, {"WARLOCK", "PRIEST"}) or HasDebuff({"Страх", "Вой ужаса", "Устрашающий крик", "Контроль над разумом", "Глубинный ужас", "Ментальный крик"}, 1,units) then 
+            priority = 100 
+            force[earth] = true
+        end
         table.insert(earthTotems, { N = "Тотем трепета", P = priority })
     end
     if IsReadySpell("Тотем оков земли") then
@@ -146,10 +192,9 @@ function TryTotems()
     end
     if IsReadySpell("Тотем очищения") then
         local priority = 10
-        if HasClass(harmTarget, {"DEATHKNIGHT", "WARLOCK", "PRIEST", "ROGUE"}) then priority = 90 end
-        if HasDebuff({"Страх", "Вой ужаса", "Устрашающий крик", "Контроль над разумом", "Глубинный ужас", "Ментальный крик"}, 1,units) then
+        if HasClass(harmTarget, {"DEATHKNIGHT", "WARLOCK", "PRIEST", "ROGUE"}) or HasDebuff({"Disease", "Poison"}, 1,units) then 
             priority = 100 
-            force[earth] = true
+            force[waterTotems] = true
         end
         table.insert(waterTotems, { N = "Тотем очищения", P = priority })
     end
@@ -188,7 +233,7 @@ function TryTotems()
     for i = 1, 4 do
         local s = 140 + i
         if totem[i] then
-            if force[i] or (tryForce and not IsTotemPushedNow(i)) or (not HasTotem(i)) then
+            if force[i] or (TryTotemsForce and not IsTotemPushedNow(i)) or (not HasTotem(i)) then
                 SetMultiCastSpell(s, GetSpellId(totem[i]))  
                 try = true
             else 
@@ -199,8 +244,8 @@ function TryTotems()
     
     if try and DoSpell("Зов Духов") then
         totemTime = GetTime()
+        TryTotemsComplete = false
     end
-   
     return try
 end
 
@@ -421,7 +466,7 @@ function HealRotation()
         
         if h < 40 then lowhpmembers = lowhpmembers + 1 end
    end 
-   
+    if #members < 1 then print("Некого лечить!!!") return end
     local u, h, l = members[1].Unit, members[1].HP, members[1].Lost
     CheckHealCast(u, h)
 

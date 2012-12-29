@@ -1,4 +1,122 @@
-﻿-- Rotation Helper Library by Timofeev Alexey
+﻿--[[ Interrupt + - хилка
+SHAMAN|Малая волна исцеления +
+SHAMAN|Волна исцеления +
+SHAMAN|Выброс лавы
+SHAMAN|Сглаз
+SHAMAN|Цепное исцеление +
+MAGE|Превращение
+MAGE|Прилив сил, потоковое
+WARLOCK|Нестабильное колдовство
+WARLOCK|Блуждающий дух
+WARLOCK|Стрела Тьмы
+WARRIOR|Сокрушительный бросок
+WARLOCK|Стрела Хаоса
+WARLOCK|Вой ужаса
+WARLOCK|Страх
+WARLOCK|Похищение жизни
+PALADIN|Свет небес +
+PALADIN|Вспышка Света +
+PRIEST|Быстрое исцеление  +
+PRIEST|Исповедь, потоковое сразу сбивать +
+PRIEST|Божественный гимн  +
+PRIEST|Связующее исцеление, +
+PRIEST|Массовое рассеивание
+PRIEST|Прикосновение вампира
+PRIEST|Сожжение маны
+PRIEST|Молитва исцеления +
+PRIEST|Исцеление +
+PRIEST|Контроль над разумом
+PRIEST|Великое исцеление +
+DRUID|Покровительство Природы
+DRUID|Звездный огонь
+DRUID|Смерч
+DRUID|Спокойствие потоковое +
+DRUID|Восстановление +
+DRUID|Целительное прикосновение +
+
+диспел
+
+Сглаз
+Укус змеи
+Укус гадюки
+Проклятие стихий
+Проклятие косноязычия
+Проклятие агонии
+
+остальное тотем яды и болезни
+
+
+комунизм
+
+Обновление
+Слово силы: Щит
+Дубовая кожа
+Жажда крови
+Вспышка Света
+Священный щит
+Святая клятва
+Гнев карателя
+Щит Бездны
+Щит маны,
+Жизнецвет
+Щит земли, весь не состилишь
+Милость,
+Стылая кровь
+Искусство войны
+Буйный рост
+Омоложение
+Защита Пустоты
+Лишнее время
+Чародейское ускорение
+Героизм
+Призрачный волк
+Быстрина
+Частица Света
+Улучшенный скачок
+Божественная защита
+Жизнь Земли
+Восстановление
+Покров Света
+Хватка природы
+Длань свободы
+Ледяная преграда
+Жертвоприношение
+Мощь тайной магии
+Незыблемость льда
+Праведное неистовство
+Быстрота хищника
+Ускорение
+Изничтожение
+Стылая кровь
+Обратный поток
+Средоточие воли
+Молитва восстановления
+
+red list
+
+Слово силы: Щит
+Дубовая кожа
+Жажда крови
+Святая клятва
+Гнев карателя
+Щит Бездны
+Щит маны,
+Стылая кровь
+Защита Пустоты
+Чародейское ускорение
+Героизм
+Быстрина
+Божественная защита
+Длань свободы
+Ледяная преграда
+Жертвоприношение
+Мощь тайной магии
+Незыблемость льда
+Быстрота хищника
+Стылая кровь
+]]
+
+-- Rotation Helper Library by Timofeev Alexey
 SetCVar("cameraDistanceMax", 50)
 SetCVar("cameraDistanceMaxFactor", 3.4)
 
@@ -264,14 +382,37 @@ local function GetZoneMap()								--
 	return currentMap
 end
 
+local LastPosX, LastPosY = GetPlayerMapPosition("player")
+local InPlace = true
+local FallingTime = nil
 local function OnUpdate()
 	local zoneText = GetZoneMap()
 	if ("IcecrownCitadel7" == zoneText) and (currentMap~="IcecrownCitadel7") then
         ZoneChanged("ZoneText")
 	end
     if not InCombatLockdown() and not IsPlayerCasting() and #InCast > 0 then  wipe(InCast) end
+    
+    local posX, posY = GetPlayerMapPosition("player")
+    InPlace = (LastPosX == posX and LastPosY == posY)
+    LastPosX ,LastPosY = GetPlayerMapPosition("player")
+    if not InPlace then InPlaceTime = GetTime() end
+    
+    if IsFalling() then
+        if FallingTime == nil then FallingTime = GetTime() end
+        if FallingTime and (GetTime() - FallingTime > 1.2) then
+            if HasBuff("Хождение по воде") then RunMacroText("/cancelaura Хождение по воде") end
+            if HasBuff("Льдистый путь") then RunMacroText("/cancelaura Льдистый путь") end
+        end
+    else
+        if FallingTime ~= nil then FallingTime = nil end
+    end
 end
 frame:SetScript("OnUpdate", OnUpdate)
+
+InPlaceTime = GetTime()
+function PlayerInPlace()
+    return InPlace and (GetTime() - InPlaceTime > 0.08) and (not IsFalling() or IsSwimming())
+end
 
 local function ZoneChanged(event)			--
 -- Function copied from AVR.			--
@@ -351,6 +492,9 @@ local function onEvent(self, event, ...)
     end
     if event == "COMBAT_LOG_EVENT_UNFILTERED" then
         local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, agrs12, agrs13,agrs14 = select(1, ...)
+        if type:match("SPELLCAST_START") then 
+            --print(type, sourceName, destName, spellName)
+        end
         if type:match("SPELL_DAMAGE") then
             if spellName and agrs12 > 0 then
                 local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellId) 
@@ -624,7 +768,7 @@ function UseSlot(slot)
 end
 
 function HasAura(aura, last, target, method, my)
-    if aura == nil then return false end
+    if aura == nil or not UnitExists(target) then return false end
     if method == nil then method = UnitAura end
     if target == nil then target = "player" end
     if last == nil then last = 0.1 end
@@ -643,15 +787,17 @@ function HasAura(aura, last, target, method, my)
         return ret
     end
     local i = 0
-    local name, _, _, _, _, _, Expires, unitCaster  = method(target, i)
+    local name, _, _, _, debuffType, _, Expires, unitCaster  = method(target, i)
     local result = false
     while (i <= 40) and not result do
-        if name and strlower(name):match(strlower(aura)) and (Expires - GetTime() >= last or Expires == 0) and (not my or (unitCaster == nil or unitCaster == "player")) then
+        if name and (strlower(name):match(strlower(aura)) or (debuffType and strlower(debuffType):match(strlower(aura)) )) 
+            and (Expires - GetTime() >= last or Expires == 0) 
+            and (not my or (unitCaster == nil or unitCaster == "player")) then
             result = true
         end
         i = i + 1
         if not result then
-            name, _, _, _, _, _, Expires, unitCaster  = method(target, i)
+            name, _, _, _, debuffType, _, Expires, unitCaster  = method(target, i)
         end
     end
     return result
