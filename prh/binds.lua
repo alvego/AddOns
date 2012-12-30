@@ -137,7 +137,7 @@ function IsDebug()
 end    
 
 function IsAttack()
-    return (IsControlKeyDown() == 1)
+    return (IsMouseButtonDown(4) == 1)
 end
 
 

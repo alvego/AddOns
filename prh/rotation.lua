@@ -20,6 +20,11 @@ SetCommand("stun",
    function() return not InGCD() and not IsReadySpell("Молот правосудия")  end
 )
 
+SetCommand("sv", 
+   function() return DoSpell("Длань защиты","Ириха") end, 
+   function() return not InGCD() and not IsReadySpell("Длань защиты")  end
+)
+
 function Tank()
     RunMacroText("/startattack")
     
@@ -62,7 +67,7 @@ function Retribution()
         ForbearanceTime = GetTime()
         return 
     end
-    if InMelee() and HasBuff("Гнев карателя") and UseItem("Знак превосходства")then return end
+    if IsControlKeyDown() == 1 and InMelee() and HasBuff("Гнев карателя") and UseItem("Знак превосходства")then return end
     -- if InMelee() and UseEquippedItem("Отмщение отрекшихся") then return true end
     if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
     -- Dispel
@@ -139,9 +144,9 @@ function TryBuffs()
         if HasSpell("Удар воина Света") then
             if not HasBuff("Печать праведности") then
                 if HasBuff("Печать Света") or HasBuff("Печать мщения") or HasBuff("Печать мудрости") then else DoSpell("Печать праведности") end end
-            -- if not FindAura("Благословение") and DoSpell("Великое благословение могущества","player") then return end
+            if not InCombatLockdown() and not FindAura("Великое благословение могущества") and DoSpell("Великое благословение могущества","player") then return end
             if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
-            -- if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
+            if not InCombatLockdown() and not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
             else
                 -- if not HasBuff("Стойкость") and not HasBuff("Молитва стойкости") and UseItem("Рунический свиток стойкости") then return true end
             if not FindAura("Благословение") and DoSpell("Великое благословение неприкосновенности","player") then return end
