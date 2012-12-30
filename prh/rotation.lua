@@ -44,7 +44,6 @@ function Tank()
     if UnitMana100() > 55 and DoSpell("Правосудие света") then return end
     if UnitMana100() <= 55 and DoSpell("Правосудие мудрости") then return end
     if DoSpell("Щит праведности") then return end
-    -- if UnitMana100() < 60 and DoSpell("Волшебный поток") then  return end
 end
 
 local CleanseAllowTypes = {
@@ -148,7 +147,6 @@ function TryBuffs()
             if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
             if not InCombatLockdown() and not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
             else
-                -- if not HasBuff("Стойкость") and not HasBuff("Молитва стойкости") and UseItem("Рунический свиток стойкости") then return true end
             if not FindAura("Благословение") and DoSpell("Великое благословение неприкосновенности","player") then return end
             if not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
             if not HasBuff("Печать мщения") and DoSpell("Печать мщения") then return end
