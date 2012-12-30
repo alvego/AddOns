@@ -62,11 +62,11 @@ function Retribution()
     if --[[IsShiftKeyDown() == 1 and]] UnitMana100() > 30 and InMelee() and DoSpell("Освящение") then return end
     if (UnitCreatureType("target") == "Нежить") and UnitMana100() > 40 and InMelee() and DoSpell("Гнев небес") then return end    
     if UnitMana100() < 50 and DoSpell("Святая клятва") then return end
-    if InMelee() and DoSpell("Гнев карателя") then
+    if IsControlKeyDown() == 1 and InMelee() and DoSpell("Гнев карателя") then
         ForbearanceTime = GetTime()
         return 
     end
-    if IsControlKeyDown() == 1 and InMelee() and HasBuff("Гнев карателя") and UseItem("Знак превосходства")then return end
+    if InMelee() and HasBuff("Гнев карателя") and UseItem("Знак превосходства")then return end
     -- if InMelee() and UseEquippedItem("Отмщение отрекшихся") then return true end
     if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
     -- Dispel
