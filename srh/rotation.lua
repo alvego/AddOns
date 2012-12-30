@@ -76,38 +76,31 @@ SetCommand("dismount",
     end
 )
 
-local TryTotemsForce  = false
-local TryTotemsComplete = false
+local totemTime, needTotems = GetTime(), false, false
 SetCommand("totems", 
     function() 
-        return TryTotems()
+        return TryTotems(true)
     end, 
     function() 
-        TryTotemsForce = true
-        if TryTotemsComplete then
-            TryTotemsForce = false
-            TryTotemsComplete = false
-            return true
-        end
-        return false
+        return (GetTime() - totemTime < 0.5)
     end
 )
 
 
-local totemTime, needTotems = GetTime(), false
-function TryTotems()
-    if TryTotemsForce then
+
+function TryTotems(forceTotems)
+
+    if forceTotems then
         needTotems = true
-        totemTime = 0
     else
         if not InCombatLockdown() or not CanAutoTotems() then
             needTotems = false
         end 
     end
      
-    if not TryTotemsForce then
-        if  (not needTotems or (GetTime() - totemTime < 2) or InGCD() or (not PlayerInPlace() and not IsAOE())) then return false end
-    end
+    if not needTotems or InGCD() then return false end
+    if not PlayerInPlace() and not forceTotems then return false end
+    
     local fire, earth, water, air = 1,2,3,4
     local force = {}
     local totem = {}
@@ -233,7 +226,7 @@ function TryTotems()
     for i = 1, 4 do
         local s = 140 + i
         if totem[i] then
-            if force[i] or (TryTotemsForce and not IsTotemPushedNow(i)) or (not HasTotem(i)) then
+            if force[i] or (forceTotems and not IsTotemPushedNow(i)) or (not HasTotem(i)) then
                 SetMultiCastSpell(s, GetSpellId(totem[i]))  
                 try = true
             else 
@@ -244,7 +237,6 @@ function TryTotems()
     
     if try and DoSpell("Зов Духов") then
         totemTime = GetTime()
-        TryTotemsComplete = false
     end
     return try
 end

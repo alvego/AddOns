@@ -475,6 +475,7 @@ local function onEvent(self, event, ...)
     end
     if event:match("^UNIT_SPELLCAST") then
         local unit, spell = select(1,...)
+        
         if spell and unit == "player" then
             if event == "UNIT_SPELLCAST_START" then
                 if not sendTime then return end
@@ -492,9 +493,12 @@ local function onEvent(self, event, ...)
     end
     if event == "COMBAT_LOG_EVENT_UNFILTERED" then
         local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, agrs12, agrs13,agrs14 = select(1, ...)
-        if type:match("SPELLCAST_START") then 
-            --print(type, sourceName, destName, spellName)
-        end
+        --if sourceName == UnitName("player") then
+            --print(select(1, ...)) 
+        --end
+        --[[        if type:match("SPELL_CAST_START") then 
+            print(type, timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, agrs12, agrs13,agrs14)
+        end]]
         if type:match("SPELL_DAMAGE") then
             if spellName and agrs12 > 0 then
                 local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellId) 
@@ -707,7 +711,7 @@ function GetUnitNames()
             if UnitName(u) and IsOneUnit(realUnits[j], u) then exists = true end
         end
         local d = CheckDistance(u, "player")
-        if not exists and ((d and d < 40) or IsArena()) then table.insert(realUnits, u) end
+        if not exists and ((not d or d < 40) or IsArena()) then table.insert(realUnits, u) end
     end
     return realUnits
 end
