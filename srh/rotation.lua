@@ -154,7 +154,7 @@ function TryTotems(forceTotems)
     end
     if IsReadySpell("Опаляющий тотем")  then
         local priority = 15
-        if IsPvP() then priority = 25 end
+        if not IsPvP() and not InGroup() then priority = 25 end
         table.insert(fireTotems, { N = "Опаляющий тотем", P = priority })
     end
     if IsAOE() then
