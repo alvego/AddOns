@@ -53,13 +53,13 @@ local CleanseAllowTypes = {
 }
 
 function Retribution()
+    if IsShiftKeyDown() == 1 and DoSpell("Освящение") then return end
     if HasDebuff("Огненный шок", 1, "player") and DoSpell("Очищение",player) then return end
     if UnitHealth100("target") < 20 and DoSpell("Молот гнева") then return end
     if HasBuff("Искусство войны") and DoSpell("Экзорцизм") then return end       
     if DoSpell("Правосудие мудрости") then return end
     if InMelee() and DoSpell("Божественная буря") then return end
     if DoSpell("Удар воина Света") then return end
-    if --[[IsShiftKeyDown() == 1 and]] UnitMana100() > 30 and InMelee() and DoSpell("Освящение") then return end
     if (UnitCreatureType("target") == "Нежить") and UnitMana100() > 40 and InMelee() and DoSpell("Гнев небес") then return end    
     if UnitMana100() < 50 and DoSpell("Святая клятва") then return end
     if IsControlKeyDown() == 1 and InMelee() and DoSpell("Гнев карателя") then
