@@ -143,9 +143,9 @@ function TryBuffs()
         if HasSpell("Удар воина Света") then
             if not HasBuff("Печать праведности") then
                 if HasBuff("Печать Света") or HasBuff("Печать мщения") or HasBuff("Печать мудрости") then else DoSpell("Печать праведности") end end
-            if not InCombatLockdown() and not FindAura("Великое благословение могущества","player") and DoSpell("Великое благословение могущества","player") then return end
+            if not InCombatLockdown() and not HasBuff("Великое благословение могущества") and DoSpell("Великое благословение могущества","player") then return end
             if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
-            if not InCombatLockdown() and not HasBuff("Священный щит","player") and DoSpell("Священный щит","player") then return end
+            if not InCombatLockdown() and not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
             else
             if not FindAura("Благословение") and DoSpell("Великое благословение неприкосновенности","player") then return end
             if not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
