@@ -369,7 +369,7 @@ function TryInterrupt(target)
     end
     
     if not spell then return false end
-    
+    if not CanUseInterrupt() and not InInterruptRedList(spell) then return false end
     local t = endTime/1000 - GetTime()
 
     if t < 0.2 then return false end
@@ -381,7 +381,7 @@ function TryInterrupt(target)
     local negativeTry = 0
     if InterruptBlackList[name] then negativeTry = InterruptBlackList[name] end
     --if positiveTry > 0 then negativeTry = 0 end
-    if not ((not whiteListMode or positiveTry > 5) and (negativeTry < 5)) then return false end
+    if not ((not whiteListMode or positiveTry > 5) and (negativeTry < 5)) and not InInterruptRedList(spell) then return false end
     
     if not notinterrupt and IsReadySpell("Пронизывающий ветер") and InRange("Пронизывающий ветер",target) then
         if UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
@@ -393,7 +393,8 @@ function TryInterrupt(target)
         end
     end
     
-    if not channel and not HasTotem("Тотем заземления") and IsReadySpell("Тотем заземления") and IsHarmfulCast(spell) and IsOneUnit(target .. "-target", "player") and InRange("Пронизывающий ветер",target)  then
+    if not channel and not HasTotem("Тотем заземления") and IsReadySpell("Тотем заземления") 
+        and IsHarmfulCast(spell) and IsOneUnit(target .. "-target", "player") and InRange("Пронизывающий ветер",target)  then
         if UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
         if UseSpell("Тотем заземления") then 
             --echo("Interrupt " .. spell .. " ("..target.." => " .. GetUnitName(target) .. ")")

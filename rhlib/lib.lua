@@ -1,4 +1,75 @@
-﻿--[[ Interrupt + - хилка
+﻿local InterruptRedList = {
+    "Малая волна исцеления",
+    "Волна исцеления",
+    "Выброс лавы",
+    "Сглаз",
+    "Цепное исцеление",
+    "Превращение",
+    "Прилив сил",
+    "Нестабильное колдовство",
+    "Блуждающий дух",
+    "Стрела Тьмы",
+    "Сокрушительный бросок",
+    "Стрела Хаоса",
+    "Вой ужаса",
+    "Страх",
+    "Похищение жизни",
+    "Свет небес",
+    "Вспышка Света",
+    "Быстрое исцеление",
+    "Исповедь",
+    "Божественный гимн",
+    "Связующее исцеление",
+    "Массовое рассеивание",
+    "Прикосновение вампира",
+    "Сожжение маны",
+    "Молитва исцеления",
+    "Исцеление",
+    "Контроль над разумом",
+    "Великое исцеление",
+    "Покровительство Природы",
+    "Звездный огонь",
+    "Смерч",
+    "Спокойствие потоковое",
+    "Восстановление",
+    "Целительное прикосновение"
+}
+
+function InInterruptRedList(spellName)
+    return tContains(InterruptRedList, spellName)
+end
+
+DispelRedList = {
+    "Сглаз",
+    "Проклятие стихий",
+    "Проклятие косноязычия",
+    "Проклятие агонии"
+}
+
+StealRedList = {
+    "Слово силы: Щит",
+    "Дубовая кожа",
+    "Жажда крови",
+    "Святая клятва",
+    "Гнев карателя",
+    "Щит Бездны",
+    "Щит маны",
+    "Стылая кровь",
+    "Защита Пустоты",
+    "Чародейское ускорение",
+    "Героизм",
+    "Быстрина",
+    "Божественная защита",
+    "Длань свободы",
+    "Ледяная преграда",
+    "Жертвоприношение",
+    "Мощь тайной магии",
+    "Незыблемость льда",
+    "Быстрота хищника",
+    "Стылая кровь"
+}
+
+--[[ Interrupt + - хилка
 SHAMAN|Малая волна исцеления +
 SHAMAN|Волна исцеления +
 SHAMAN|Выброс лавы
@@ -492,16 +563,10 @@ local function onEvent(self, event, ...)
         return
     end
     if event == "COMBAT_LOG_EVENT_UNFILTERED" then
-        local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, agrs12, agrs13,agrs14 = select(1, ...)
-        --if sourceName == UnitName("player") then
-            --print(select(1, ...)) 
-        --end
-        --[[        if type:match("SPELL_CAST_START") then 
-            print(type, timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, agrs12, agrs13,agrs14)
-        end]]
-        if type:match("SPELL_DAMAGE") then
+        local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
+        if event:match("SPELL_DAMAGE") then
             if spellName and agrs12 > 0 then
-                local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellId) 
+                local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellID) 
                 if castTime > 0 then
                     HarmfulCastingSpell[spellName] = true
                 end
@@ -510,6 +575,9 @@ local function onEvent(self, event, ...)
     end
 end
 frame:SetScript("OnEvent", onEvent)
+
+
+      
 
 
 function IsHarmfulCast(spellName)
@@ -695,6 +763,14 @@ function InGroup()
     return (GetNumRaidMembers() > 0 or GetNumPartyMembers() > 0)
 end
 
+function TryEach(list, func)
+    local ret = false
+    for _,value in pairs(list) do 
+        if not ret and func(value) then ret = true end 
+    end
+    return ret
+end
+
 function GetUnitNames()
     local units = {"player", "target", "focus" }
     local members = GetPartyOrRaidMembers()
@@ -729,7 +805,7 @@ end
 
 
 function GetHarmTarget()
-    local units = {"target","mouseover","focus","arena1","arena2","arena3","arena4","arena5","bos1","bos2","bos3","bos4"}
+    local units = {"target","mouseover","focus","arena1","arena2","arena3","arena4","arena5","arena1-pet","arena2-pet","arena3-pet","arena4-pet","arena5","bos1","bos2","bos3","bos4"}
     local members = GetPartyOrRaidMembers()
     for i = 1, #members, 1 do 
          table.insert(units, members[i] .."-target")
