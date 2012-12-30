@@ -848,24 +848,17 @@ function UseSlot(slot)
 end
 
 function HasAura(aura, last, target, method, my)
-    if aura == nil or not UnitExists(target) then return false end
+    if aura == nil then return false end
     if method == nil then method = UnitAura end
     if target == nil then target = "player" end
     if last == nil then last = 0.1 end
-    if (type(target) == 'table') then
-        local ret = false
-        for j = 1, #target, 1 do
-            if not ret and HasDebuff(aura, last, target[j]) then ret = true end
-        end
-        return ret
+    if (type(target) == 'table') then 
+        return TryEach(target, function(t) return HasAura(aura, last, t, method, my) end)
     end
     if (type(aura) == 'table') then
-        local ret = false
-        for i = 1, #aura, 1 do
-            if not ret and HasDebuff(aura[i], last, target) then ret = true end
-        end
-        return ret
+        return TryEach(aura, function(a) return HasAura(a, last, target, method, my) end)
     end
+    if not UnitExists(target) then return false end
     local i = 0
     local name, _, _, _, debuffType, _, Expires, unitCaster  = method(target, i)
     local result = false
@@ -885,12 +878,12 @@ end
 
 function HasDebuff(aura, last, target, my)
     if target == nil then target = "target" end
-    return HasAura(aura, last, target, UnitDebuff)
+    return HasAura(aura, last, target, UnitDebuff, my)
 end
 
 function HasBuff(aura, last, target, my)
     if target == nil then target = "player" end
-    return HasAura(aura, last, target, UnitBuff)
+    return HasAura(aura, last, target, UnitBuff, my)
 end
 
 function HasMyBuff(aura, last, target)

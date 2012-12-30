@@ -177,7 +177,7 @@ function TryTotems(forceTotems)
         if UnitMana100("player") < 50 then priority = 20 end
         table.insert(waterTotems, { N = "Тотем источника маны", P = priority })
     end
-    if not HasTotem("Тотем прилива маны") and HasSpell("Тотем прилива маны") and IsReadySpell("Тотем прилива маны") and UnitHealth100() < 70 then
+    if not HasTotem("Тотем прилива маны") and HasSpell("Тотем прилива маны") and IsReadySpell("Тотем прилива маны") and UnitMana100("player") < 70 then
         table.insert(waterTotems, { N = "Тотем прилива маны", P = 100 })
         Notify("Тотем прилива маны!!!")
         force[water] = true
@@ -188,7 +188,7 @@ function TryTotems(forceTotems)
     if IsReadySpell("Тотем очищения") then
         local priority = 10
         if not HasTotem("Тотем очищения") and HasClass(harmTarget, {"DEATHKNIGHT", "WARLOCK", "PRIEST", "ROGUE"}) or HasDebuff({"Disease", "Poison"}, 1,units) then 
-            priority = 100 
+            priority = 90
             force[waterTotems] = true
         end
         table.insert(waterTotems, { N = "Тотем очищения", P = priority })
@@ -198,6 +198,9 @@ function TryTotems(forceTotems)
         totem[water] = waterTotems[1].N
     else
         totem[water] = nil
+    end
+    if HasTotem("Тотем прилива маны") then
+        force[waterTotems] = false
     end
     --air
     if not HasBuff("Тотем неистовства ветра") and not HasBuff("Цепкие ледяные когти") then
@@ -344,14 +347,20 @@ end
 
 local shieldChangeTime = 0
 function HealRotation()
+    if TryEach(harmTarget, TryInterrupt) then return end
+    if IsReadySpell("Развеивание магии") and TryEach(harmTarget, function(t) return HasBuff(StealRedList, 2, t) and DoSpell("Развеивание магии", t) end) then return  end
+    if IsReadySpell("Очищение духа") and TryEach(units, function(u) return HasDebuff(DispelRedList, 2, u) and DoSpell("Очищение духа", u) end) then return end
+    
+    if HasDebuff(DispelRedList, 2, units) or HasBuff(StealRedList, 2, harmTarget) then return end
+    
     --CalculateHealing
     if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16) and DoSpell("Оружие жизни земли") then return end
-    
+    if UnitMana100() < 80 and (GetTime() - StartTime > 3) and UnitHealth100("player") > 30 and not HasBuff("Водный щит") and DoSpell("Водный щит") then return end
     if (IsPvP() and InCombatLockdown()) and TryEach(harmTarget, 
         function(t) return IsValidTarget(t) and UnitHealth(t) < 3000 and not HasDebuff("Огненный шок", 1, t) and DoSpell("Огненный шок", t) end
     ) then return end
     
-    if IsAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and IsValidTarget("target") and UnitAffectingCombat("target") then
+    if IsAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and IsValidTarget("target") then
         if HasMyDebuff("Огненный шок", 1, "target") and PlayerInPlace() then
             if PlayerInPlace() and DoSpell("Выброс лавы") then return end
         else
@@ -440,7 +449,7 @@ function HealRotation()
         
         if HasMyBuff("Щит земли",1,u) then unitWithShield = u end
         
-        if (UnitThreatAlert(u) == 3) and (hp < threatLowHP) then
+        if (UnitThreatAlert(u) == 3) and (hp < threatLowHP) and (not IsOneUnit(u, "player") or (UnitMana100("player") > 50 and UnitHealth100("player") < 30)) then
            threatLowHPUnit = u  
            threatLowHP = hp  
         end
@@ -483,12 +492,6 @@ function HealRotation()
     end
     
     if IsArena() and not InCombatLockdown() and not HasBuff("Водный щит") and not unitWithShield and DoSpell("Щит земли", "player") then return end
-    
-    if (h > 30 or IsArena()) and TryEach(harmTarget, TryInterrupt) then return end
-    
-    if IsReadySpell("Очищение духа") and TryEach(units, function(u) return HasDebuff(DispelRedList, 2, u) and DoSpell("Очищение духа", u) end) then return end
-    if IsReadySpell("Развеивание магии") and TryEach(harmTarget, function(t) return HasBuff(StealRedList, 2, u) and DoSpell("Развеивание магии", t) end) then return  end
-    
     if threatLowHPUnit and (GetTime() - StartComatTime > 3) then
         if unitWithShield and UnitThreatAlert(unitWithShield) < 3 and threatLowHPUnit and (threatLowHP < 70) then
             shieldChangeTime = 0
@@ -520,12 +523,9 @@ function HealRotation()
     --local HealingWaveHeal = GetMySpellHeal("Волна исцеления")
     --local LesserHealingWaveHeal = GetMySpellHeal("Малая волна исцеления")
     
-    if HasSpell("Быстрина") and IsReadySpell("Быстрина") then
-        local ret = false
-        for i=1,#members do 
-            if not ret and not HasMyBuff("Быстрина",1,members[i].Unit) and (members[i].Lost > RiptideHeal) and DoSpell("Быстрина", members[i].Unit) then ret = true end end
-        if ret then return end
-    end
+    if HasSpell("Быстрина") and IsReadySpell("Быстрина") and TryEach(members, 
+        function(m) return not HasMyBuff("Быстрина",1,m.Unit) and (m.Lost > RiptideHeal) and DoSpell("Быстрина", m.Unit) end
+        ) then return end
     
     if PlayerInPlace() then
         if h > 30 and rUnits[u] > 1 and not IsPvP() and l > ChainHeal and DoSpell("Цепное исцеление", u) then return end 
@@ -536,10 +536,8 @@ function HealRotation()
         if UnitThreatAlert("player") < 3 and (l > HealingWaveHeal) and DoSpell("Волна исцеления", u) then return end
     end
     
-    if UnitMana100() < 80 and (GetTime() - StartTime > 3) and not HasBuff("Щит земли") and not HasBuff("Водный щит") and DoSpell("Водный щит") then return end
-    
-    if (h > 40 or IsArena()) and TryEach(harmTarget, TrySteal) then return end
-    if (h > 20 or IsArena()) and TryEach(units, TryDispel) then return end
+    if (h > 40 or IsArena()) and CanUseInterrupt() and TryEach(harmTarget, TrySteal) then return end
+    if (h > 20 or IsArena()) and CanUseInterrupt() and TryEach(units, TryDispel) then return end
     
     if (h > 20 and IsPvP() and InCombatLockdown()) and TryEach(harmTarget, 
         function(t) return IsValidTarget(t) and UnitIsPlayer(t) and not HasDebuff("Ледяной шок", 1, t) and not HasDebuff("Оковы земли", 1, t) and DoSpell("Ледяной шок", t) end
