@@ -204,7 +204,7 @@ function DoCommand(cmd)
         return
     end 
     
-    local d = 3
+    local d = 2
     local t = GetTime() + d
     
     local spell, _, _, _, _, endTime  = UnitCastingInfo("player")

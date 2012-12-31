@@ -25,6 +25,16 @@ SetCommand("sv",
    function() return not InGCD() and not IsReadySpell("Длань защиты")  end
 )
 
+SetCommand("hp", 
+   function() return DoSpell("Печать Света") end, 
+   function() return not InGCD() and HasBuff("Печать Света")  end
+)
+
+SetCommand("dd", 
+   function() return DoSpell("Печать праведности") end, 
+   function() return not InGCD() and HasBuff("Печать праведности")  end
+)
+
 function Tank()
     RunMacroText("/startattack")
     
@@ -57,7 +67,7 @@ function Retribution()
     if HasDebuff("Огненный шок", 1, "player") and DoSpell("Очищение",player) then return end
     if UnitHealth100("target") < 20 and DoSpell("Молот гнева") then return end
     if HasBuff("Искусство войны") and DoSpell("Экзорцизм") then return end       
-    if DoSpell("Правосудие мудрости") then return end
+    if UnitMana100() < 60 then DoSpell("Правосудие мудрости") else DoSpell("Правосудие света") end
     if InMelee() and DoSpell("Божественная буря") then return end
     if DoSpell("Удар воина Света") then return end
     if (UnitCreatureType("target") == "Нежить") and UnitMana100() > 40 and InMelee() and DoSpell("Гнев небес") then return end    
@@ -162,10 +172,11 @@ function TryHealing()
     if InCombatLockdown() then
         -- if h < 40 and not HasBuff("Печать Света") and DoSpell("Печать Света") then return end
         -- if h > 80 and not HasBuff("Печать праведности") and DoSpell("Печать праведности") then return end
+        -- if h < 50 and HasBuff("Искусство войны") and EquipItemByName("Манускрипт правосудия гневного гладиатора") and DoSpell("Вспышка Света") and EquipItemByName("Манускрипт стойкости гневного гладиатора") then return end
         if h < 35 and UseHealPotion() then return true end
         if h < 30 and not HasDebuff("Воздержанность", 0.1, "player") and (GetTime() - ForbearanceTime > 30) and DoSpell("Возложение рук") then return true end
         if h < 80 and HasBuff("Искусство войны") and not IsReadySpell("Экзорцизм") then DoSpell("Вспышка Света") return end
-        if h < 50 and HasBuff("Искусство войны") then DoSpell("Вспышка Света") return end
+        
         if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
     end
     return false
