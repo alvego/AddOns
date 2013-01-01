@@ -20,6 +20,16 @@ SetCommand("stun",
    function() return not InGCD() and not IsReadySpell("Молот правосудия")  end
 )
 
+SetCommand("frepentance", 
+   function() return DoSpell("Покаяние","focus") end, 
+   function() return not InGCD() and not IsReadySpell("Покаяние")  end
+)
+
+SetCommand("fstun", 
+   function() return DoSpell("Молот правосудия","focus") end, 
+   function() return not InGCD() and not IsReadySpell("Молот правосудия")  end
+)
+
 SetCommand("sv", 
    function() return DoSpell("Длань защиты","Ириха") end, 
    function() return not InGCD() and not IsReadySpell("Длань защиты")  end
@@ -61,7 +71,7 @@ function Retribution()
     if UnitMana("player") < 1000 and not HasBuff("Печать мудрости") and DoSpell("Печать мудрости") then return end
     if UnitMana100("player") > 70 then RunMacroText("/cancelaura Печать мудрости") end
     if IsValidTarget("mouseover") and (UnitCreatureType("mouseover") == "Нежить" or UnitCreatureType("mouseover") == "Демон") 
-        and not HasDebuff("Изгнание зла", 0.5, "mouseover") and DoSpell("Изгнание зла") then return end
+        and not HasDebuff("Изгнание зла", 0.5, "mouseover") and DoSpell("Изгнание зла","mouseover") then return end
     if IsValidTarget("mouseover") and (UnitName("mouseover") == "Тотем оков земли") and DoSpell("Длань возмездия", "mouseover") then return end
     if not (IsValidTarget("target") and (UnitAffectingCombat("target") or IsAttack()))  then return end
     
