@@ -9,8 +9,6 @@ BINDING_NAME_PRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 BINDING_NAME_PRH_AUTOAGGRO = "Авто АГГРО"
 BINDING_NAME_PRH_BERSMOD = "Режим берсерка"
 
-
---~ if GetClass() ~= 'DEATHKNIGHT' then return end
 -- addon main frame
 local frame=CreateFrame("Frame",nil,UIParent)
 print("Paladin Rotation Helper loaded")
@@ -18,13 +16,9 @@ print("Paladin Rotation Helper loaded")
 RunMacroText("/cleartarget")
 -- attach events
 frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-frame:RegisterEvent("UNIT_SPELLCAST_START")
-frame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-frame:RegisterEvent("UNIT_SPELLCAST_FAILED")
-frame:RegisterEvent("UNIT_SPELLCAST_SENT")
 
 local LastUpdate = 0
-local UpdateInterval = 0.001
+local UpdateInterval = 0.025
 local Paused = false
 local Debug = false
 local AutoAGGRO = true
@@ -227,6 +221,6 @@ frame:SetScript("OnEvent", onEvent)
 
 
 
-function DoSpell(spellName, target, runes)
+function DoSpell(spellName, target)
     return UseSpell(spellName, target)
 end

@@ -31,7 +31,7 @@ SetCommand("hex",
         if not IsValidTarget("target") or HasDebuff("Сглаз", 1, "target") or (not InGCD() and not IsReadySpell("Сглаз"))  then return true end
         if not UnitIsPlayer("target") then
             local creatureType = UnitCreatureType("target")
-            if creatureType ~= "Humanoid" or creatureType ~= "Beast" then return true end
+            if creatureType ~= "Гуманоид" or creatureType ~= "Животное" then return true end
         end
         return false
     end
@@ -203,12 +203,12 @@ function TryTotems(forceTotems)
         force[waterTotems] = false
     end
     --air
-    if not HasBuff("Тотем неистовства ветра") and not HasBuff("Цепкие ледяные когти") then
+    if not IsArena() and not HasBuff("Тотем неистовства ветра") and not HasBuff("Цепкие ледяные когти") then
         local priority = 10
         if IsMDD() then priority = 20 end
         table.insert(airTotems, { N = "Тотем неистовства ветра", P = priority })
     end
-    if not HasBuff("Тотем гнева воздуха") then
+    if not IsArena() and not HasBuff("Тотем гнева воздуха") then
         local priority = 15
         table.insert(airTotems, { N = "Тотем гнева воздуха", P = priority })
     end
@@ -351,7 +351,7 @@ function HealRotation()
     if IsReadySpell("Развеивание магии") and TryEach(harmTarget, function(t) return HasBuff(StealRedList, 2, t) and DoSpell("Развеивание магии", t) end) then return  end
     if IsReadySpell("Очищение духа") and TryEach(units, function(u) return HasDebuff(DispelRedList, 2, u) and DoSpell("Очищение духа", u) end) then return end
     
-    if HasDebuff(DispelRedList, 2, units) or HasBuff(StealRedList, 2, harmTarget) then return end
+    --if HasDebuff(DispelRedList, 2, units) or HasBuff(StealRedList, 2, harmTarget) then return end
     
     --CalculateHealing
     if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16) and DoSpell("Оружие жизни земли") then return end

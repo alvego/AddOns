@@ -21,12 +21,11 @@ frame:RegisterEvent("UNIT_SPELLCAST_FAILED")
 frame:RegisterEvent("UNIT_SPELLCAST_SENT")
 
 local LastUpdate = 0
-local UpdateInterval = 0.025
+local UpdateInterval = 0.0001
 
 local resList = {}
 local NextTarget = nil
 local NextGUID = nil
-local NotBehindTarget = 0
 local AutoTotems = true
 
 
@@ -71,42 +70,6 @@ function RoleHeal()
     Role = 2
     Notify(RoleName())
 end
-
-
-function IsNotBehindTarget()
-    return GetTime() - NotBehindTarget < 1
-end
-
-
---~ Цель вне поля зрения.
-local notVisible = {}
-local sayNotVisible = 0
-function IsVisible(target)
-    if not target or target == "player"  then return true end
-    if not UnitIsVisible(target) then return false end
-    local t = notVisible[target]
-    if t and GetTime() - t < 1 then
-        local u = UnitName(target)
-        if u and UnitIsPlayer(u) and (GetTime() - sayNotVisible) > 15 and CalculateHP(u) < 50 then
-            print("Не могу подхилить ".. u ..". Вне поля зрения.")
-            sayNotVisible = GetTime()
-        end
-        return false
-    end
-    return true;
-end
-
-
-function UnitPartyName(unit)
-    if not unit or not UnitExists(unit) then return nil end
-    local guid = UnitGUID(unit)
-    local members = GetUnitNames()
-    for i=1,#members do 
-        if UnitGUID(members[i]) == guid then return members[i] end
-    end
-    return nil
-end
-
 
 function CanAutoTotems()
     return AutoTotems
@@ -535,14 +498,6 @@ function onEvent(self, event, ...)
                     end
                 end
             
-                if err == "Цель вне поля зрения." then
-                    local partyName = UnitPartyName(lastTarget)
-                    if partyName then
-                        notVisible[partyName] = GetTime()
-                    end
-                end
-                                
-                if err == "Вы должны находиться позади цели." then NotBehindTarget = GetTime() end
                 if Debug  then
                     print("["..spellName .. "]: ".. err)
                 end

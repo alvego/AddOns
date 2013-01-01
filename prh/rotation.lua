@@ -36,8 +36,7 @@ SetCommand("dd",
 )
 
 function Tank()
-    RunMacroText("/startattack")
-    
+    if not (IsValidTarget("target") and (UnitAffectingCombat("target") or IsAttack()))  then return end
     if DoSpell("Щит мстителя") then return end
     if IsAOE() then
         if UnitMana100() > 50 and InMelee() and DoSpell("Освящение") then return end
@@ -56,18 +55,28 @@ function Tank()
     if DoSpell("Щит праведности") then return end
 end
 
-local CleanseAllowTypes = {
-    ["Magic"] = true, -- Магический эффект
-    ["Disease"] = true, -- Болезнь
-    ["Poison"] = true  -- Яд
-}
+
 
 function Retribution()
-    if IsShiftKeyDown() == 1 and DoSpell("Освящение") then return end
+    if UnitMana("player") < 1000 and not HasBuff("Печать мудрости") and DoSpell("Печать мудрости") then return end
+    if UnitMana100("player") > 70 then RunMacroText("/cancelaura Печать мудрости") end
+    if IsValidTarget("mouseover") and (UnitCreatureType("mouseover") == "Нежить" or UnitCreatureType("mouseover") == "Демон") 
+        and not HasDebuff("Изгнание зла", 0.5, "mouseover") and DoSpell("Изгнание зла") then return end
+    if IsValidTarget("mouseover") and (UnitName("mouseover") == "Тотем оков земли") and DoSpell("Длань возмездия", "mouseover") then return end
+    if not (IsValidTarget("target") and (UnitAffectingCombat("target") or IsAttack()))  then return end
+    
     if HasDebuff("Огненный шок", 1, "player") and DoSpell("Очищение",player) then return end
+    
+    if IsShiftKeyDown() == 1 and DoSpell("Освящение") then return end
+    
     if UnitHealth100("target") < 20 and DoSpell("Молот гнева") then return end
-    if HasBuff("Искусство войны") and DoSpell("Экзорцизм") then return end       
-    if UnitMana100() < 60 then DoSpell("Правосудие мудрости") else DoSpell("Правосудие света") end
+    if HasBuff("Искусство войны") and DoSpell("Экзорцизм") then return end      
+    if IsAltKeyDown() then
+        if DoSpell("Правосудие справедливости") then return end
+    else
+        if UnitMana100() < 60 then DoSpell("Правосудие мудрости") else DoSpell("Правосудие света") end
+    end
+    
     if InMelee() and DoSpell("Божественная буря") then return end
     if DoSpell("Удар воина Света") then return end
     if (UnitCreatureType("target") == "Нежить") and UnitMana100() > 40 and InMelee() and DoSpell("Гнев небес") then return end    
@@ -78,20 +87,15 @@ function Retribution()
     end
     if InMelee() and HasBuff("Гнев карателя") and UseItem("Знак превосходства")then return end
     -- if InMelee() and UseEquippedItem("Отмщение отрекшихся") then return true end
-    if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
+    if not IsArena() and not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
     -- Dispel
-    if IsReadySpell("Очищение") then
-        local ret = false
-        for i = 1, 40 do
-            if not ret then
-                local name, _, _, _, debuffType, duration, expirationTime = UnitDebuff("player", i,true)
-                if name and debuffType and CleanseAllowTypes[debuffType] and (expirationTime - GetTime() >= 3) and DoSpell("Очищение", "player") then ret = true end
-            end
-        end
-        if ret then return end
+    if IsArena() then
+        if IsReadySpell("Очищение") and TryEach(GetUnitNames(), function(u) return HasDebuff({"Magic", "Disease", "Poison"}, 3, u) and DoSpell("Очищение", u) end) then return end
+    else
+        if IsReadySpell("Очищение") and HasDebuff({"Magic", "Disease", "Poison"}, 3, "player") and DoSpell("Очищение", "player") then return end
     end
+    
 end
-
 
 local StartComatTime = 0
 function Idle()
@@ -102,27 +106,18 @@ function Idle()
         local harmTarget = GetHarmTarget()
         local units = GetPartyOrRaidMembers()
         if CanUseInterrupt() then
-            local ret = false
-            for _,target in pairs(harmTarget) do 
-                if not ret and TryInterrupt(target) then ret = true end 
-            end
-            if ret then return end
+            if TryEach(harmTarget, TryInterrupt) then return end
         end 
         if IsMouseButtonDown(3) and TryTaunt("mouseover") then return end
         if GetAutoAGGRO() and InGroup() and ((GetTime() - StartComatTime > 1)) then
-            local ret = false
-            for _,unit in pairs(units) do 
-                if not ret and (GetTime() - StartComatTime < 3) and IsInteractTarget(unit) 
-                  and  UnitThreat(unit) > 1 and not IsOneUnit("player", unit) 
-                  and DoSpell("Длань спасения",unit) then 
+            if (GetTime() - StartComatTime < 3) and TryEach(units, function(unit) 
+                if IsInteractTarget(unit) and  UnitThreat(unit) > 1 and not IsOneUnit("player", unit) and DoSpell("Длань спасения",unit) then 
                     echo("Длань спасения " .. unit) 
-                    ret = true 
+                    return true
                 end
-            end
-            for _,target in pairs(harmTarget) do 
-                if not ret and IsValidTarget(target) and UnitAffectingCombat(target) and TryTaunt(target) then ret = true end 
-            end
-            if ret then return end
+                return false
+            end) then return end
+            if TryEach(harmTarget, function(target) return IsValidTarget(target) and UnitAffectingCombat(target) and TryTaunt(target) end) then return end
         end
         -- Священная жертва
         if InCombatLockdown() and HasSpell("Щит мстителя") and InGroup() and CalculateHP("player") > 70 then
@@ -132,12 +127,11 @@ function Idle()
         end
         
         if TryHealing() then return end
-        if TryDispell("player") then return end
         if TryProtect() then return end
         if TryBuffs() then return end
         TryTarget()
-        if not (IsValidTarget("target") and (UnitAffectingCombat("target") or IsAttack()))  then return end
         if HasSpell("Щит мстителя") then
+            if TryDispell("player") then return end
             Tank() 
         else 
             Retribution()
@@ -149,14 +143,16 @@ end
 
 
 function TryBuffs()
-
         if HasSpell("Удар воина Света") then
-            if not HasBuff("Печать праведности") then
-                if HasBuff("Печать Света") or HasBuff("Печать мщения") or HasBuff("Печать мудрости") then else DoSpell("Печать праведности") end end
-            if not InCombatLockdown() and not HasBuff("Великое благословение могущества") and DoSpell("Великое благословение могущества","player") then return end
             if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
-            if not InCombatLockdown() and not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
-            else
+            if not HasBuff("Печать") and DoSpell("Печать праведности") then return end
+            if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
+                if not HasBuff("Боевой крик") and not HasBuff("благословение королей") 
+                    and not HasBuff("благословение могущества") and DoSpell("Великое благословение могущества","player") then return end
+                if ((HasBuff("благословение могущества") and not HasMyBuff("благословение могущества")) or HasBuff("Боевой крик")) 
+                    and not HasBuff("благословение королей") and DoSpell("Великое благословение королей","player") then return end
+            end
+        else
             if not FindAura("Благословение") and DoSpell("Великое благословение неприкосновенности","player") then return end
             if not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
             if not HasBuff("Печать мщения") and DoSpell("Печать мщения") then return end
@@ -167,24 +163,47 @@ function TryBuffs()
         end 
 end
 
+function CanHeal(t)
+    if IsInteractTarget(t) 
+        and InRange("Вспышка света", t)
+        and IsVisible(t)
+    then return true end 
+    return false
+end 
+
 function TryHealing()
-    local h = CalculateHP("player")
-    if InCombatLockdown() then
-        -- if h < 40 and not HasBuff("Печать Света") and DoSpell("Печать Света") then return end
-        -- if h > 80 and not HasBuff("Печать праведности") and DoSpell("Печать праведности") then return end
-        -- if h < 50 and HasBuff("Искусство войны") and EquipItemByName("Манускрипт правосудия гневного гладиатора") and DoSpell("Вспышка Света") and EquipItemByName("Манускрипт стойкости гневного гладиатора") then return end
-        if h < 35 and UseHealPotion() then return true end
-        if h < 30 and not HasDebuff("Воздержанность", 0.1, "player") and (GetTime() - ForbearanceTime > 30) and DoSpell("Возложение рук") then return true end
-        if h < 80 and HasBuff("Искусство войны") and not IsReadySpell("Экзорцизм") then DoSpell("Вспышка Света") return end
-        
-        if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
+    if IsArena() then
+        local members, units = {}, GetUnitNames()
+        for i=1,#units do
+            local u = units[i]
+            if CanHeal(u) then table.insert(members, { Unit = u, HP = CalculateHP(u), Lost = UnitLostHP(u) } ) end
+        end
+        table.sort(members, function(x,y) return x.HP < y.HP end)
+        local unitWithShield = nil
+        for i=1,#units do if HasMyBuff("Священный щит",1,units[i]) then unitWithShield = units[i] end end 
+        if #members > 0 then 
+            local u, h, l = members[1].Unit, members[1].HP, members[1].Lost
+            if not unitWithShield or (not HasBuff("Священный щит",1,u) and h < 50) and h < 80 and DoSpell("Священный щит",u) then return end
+            if h < 20 and not HasDebuff("Воздержанность", 0.1, "player") and (GetTime() - ForbearanceTime > 30) and DoSpell("Возложение рук",u) then return end
+            if h < 70 and HasBuff("Искусство войны") and (not IsReadySpell("Экзорцизм") or h < 35) then DoSpell("Вспышка Света",u) return end
+        end
+    else
+        local h = CalculateHP("player")
+        if InCombatLockdown() then
+            -- if h < 40 and not HasBuff("Печать Света") and DoSpell("Печать Света") then return end
+            -- if h > 80 and not HasBuff("Печать праведности") and DoSpell("Печать праведности") then return end
+            -- if h < 50 and HasBuff("Искусство войны") and EquipItemByName("Манускрипт правосудия гневного гладиатора") and DoSpell("Вспышка Света") and EquipItemByName("Манускрипт стойкости гневного гладиатора") then return end
+            if h < 35 and UseHealPotion() then return true end
+            if h < 30 and not HasDebuff("Воздержанность", 0.1, "player") and (GetTime() - ForbearanceTime > 30) and DoSpell("Возложение рук") then return true end
+            if h < 80 and HasBuff("Искусство войны") and not IsReadySpell("Экзорцизм") then DoSpell("Вспышка Света") return end
+            if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
+        end
     end
     return false
 end
 
 
 function TryTarget()
-
     if not IsValidTarget("target") then
         local found = false
         local members = GetPartyOrRaidMembers()
@@ -223,25 +242,47 @@ function TryTarget()
     if not IsValidTarget("target") or (IsAttack() and  not UnitCanAttack("player", "target")) then
         RunMacroText("/cleartarget")
     end
-   
-    if not IsValidTarget("focus") then
-        local found = false
-        local harmTarget = GetHarmTarget()
-        for _,target in pairs(harmTarget) do 
-            if not found and IsValidTarget(target) and UnitCanAttack("player", target) and InMelee(target) and not IsOneUnit("target", target) then 
-                found = true 
-                RunMacroText("/focus " .. target) 
-            end
+    
+    if (IsArena() or true) and IsValidTarget("target") and (IsOneUnit("target", "focus") or not UnitExists("focus")) then
+        if IsOneUnit("target","arena1") then 
+            RunMacroText("/cleartarget")
+            RunMacroText("/target arena2")
+            RunMacroText("/focus")
+            RunMacroText("/cleartarget")
+            RunMacroText("/target arena1")
+        end
+        if IsOneUnit("target","arena2") then 
+            RunMacroText("/cleartarget")
+            RunMacroText("/target arena1")
+            RunMacroText("/focus")
+            RunMacroText("/cleartarget")
+            RunMacroText("/target arena2")
         end
     end
-
-    if not IsValidTarget("focus") or IsOneUnit("target", "focus") or not InMelee("focus") then
-        RunMacroText("/clearfocus")
-    end
+    
 end
 
-
+redTime = 0
 function TryProtect()
+    if IsArena() then
+        local redDispelList = {
+            "Превращение",
+            "Покаяние",
+            "Глубокая заморозка",
+            "Молот правосудия",
+            "Замораживающая ловушка",
+            "Ослепление",
+            "Смерч",
+            "Ошеломление"
+        }
+        if (GetTime() - redTime > 3) and IsReadySpell("Очищение") and TryEach(GetUnitNames(), function(u)
+            if HasDebuff(redDispelList, 2, u) and IsVisible(u) and DoSpell("Очищение") then
+                redTime = GetTime()
+                return true
+            end
+            return false
+        end) then return end
+    end
     if InCombatLockdown() then
         if (UnitHealth100() < 90 and not (HasBuff("Крепнущая броня"))) then
             if UseEquippedItem("Клятва Эйтригга") then return true end
@@ -261,7 +302,7 @@ end
 
 local InterruptTime = 0
 function TryInterrupt(target)
-    if (GetTime() - InterruptTime < 1) then return false end
+    if (GetTime() - InterruptTime < 1) or IsArena() then return false end
     if target == nil then target = "target" end
     
     if not IsValidTarget(target) then return false end

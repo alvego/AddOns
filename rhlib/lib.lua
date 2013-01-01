@@ -66,7 +66,8 @@ StealRedList = {
     "Мощь тайной магии",
     "Незыблемость льда",
     "Быстрота хищника",
-    "Стылая кровь"
+    "Стылая кровь",
+    "Озарение"
 }
 
 --[[ Interrupt + - хилка
@@ -193,6 +194,31 @@ SetCVar("cameraDistanceMaxFactor", 3.4)
 
 local Commands = {}
 local InCast = {}
+
+local notBehindTarget = 0
+function IsNotBehindTarget()
+    return GetTime() - notBehindTarget < 1
+end
+
+--~ Цель вне поля зрения.
+local notVisible = {}
+function IsVisible(target)
+    if not target or target == "player"  then return true end
+    if not UnitIsVisible(target) then return false end
+    local t = notVisible[target]
+    if t and GetTime() - t < 1 then return false end
+    return true;
+end
+
+function UnitPartyName(unit)
+    if not unit or not UnitExists(unit) then return nil end
+    local guid = UnitGUID(unit)
+    local members = GetUnitNames()
+    for i=1,#members do 
+        if UnitGUID(members[i]) == guid then return members[i] end
+    end
+    return nil
+end
 
 function SetCommand(name, applyFunc, checkFunc)
     Commands[name] = {Timer = 0, Apply = applyFunc, Check = checkFunc}
@@ -572,6 +598,20 @@ local function onEvent(self, event, ...)
                 end
             end
         end
+        if sourceGUID == UnitGUID("player") and (event:match("^SPELL_CAST") and spellID and spellName)  then
+            local err = agrs12
+            if err then
+                if err == "Цель вне поля зрения." then
+                    local partyName = UnitPartyName(lastTarget)
+                    if partyName then
+                        notVisible[partyName] = GetTime()
+                    end
+                end
+                if err == "Вы должны находиться позади цели." then notBehindTarget = GetTime() end
+            end
+            
+        end
+
     end
 end
 frame:SetScript("OnEvent", onEvent)
