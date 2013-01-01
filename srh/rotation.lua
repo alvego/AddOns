@@ -246,7 +246,7 @@ function TryTotems(forceTotems)
     
     if try and DoSpell("Зов Духов") then
         totemTime = GetTime()
-        print(totemNames)
+        --print(totemNames)
     end
     return try
 end
