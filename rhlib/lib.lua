@@ -792,6 +792,14 @@ function CalculateHP(t)
   return 100 * UnitHP(t) / UnitHealthMax(t)
 end
 
+function UnitLostHP(unit)
+    local hp = UnitHP(unit)
+    local maxhp = UnitHealthMax(unit)
+    local lost = maxhp - hp
+    if UnitThreat(unit) == 3 then lost = lost * 1.2 end
+    return lost
+end
+
 function UnitHP(t)
   local incomingheals = UnitGetIncomingHeals(t)
   local hp = UnitHealth(t) + incomingheals

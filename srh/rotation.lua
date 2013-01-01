@@ -107,7 +107,8 @@ function TryTotems(forceTotems)
     local earthTotems, fireTotems, waterTotems, airTotems = {}, {}, {}, {}
     
     -- earth
-    if not HasBuff("Каменная кожа") and not HasBuff("Аура благочестия") then
+    --if not HasBuff("Каменная кожа") and not HasBuff("Аура благочестия") then
+    if not HasBuff("Каменная кожа") then
         local priority = 10
         if IsHeal() then priority = 20 end
         table.insert(earthTotems, { N = "Тотем каменной кожи", P = priority })
@@ -147,7 +148,7 @@ function TryTotems(forceTotems)
         totem[earth] = nil
     end
     --fire
-    if IsReadySpell("Тотем языка пламени") and not HasBuff("Чародейская гениальность Даларана") and not HasBuff("Чародейский интеллект") then
+    if not HasBuff("Тотем языка пламени")  then
         local priority = 10
         if IsHeal() then priority = 20 end
         table.insert(fireTotems, { N = "Тотем языка пламени", P = priority })
@@ -313,15 +314,6 @@ function CanHeal(t)
     then return true end 
     return false
 end   
-
-
-function UnitLostHP(unit)
-    local hp = UnitHP(unit)
-    local maxhp = UnitHealthMax(unit)
-    local lost = maxhp - hp
-    if UnitThreat(unit) == 3 then lost = lost * 1.2 end
-    return lost
-end
 
 function CheckHealCast(u, h)
     local spell, _, _, _, _, endTime, _, _, notinterrupt = UnitCastingInfo("player")
@@ -539,8 +531,16 @@ function HealRotation()
     if (h > 40 or IsArena()) and CanUseInterrupt() and TryEach(harmTarget, TrySteal) then return end
     if (h > 20 or IsArena()) and CanUseInterrupt() and TryEach(units, TryDispel) then return end
     
-    if (h > 20 and IsPvP() and InCombatLockdown()) and TryEach(harmTarget, 
-        function(t) return IsValidTarget(t) and UnitIsPlayer(t) and not HasDebuff("Ледяной шок", 1, t) and not HasDebuff("Оковы земли", 1, t) and DoSpell("Ледяной шок", t) end
+    if not IsAttack() and (h > 20 and IsPvP() and InCombatLockdown()) and TryEach(harmTarget, 
+        function(t) 
+            return IsValidTarget(t) and UnitIsPlayer(t) 
+                and not HasDebuff("Ледяной шок", 0,1, t) 
+                and not HasDebuff("Оковы земли", 0,1, t)
+                and not HasDebuff("Покаяние", 0,1, t) 
+                and not HasDebuff("Молот правосудия", 0.1, t) 
+                and not HasDebuff("Сглаз", 0.1, t) 
+                and DoSpell("Ледяной шок", t) 
+        end
     ) then return end
         
 end    

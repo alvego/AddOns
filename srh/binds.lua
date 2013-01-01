@@ -119,6 +119,7 @@ end
 function AutoRotationOff()
     Paused = true
     RunMacroText("/stopattack")
+    RunMacroText("/stopcasting")
     wipe(resList)
     echo("Авто ротация: OFF",true)
 end
