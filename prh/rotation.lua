@@ -253,20 +253,20 @@ function TryTarget()
         RunMacroText("/cleartarget")
     end
     
-    if (IsArena() or true) and IsValidTarget("target") and (IsOneUnit("target", "focus") or not UnitExists("focus")) then
+    if IsArena() and IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
         if IsOneUnit("target","arena1") then 
             RunMacroText("/cleartarget")
-            RunMacroText("/target arena2")
+            RunMacroText("/startattack [target=arena2]")
             RunMacroText("/focus")
             RunMacroText("/cleartarget")
-            RunMacroText("/target arena1")
+            RunMacroText("/startattack [target=arena1]")
         end
         if IsOneUnit("target","arena2") then 
             RunMacroText("/cleartarget")
-            RunMacroText("/target arena1")
+            RunMacroText("/startattack [target=arena1]")
             RunMacroText("/focus")
             RunMacroText("/cleartarget")
-            RunMacroText("/target arena2")
+            RunMacroText("/startattack [target=arena2]")
         end
     end
     
