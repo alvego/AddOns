@@ -272,7 +272,6 @@ function TryTarget()
     
 end
 
-redTime = 0
 function TryProtect()
     if IsArena() then
         local redDispelList = {
@@ -285,7 +284,7 @@ function TryProtect()
             "Смерч",
             "Ошеломление"
         }
-        if (GetTime() - redTime > 3) and IsReadySpell("Очищение") and TryEach(GetUnitNames(), function(u)
+        if IsReadySpell("Очищение") and TryEach(GetUnitNames(), function(u)
             if HasDebuff(redDispelList, 2, u) and IsVisible(u) and DoSpell("Очищение") then
                 redTime = GetTime()
                 return true
