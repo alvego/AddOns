@@ -45,6 +45,11 @@ SetCommand("dd",
    function() return not InGCD() and HasBuff("Печать праведности")  end
 )
 
+SetCommand("cl", 
+   function() return DoSpell("Очищение","Ириха") end, 
+   function() return not InGCD() end
+)
+
 function Tank()
     if not (IsValidTarget("target") and (UnitAffectingCombat("target") or IsAttack()))  then return end
     if DoSpell("Щит мстителя") then return end
@@ -157,7 +162,7 @@ function TryBuffs()
             if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
             if not HasBuff("Печать") and DoSpell("Печать праведности") then return end
             if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
-                if not HasBuff("Боевой крик") and not HasBuff("благословение королей") 
+                if not HasBuff("Боевой крик")
                     and not HasBuff("благословение могущества") and DoSpell("Великое благословение могущества","player") then return end
                 if ((HasBuff("благословение могущества") and not HasMyBuff("благословение могущества")) or HasBuff("Боевой крик")) 
                     and not HasBuff("благословение королей") and DoSpell("Великое благословение королей","player") then return end
@@ -253,7 +258,7 @@ function TryTarget()
         RunMacroText("/cleartarget")
     end
     
-    if IsArena() and IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
+    --[[if IsArena() and IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
         if IsOneUnit("target","arena1") then 
             RunMacroText("/cleartarget")
             RunMacroText("/startattack [target=arena2]")
@@ -268,24 +273,22 @@ function TryTarget()
             RunMacroText("/cleartarget")
             RunMacroText("/startattack [target=arena2]")
         end
-    end
+    end]]
     
 end
 
 function TryProtect()
     if IsArena() then
         local redDispelList = {
-            "Превращение",
-            "Покаяние",
-            "Глубокая заморозка",
-            "Молот правосудия",
-            "Замораживающая ловушка",
-            "Ослепление",
-            "Смерч",
-            "Ошеломление"
+            "Превращение"
+            -- "Покаяние",
+            -- "Глубокая заморозка",
+            -- "Молот правосудия",
+            -- "Замораживающая ловушка",
+            --[["Смерч",]]
         }
         if IsReadySpell("Очищение") and TryEach(GetUnitNames(), function(u)
-            if HasDebuff(redDispelList, 2, u) and IsVisible(u) and DoSpell("Очищение") then
+            if HasDebuff(redDispelList, 2, u) and IsVisible(u) and CanHeal(u) and DoSpell("Очищение") then
                 redTime = GetTime()
                 return true
             end
