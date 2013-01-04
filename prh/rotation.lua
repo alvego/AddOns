@@ -199,7 +199,7 @@ function TryHealing()
         if #members > 0 then 
             local u, h, l = members[1].Unit, members[1].HP, members[1].Lost
             if not unitWithShield or (not HasBuff("Священный щит",1,u) and h < 50) and h < 80 and DoSpell("Священный щит",u) then return end
-            if h < 20 and not HasDebuff("Воздержанность", 0.1, "player") and (GetTime() - ForbearanceTime > 30) and DoSpell("Возложение рук",u) then return end
+            if h < 20 and not HasBuff("Гнев карателя")and not HasDebuff("Воздержанность", 0.1, "player") and (GetTime() - ForbearanceTime > 30) and DoSpell("Возложение рук",u) then return end
             if h < 70 and HasBuff("Искусство войны") and (not IsReadySpell("Экзорцизм") or h < 35) then DoSpell("Вспышка Света",u) return end
         end
     else
@@ -285,7 +285,7 @@ function TryProtect()
             -- "Глубокая заморозка",
             -- "Молот правосудия",
             -- "Замораживающая ловушка",
-            --[["Смерч",]]
+            --"Смерч"
         }
         if IsReadySpell("Очищение") and TryEach(GetUnitNames(), function(u)
             if HasDebuff(redDispelList, 2, u) and IsVisible(u) and CanHeal(u) and DoSpell("Очищение") then
@@ -307,7 +307,7 @@ function TryProtect()
         end
         if HasSpell("Удар воина Света") and (UnitHealth100() < 20) and not HasDebuff("Воздержанность", 0.1, "player") and (GetTime() - ForbearanceTime > 30) and DoSpell("Божественный щит")  then return true end
         --print(HasDebuff("Воздержанность", 0.1, "player"))
-        if (UnitHealth100() < 15) and not HasDebuff("Воздержанность", 0.1, "player") and (GetTime() - ForbearanceTime > 30) and DoSpell("Божественная защита")  then return true end   
+        if (UnitHealth100() < 15) and not HasBuff("Гнев карателя") and not HasDebuff("Воздержанность", 0.1, "player") and (GetTime() - ForbearanceTime > 30) and DoSpell("Божественная защита")  then return true end   
         end
     return false;
 end
