@@ -1,4 +1,32 @@
-﻿local InterruptRedList = {
+﻿ControlList = { -- > 4
+"Ненасытная стужа", -- 10s
+"Смерч", -- 6s
+"Калечение", -- 5s max
+"Сон", -- 20s
+"Тайфун", -- 6s
+"Эффект замораживающей стрелы", -- 20s
+"Эффект замораживающей ловушки", -- 10s
+"Глубокая заморозка", -- 5s
+"Дыхание дракона", -- 5s
+"Превращение", -- 20s
+"Молот правосудия", -- 6s
+"Покаяние", -- 6s
+"Удар по почкам", -- 6s max
+"Сглаз", -- 30s
+"Соблазн", -- 30s
+"Огненный шлейф", -- 5s
+"Оглушающий удар", -- 5s
+"Пронзительный вой", -- 6s
+"Головокружение", -- 6s
+"Ошеломление", -- 20s
+}
+
+function CanAttack(target)
+    if nil == target then target = "target" end 
+    return IsValidTarget(target) and not HasBuff({"Отражение заклинания", "Божественный щит", "Ледяная глыба"}, 0.1, target) and not HasDebuff("Смерч", 0.1, target)
+end
+
+local InterruptRedList = {
     "Малая волна исцеления",
     "Волна исцеления",
     "Выброс лавы",
@@ -452,6 +480,7 @@ frame:RegisterEvent("UNIT_SPELLCAST_FAILED")
 frame:RegisterEvent("UNIT_SPELLCAST_SENT")
 
 if HarmfulCastingSpell == nil then HarmfulCastingSpell = {} end
+if TargetCastingSpell == nil then TargetCastingSpell = {} end
 local currentMap, hasLevels, zoneSize_X, zoneSize_Y
 
 local function GetMapData()
@@ -572,7 +601,7 @@ local function onEvent(self, event, ...)
     end
     if event:match("^UNIT_SPELLCAST") then
         local unit, spell = select(1,...)
-        
+       
         if spell and unit == "player" then
             if event == "UNIT_SPELLCAST_START" then
                 if not sendTime then return end
@@ -585,17 +614,16 @@ local function onEvent(self, event, ...)
             if event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_FAILED" then
                 InCast[spell] = nil
             end
+            
         end
         return
     end
     if event == "COMBAT_LOG_EVENT_UNFILTERED" then
         local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
-        if event:match("SPELL_DAMAGE") then
-            if spellName and agrs12 > 0 then
-                local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellID) 
-                if castTime > 0 then
-                    HarmfulCastingSpell[spellName] = true
-                end
+        if event:match("SPELL_DAMAGE") and spellName and agrs12 > 0 and destName == UnitName("player") then
+            local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellID) 
+            if castTime > 0 then
+                HarmfulCastingSpell[spellName] = true
             end
         end
         if sourceGUID == UnitGUID("player") and (event:match("^SPELL_CAST") and spellID and spellName)  then
@@ -709,11 +737,7 @@ function UseHealPotion()
     "Рунический флакон с лечебным зельем",
     "Бездонный флакон с лечебным зельем",
     }
-    local ret = false
-    for name,value in pairs(potions) do 
-        if not ret and UseItem(value) then ret = true end
-    end
-    return ret
+    return TryEach(potions, UseItem)
 end
 
 

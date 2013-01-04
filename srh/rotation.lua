@@ -2,7 +2,9 @@
 -- Жабу под конец покаяния
 -- Геру под крылья и стан
 local StartTime = GetTime()
-local StartComatTime = 0
+local StartCombatTime = 0
+local EndCombatTime = 0
+
 local TryResUnit = nil
 local TryResTime = 0
 local harmTarget = {}
@@ -28,7 +30,7 @@ SetCommand("hex",
         end
     end, 
     function() 
-        if not IsValidTarget("target") or HasDebuff("Сглаз", 1, "target") or (not InGCD() and not IsReadySpell("Сглаз"))  then return true end
+        if not CanAttack() or HasBuff({"Вихрь клинков", "Зверь внутри"},0.1,"target") or (not InGCD() and not IsReadySpell("Сглаз"))  then return true end
         if not UnitIsPlayer("target") then
             local creatureType = UnitCreatureType("target")
             if creatureType ~= "Гуманоид" or creatureType ~= "Животное" then return true end
@@ -39,16 +41,16 @@ SetCommand("hex",
 
 SetCommand("freedom", 
     function() return UseEquippedItem("Медальон Альянса") end, 
-    function() local item = "Медальон Альянса" return not IsEquippedItem(item) or (not InGCD() and not IsReadyItem(item)) end
+    function() local item = "Медальон Альянса" return IsPlayerCasting() or not IsEquippedItem(item) or (not InGCD() and not IsReadyItem(item)) end
 )
 
 local tryMount = false
 SetCommand("mount", 
     function() 
+        if (IsLeftControlKeyDown() or IsSwimming()) and not HasBuff("Хождение по воде", 1, "player") and DoSpell("Хождение по воде", "player") then return end
         if InCombatLockdown() or IsArena() or not PlayerInPlace() then
             return DoSpell("Призрачный волк") 
         end
-        if (IsLeftControlKeyDown() or IsSwimming()) and not HasBuff("Хождение по воде", 1, "player") and DoSpell("Хождение по воде", "player") then return end
         if InGCD() or IsPlayerCasting() or InCombatLockdown() or not IsOutdoors() then return false end
         local mount = "Большой Лиловый элекк"
         if IsFlyableArea() and not IsLeftControlKeyDown() then mount = "Черный дракон" end
@@ -82,30 +84,30 @@ SetCommand("totems",
         return TryTotems(true)
     end, 
     function() 
+        if InCombatLockdown() and not needTotems then 
+            needTotems = true
+            return true
+        end
         return (GetTime() - totemTime < 0.5)
     end
 )
 
-
-
+local TotemAlert = {}
 function TryTotems(forceTotems)
 
     if forceTotems then
         needTotems = true
     else
-        if not InCombatLockdown() or not CanAutoTotems() then
+        if (GetTime() - EndCombatTime > 5) or not CanAutoTotems() then
             needTotems = false
         end 
     end
-     
-    if not needTotems or InGCD() then return false end
-    if not PlayerInPlace() and not forceTotems then return false end
-    if not forceTotems and (UnitHealth100("player") < 30 or (GetTime() - totemTime < 2)) then return false end
+    if InGCD() then return false end
+    
     local fire, earth, water, air = 1,2,3,4
     local force = {}
     local totem = {}
     local earthTotems, fireTotems, waterTotems, airTotems = {}, {}, {}, {}
-    
     -- earth
     --if not HasBuff("Каменная кожа") and not HasBuff("Аура благочестия") then
     if not HasBuff("Каменная кожа") then
@@ -123,19 +125,21 @@ function TryTotems(forceTotems)
         force[earth] = true
     end
     if HasTotem("Тотем каменного когтя") then force[earth] = true end
+    if HasDebuff({"Страх", "Вой ужаса", "Устрашающий крик", "Контроль над разумом", "Глубинный ужас", "Ментальный крик"}, 1,units) then TotemAlert["Тотем трепета"] = GetTime() end
     if IsReadySpell("Тотем трепета") then
         local priority = 10
         if not HasTotem("Тотем трепета") 
-            and HasClass(harmTarget, {"WARLOCK", "PRIEST"}) or HasDebuff({"Страх", "Вой ужаса", "Устрашающий крик", "Контроль над разумом", "Глубинный ужас", "Ментальный крик"}, 1,units) then 
+            and (HasClass(harmTarget, {"WARLOCK", "PRIEST"}) or (TotemAlert["Тотем трепета"] and GetTime() - TotemAlert["Тотем трепета"] < 10)) then 
             priority = 100 
             force[earth] = true
         end
         table.insert(earthTotems, { N = "Тотем трепета", P = priority })
     end
+    if not PlayerInPlace() and HasBuff("Призрачный волк") then TotemAlert["Тотем оков земли"] = GetTime() end
     if IsReadySpell("Тотем оков земли") then
-        local priority = 10
-        if IsPvP() then priority = 30 end
-        if not PlayerInPlace() and  not HasTotem("Тотем оков земли") then 
+        local priority = 9
+        if IsPvP() then priority = 11 end
+        if (TotemAlert["Тотем оков земли"] and GetTime() - TotemAlert["Тотем оков земли"] < 2) then 
             priority = 90 
             force[earth] = true
         end
@@ -153,9 +157,9 @@ function TryTotems(forceTotems)
         if IsHeal() then priority = 20 end
         table.insert(fireTotems, { N = "Тотем языка пламени", P = priority })
     end
-    if IsReadySpell("Опаляющий тотем")  then
+    if not IsPvP() and IsReadySpell("Опаляющий тотем")  then
         local priority = 15
-        if not IsPvP() and not InGroup() then priority = 25 end
+        if not InGroup() then priority = 25 end
         table.insert(fireTotems, { N = "Опаляющий тотем", P = priority })
     end
     if IsAOE() then
@@ -176,23 +180,32 @@ function TryTotems(forceTotems)
     if not HasBuff("Источник маны") and (UnitMana100("player") < 50) and not HasBuff("Групповая охота") then
         local priority = 10
         if UnitMana100("player") < 50 then priority = 20 end
+        -- Нужно сделать форсе по имени тотема.
+        --if InCombatLockdown() and not HasТotem("Тотем источника маны")
         table.insert(waterTotems, { N = "Тотем источника маны", P = priority })
     end
-    if not HasTotem("Тотем прилива маны") and HasSpell("Тотем прилива маны") and IsReadySpell("Тотем прилива маны") and UnitMana100("player") < 70 then
+    if HasTotem("Тотем прилива маны") then Notify("Тотем прилива маны!!!") end
+    if PlayerInPlace() and not HasTotem("Тотем прилива маны") and HasSpell("Тотем прилива маны") and IsReadySpell("Тотем прилива маны") and UnitMana100("player") < 70 then
         table.insert(waterTotems, { N = "Тотем прилива маны", P = 100 })
-        Notify("Тотем прилива маны!!!")
         force[water] = true
     end
     if IsReadySpell("Тотем исцеляющего потока") then
         table.insert(waterTotems, { N = "Тотем исцеляющего потока", P = 15 })
     end
-    if IsReadySpell("Тотем очищения") then
-        local priority = 10
-        if not HasTotem("Тотем очищения") and HasClass(harmTarget, {"DEATHKNIGHT", "WARLOCK", "PRIEST", "ROGUE"}) or HasDebuff({"Disease", "Poison"}, 1,units) then 
+    if HasDebuff({"Disease", "Poison"}, 1,units) then TotemAlert["Тотем очищения"] = GetTime() end
+    --print(HasDebuff({"Disease", "Poison"}, 1,units), TotemAlert["Тотем очищения"] and GetTime() - TotemAlert["Тотем очищения"] < 3)
+    if not HasTotem("Тотем очищения") and  IsReadySpell("Тотем очищения") then
+        local priority = 9
+        if HasClass(harmTarget, {"DEATHKNIGHT", "WARLOCK", "PRIEST", "ROGUE"}) 
+            or (TotemAlert["Тотем очищения"] and GetTime() - TotemAlert["Тотем очищения"] < 3) then 
             priority = 90
-            force[waterTotems] = true
+            force[water] = true
         end
         table.insert(waterTotems, { N = "Тотем очищения", P = priority })
+    end
+    if HasTotem("Тотем прилива маны") then
+        force[water] = false
+        wipe(waterTotems)
     end
     if #waterTotems > 0 then
         table.sort(waterTotems, function(x,y) return x.P > y.P end)
@@ -200,26 +213,19 @@ function TryTotems(forceTotems)
     else
         totem[water] = nil
     end
-    if HasTotem("Тотем прилива маны") then
-        force[waterTotems] = false
-    end
     --air
-    if not IsArena() and not HasBuff("Тотем неистовства ветра") and not HasBuff("Цепкие ледяные когти") then
+    if not HasBuff("Тотем неистовства ветра") and not HasBuff("Цепкие ледяные когти") then
         local priority = 10
         if IsMDD() then priority = 20 end
         table.insert(airTotems, { N = "Тотем неистовства ветра", P = priority })
     end
-    if not IsArena() and not HasBuff("Тотем гнева воздуха") then
+    if not HasBuff("Тотем гнева воздуха") then
         local priority = 15
         table.insert(airTotems, { N = "Тотем гнева воздуха", P = priority })
     end
-    if IsReadySpell("Тотем заземления") and (IsPvP() or UnitThreatAlert("player") > 2) then
-        local priority = 10
-        if not HasTotem("Тотем заземления") and IsPvP() then 
-            priority = 100 
-            force[air] = true
-        end
-        table.insert(airTotems, { N = "Тотем заземления", P = priority })
+    if IsPvP() then 
+        wipe(airTotems) 
+        force[air] = false 
     end
     if #airTotems > 0 then
         table.sort(airTotems, function(x,y) return x.P > y.P end)
@@ -227,42 +233,76 @@ function TryTotems(forceTotems)
     else
         totem[air] = nil
     end
+    local forcedNow = TryEach(force, function(value) return value end) and not needTotems  and InCombatLockdown()
+    if forcedNow then 
+        for i = 1, 4 do 
+            if not force[i] then totem[i] = nil end
+        end
+    else
+        if not needTotems  then return false end
+    end
+    if not forceTotems and not PlayerInPlace() then return false end
+    if not forceTotems and (UnitHealth100("player") < 30 or (GetTime() - totemTime < 2) or not InCombatLockdown()) then return false end
     --try totems
     local try = false;
     local totemNames = 'Ставим '
     if forceTotems then totemNames = totemNames .. '{force} ' end
     for i = 1, 4 do
         local s = 140 + i
-        if totem[i] then
-            if force[i] or (forceTotems and not IsTotemPushedNow(i)) or (not HasTotem(i)) then
-                SetMultiCastSpell(s, GetSpellId(totem[i]))  
-                totemNames = totemNames .. '[' ..totem[i] .. '] '
-                try = true
-            else 
-                SetMultiCastSpell(s)
-            end
+        if totem[i] and (force[i] or (forceTotems and not IsTotemPushedNow(i)) or (not HasTotem(i))) then
+            SetMultiCastSpell(s, GetSpellId(totem[i]))  
+            totemNames = totemNames .. '[' ..totem[i] .. '] '
+            try = true
+        else 
+            SetMultiCastSpell(s)
         end
     end
     
     if try and DoSpell("Зов Духов") then
         totemTime = GetTime()
-        --print(totemNames)
+        print(totemNames)
     end
     return try
 end
 
+function IsFriend(unit)
+    if not IsInteractTarget(unit) then return false end
+    local friends, name = {"Авиена"}, UnitName(unit)
+    return TryEach(friends, function(u) return UnitName(u) == name end)
+end
 
 function Idle()
-    if not InCombatLockdown() then StartComatTime = GetTime() end
+    if InCombatLockdown() then EndCombatTime = GetTime() else StartCombatTime = GetTime() end
     if GetTime() - StartTime < 3 then return end
-    harmTarget = GetHarmTarget()
     units = GetUnitNames() 
-    
+    harmTarget = GetHarmTarget()
+    table.sort(units, function(u1,u2) 
+        local w1, w2 = 0, 0
+        if IsOneUnit(u1, "player") then w1 = 3 end
+        if IsOneUnit(u2, "player") then w2 = 3 end
+        if IsFriend(u1) then w1 = 2 end
+        if IsFriend(u2) then w2 = 2 end
+        return w1 < w2 end
+    )
+    table.sort(harmTarget, function(t1,t2) 
+        local w1, w2 = 0, 0
+        for _,u in pairs(units) do
+            if IsOneUnit(u .. "-target", t1) then w1 = IsFriend(u) and 2 or 1 end
+            if IsOneUnit(u .. "-target", t2) then w2 = IsFriend(u) and 2 or 1 end
+        end
+        if IsOneUnit("focus", t1) then w1 = 3 end
+        if IsOneUnit("focus", t2) then w2 = 3 end
+        if IsOneUnit("target", t1) then w1 = 4 end
+        if IsOneUnit("target", t2) then w2 = 4 end
+        if IsOneUnit("mouseover", t1) then w1 = 5 end
+        if IsOneUnit("mouseover", t2) then w2 = 5 end
+        return w1 < w2 end
+    )
     if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or HasBuff("Призрачный волк")) then return end
     
     
     if TryTotems() then return end
-    
+    if IsValidTarget("target") and UnitAffectingCombat("target") and HasBuff("Отражение заклинания", 1, "target") and DoSpell("Пронизывающий ветер") then return end
     if IsLeftControlKeyDown() and IsMouseButtonDown(3) then
         if CanRes("mouseover") then
             TryResUnit = UnitPartyName("mouseover")
@@ -296,6 +336,7 @@ function Idle()
 
         if TryDispel("player") then return end
         TryTarget()
+        if not CanAttack() then return end
         if IsMDD() then 
             MDDRotation() 
             return
@@ -309,6 +350,7 @@ end
 
 function CanHeal(t)
     if IsInteractTarget(t) 
+        and not HasDebuff("Смерч", 0.1, t)
         and InRange("Волна исцеления", t)
         and IsVisible(t)
     then return true end 
@@ -319,7 +361,7 @@ function CheckHealCast(u, h)
     local spell, _, _, _, _, endTime, _, _, notinterrupt = UnitCastingInfo("player")
     local lastHealCastTarget = GetLastHealCastTarget()
     if not lastHealCastTarget then return end
-    if UnitThreatAlert(lastHealCastTarget) == 3 then return end
+    if UnitThreat(lastHealCastTarget) == 3 then return end
     if not spell or not endTime then return end
     if not IsHealCast(spell) then return end
     if not InCombatLockdown() then return end
@@ -339,21 +381,14 @@ end
 
 local shieldChangeTime = 0
 function HealRotation()
-    if TryEach(harmTarget, TryInterrupt) then return end
-    if IsReadySpell("Развеивание магии") and TryEach(harmTarget, function(t) return HasBuff(StealRedList, 2, t) and DoSpell("Развеивание магии", t) end) then return  end
-    if IsReadySpell("Очищение духа") and TryEach(units, function(u) return HasDebuff(DispelRedList, 2, u) and DoSpell("Очищение духа", u) end) then return end
+    if (IsPvP() and InCombatLockdown()) and TryEach(harmTarget, function(t) return CanAttack(t) 
+        and UnitHealth100(t) < 4 and not HasMyDebuff("шок", 1, t) and DoSpell("Огненный шок", t) end) then return end
     
-    --if HasDebuff(DispelRedList, 2, units) or HasBuff(StealRedList, 2, harmTarget) then return end
-    
-    --CalculateHealing
     if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16) and DoSpell("Оружие жизни земли") then return end
     if UnitMana100() < 80 and (GetTime() - StartTime > 3) and UnitHealth100("player") > 30 and not HasBuff("Водный щит") and DoSpell("Водный щит") then return end
-    if (IsPvP() and InCombatLockdown()) and TryEach(harmTarget, 
-        function(t) return IsValidTarget(t) and UnitHealth(t) < 3000 and not HasDebuff("Огненный шок", 1, t) and DoSpell("Огненный шок", t) end
-    ) then return end
     
-    if IsAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and IsValidTarget("target") then
-        if HasMyDebuff("Огненный шок", 1, "target") and PlayerInPlace() then
+    if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() then
+        if HasMyDebuff("шок", 1, "target") and PlayerInPlace() then
             if PlayerInPlace() and DoSpell("Выброс лавы") then return end
         else
             if DoSpell("Огненный шок") then return end
@@ -370,8 +405,11 @@ function HealRotation()
     end
     
     local myHP = CalculateHP("player")
-    
-    
+    if  myHP > 30 then
+        if TryEach(harmTarget, TryInterrupt) then return end
+        if IsReadySpell("Развеивание магии") and TryEach(harmTarget, function(t) return HasBuff(StealRedList, 2, t) and DoSpell("Развеивание магии", t) end) then return  end
+        if IsReadySpell("Очищение духа") and TryEach(units, function(u) return HasDebuff(DispelRedList, 2, u) and DoSpell("Очищение духа", u) end) then return end
+    end
     if InCombatLockdown() then
         if myHP < 70 and DoSpell("Дар наару", "player") then return end
         if myHP < 60 and UseEquippedItem("Проржавевший костяной ключ") then return end
@@ -411,9 +449,9 @@ function HealRotation()
         local u = units[i]
         if CanHeal(u) then  
             h =  CalculateHP(u)
-
-            if IsOneUnit(u, "player") then 
-                h = h  - ((100 - h) * 1.2) 
+            if IsFriend(u) or IsOneUnit(u, "player") then 
+                if UnitAffectingCombat(u) and h > 99 then h = h - 1 end
+                h = h  - ((100 - h) * 1.15) 
             end
             
             if UnitIsPet(u) then
@@ -422,11 +460,8 @@ function HealRotation()
                 end
             else
                 if UnitThreat(u) == 3 then h = h - 5 end
-                if HasBuff("Частица Света", 1, u) then h = h + 3 end
-                if HasBuff("Щит земли", 1, u) then h = h + 3 end
-                if  myHP < 50 and not IsOneUnit("player", u) and not (UnitThreat(u) == 3) then
-                    h = h + 40
-                end
+                if HasBuff({"Ледяная глыба", "Божественный щит", "Превращение", "Щит земли", "Частица Света"}, 1, u) then h = h + 3 end
+                if not IsArena() and myHP < 50 and not IsOneUnit("player", u) and not (UnitThreat(u) == 3) then h = h + 30 end
             end
             table.insert(members, { Unit = u, HP = h, Lost = UnitLostHP(u) } )
         end
@@ -440,7 +475,7 @@ function HealRotation()
         local u, hp, c = members[i].Unit,members[i].HP, 0
         
         if HasMyBuff("Щит земли",1,u) then unitWithShield = u end
-        
+        if IsFriend(u) then hp = hp - 1 end
         if (UnitThreatAlert(u) == 3) and (hp < threatLowHP) and (not IsOneUnit(u, "player") or (UnitMana100("player") > 50 and UnitHealth100("player") < 30)) then
            threatLowHPUnit = u  
            threatLowHP = hp  
@@ -484,7 +519,7 @@ function HealRotation()
     end
     
     if IsArena() and not InCombatLockdown() and not HasBuff("Водный щит") and not unitWithShield and DoSpell("Щит земли", "player") then return end
-    if threatLowHPUnit and (GetTime() - StartComatTime > 3) then
+    if threatLowHPUnit and (GetTime() - StartCombatTime > 3) then
         if unitWithShield and UnitThreatAlert(unitWithShield) < 3 and threatLowHPUnit and (threatLowHP < 70) then
             shieldChangeTime = 0
             unitWithShield = nil
@@ -520,25 +555,26 @@ function HealRotation()
         ) then return end
     
     if PlayerInPlace() then
-        if h > 30 and rUnits[u] > 1 and not IsPvP() and l > ChainHeal and DoSpell("Цепное исцеление", u) then return end 
-        if h > 40 and rUnits[u] > 2 and IsBattleground() and (UnitThreatAlert("player") < 3) and l > ChainHeal and DoSpell("Цепное исцеление", u) then return end 
+    
+        if h < 25 and (l > HealingWaveHeal) and HasMyBuff("Приливные волны", 1, "player") and DoSpell("Волна исцеления", u) then return end
         if h < 20 and DoSpell("Малая волна исцеления", u) then return end
+        
+        if h > 30 and rUnits[u] > 1 and not IsPvP() and l > ChainHeal and DoSpell("Цепное исцеление", u) then return end 
+        if h > 40 and rUnits[u] > 1 and IsBattleground() and (UnitThreatAlert("player") < 3) and l > ChainHeal and DoSpell("Цепное исцеление", u) then return end 
+        
         if (l > LesserHealingWaveHeal) and not (l > HealingWaveHeal) and not HasMyBuff("Приливные волны", 0.1, "player") and DoSpell("Малая волна исцеления", u) then return end
+        if IsPvP() and not InMelee() and (l > HealingWaveHeal) and HasMyBuff("Приливные волны", 1, "player") and DoSpell("Волна исцеления", u) then return end
         if IsPvP() and (l > LesserHealingWaveHeal) and DoSpell("Малая волна исцеления", u) then return end 
         if UnitThreatAlert("player") < 3 and (l > HealingWaveHeal) and DoSpell("Волна исцеления", u) then return end
     end
     
     if (h > 40 or IsArena()) and CanUseInterrupt() and TryEach(harmTarget, TrySteal) then return end
     if (h > 20 or IsArena()) and CanUseInterrupt() and TryEach(units, TryDispel) then return end
-    
-    if not IsAttack() and (h > 20 and IsPvP() and InCombatLockdown()) and TryEach(harmTarget, 
+    if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and PlayerInPlace() and DoSpell("Молния") then return end
+    if not IsAttack() and (h > 20 and ((IsPvP() and InCombatLockdown()) or IsArena()))  and TryEach(harmTarget, 
         function(t) 
-            return IsValidTarget(t) and UnitIsPlayer(t) 
-                and not HasDebuff("Ледяной шок", 0,1, t) 
-                and not HasDebuff("Оковы земли", 0,1, t)
-                and not HasDebuff("Покаяние", 0,1, t) 
-                and not HasDebuff("Молот правосудия", 0.1, t) 
-                and not HasDebuff("Сглаз", 0.1, t) 
+            return CanAttack(t) and UnitIsPlayer(t) 
+                and not HasDebuff({"Сглаз", "Молот правосудия", "Покаяние", "Оковы земли", "Ледяной шок", "Вихрь клинков", "Зверь внутри"}, 0,1, t) 
                 and DoSpell("Ледяной шок", t) 
         end
     ) then return end
@@ -561,9 +597,12 @@ function MDDRotation()
     
     if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16) and UseSpell("Оружие неистовства ветра") then return end
     if GetInventoryItemID("player",17) and not DetermineTempEnchantFromTooltip(17) and UseSpell("Оружие языка пламени") then return end
-    if not UnitAffectingCombat("target") then
+    if not UnitAffectingCombat("target") and (not HasBuff("Водный щит") or UnitMana100("player") > 50) then
         if not HasBuff("Щит молний") and DoSpell("Щит молний") then return end
     end
+    
+    if (not HasBuff("Водный щит") and UnitMana100("player") < 30) and not HasBuff("Водный щит") and DoSpell("Водный щит") then return end
+    
     if not IsValidTarget("target") then return end
     RunMacroText("/startattack")
     if (useWolf or UnitHealth100("player") < 40) and DoSpell("Дух дикого волка") then return end
@@ -594,7 +633,7 @@ function MDDRotation()
     if not HasBuff("Ярость шамана") and DoSpell("Ярость шамана") then return end
     if DoSpell("Удар бури") then return end
     if DoSpell("Земной шок") then return end
-    if not HasBuff("Щит молний") and DoSpell("Щит молний") then return end
+    if (not HasBuff("Водный щит") or UnitMana100("player") > 50) and not HasBuff("Щит молний") and DoSpell("Щит молний") then return end
     if DoSpell("Вскипание лавы") then return end
 end
 

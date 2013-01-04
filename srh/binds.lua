@@ -28,7 +28,6 @@ local NextTarget = nil
 local NextGUID = nil
 local AutoTotems = true
 
-
 if Paused == nil then Paused = false end
 if Debug == nil then Debug = false end
 if CanInterrupt == nil then CanInterrupt = true end
@@ -337,9 +336,10 @@ function TryInterrupt(target)
     local t = endTime/1000 - GetTime()
 
     if t < 0.2 then return false end
+    if channel and t < 0.7 then return false end
     if not channel and t > 0.7 then return false end
+    local name = GetUnitType(target) .. '|' ..  spell
     
-    InterruptKey = GetUnitType(target) .. '|' ..  spell
     local positiveTry = 0
     if InterruptWhiteList[name] then positiveTry = InterruptWhiteList[name] end
     local negativeTry = 0
@@ -350,9 +350,12 @@ function TryInterrupt(target)
     if not notinterrupt and IsReadySpell("Пронизывающий ветер") and InRange("Пронизывающий ветер",target) then
         if UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
         if UseSpell("Пронизывающий ветер", target) then 
-            --echo("Interrupt " .. spell .. " ("..target.." => " .. GetUnitName(target) .. ")")
+            --echo("Interrupt " .. spell .. " ("..target.." => " .. UnitName(target) .. ")")
             InterruptTime = GetTime()
-            InterruptGUID = UnitGUID(target)
+            if not(UnitIsPlayer(target) or UnitIsPet(target)) then 
+                InterruptKey = name
+                InterruptGUID = UnitGUID(target)
+            end
             return true 
         end
     end
@@ -361,7 +364,7 @@ function TryInterrupt(target)
         and IsHarmfulCast(spell) and IsOneUnit(target .. "-target", "player") and InRange("Пронизывающий ветер",target)  then
         if UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
         if UseSpell("Тотем заземления") then 
-            --echo("Interrupt " .. spell .. " ("..target.." => " .. GetUnitName(target) .. ")")
+            --echo("Interrupt " .. spell .. " ("..target.." => " .. UnitName(target) .. ")")
             InterruptTime = GetTime()
             return true 
         end
@@ -373,17 +376,14 @@ end
 function onUpdate(frame, elapsed)
     
     if ApplyCommands() then return end
-    
+ 
     if (IsAttack() and Paused) then
         echo("Авто ротация: ON",true)
         Paused = false
     end
-    
-    
-     
     if (CanHeal(resUnit) and (UnitCastingInfo("player") == "Дух предков"))  then RunMacroText("/stopcasting") end
     
-    if InterruptKey and InterruptGUID and GetTime() - InterruptTime > 1 then 
+    if InterruptKey and InterruptGUID and GetTime() - InterruptTime > 1 and not InterruptWhiteList[InterruptKey] then 
         local try = 0
         if InterruptBlackList[InterruptKey] then try = InterruptBlackList[InterruptKey] end
         if try < 100 then try = try + 1 end
@@ -446,7 +446,7 @@ function onEvent(self, event, ...)
     end
     
     local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel,agrs2 = select(1, ...)
-    if not(destName ~= GetUnitName("player")) and sourceName ~= nil and not UnitIsFriend("player",sourceName) then 
+    if not(destName ~= UnitName("player")) and sourceName ~= nil and not UnitIsFriend("player",sourceName) then 
         if not Paused then 
             NextTarget = sourceName 
             NextGUID = sourceGUID
@@ -499,7 +499,12 @@ function onEvent(self, event, ...)
                     end
                 end
             
-                if Debug  then
+                if err:match("Действие невозможно") then 
+                    if HasDebuff(ControlList, 3.8, "player") and TryEach(GetUnitNames(), function(u) return CanHeal(u) and CalculateHP(u) < 40 end) then 
+                        DoCommand("freedom") 
+                    end
+                end
+                if Debug then
                     print("["..spellName .. "]: ".. err)
                 end
             end
