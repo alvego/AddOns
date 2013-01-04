@@ -500,7 +500,9 @@ function onEvent(self, event, ...)
                 end
             
                 if err:match("Действие невозможно") then 
-                    if HasDebuff(ControlList, 4, "player") and TryEach(GetUnitNames(), function(u) return CanHeal(u) and CalculateHP(u) < 35 end) then DoCommand("freedom") end
+                    if HasDebuff(ControlList, 3.8, "player") and TryEach(GetUnitNames(), function(u) return CanHeal(u) and CalculateHP(u) < 40 end) then 
+                        DoCommand("freedom") 
+                    end
                 end
                 if Debug then
                     print("["..spellName .. "]: ".. err)

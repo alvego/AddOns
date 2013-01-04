@@ -23,7 +23,7 @@
 
 function CanAttack(target)
     if nil == target then target = "target" end 
-    return IsValidTarget(target) and not HasBuff({"Отражение заклинания", "Божественный щит", "Ледяная глыба"}, 0.1, target)
+    return IsValidTarget(target) and not HasBuff({"Отражение заклинания", "Божественный щит", "Ледяная глыба"}, 0.1, target) and not HasDebuff("Смерч", 0.1, target)
 end
 
 local InterruptRedList = {
