@@ -21,9 +21,20 @@
 "Ошеломление", -- 20s
 }
 
+
+function CanControl(target)
+    if nil == target then target = "target" end 
+    return CanMagicAttack(target) and not HasBuff({"Вихрь клинков", "Зверь внутри"}, 0.1, target) and not HasDebuff(ControlList, 3, target)
+end
+
+function CanMagicAttack(target)
+    if nil == target then target = "target" end 
+    return CanAttack(target) and not HasBuff({"Отражение заклинания", "Антимагический панцирь"}, 0.1, target)
+end
+
 function CanAttack(target)
     if nil == target then target = "target" end 
-    return IsValidTarget(target) and not HasBuff({"Отражение заклинания", "Божественный щит", "Ледяная глыба"}, 0.1, target) and not HasDebuff("Смерч", 0.1, target)
+    return IsValidTarget(target) and not HasBuff({"Божественный щит", "Ледяная глыба"}, 0.01, target) and not HasDebuff("Смерч", 0.01, target)
 end
 
 local InterruptRedList = {
@@ -643,9 +654,6 @@ local function onEvent(self, event, ...)
     end
 end
 frame:SetScript("OnEvent", onEvent)
-
-
-      
 
 
 function IsHarmfulCast(spellName)

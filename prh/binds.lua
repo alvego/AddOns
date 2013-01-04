@@ -16,6 +16,7 @@ print("Paladin Rotation Helper loaded")
 RunMacroText("/cleartarget")
 -- attach events
 frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+frame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 
 local LastUpdate = 0
 local UpdateInterval = 0.025
@@ -176,7 +177,7 @@ function TryDispell(unit)
     for i = 1, 40 do
         if not ret then
             local name, _, _, _, debuffType, duration, expirationTime   = UnitDebuff(unit, i,true) 
-            if HasSpell("Щит мстителя") and name and (expirationTime - GetTime() >= 3 or expirationTime == 0) and (debuffType == "Poison" or debuffType == "Disease" or debuffType == "Magic") and (not dispellBlacklist[name] or GetTime() - dispellBlacklist[name] > 30) then
+            if name and (expirationTime - GetTime() >= 3 or expirationTime == 0) and (debuffType == "Poison" or debuffType == "Disease" or debuffType == "Magic") and (not dispellBlacklist[name] or GetTime() - dispellBlacklist[name] > 30) then
                 if DoSpell("Очищение", unit) then 
                     print("Очищение ", unit, name)
                     dispell = name
@@ -189,16 +190,30 @@ function TryDispell(unit)
     return ret
 end
 
+
+local ForbearanceTime = 0
+function InForbearance(unit)
+    if unit == nil then unit = "player" end
+    local ret =  ((GetTime() - ForbearanceTime < 30) or HasDebuff("Воздержанность", 0.01, unit))
+    print(ret, GetTime() - ForbearanceTime )
+    return ret
+end
+
+
 function onEvent(self, event, ...)
-    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err = select(1, ...)
-    if not(destName ~= GetUnitName("player")) and sourceName ~= nil and not UnitCanCooperate("player",sourceName) then 
-        if not Paused then 
-            NextTarget = sourceName
-            NextGUID = sourceGUID
-        end
+    if event == "UNIT_SPELLCAST_SUCCEEDED" then
+        local unit, spell = select(1,...)
+        if spell == "Гнев карателя" and unit == "player" then ForbearanceTime = GetTime() end
+        return
     end
-    
     if (event=="COMBAT_LOG_EVENT_UNFILTERED") then
+        local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err = select(1, ...)
+        if not(destName ~= GetUnitName("player")) and sourceName ~= nil and not UnitCanCooperate("player",sourceName) then 
+            if not Paused then 
+                NextTarget = sourceName
+                NextGUID = sourceGUID
+            end
+        end
         if sourceGUID == UnitGUID("player") and (type:match("^SPELL_CAST") and spellId and spellName)  then
 
             if  err then
@@ -222,5 +237,6 @@ frame:SetScript("OnEvent", onEvent)
 
 
 function DoSpell(spellName, target)
+    if tContains({"Гнев карателя", "Божественный щит", "Возложение рук", "Божественная защита", "Длань защиты"}, spellName) and InForbearance(target) then print("InForbearance") return false end
     return UseSpell(spellName, target)
 end

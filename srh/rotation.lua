@@ -30,7 +30,7 @@ SetCommand("hex",
         end
     end, 
     function() 
-        if not CanAttack() or HasBuff({"Вихрь клинков", "Зверь внутри"},0.1,"target") or (not InGCD() and not IsReadySpell("Сглаз"))  then return true end
+        if not CanControl() or (not InGCD() and not IsReadySpell("Сглаз"))  then return true end
         if not UnitIsPlayer("target") then
             local creatureType = UnitCreatureType("target")
             if creatureType ~= "Гуманоид" or creatureType ~= "Животное" then return true end
@@ -572,11 +572,7 @@ function HealRotation()
     if (h > 20 or IsArena()) and CanUseInterrupt() and TryEach(units, TryDispel) then return end
     if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and PlayerInPlace() and DoSpell("Молния") then return end
     if not IsAttack() and (h > 20 and ((IsPvP() and InCombatLockdown()) or IsArena()))  and TryEach(harmTarget, 
-        function(t) 
-            return CanAttack(t) and UnitIsPlayer(t) 
-                and not HasDebuff({"Сглаз", "Молот правосудия", "Покаяние", "Оковы земли", "Ледяной шок", "Вихрь клинков", "Зверь внутри"}, 0,1, t) 
-                and DoSpell("Ледяной шок", t) 
-        end
+        function(t) return CanControl(t) and UnitIsPlayer(t) and HasDebuff({"Оковы земли", "Ледяной шок"}, 0,1, t) and DoSpell("Ледяной шок", t) end
     ) then return end
         
 end    
