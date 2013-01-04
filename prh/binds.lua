@@ -194,9 +194,7 @@ end
 local ForbearanceTime = 0
 function InForbearance(unit)
     if unit == nil then unit = "player" end
-    local ret =  ((GetTime() - ForbearanceTime < 30) or HasDebuff("Воздержанность", 0.01, unit))
-    print(ret, GetTime() - ForbearanceTime )
-    return ret
+    return ((GetTime() - ForbearanceTime < 30) or HasDebuff("Воздержанность", 0.01, unit))
 end
 
 
@@ -237,6 +235,6 @@ frame:SetScript("OnEvent", onEvent)
 
 
 function DoSpell(spellName, target)
-    if tContains({"Гнев карателя", "Божественный щит", "Возложение рук", "Божественная защита", "Длань защиты"}, spellName) and InForbearance(target) then print("InForbearance") return false end
+    if tContains({"Гнев карателя", "Божественный щит", "Возложение рук", "Божественная защита", "Длань защиты"}, spellName) and InForbearance(target) then return false end
     return UseSpell(spellName, target)
 end

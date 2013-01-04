@@ -44,8 +44,8 @@ SetCommand("dd",
 )
 
 SetCommand("cl", 
-   function() return DoSpell("Очищение","Ириха") end, 
-   function() return not InGCD() end
+   function() end, 
+   function() return not InGCD() and DoSpell("Очищение","Ириха") end
 )
 
 function Tank()
@@ -146,7 +146,7 @@ function Idle()
         if TryBuffs() then return end
         TryTarget()
         
-        if (IsControlKeyDown() == 1) and InMelee() and DoSpell("Гнев карателя") then return end
+        if (IsControlKeyDown() == 1) and IsValidTarget("target") and DoSpell("Гнев карателя") then return end
         
         if HasSpell("Щит мстителя") then
             if TryDispell("player") then return end
