@@ -697,22 +697,22 @@ function TryTarget(useFocus)
         RunMacroText("/cleartarget")
     end
    
-        if not IsArena() then
-            if useFocus and not IsValidTarget("focus") then
-                local found = false
-                for _,target in pairs(harmTarget) do 
-                    if not found and IsValidTarget(target) and UnitCanAttack("player", target) and ActualDistance(target) and not IsOneUnit("target", target) then 
-                        found = true 
-                        RunMacroText("/focus " .. target) 
-                    end
+    if not IsArena() then
+        if useFocus and not IsValidTarget("focus") then
+            local found = false
+            for _,target in pairs(harmTarget) do 
+                if not found and IsValidTarget(target) and UnitCanAttack("player", target) and ActualDistance(target) and not IsOneUnit("target", target) then 
+                    found = true 
+                    RunMacroText("/focus " .. target) 
                 end
             end
+        end
 
-            if useFocus and not IsValidTarget("focus") or IsOneUnit("target", "focus") or not ActualDistance("focus") then
-                RunMacroText("/clearfocus")
-            end
-        else
-            if IsArena() and IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
+        if useFocus and not IsValidTarget("focus") or IsOneUnit("target", "focus") or not ActualDistance("focus") then
+            RunMacroText("/clearfocus")
+        end
+    else
+        if IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
             if IsOneUnit("target","arena1") then RunMacroText("/focus arena2") end
             if IsOneUnit("target","arena2") then RunMacroText("/focus arena1") end
         end
