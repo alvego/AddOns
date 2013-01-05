@@ -15,7 +15,7 @@ SetCommand("repentance",
 
 SetCommand("stun", 
    function() return DoSpell("Молот правосудия") end, 
-   function() return (not InGCD() and not IsReadySpell("Молот правосудия")) or not CanControl()  end
+   function() return (not InGCD() and not IsReadySpell("Молот правосудия")) or not CanControl() not HasBuff("Незыблемость льда", 0.1 , "target") end
 )
 
 SetCommand("frepentance", 
@@ -25,7 +25,7 @@ SetCommand("frepentance",
 
 SetCommand("fstun", 
    function() return DoSpell("Молот правосудия","focus") end, 
-   function() return (not InGCD() and not IsReadySpell("Молот правосудия")) or not CanControl("focus")  end
+   function() return (not InGCD() and not IsReadySpell("Молот правосудия")) or not CanControl("focus") not HasBuff("Незыблемость льда", 0.1, "focus")  end
 )
 
 SetCommand("sv", 
@@ -102,7 +102,7 @@ function Retribution()
     if DoSpell("Удар воина Света") then return end
     if (UnitCreatureType("target") == "Нежить") and UnitMana100() > 40 and InMelee() and DoSpell("Гнев небес") then return end    
     if UnitMana100() < 50 and DoSpell("Святая клятва") then return end
-    if not IsArena() and not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
+    if not TryEach(GetUnitNames(), function(u) return HasMyBuff("Священный щит", 0.1, u) end) and DoSpell("Священный щит","player") then return end
     -- Dispel
     if IsArena() then
         if IsReadySpell("Очищение") and TryEach(GetUnitNames(), 
@@ -316,7 +316,7 @@ function TryInterrupt(target)
             InterruptTime = GetTime()
             return true 
         end
-        if CanControl(target) and DoSpell("Молот правосудия", target) then 
+        if CanControl(target) and not HasBuff("Незыблемость льда", 0.1 , target) and DoSpell("Молот правосудия", target) then 
             echo("Молот правосудия"..m)
             InterruptTime = GetTime()
             return true 
