@@ -125,7 +125,7 @@ function TryTotems(forceTotems)
         force[earth] = true
     end
     if HasTotem("Тотем каменного когтя") then force[earth] = true end
-    if not HasTotem("Тотем оков земли") and HasDebuff({"Страх", "Вой ужаса", "Устрашающий крик", "Контроль над разумом", "Глубинный ужас", "Ментальный крик"}, 1,units) then 
+    if not HasTotem("Тотем трепета") and HasDebuff({"Страх", "Вой ужаса", "Устрашающий крик", "Контроль над разумом", "Глубинный ужас", "Ментальный крик"}, 1,units) then 
         TotemAlert["Тотем трепета"] = GetTime() 
     end
     if IsReadySpell("Тотем трепета") then
@@ -137,7 +137,7 @@ function TryTotems(forceTotems)
         end
         table.insert(earthTotems, { N = "Тотем трепета", P = priority })
     end
-    if not HasTotem("Тотем оков земли") and not PlayerInPlace() and HasBuff("Призрачный волк") then TotemAlert["Тотем оков земли"] = GetTime() end
+    if not HasTotem("Тотем оков земли") and (IsMouseButtonDown(1) == 1) then TotemAlert["Тотем оков земли"] = GetTime() end
     if IsReadySpell("Тотем оков земли") then
         local priority = 9
         if IsPvP() then priority = 11 end
@@ -262,7 +262,7 @@ function TryTotems(forceTotems)
     
     if try and DoSpell("Зов Духов") then
         totemTime = GetTime()
-        print(totemNames)
+        --print(totemNames)
     end
     return try
 end
@@ -302,12 +302,13 @@ function Idle()
     )
     if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or HasBuff("Призрачный волк")) then return end
     
+    if IsArena() and TryEach(units, function(u) return HasBuff("Гнев карателя", 10, u) end) then DoCommand("hero") end
     
     if TryTotems() then return end
     if IsValidTarget("target") and UnitAffectingCombat("target") and HasBuff("Отражение заклинания", 1, "target") and DoSpell("Пронизывающий ветер") then return end
     if IsLeftControlKeyDown() and IsMouseButtonDown(3) then
         if CanRes("mouseover") then
-            TryResUnit = UnitPartyName("mouseover")
+            TryResUnit = BlizzName("mouseover")
             TryResTime = GetTime()
             Notify("Пробуем воскресить " ..UnitName(TryResUnit) .. "("..TryResUnit..")")
         else
@@ -407,11 +408,7 @@ function HealRotation()
     end
     
     local myHP = CalculateHP("player")
-    if  myHP > 30 then
-        if TryEach(harmTarget, TryInterrupt) then return end
-        if IsReadySpell("Развеивание магии") and TryEach(harmTarget, function(t) return HasBuff(StealRedList, 2, t) and DoSpell("Развеивание магии", t) end) then return  end
-        if IsReadySpell("Очищение духа") and TryEach(units, function(u) return HasDebuff(DispelRedList, 2, u) and DoSpell("Очищение духа", u) end) then return end
-    end
+
     if InCombatLockdown() then
         if myHP < 70 and DoSpell("Дар наару", "player") then return end
         if myHP < 60 and UseEquippedItem("Проржавевший костяной ключ") then return end
@@ -502,6 +499,18 @@ function HealRotation()
    end 
     if #members < 1 then print("Некого лечить!!!") return end
     local u, h, l = members[1].Unit, members[1].HP, members[1].Lost
+    
+    if  h > 40 then
+        if TryEach(harmTarget, TryInterrupt) then return end
+        if UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") and TryEach(harmTarget, 
+            function(t) return IsVisible(t) and HasBuff(StealRedList, 2, t) and DoSpell("Развеивание магии", t) end
+        ) then return  end
+        if UnitMana100("player") > 30 and IsReadySpell("Очищение духа") and TryEach(units, 
+            function(u) return CanHeal(u) and HasDebuff(DispelRedList, 2, u) and DoSpell("Очищение духа", u) end
+        ) then return end
+    end
+    
+    
     CheckHealCast(u, h)
 
     if not IsAttack() and CanHeal("focus") and h > 40  and CalculateHP("focus") < 100 then
@@ -570,11 +579,11 @@ function HealRotation()
         if UnitThreatAlert("player") < 3 and (l > HealingWaveHeal) and DoSpell("Волна исцеления", u) then return end
     end
     
-    if (h > 40 or IsArena()) and CanUseInterrupt() and TryEach(harmTarget, TrySteal) then return end
-    if (h > 20 or IsArena()) and CanUseInterrupt() and TryEach(units, TryDispel) then return end
+    if (h > 60 and UnitMana100("player") > 50) and TryEach(harmTarget, TrySteal) then return end
+    if (h > 60 and UnitMana100("player") > 50) and TryEach(units, TryDispel) then return end
     if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and PlayerInPlace() and DoSpell("Молния") then return end
-    if not IsAttack() and (h > 20 and ((IsPvP() and InCombatLockdown()) or IsArena()))  and TryEach(harmTarget, 
-        function(t) return CanControl(t) and UnitIsPlayer(t) and HasDebuff({"Оковы земли", "Ледяной шок"}, 0,1, t) and DoSpell("Ледяной шок", t) end
+    if not IsAttack() and (h > 20 and IsPvP()) and TryEach(harmTarget, 
+        function(t) return CanControl(t) and UnitIsPlayer(t) and not HasDebuff({"Оковы земли", "Ледяной шок"}, 0,1, t) and DoSpell("Ледяной шок", t) end
     ) then return end
         
 end    

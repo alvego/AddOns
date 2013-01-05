@@ -315,15 +315,11 @@ function TryDispel(target)
     return ret
 end
 
-local InterruptTime = 0
 local InterruptKey = nil
 local InterruptGUID = nil
 function TryInterrupt(target)
-    if InterruptTime and (GetTime() - InterruptTime < 0.5) then return false end
     if target == nil then target = "target" end
-    
     if not IsValidTarget(target) then return false end
-    
     local channel = false
     local spell, _, _, _, _, endTime, _, _, notinterrupt = UnitCastingInfo(target)
         
@@ -347,12 +343,12 @@ function TryInterrupt(target)
     if InterruptBlackList[name] then negativeTry = InterruptBlackList[name] end
     --if positiveTry > 0 then negativeTry = 0 end
     if not ((not whiteListMode or positiveTry > 5) and (negativeTry < 5)) and not InInterruptRedList(spell) then return false end
-    
+   
     if (channel or t < 0.8) and not notinterrupt and IsReadySpell("Пронизывающий ветер") and InRange("Пронизывающий ветер",target) 
         and not HasBuff({"Мастер аур"}, 0.1, target) and CanMagicAttack(target) then
         if UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
         if UseSpell("Пронизывающий ветер", target) then 
-            --echo("Interrupt " .. spell .. " ("..target.." => " .. UnitName(target) .. ")")
+            echo("Interrupt " .. spell .. " ("..target.." => " .. UnitName(target) .. ")")
             InterruptTime = GetTime()
             if not(UnitIsPlayer(target) or UnitIsPet(target)) then 
                 InterruptKey = name
@@ -361,12 +357,12 @@ function TryInterrupt(target)
             return true 
         end
     end
-    
-    if not channel and t < 1.8 and not HasTotem("Тотем заземления") and IsReadySpell("Тотем заземления") 
-        and IsHarmfulCast(spell) and IsOneUnit(target .. "-target", "player") then
+     
+    if (not channel and t < 1.8) and not HasTotem("Тотем заземления") and IsReadySpell("Тотем заземления") 
+        and IsHarmfulCast(spell) then
         if UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
         if UseSpell("Тотем заземления") then 
-            Notify("Тотем заземления " .. spell .. " (".. UnitName(target) .. ")")
+            print("Тотем заземления " .. spell .. " (".. UnitName(target) .. ")")
             InterruptTime = GetTime()
             return true 
         end
@@ -418,7 +414,7 @@ function onEvent(self, event, ...)
                 if target and UnitExists(target) then
                     lastTarget = target
                     if IsHealCast(spell) then
-                        targetPartyName = UnitPartyName(lastTarget)
+                        targetPartyName = BlizzName(lastTarget)
                         if targetPartyName then
                             lastHealCastTarget = targetPartyName
                         end

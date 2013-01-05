@@ -228,8 +228,8 @@ red list
 ]]
 
 -- Rotation Helper Library by Timofeev Alexey
-SetCVar("cameraDistanceMax", 50)
-SetCVar("cameraDistanceMaxFactor", 3.4)
+--SetCVar("cameraDistanceMax", 50)
+--SetCVar("cameraDistanceMaxFactor", 3.4)
 
 local Commands = {}
 local InCast = {}
@@ -249,14 +249,19 @@ function IsVisible(target)
     return true;
 end
 
-function UnitPartyName(unit)
+function BlizzName(unit)
     if not unit or not UnitExists(unit) then return nil end
     local guid = UnitGUID(unit)
+    local blizz = nil
     local members = GetUnitNames()
     for i=1,#members do 
-        if UnitGUID(members[i]) == guid then return members[i] end
+        if not blizz and UnitGUID(members[i]) == guid then return members[i] end
     end
-    return nil
+    local targets = GetHarmTarget()
+    for i=1,#targets do 
+        if not blizz and UnitGUID(targets[i]) == guid then return targets[i] end
+    end
+    return blizz
 end
 
 function SetCommand(name, applyFunc, checkFunc)
@@ -631,17 +636,19 @@ local function onEvent(self, event, ...)
     end
     if event == "COMBAT_LOG_EVENT_UNFILTERED" then
         local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
-        if event:match("SPELL_DAMAGE") and spellName and agrs12 > 0 and destName == UnitName("player") then
+        if event:match("SPELL_DAMAGE") and spellName and agrs12 > 0 then
+           
             local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellID) 
             if castTime > 0 then
-                HarmfulCastingSpell[spellName] = true
+                 
+                HarmfulCastingSpell[name] = true
             end
         end
         if sourceGUID == UnitGUID("player") and (event:match("^SPELL_CAST") and spellID and spellName)  then
             local err = agrs12
             if err then
                 if err == "Цель вне поля зрения." then
-                    local partyName = UnitPartyName(lastTarget)
+                    local partyName = BlizzName(lastTarget)
                     if partyName then
                         notVisible[partyName] = GetTime()
                     end
