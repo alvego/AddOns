@@ -294,7 +294,7 @@ function TryInterrupt(target)
     if target == nil then target = "target" end
     
     if not IsValidTarget(target) then return false end
-    
+
     local spell, _, _, _, _, endTime, _, _, notinterrupt = UnitCastingInfo(target)
         
     if not spell then 

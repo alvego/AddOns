@@ -323,6 +323,7 @@ function TryInterrupt(target)
     if target == nil then target = "target" end
     
     if not IsValidTarget(target) then return false end
+    
     local channel = false
     local spell, _, _, _, _, endTime, _, _, notinterrupt = UnitCastingInfo(target)
         
@@ -347,7 +348,7 @@ function TryInterrupt(target)
     --if positiveTry > 0 then negativeTry = 0 end
     if not ((not whiteListMode or positiveTry > 5) and (negativeTry < 5)) and not InInterruptRedList(spell) then return false end
     
-    if not notinterrupt and IsReadySpell("Пронизывающий ветер") and InRange("Пронизывающий ветер",target) then
+    if not notinterrupt and IsReadySpell("Пронизывающий ветер") and InRange("Пронизывающий ветер",target) and not HasBuff({"Мастер аур"}, 0.1, target) and CanMagicAttack(target) then
         if UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
         if UseSpell("Пронизывающий ветер", target) then 
             --echo("Interrupt " .. spell .. " ("..target.." => " .. UnitName(target) .. ")")
@@ -364,7 +365,7 @@ function TryInterrupt(target)
         and IsHarmfulCast(spell) and IsOneUnit(target .. "-target", "player") and InRange("Пронизывающий ветер",target)  then
         if UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
         if UseSpell("Тотем заземления") then 
-            --echo("Interrupt " .. spell .. " ("..target.." => " .. UnitName(target) .. ")")
+            echo("Interrupt " .. spell .. " ("..target.." => " .. UnitName(target) .. ")")
             InterruptTime = GetTime()
             return true 
         end
