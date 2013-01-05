@@ -338,7 +338,7 @@ function TryInterrupt(target)
 
     if t < 0.2 then return false end
     if channel and t < 0.7 then return false end
-    if not channel and t > 0.7 then return false end
+    
     local name = GetUnitType(target) .. '|' ..  spell
     
     local positiveTry = 0
@@ -348,7 +348,8 @@ function TryInterrupt(target)
     --if positiveTry > 0 then negativeTry = 0 end
     if not ((not whiteListMode or positiveTry > 5) and (negativeTry < 5)) and not InInterruptRedList(spell) then return false end
     
-    if not notinterrupt and IsReadySpell("Пронизывающий ветер") and InRange("Пронизывающий ветер",target) and not HasBuff({"Мастер аур"}, 0.1, target) and CanMagicAttack(target) then
+    if (channel or t < 0.8) and not notinterrupt and IsReadySpell("Пронизывающий ветер") and InRange("Пронизывающий ветер",target) 
+        and not HasBuff({"Мастер аур"}, 0.1, target) and CanMagicAttack(target) then
         if UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
         if UseSpell("Пронизывающий ветер", target) then 
             --echo("Interrupt " .. spell .. " ("..target.." => " .. UnitName(target) .. ")")
@@ -361,11 +362,11 @@ function TryInterrupt(target)
         end
     end
     
-    if not channel and not HasTotem("Тотем заземления") and IsReadySpell("Тотем заземления") 
-        and IsHarmfulCast(spell) and IsOneUnit(target .. "-target", "player") and InRange("Пронизывающий ветер",target)  then
+    if not channel and t < 1.8 and not HasTotem("Тотем заземления") and IsReadySpell("Тотем заземления") 
+        and IsHarmfulCast(spell) and IsOneUnit(target .. "-target", "player") then
         if UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
         if UseSpell("Тотем заземления") then 
-            echo("Interrupt " .. spell .. " ("..target.." => " .. UnitName(target) .. ")")
+            Notify("Тотем заземления " .. spell .. " (".. UnitName(target) .. ")")
             InterruptTime = GetTime()
             return true 
         end
@@ -427,8 +428,8 @@ function onEvent(self, event, ...)
              if  event == "UNIT_SPELLCAST_SUCCEEDED" then
                  --if Debug then chat(spell) end
                  if spell == resSpell then
-                    RunMacroText("/w " .. resUnit .. " Реснул тебя, вставай давай!")
-                    if InCombatLockdown() then RunMacroText("/w " .. resUnit .. " Но смотри аккуратно, чтоб сразу не умереть!") end
+                    --RunMacroText("/w " .. resUnit .. " Реснул тебя, вставай давай!")
+                    --if InCombatLockdown() then RunMacroText("/w " .. resUnit .. " Но смотри аккуратно, чтоб сразу не умереть!") end
                     resList[resUnit] = GetTime()
                     Notify("Успешно применил "..resSpell .. " на " .. resUnit)
                 end

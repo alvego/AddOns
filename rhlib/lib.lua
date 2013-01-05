@@ -840,7 +840,15 @@ function UnitHP(t)
 end
 
 function InGroup()
-    return (GetNumRaidMembers() > 0 or GetNumPartyMembers() > 0)
+    return (InRaid() or InParty())
+end
+
+function InRaid()
+    return (GetNumRaidMembers() > 0)
+end
+
+function InParty()
+    return (GetNumPartyMembers() > 0)
 end
 
 function TryEach(list, func)

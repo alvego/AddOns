@@ -3,7 +3,6 @@
 BINDING_HEADER_PRH = "Paladin Rotation Helper"
 BINDING_NAME_PRH_OFF = "Выкл ротацию"
 BINDING_NAME_PRH_DEBUG = "Вкл/Выкл режим отладки"
-BINDING_NAME_PRH_MOUNT = "Вкл/Выкл маунта"
 BINDING_NAME_PRH_AOE = "Вкл/Выкл AOE в ротации"
 BINDING_NAME_PRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 BINDING_NAME_PRH_AUTOAGGRO = "Авто АГГРО"
@@ -19,12 +18,14 @@ frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 frame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 
 local LastUpdate = 0
-local UpdateInterval = 0.025
-local Paused = false
-local Debug = false
-local AutoAGGRO = true
-local BersState = false
-local CanInterrupt = true
+local UpdateInterval = 0.01
+
+if Paused == nil then Paused = false end
+if Debug == nil then Debug = false end
+if AutoAGGRO == nil then AutoAGGRO = true end
+if BersState == nil then BersState = false end
+if CanInterrupt == nil then CanInterrupt = true end
+
 local NextTarget = nil
 local NextGUID = nil
 
@@ -53,37 +54,6 @@ end
 
 function GetNextTarget()
     return NextTarget
-end
-
-function Mount()
-
-    if CanExitVehicle() then
-        VehicleExit()
-    end
-    
-    if not IsMounted() and InCombatLockdown() then return end
-    
-    if IsMounted() then
-            Dismount()
-    else 
-        if IsEquippedItemType("Удочка") then
-             UseSpell("Рыбная ловля")
-            return
-        end
-        
-        if IsAltKeyDown() then
-            UseMount("Тундровый мамонт путешественника")
-            return
-        end
-
-        if IsFlyableArea() and not IsShiftKeyDown() then
-            UseMount("Великолепный ковер-самолет")
-        else
-            UseMount("Призыв скакуна")
-        end
-
-    end
-    
 end
 
 function AutoAGGROToggle()
@@ -121,8 +91,10 @@ end
 function DebugToggle()
     Debug = not Debug
     if Debug then
+         SetCVar("scriptErrors", 1)
         echo("Режим отладки: ON",true)
     else
+         SetCVar("scriptErrors", 0)
         echo("Режим отладки: OFF",true)
     end 
 end
@@ -170,9 +142,8 @@ local dispellBlacklist = {}
 local dispell = nil
 local dispelTime = GetTime()
 function TryDispell(unit)
-    if not UnitIsFriend("player", unit) then return false end
-    if not InRange("Очищение", unit) then return false end
-    if GetTime() - dispelTime < 1.5 then return false end
+    if not CanHeal( unit) then return false end
+    if GetTime() - dispelTime < 3 then return false end
     local ret = false
     for i = 1, 40 do
         if not ret then

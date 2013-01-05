@@ -115,7 +115,7 @@ function TryTotems(forceTotems)
         if IsHeal() then priority = 20 end
         table.insert(earthTotems, { N = "Тотем каменной кожи", P = priority })
     end
-    if not HasBuff("Сила земли") and not HasClass(units, {"DEATHKNIGHT"}) then
+    if not HasBuff("Сила земли") and not (HasClass(units, {"DEATHKNIGHT"}) or HasBuff("Зимний горн"))then
         local priority = 10
         if IsMDD() then priority = 20 end
         table.insert(earthTotems, { N = "Тотем силы земли", P = priority })
@@ -125,7 +125,9 @@ function TryTotems(forceTotems)
         force[earth] = true
     end
     if HasTotem("Тотем каменного когтя") then force[earth] = true end
-    if HasDebuff({"Страх", "Вой ужаса", "Устрашающий крик", "Контроль над разумом", "Глубинный ужас", "Ментальный крик"}, 1,units) then TotemAlert["Тотем трепета"] = GetTime() end
+    if not HasTotem("Тотем оков земли") and HasDebuff({"Страх", "Вой ужаса", "Устрашающий крик", "Контроль над разумом", "Глубинный ужас", "Ментальный крик"}, 1,units) then 
+        TotemAlert["Тотем трепета"] = GetTime() 
+    end
     if IsReadySpell("Тотем трепета") then
         local priority = 10
         if not HasTotem("Тотем трепета") 
@@ -135,7 +137,7 @@ function TryTotems(forceTotems)
         end
         table.insert(earthTotems, { N = "Тотем трепета", P = priority })
     end
-    if not PlayerInPlace() and HasBuff("Призрачный волк") then TotemAlert["Тотем оков земли"] = GetTime() end
+    if not HasTotem("Тотем оков земли") and not PlayerInPlace() and HasBuff("Призрачный волк") then TotemAlert["Тотем оков земли"] = GetTime() end
     if IsReadySpell("Тотем оков земли") then
         local priority = 9
         if IsPvP() then priority = 11 end
@@ -177,31 +179,31 @@ function TryTotems(forceTotems)
         totem[fire] = nil
     end
     --water
-    if not HasBuff("Источник маны") and (UnitMana100("player") < 50) and not HasBuff("Групповая охота") then
-        local priority = 10
-        if UnitMana100("player") < 50 then priority = 20 end
-        -- Нужно сделать форсе по имени тотема.
-        --if InCombatLockdown() and not HasТotem("Тотем источника маны")
-        table.insert(waterTotems, { N = "Тотем источника маны", P = priority })
-    end
     if HasTotem("Тотем прилива маны") then Notify("Тотем прилива маны!!!") end
     if PlayerInPlace() and not HasTotem("Тотем прилива маны") and HasSpell("Тотем прилива маны") and IsReadySpell("Тотем прилива маны") and UnitMana100("player") < 70 then
         table.insert(waterTotems, { N = "Тотем прилива маны", P = 100 })
         force[water] = true
     end
-    if IsReadySpell("Тотем исцеляющего потока") then
+    if IsReadySpell("Тотем исцеляющего потока") and not InRaid() then
         table.insert(waterTotems, { N = "Тотем исцеляющего потока", P = 15 })
     end
-    if HasDebuff({"Disease", "Poison"}, 1,units) then TotemAlert["Тотем очищения"] = GetTime() end
-    --print(HasDebuff({"Disease", "Poison"}, 1,units), TotemAlert["Тотем очищения"] and GetTime() - TotemAlert["Тотем очищения"] < 3)
-    if not HasTotem("Тотем очищения") and  IsReadySpell("Тотем очищения") then
+    if not HasTotem("Тотем очищения") and HasDebuff({"Disease", "Poison"}, 1,units) then TotemAlert["Тотем очищения"] = GetTime() end
+    if IsReadySpell("Тотем очищения") then
         local priority = 9
-        if HasClass(harmTarget, {"DEATHKNIGHT", "WARLOCK", "PRIEST", "ROGUE"}) 
+        if not HasTotem("Тотем очищения") and  HasClass(harmTarget, {"DEATHKNIGHT", "WARLOCK", "PRIEST", "ROGUE"}) 
             or (TotemAlert["Тотем очищения"] and GetTime() - TotemAlert["Тотем очищения"] < 3) then 
             priority = 90
             force[water] = true
         end
         table.insert(waterTotems, { N = "Тотем очищения", P = priority })
+    end
+    if not HasBuff("Источник маны") and not HasBuff("Групповая охота") then
+        local priority = 10
+        if UnitMana100("player") < 50 and not HasTotem("Тотем источника маны") then 
+            priority = 50 
+            force[water] = true 
+        end
+        table.insert(waterTotems, { N = "Тотем источника маны", P = priority })
     end
     if HasTotem("Тотем прилива маны") then
         force[water] = false
