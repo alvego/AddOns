@@ -10,7 +10,7 @@ SetCommand("freedom",
 )
 SetCommand("repentance", 
    function() return DoSpell("Покаяние") end, 
-   function() return (not InGCD() and not IsReadySpell("Покаяние")) or not CanControl()   end
+   function() return (not InGCD() and not IsReadySpell("Покаяние")) or not CanControl()  end
 )
 
 SetCommand("stun", 
@@ -283,7 +283,7 @@ function TryProtect()
             if UseEquippedItem("Проржавевший костяной ключ") then return true end
         end
         if HasSpell("Удар воина Света") and (UnitHealth100() < 20) and DoSpell("Божественный щит") then return true end
-        if (UnitHealth100() < 15) and DoSpell("Божественная защита") then return true end   
+        if (UnitHealth100() < 15) and not IsReadySpell("Божественный щит") and DoSpell("Божественная защита") then return true end   
         end
     return false;
 end
