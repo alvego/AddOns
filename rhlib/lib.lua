@@ -527,17 +527,23 @@ end
 local LastPosX, LastPosY = GetPlayerMapPosition("player")
 local InPlace = true
 local FallingTime = nil
+local CombatLogTimer = GetTime();
+local CombatLogResetTimer = GetTime();
 local function OnUpdate()
 	local zoneText = GetZoneMap()
-	if ("IcecrownCitadel7" == zoneText) and (currentMap~="IcecrownCitadel7") then
-        ZoneChanged("ZoneText")
-	end
+	if ("IcecrownCitadel7" == zoneText) and (currentMap ~= "IcecrownCitadel7") then ZoneChanged("ZoneText") end
     if not InCombatLockdown() and not IsPlayerCasting() and #InCast > 0 then  wipe(InCast) end
     
     local posX, posY = GetPlayerMapPosition("player")
     InPlace = (LastPosX == posX and LastPosY == posY)
     LastPosX ,LastPosY = GetPlayerMapPosition("player")
     if not InPlace then InPlaceTime = GetTime() end
+    
+    
+    if InCombatLockdown() and GetTime() - CombatLogTimer > 10 and GetTime() - CombatLogResetTimer > 10 then 
+        CombatLogClearEntries()
+        CombatLogResetTimer = GetTime()
+    end 
     
     if IsFalling() then
         if FallingTime == nil then FallingTime = GetTime() end
@@ -636,13 +642,10 @@ local function onEvent(self, event, ...)
     end
     if event == "COMBAT_LOG_EVENT_UNFILTERED" then
         local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
+        if event:match("DAMAGE") or event:match("HEAL") then CombatLogTimer = GetTime() end
         if event:match("SPELL_DAMAGE") and spellName and agrs12 > 0 then
-           
             local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellID) 
-            if castTime > 0 then
-                 
-                HarmfulCastingSpell[name] = true
-            end
+            if castTime > 0 then HarmfulCastingSpell[name] = true end
         end
         if sourceGUID == UnitGUID("player") and (event:match("^SPELL_CAST") and spellID and spellName)  then
             local err = agrs12

@@ -52,7 +52,7 @@ SetCommand("mount",
             return DoSpell("Призрачный волк") 
         end
         if InGCD() or IsPlayerCasting() or InCombatLockdown() or not IsOutdoors() then return false end
-        local mount = "Большой Лиловый элекк"
+        local mount = "Стремительный белый рысак"
         if IsFlyableArea() and not IsLeftControlKeyDown() then mount = "Черный дракон" end
         if IsAltKeyDown() then mount = "Тундровый мамонт путешественника" end
         if UseMount(mount) then tryMount = true return end
