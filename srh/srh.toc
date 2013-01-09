@@ -4,5 +4,7 @@
 ## Interface: 30300
 ## Dependencies: rhlib
 ## SavedVariables: Paused, Debug, BersState, CanInterrupt, AutoAOE, DispelWhiteList, StealWhiteList, DispelBlackList, StealBlackList, InterruptWhiteList, InterruptBlackList
+commands.lua
+totems.lua
 rotation.lua
 binds.lua

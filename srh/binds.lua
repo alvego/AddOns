@@ -1,8 +1,6 @@
 ﻿-- Shaman Rotation Helper by Timofeev Alexey
 -- Binding
 BINDING_HEADER_SRH = "Shaman Rotation Helper"
-BINDING_NAME_SRH_OFF = "Выкл ротацию"
-BINDING_NAME_SRH_DEBUG = "Вкл/Выкл режим отладки"
 BINDING_NAME_SRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 BINDING_NAME_SRH_AUTOAOE = "Вкл/Выкл авто AOE"
 BINDING_NAME_SRH_LISTMODE = "Вкл/Выкл WhiteList"
@@ -20,16 +18,12 @@ frame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 frame:RegisterEvent("UNIT_SPELLCAST_FAILED")
 frame:RegisterEvent("UNIT_SPELLCAST_SENT")
 
-local LastUpdate = 0
-local UpdateInterval = 0.0001
 
 local resList = {}
 local NextTarget = nil
 local NextGUID = nil
 local AutoTotems = true
 
-if Paused == nil then Paused = false end
-if Debug == nil then Debug = false end
 if CanInterrupt == nil then CanInterrupt = true end
 if AutoAOE == nil then AutoAOE = true end
 
@@ -114,15 +108,6 @@ function NextIsTarget(target)
     return (UnitGUID("target") == NextGUID)
 end
 
-    
-function AutoRotationOff()
-    Paused = true
-    RunMacroText("/stopattack")
-    RunMacroText("/stopcasting")
-    wipe(resList)
-    echo("Авто ротация: OFF",true)
-end
-
 function AutoAOEToggle()
     AutoAOE = not AutoAOE
     if AutoAOE then
@@ -135,25 +120,6 @@ end
 function CanAutoAOE()
     return AutoAOE
 end 
-
-function DebugToggle()
-    Debug = not Debug
-    if Debug then
-         SetCVar("scriptErrors", 1)
-        echo("Режим отладки: ON",true)
-    else
-         SetCVar("scriptErrors", 0)
-        echo("Режим отладки: OFF",true)
-    end 
-end
-
-function IsDebug()
-    return Debug
-end    
-
-function IsAttack()
-    return (IsMouseButtonDown(4) == 1)
-end
 
 function IsAOE()
    return (IsShiftKeyDown() == 1) or (CanAutoAOE() and IsValidTarget("target") and IsValidTarget("focus") and not IsOneUnit("target", "focus") and UnitAffectingCombat("focus") and UnitAffectingCombat("target"))
@@ -371,14 +337,11 @@ function TryInterrupt(target)
     return false    
 end
 
-function onUpdate(frame, elapsed)
-    
-    if ApplyCommands() then return end
- 
-    if (IsAttack() and Paused) then
-        echo("Авто ротация: ON",true)
-        Paused = false
-    end
+
+
+
+
+local function onUpdate(elapsed)
     if (CanHeal(resUnit) and (UnitCastingInfo("player") == "Дух предков"))  then RunMacroText("/stopcasting") end
     
     if InterruptKey and InterruptGUID and GetTime() - InterruptTime > 1 and not InterruptWhiteList[InterruptKey] then 
@@ -389,19 +352,8 @@ function onUpdate(frame, elapsed)
         InterruptKey = nil
         InterruptGUID = nil
     end
-    
-    LastUpdate = LastUpdate + elapsed
-    if LastUpdate < UpdateInterval then return end
-    LastUpdate = 0
-    
-    if UnitIsDeadOrGhost("player") or UnitIsCharmed("player") or not UnitPlayerControlled("player") then return end
-    if Paused then 
-        return 
-    end
-    
-    Idle()
 end
-frame:SetScript("OnUpdate", onUpdate)
+AttachUpdate(onUpdate)
 
 function onEvent(self, event, ...)
 
@@ -545,12 +497,6 @@ function onEvent(self, event, ...)
     end
 end
 frame:SetScript("OnEvent", onEvent)
-
-function UnitThreatAlert(u)
-    local threat, target = UnitThreat(u), format("%s-target", u)
-    if UnitAffectingCombat(target) and UnitIsPlayer(target) and IsValidTarget(target) and IsOneUnit(u, target .. "-target") then threat = 3 end
-    return threat
-end
 
 function DoSpell(spell, target, mana)
     return UseSpell(spell, target, mana)

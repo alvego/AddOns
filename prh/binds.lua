@@ -1,8 +1,6 @@
 ﻿-- Paladin Rotation Helper by Timofeev Alexey & Co
 -- Binding
 BINDING_HEADER_PRH = "Paladin Rotation Helper"
-BINDING_NAME_PRH_OFF = "Выкл ротацию"
-BINDING_NAME_PRH_DEBUG = "Вкл/Выкл режим отладки"
 BINDING_NAME_PRH_AOE = "Вкл/Выкл AOE в ротации"
 BINDING_NAME_PRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 BINDING_NAME_PRH_AUTOAGGRO = "Авто АГГРО"
@@ -16,12 +14,6 @@ RunMacroText("/cleartarget")
 -- attach events
 frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
 frame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-
-local LastUpdate = 0
-local UpdateInterval = 0.01
-
-if Paused == nil then Paused = false end
-if Debug == nil then Debug = false end
 if AutoAGGRO == nil then AutoAGGRO = true end
 if BersState == nil then BersState = false end
 if CanInterrupt == nil then CanInterrupt = true end
@@ -82,61 +74,10 @@ function GetBersState()
     return BersState
 end  
 
-function AutoRotationOff()
-    Paused = true
-    echo("Авто ротация: OFF",true)
-    RunMacroText("/stopattack")
-end
-
-function DebugToggle()
-    Debug = not Debug
-    if Debug then
-         SetCVar("scriptErrors", 1)
-        echo("Режим отладки: ON",true)
-    else
-         SetCVar("scriptErrors", 0)
-        echo("Режим отладки: OFF",true)
-    end 
-end
-
-function IsDebug()
-    return Debug
-end    
-
-function IsAttack()
-    return (IsMouseButtonDown(4) == 1)
-end
-
-
 function IsAOE()
    if IsShiftKeyDown() == 1 then return true end
    return (IsValidTarget("target") and IsValidTarget("focus") and not IsOneUnit("target", "focus") and InMelee())
 end
-
-function onUpdate(frame, elapsed)
-
-    if ApplyCommands() then return end
-
-    if (IsAttack() and Paused) then
-        echo("Авто ротация: ON",true)
-        Paused = false
-    end
-    
-    LastUpdate = LastUpdate + elapsed
-    if LastUpdate < UpdateInterval then return end
-    LastUpdate = 0
-
-    if Paused then 
-        return 
-    end
-    
-    if UnitIsDeadOrGhost("player") or UnitIsCharmed("player") or not UnitPlayerControlled("player") then return end
-    
-    Idle()   
-  
-end
-frame:SetScript("OnUpdate", onUpdate)
-
 
 local dispellBlacklist = {}
 local dispell = nil
