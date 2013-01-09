@@ -126,7 +126,7 @@ local function SellGrayAndRepair()
     SellGray();
     RepairAllItems();
 end
-AttachEvent('MERCHANT_SHOW', UpdateCombatLogTimer)
+AttachEvent('MERCHANT_SHOW', SellGrayAndRepair)
 
 ------------------------------------------------------------------------------------------------------------------
 -- Запоминаем вредоносные спелы которые нужно кастить (нужно для сбивания кастов, например тотемом заземления)
@@ -145,5 +145,5 @@ end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateHarmfulSpell)
 
 ------------------------------------------------------------------------------------------------------------------
--- STAART EVENT CYCLE!!! (should be called at last line)
+-- Start event cycle (should be called at last line)
 InitRotationHelperLibrary()
