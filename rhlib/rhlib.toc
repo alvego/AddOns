@@ -4,6 +4,7 @@
 ## Interface: 30300
 ## OptionalDeps: LibHealComm-4.0
 ## SavedVariables: Paused, Debug, HarmfulCastingSpell
+lib.lua
 misc.lua
 units.lua
 data.lua
@@ -14,5 +15,5 @@ runes.lua
 totems.lua
 spells.lua
 commands.lua
-lib.lua
 binds.lua
+

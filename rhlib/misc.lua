@@ -1,24 +1,4 @@
 ﻿-- Rotation Helper Library by Timofeev Alexey
-
-------------------------------------------------------------------------------------------------------------------
--- Список событие -> обработчики
-EventList = {}
-function AttachEvent(name, func) 
-  if nil == func then error("Func can't be nil") end  
-  local funcList = EventList[name]
-  if nil == funcList then funcList = {} end
-  tinsert(funcList, func)
-  EventList[name] = funcList
-end
-
-------------------------------------------------------------------------------------------------------------------
--- Список обработчик -> вес/значимость
-UpdateList = {}
-function AttachUpdate(f, w) 
-    if nil == f then error("Func can't be nil") end  
-	if w == nil then w = 0 end
-	tinsert(UpdateList, { func = f, weight = w })
-end
 ------------------------------------------------------------------------------------------------------------------
 function SellGray()
 	for b=0,4 do                                   
