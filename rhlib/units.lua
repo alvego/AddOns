@@ -38,43 +38,40 @@ end
 -- unit filted start end
 
 ------------------------------------------------------------------------------------------------------------------
-function GetUnitNames()
+function GetUnits()
     local units = {"player", "target", "focus" }
-    local members = GetPartyOrRaidMembers()
+    local members = GetGroupUnits()
     for i = 1, #members, 1 do 
-        table.insert(units, members[i])
-        table.insert(units, members[i] .."pet")
+        tinsert(units, members[i])
+        tinsert(units, members[i] .."pet")
     end
-    table.insert(units, "mouseover")
+    tinsert(units, "mouseover")
     realUnits = {}
     for i = 1, #units, 1 do 
         local u = units[i]
-        local exists = false
-        for j = 1, #realUnits, 1 do
-            if UnitName(u) and IsOneUnit(realUnits[j], u) then exists = true end
-        end
-        local d = CheckDistance(u, "player")
-        if not exists and ((not d or d < 40) or IsArena()) then table.insert(realUnits, u) end
+        if not TryEach(realUnits, function(ru) return UnitName(u) and IsOneUnit(ru, u) end) 
+            and InInteractRange(u) then table.insert(realUnits, u) end
     end
     return realUnits
 end
-
+--/run print(GetBlizzName(UnitGUID('mouseover')))
+--/run print(GetGroupUnits())
 ------------------------------------------------------------------------------------------------------------------
-function GetPartyOrRaidMembers()
-    local members = {}
-    local group = "party"
-    if GetNumRaidMembers() > 0 then group = "raid" end
-    for i = 1, 40, 1 do 
-        if UnitExists(group..i) and UnitName(group..i) ~= nil then table.insert(members, group..i) end
+function GetGroupUnits()
+    local units = {}
+    if not InGroup() then return units end
+    local group = InRaid() and {group = "raid", size = 40} or {name = "party", size = 4}
+    for i = 0, group.size do 
+        local u = group.name..i
+        if UnitExists(u) and UnitName(u) ~= nil then tinsert(units, u) end
     end
---~     table.sort(members, function(u1, u1) return (UnitThreatSituation(u1) > UnitThreatSituation(u2)) end)
-    return members
+    return units
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function GetHarmTarget()
+function GetTargets()
     local units = {"target","mouseover","focus","arena1","arena2","arena3","arena4","arena5","bos1","bos2","bos3","bos4"}
-    local members = GetPartyOrRaidMembers()
+    local members = GetGroupUnits()
     for i = 1, #members, 1 do 
          table.insert(units, members[i] .."-target")
     end
@@ -104,7 +101,8 @@ function IsValidTarget(target)
     return UnitCanAttack("player", target)
 end
 
-function IsInteractTarget(t)
+------------------------------------------------------------------------------------------------------------------
+function IsInteractUnit(t)
     if IsValidTarget(t) then return false end
     if UnitExists(t) 
         and not IsIgnored(t) 
@@ -117,15 +115,26 @@ function IsInteractTarget(t)
 end
 
 ------------------------------------------------------------------------------------------------------------------
+function CanHeal(t)
+    return InInteractRange(t) and not HasDebuff("Смерч", 0.1, t) and IsVisible(t)
+end 
+
+------------------------------------------------------------------------------------------------------------------
+function GetBlizzName(guid)
+    if not guid then return nil end
+    local function check(u) return (UnitExists(u) and UnitGUID(u) == guid) and u or nil end
+    return TryEach(GetGroupUnits(), function(u) return check(u) or check(u..'-pet') end) 
+        or TryEach({"player","arena1","arena2","arena3","arena4","arena5","bos1","bos2","bos3","bos4","target","focus","mouseover"}, check)
+        or nil
+end
+
+------------------------------------------------------------------------------------------------------------------
 function BlizzName(unit)
     if not unit or not UnitExists(unit) then return nil end
     local guid = UnitGUID(unit)
     local blizz = nil
-    local members = GetUnitNames()
-    for i=1,#members do 
-        if not blizz and UnitGUID(members[i]) == guid then return members[i] end
-    end
-    local targets = GetHarmTarget()
+    local targets = GetGroupUnits()
+    
     for i=1,#targets do 
         if not blizz and UnitGUID(targets[i]) == guid then return targets[i] end
     end
@@ -141,13 +150,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function HasClass(units, classes) 
-    local ret = false
-    for _,u in pairs(units) do 
-        if UnitExists(u) and UnitIsPlayer(u) and tContains(classes, GetClass(u)) then 
-            ret = true 
-        end 
-    end
-    return ret 
+    return TryEach(units, function(u) return UnitExists(u) and UnitIsPlayer(u) and tContains(classes, GetClass(u)) end) 
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -277,6 +280,15 @@ function IsPvP()
 end
 
 ------------------------------------------------------------------------------------------------------------------
+local lastSpellTargetName = {}
+local function UpdateLastSpellTargetName(event, ...)
+    local unitID, spell, rank, target = select(1,...)
+    if unitID ~= 'player' then return end
+    lastSpellTargetName[spell] = target
+end
+AttachEvent('UNIT_SPELLCAST_SENT', UpdateLastSpellTargetName)
+
+
 -- не за спиной цели
 local notBehindTarget = 0
 function IsNotBehindTarget()
@@ -287,8 +299,12 @@ end
 local notVisible = {}
 function IsVisible(target)
     if not target or target == "player"  then return true end
+    if not UnitExists(target) then return false end
     if not UnitIsVisible(target) then return false end
-    local t = notVisible[target]
+    
+    local name = UnitName(target)
+    
+    local t = notVisible[name]
     if t and GetTime() - t < 1 then return false end
     return true;
 end
@@ -299,9 +315,9 @@ local function UpdateTargetPosition(event, ...)
         local err = agrs12
         if err then
             if err == "Цель вне поля зрения." then
-                local partyName = BlizzName(lastTarget)
-                if partyName then
-                    notVisible[partyName] = GetTime()
+                local lastTargetName = lastSpellTargetName[spellName]
+                if lastTargetName then
+                    notVisible[lastTargetName] = GetTime()
                 end
             end
             if err == "Вы должны находиться позади цели." then notBehindTarget = GetTime() end

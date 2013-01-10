@@ -2,8 +2,7 @@
 ------------------------------------------------------------------------------------------------------------------
 local TryResUnit = nil
 local TryResTime = 0
-harmTarget = {}
-units = {}
+
 function IsFriend(unit)
     if not IsInteractTarget(unit) then return false end
     local friends, name = {"Авиена"}, UnitName(unit)
@@ -11,30 +10,7 @@ function IsFriend(unit)
 end
 
 function Idle()
-    units = GetUnitNames() 
-    harmTarget = GetHarmTarget()
-    table.sort(units, function(u1,u2) 
-        local w1, w2 = 0, 0
-        if IsOneUnit(u1, "player") then w1 = 3 end
-        if IsOneUnit(u2, "player") then w2 = 3 end
-        if IsFriend(u1) then w1 = 2 end
-        if IsFriend(u2) then w2 = 2 end
-        return w1 < w2 end
-    )
-    table.sort(harmTarget, function(t1,t2) 
-        local w1, w2 = 0, 0
-        for _,u in pairs(units) do
-            if IsOneUnit(u .. "-target", t1) then w1 = IsFriend(u) and 2 or 1 end
-            if IsOneUnit(u .. "-target", t2) then w2 = IsFriend(u) and 2 or 1 end
-        end
-        if IsOneUnit("focus", t1) then w1 = 3 end
-        if IsOneUnit("focus", t2) then w2 = 3 end
-        if IsOneUnit("target", t1) then w1 = 4 end
-        if IsOneUnit("target", t2) then w2 = 4 end
-        if IsOneUnit("mouseover", t1) then w1 = 5 end
-        if IsOneUnit("mouseover", t2) then w2 = 5 end
-        return w1 < w2 end
-    )
+    
     if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or HasBuff("Призрачный волк")) then return end
     
     if IsArena() and TryEach(units, function(u) return HasBuff("Гнев карателя", 10, u) end) then DoCommand("hero") end
@@ -86,14 +62,7 @@ function Idle()
     end
 end
 
-function CanHeal(t)
-    if IsInteractTarget(t) 
-        and not HasDebuff("Смерч", 0.1, t)
-        and InRange("Волна исцеления", t)
-        and IsVisible(t)
-    then return true end 
-    return false
-end   
+  
 
 function CheckHealCast(u, h)
     local spell, _, _, _, _, endTime, _, _, notinterrupt = UnitCastingInfo("player")

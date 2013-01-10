@@ -49,7 +49,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 local function GetGCDSpellID()
     -- Use these spells to detect GCD
-	local GCDSpells = {
+	local spells = {
 		PALADIN = 635,       -- Holy Light I [OK]
 		PRIEST = 1243,       -- Power Word: Fortitude I
 		SHAMAN = 8071,       -- Rockbiter I
@@ -61,26 +61,44 @@ local function GetGCDSpellID()
 		HUNTER = 1978,       -- Serpent Sting I (only from level 4)
 		DEATHKNIGHT = 45902, -- Blood Strike I
 	}
-
-    return GCDSpells[GetClass()]
+    return spells[GetClass()]
 end
 
 function InGCD()
     local gcdStart = GetSpellCooldown(GetGCDSpellID());
     return (gcdStart and (gcdStart>0));
 end
+------------------------------------------------------------------------------------------------------------------
+-- Interact range - 40 yards
+local function GetInteractRangeSpell()
+	local spells = {
+		DRUID = "Целительное прикосновение",
+        PALADIN = "Свет небес",
+        SHAMAN = "Волна исцеления",
+        PRIEST = "Малое исцеление"
+	}
+    return spells[GetClass()]
+end
 
+function InInteractRange(unit)
+    -- need test and review
+    if (unit == nil) then unit = "target" end
+    if not IsInteractUnit(unit) then return false end
+    local spell = GetInteractRangeSpell()
+    if spell then return IsSpellInRange(spell,unit) == 1 end
+    if IsArena() then return true end
+    return InDistance("player", unit, 40)
+end
 ------------------------------------------------------------------------------------------------------------------
 local function GetMeleeSpell()
-    -- Use these spells to melee GCD
-	local MeleeSpells = {
+    -- Use these spells to melee
+	local spells = {
 		DRUID = "Цапнуть",        
 		DEATHKNIGHT = "Удар чумы", 
         PALADIN = "Щит праведности",
         SHAMAN = "Удар бури"
 	}
-    
-    return MeleeSpells[GetClass()]
+    return spells[GetClass()]
 end
 
 function InMelee(target)
@@ -159,12 +177,7 @@ local InCast = {}
 local function UpdateIsCast(event, ...)
 	local unit, spell = select(1,...)
 	if spell and unit == "player" then
-		if event == "UNIT_SPELLCAST_SENT" then
-			InCast[spell] = GetTime()
-		end
-		if event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_FAILED" then
-			InCast[spell] = nil
-		end
+        InCast[spell] = (event == "UNIT_SPELLCAST_SENT") and GetTime() or nil
 	end
 end
 AttachEvent('UNIT_SPELLCAST_SENT', UpdateIsCast)

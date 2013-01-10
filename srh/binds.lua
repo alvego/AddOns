@@ -1,29 +1,13 @@
 ﻿-- Shaman Rotation Helper by Timofeev Alexey
+------------------------------------------------------------------------------------------------------------------
 -- Binding
 BINDING_HEADER_SRH = "Shaman Rotation Helper"
 BINDING_NAME_SRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 BINDING_NAME_SRH_AUTOAOE = "Вкл/Выкл авто AOE"
 BINDING_NAME_SRH_LISTMODE = "Вкл/Выкл WhiteList"
 BINDING_NAME_SRH_TOTEMS = "Автоматически ставить тотемы"
-
--- addon main frame
-local frame=CreateFrame("Frame",nil,UIParent)
-print("Shaman Rotation Helper loaded")
--- protected lock test
-RunMacroText("/cleartarget")
--- attach events
-frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-frame:RegisterEvent("UNIT_SPELLCAST_START")
-frame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-frame:RegisterEvent("UNIT_SPELLCAST_FAILED")
-frame:RegisterEvent("UNIT_SPELLCAST_SENT")
-
-
-local resList = {}
-local NextTarget = nil
-local NextGUID = nil
-local AutoTotems = true
-
+------------------------------------------------------------------------------------------------------------------
+-- Saved variables (public)
 if CanInterrupt == nil then CanInterrupt = true end
 if AutoAOE == nil then AutoAOE = true end
 
@@ -36,6 +20,7 @@ if StealBlackList == nil then StealBlackList = {} end
 if InterruptWhiteList == nil then InterruptWhiteList = {} end
 if InterruptBlackList == nil then InterruptBlackList = {} end
 
+------------------------------------------------------------------------------------------------------------------
 function IsMDD()
     return HasSpell("Бой двумя оружиями")
 end
@@ -64,6 +49,8 @@ function RoleHeal()
     Notify(RoleName())
 end
 
+------------------------------------------------------------------------------------------------------------------
+local AutoTotems = true
 function CanAutoTotems()
     return AutoTotems
 end
@@ -91,7 +78,9 @@ function UseInterrupt()
         echo("Interrupt: OFF",true)
     end 
 end
-
+------------------------------------------------------------------------------------------------------------------
+local NextTarget = nil
+local NextGUID = nil
 
 function GetNextTarget()
     return NextTarget
@@ -107,6 +96,7 @@ function NextIsTarget(target)
     if not target then target = "target" end
     return (UnitGUID("target") == NextGUID)
 end
+------------------------------------------------------------------------------------------------------------------
 
 function AutoAOEToggle()
     AutoAOE = not AutoAOE
@@ -124,7 +114,8 @@ end
 function IsAOE()
    return (IsShiftKeyDown() == 1) or (CanAutoAOE() and IsValidTarget("target") and IsValidTarget("focus") and not IsOneUnit("target", "focus") and UnitAffectingCombat("focus") and UnitAffectingCombat("target"))
 end
-
+------------------------------------------------------------------------------------------------------------------
+local resList = {}
 local resSpell = nil
 local resUnit = nil
 function CanRes(t)
@@ -158,7 +149,7 @@ function TryRes(t)
     end
     return false
 end
-
+------------------------------------------------------------------------------------------------------------------
 function IsHealCast(spell)
     if not spell then return false end
     local healCasts = {"Малая волна исцеления", "Волна исцеления", "Цепное исцеление"}
@@ -339,8 +330,6 @@ end
 
 
 
-
-
 local function onUpdate(elapsed)
     if (CanHeal(resUnit) and (UnitCastingInfo("player") == "Дух предков"))  then RunMacroText("/stopcasting") end
     
@@ -496,7 +485,7 @@ function onEvent(self, event, ...)
         end
     end
 end
-frame:SetScript("OnEvent", onEvent)
+--frame:SetScript("OnEvent", onEvent)
 
 function DoSpell(spell, target, mana)
     return UseSpell(spell, target, mana)

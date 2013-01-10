@@ -22,6 +22,8 @@ end
 ------------------------------------------------------------------------------------------------------------------
 -- Инициализация библиотеки
 function InitRotationHelperLibrary()
+    -- protected lock test
+    RunMacroText("/cleartarget")
     -- Инициализация скрытого фрейма для обработки событий
     local frame=CreateFrame("Frame",nil,UIParent)
     -- attach events

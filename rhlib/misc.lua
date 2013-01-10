@@ -127,11 +127,11 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function TryEach(list, func)
-    local ret = false
+    local state = nil
     for _,value in pairs(list) do 
-        if not ret and func(value) then ret = true end 
+        if not state then state = func(value) end 
     end
-    return ret
+    return state
 end
 
 ------------------------------------------------------------------------------------------------------------------

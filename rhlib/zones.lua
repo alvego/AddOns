@@ -264,6 +264,13 @@ function CheckDistance(unit1,unit2)
 end
 
 ------------------------------------------------------------------------------------------------------------------
+function InDistance(unit1,unit2, distance)
+  local d = CheckDistance(unit1, unit2)
+  return not d or d < distance
+end
+
+
+------------------------------------------------------------------------------------------------------------------
 local LastPosX, LastPosY = GetPlayerMapPosition("player")
 local InPlace = true
 local function UpdateInPlace() 
