@@ -158,7 +158,7 @@ function UseMount(mountName)
     if IsPlayerCasting() then return false end
     if InGCD() then return false end
     if IsMounted()then return false end
-    if IsDebug() then
+    if Debug then
         print(mountName)
     end
     RunMacroText("/use "..mountName)
@@ -175,10 +175,17 @@ end
 ------------------------------------------------------------------------------------------------------------------
 local InCast = {}
 local function UpdateIsCast(event, ...)
-	local unit, spell = select(1,...)
+	local unit, spell, rank, target = select(1,...)
 	if spell and unit == "player" then
-        InCast[spell] = (event == "UNIT_SPELLCAST_SENT") and GetTime() or nil
-	end
+        local cast = InCast[spell] or {}
+        if event == "UNIT_SPELLCAST_SENT" then
+            cast.StartTime = GetTime()
+            cast.TargetName = target
+        else
+            cast.StartTime = 0
+        end
+        InCast[spell] = cast
+    end
 end
 AttachEvent('UNIT_SPELLCAST_SENT', UpdateIsCast)
 AttachEvent('UNIT_SPELLCAST_SUCCEEDED', UpdateIsCast)
@@ -187,33 +194,110 @@ AttachEvent('UNIT_SPELLCAST_FAILED', UpdateIsCast)
 local function UpdateCombatReset() 
 	if not InCombatLockdown() and not IsPlayerCasting() and #InCast > 0 then  wipe(InCast) end 
 end
-AttachUpdate(UpdateCombatReset)
+--AttachUpdate(UpdateCombatReset)
+
 ------------------------------------------------------------------------------------------------------------------
+--~ Цель вне поля зрения.
+local function checkTargetInErrList(target, list)
+    if not target or target == "player"  then return true end
+    if not UnitExists(target) then return false end
+    local t = list[UnitGUID(target)]
+    if t and GetTime() - t < 1.2 then return false end
+    return true;
+end
 
+local notVisible = {}
+function IsVisible(target)
+    return checkTargetInErrList(target, notVisible)
+end
+
+-- не передо мной
+local notInView = {}
+function IsInView(target)
+    return checkTargetInErrList(target, notInView)
+end
+
+
+-- не за спиной цели
+local notBehind = {}
+function IsBehind(target)
+    return checkTargetInErrList(target, notBehind)
+end
+
+
+local function UpdateTargetPosition(event, ...)
+    local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
+    if sourceGUID == UnitGUID("player") and (event:match("^SPELL_CAST") and spellID and spellName)  then
+        local err = agrs12
+        local cast = InCast[spellName] or {}
+        local guid = cast.TargetGUID or nil
+        if err and guid then
+            if err == "Цель вне поля зрения." then
+                notVisible[guid] = GetTime()
+            end
+            if err == "Цель должна быть перед вами." then
+                notInView[guid] = GetTime() 
+            end
+            if err == "Вы должны находиться позади цели." then 
+                notBehind[guid] = GetTime() 
+            end
+        end
+    end
+end
+AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateTargetPosition)
+---------------------------------------
+local badSpellTarget = {}
 function UseSpell(spellName, target)
+    -- Не мешаем выбрать облась для спела (нажат вручную)
     if SpellIsTargeting() then return false end 
-    
+    -- Не пытаемся что либо прожимать во время каста
     if IsPlayerCasting() then return false end
-
+    -- Проверяем на наличе спела в спелбуке
     local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spellName)
-    
     if not name or (name ~= spellName)  then
-        if IsDebug() then print("UseSpell:Ошибка! Спел [".. spellName .. "] не найден!") end
+        if Debug then print("UseSpell:Ошибка! Спел [".. spellName .. "] не найден!") end
         return false;
     end
-    
+    -- чтоб не залипало, ставим минимальный интервал
     if not castTime or castTime < 0.5 then castTime = 0.5 end
-    if InCast[spell] and (GetTime() - InCast[spell] <= castTime) then return false end
-    
-    if not InRange(name,target) then return false end  
+    -- проверяем, что этот спел не используется сейчас
+    if InCast[spellName] and InCast[spellName].StartTime and (GetTime() - InCast[spellName].StartTime <= castTime) then return false end
+    -- проверяем, что цель подходящая для этого спела
+    local badTargets =  badSpellTarget[spellName] or {}
+    if UnitExists(target) and badTargets[UnitGUID(target)] and (GetTime() - badTargets[UnitGUID(target)] < 10) then return false end
+    -- проверяем что цель в зоне досягаемости
+    if not InRange(spellName, target) then return false end  
+    -- Проверяем что все готово
     if IsReadySpell(spellName) then
+        -- собираем команду
         local cast = "/cast "
+        -- с учетом цели
         if target ~= nil then cast = cast .."[target=".. target .."] "  end
+        -- проверяем, хвататет ли нам маны
         if cost and cost > 0 and UnitManaMax("player") > cost and UnitMana("player") <= cost then return false end
+        -- пробуем скастовать
         RunMacroText(cast .. "!" .. spellName)
+        -- если нужно выбрать область - кидаем на текущий mouseover
         if SpellIsTargeting() then CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() end 
+        -- проверка на успешное начало кд
         local start, duration, enabled = GetSpellCooldown(spellName)
-        if start > 0 and (GetTime() - start < 0.1) then  
+        if start > 0 and (GetTime() - start < 0.01) then
+            -- данные о кастах
+            local cast = InCast[spellName] or {}
+            if UnitExists(target) then 
+                -- проверяем цель на соответсвие реальной
+                if cast.TargetName and cast.TargetName ~= UnitName(target) then 
+                    RunMacroText("/stopcasting") 
+                    --chat("bad target", target, spellName)
+                    badTargets[UnitGUID(target)] = GetTime()
+                    badSpellTarget[spellName] = badTargets
+                else
+                    cast.Target = target
+                    cast.TargetName = UnitName(target)
+                    cast.TargetGUID = UnitGUID(target)
+                end
+            end
+            InCast[spellName] = cast
             if Debug then
                 print(spellName, cost, UnitMana("player"), target)
             end

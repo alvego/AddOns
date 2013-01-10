@@ -39,7 +39,11 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function GetUnits()
-    local units = {"player", "target", "focus" }
+    local units = {
+        "player", 
+        "target", 
+        "focus" 
+    }
     local members = GetGroupUnits()
     for i = 1, #members, 1 do 
         tinsert(units, members[i])
@@ -49,7 +53,7 @@ function GetUnits()
     realUnits = {}
     for i = 1, #units, 1 do 
         local u = units[i]
-        if not TryEach(realUnits, function(ru) return UnitName(u) and IsOneUnit(ru, u) end) 
+        if not TryEach(realUnits, function(t) return IsOneUnit(t, u) end) 
             and InInteractRange(u) then table.insert(realUnits, u) end
     end
     return realUnits
@@ -70,20 +74,33 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function GetTargets()
-    local units = {"target","mouseover","focus","arena1","arena2","arena3","arena4","arena5","bos1","bos2","bos3","bos4"}
-    local members = GetGroupUnits()
-    for i = 1, #members, 1 do 
-         table.insert(units, members[i] .."-target")
-    end
-    realUnits = {}
-    for i = 1, #units, 1 do 
-        local u = units[i]
-        local exists = false
-        for j = 1, #realUnits, 1 do
-            if IsOneUnit(realUnits[j], u) then exists = true end
+    local units = {
+        "target",
+        "focus"
+    }
+    if IsArena() then
+        for i = 1, 5 do 
+             tinsert(units, "arena" .. i)
         end
-        if not exists and IsValidTarget(u) and (IsArena() or CheckInteractDistance(u, 1)) then 
-			table.insert(realUnits, u) 
+    end
+    for i = 1, 4 do 
+         tinsert(units, "boss" .. i)
+    end
+    local members = GetGroupUnits()
+    for i = 1, #members do 
+         tinsert(units, members[i] .."-target")
+         tinsert(units, members[i] .."pet-target")
+    end
+    tinsert(units, "mouseover")
+    realUnits = {}
+    for i = 1, #units do 
+        local u = units[i]
+        if not TryEach(realUnits, function(t) return IsOneUnit(t, u) end) 
+            and IsValidTarget(u) 
+            and (IsArena() 
+                or CheckInteractDistance(u, 1) 
+                or IsOneUnit("player", u .. '-target')) then 
+			tinsert(realUnits, u) 
 		end
     end
     return realUnits
@@ -118,29 +135,6 @@ end
 function CanHeal(t)
     return InInteractRange(t) and not HasDebuff("Смерч", 0.1, t) and IsVisible(t)
 end 
-
-------------------------------------------------------------------------------------------------------------------
-function GetBlizzName(guid)
-    if not guid then return nil end
-    local function check(u) return (UnitExists(u) and UnitGUID(u) == guid) and u or nil end
-    return TryEach(GetGroupUnits(), function(u) return check(u) or check(u..'-pet') end) 
-        or TryEach({"player","arena1","arena2","arena3","arena4","arena5","bos1","bos2","bos3","bos4","target","focus","mouseover"}, check)
-        or nil
-end
-
-------------------------------------------------------------------------------------------------------------------
-function BlizzName(unit)
-    if not unit or not UnitExists(unit) then return nil end
-    local guid = UnitGUID(unit)
-    local blizz = nil
-    local targets = GetGroupUnits()
-    
-    for i=1,#targets do 
-        if not blizz and UnitGUID(targets[i]) == guid then return targets[i] end
-    end
-    return blizz
-end
-
 ------------------------------------------------------------------------------------------------------------------
 function GetClass(target)
     if not target then target = "player" end
@@ -278,51 +272,3 @@ end
 function IsPvP()
     return (IsBattleground() or IsArena() or (IsValidTarget("target") and UnitIsPlayer("target")))
 end
-
-------------------------------------------------------------------------------------------------------------------
-local lastSpellTargetName = {}
-local function UpdateLastSpellTargetName(event, ...)
-    local unitID, spell, rank, target = select(1,...)
-    if unitID ~= 'player' then return end
-    lastSpellTargetName[spell] = target
-end
-AttachEvent('UNIT_SPELLCAST_SENT', UpdateLastSpellTargetName)
-
-
--- не за спиной цели
-local notBehindTarget = 0
-function IsNotBehindTarget()
-    return GetTime() - notBehindTarget < 1
-end
-
---~ Цель вне поля зрения.
-local notVisible = {}
-function IsVisible(target)
-    if not target or target == "player"  then return true end
-    if not UnitExists(target) then return false end
-    if not UnitIsVisible(target) then return false end
-    
-    local name = UnitName(target)
-    
-    local t = notVisible[name]
-    if t and GetTime() - t < 1 then return false end
-    return true;
-end
-
-local function UpdateTargetPosition(event, ...)
-    local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
-    if sourceGUID == UnitGUID("player") and (event:match("^SPELL_CAST") and spellID and spellName)  then
-        local err = agrs12
-        if err then
-            if err == "Цель вне поля зрения." then
-                local lastTargetName = lastSpellTargetName[spellName]
-                if lastTargetName then
-                    notVisible[lastTargetName] = GetTime()
-                end
-            end
-            if err == "Вы должны находиться позади цели." then notBehindTarget = GetTime() end
-        end
-    end
-end
-AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateTargetPosition)
-------------------------------------------------------------------------------------------------------------------
