@@ -225,7 +225,7 @@ function TryDispel(target)
     if not PlayerInPlace() then t = 2 end  
     if dispelTarget and (GetTime() - dispelTime < t) then return end 
     if target == nil then target = "player" end
-    if not IsInteractTarget(target) then return false end
+    if not IsInteractUnit(target) then return false end
     local ret = false
     for i = 1, 40 do
         if not ret then
@@ -341,6 +341,7 @@ local function onUpdate(elapsed)
         InterruptKey = nil
         InterruptGUID = nil
     end
+    
 end
 AttachUpdate(onUpdate)
 
@@ -439,7 +440,7 @@ function onEvent(self, event, ...)
                 end
             
                 if err:match("Действие невозможно") then 
-                    if HasDebuff(ControlList, 3.8, "player") and TryEach(GetUnitNames(), function(u) return CanHeal(u) and CalculateHP(u) < 40 end) then 
+                    if HasDebuff(ControlList, 3.8, "player") and TryEach(UNITS, function(u) return CanHeal(u) and CalculateHP(u) < 40 end) then 
                         DoCommand("freedom") 
                     end
                 end
@@ -487,6 +488,6 @@ function onEvent(self, event, ...)
 end
 --frame:SetScript("OnEvent", onEvent)
 
-function DoSpell(spell, target, mana)
-    return UseSpell(spell, target, mana)
+function DoSpell(spell, target)
+    return UseSpell(spell, target)
 end

@@ -190,14 +190,8 @@ end
 AttachEvent('UNIT_SPELLCAST_SENT', UpdateIsCast)
 AttachEvent('UNIT_SPELLCAST_SUCCEEDED', UpdateIsCast)
 AttachEvent('UNIT_SPELLCAST_FAILED', UpdateIsCast)
--- сброс при простое, не в бою, на всякий пожарный, как защита от залипания
-local function UpdateCombatReset() 
-	if not InCombatLockdown() and not IsPlayerCasting() and #InCast > 0 then  wipe(InCast) end 
-end
---AttachUpdate(UpdateCombatReset)
 
 ------------------------------------------------------------------------------------------------------------------
---~ Цель вне поля зрения.
 local function checkTargetInErrList(target, list)
     if not target or target == "player"  then return true end
     if not UnitExists(target) then return false end
@@ -207,23 +201,22 @@ local function checkTargetInErrList(target, list)
 end
 
 local notVisible = {}
+--~ Цель в поле зрения.
 function IsVisible(target)
     return checkTargetInErrList(target, notVisible)
 end
 
--- не передо мной
 local notInView = {}
+-- передо мной
 function IsInView(target)
     return checkTargetInErrList(target, notInView)
 end
 
-
--- не за спиной цели
 local notBehind = {}
+-- за спиной цели
 function IsBehind(target)
     return checkTargetInErrList(target, notBehind)
 end
-
 
 local function UpdateTargetPosition(event, ...)
     local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
@@ -245,7 +238,7 @@ local function UpdateTargetPosition(event, ...)
     end
 end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateTargetPosition)
----------------------------------------
+------------------------------------------------------------------------------------------------------------------
 local badSpellTarget = {}
 function UseSpell(spellName, target)
     -- Не мешаем выбрать облась для спела (нажат вручную)
@@ -255,7 +248,7 @@ function UseSpell(spellName, target)
     -- Проверяем на наличе спела в спелбуке
     local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spellName)
     if not name or (name ~= spellName)  then
-        if Debug then print("UseSpell:Ошибка! Спел [".. spellName .. "] не найден!") end
+        if Debug then error("Спел [".. spellName .. "] не найден!") end
         return false;
     end
     -- чтоб не залипало, ставим минимальный интервал
@@ -285,7 +278,7 @@ function UseSpell(spellName, target)
             -- данные о кастах
             local cast = InCast[spellName] or {}
             if UnitExists(target) then 
-                -- проверяем цель на соответсвие реальной
+                -- проверяем цель на соответствие реальной
                 if cast.TargetName and cast.TargetName ~= UnitName(target) then 
                     RunMacroText("/stopcasting") 
                     --chat("bad target", target, spellName)

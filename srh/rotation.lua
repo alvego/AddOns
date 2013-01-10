@@ -3,23 +3,19 @@
 local TryResUnit = nil
 local TryResTime = 0
 
-function IsFriend(unit)
-    if not IsInteractTarget(unit) then return false end
-    local friends, name = {"Авиена"}, UnitName(unit)
-    return TryEach(friends, function(u) return UnitName(u) == name end)
-end
-
 function Idle()
-    
+    -- дайте поесть спокойно
     if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or HasBuff("Призрачный волк")) then return end
-    
-    if IsArena() and TryEach(units, function(u) return HasBuff("Гнев карателя", 10, u) end) then DoCommand("hero") end
-    
+    -- геру под крылья на арене
+    if IsArena() and TryEach(UNITS, function(u) return HasBuff("Гнев карателя", 10, u) end) then DoCommand("hero") end
+    -- тотемчики может поставить?
     if TryTotems() then return end
+    -- Зачем вару отражение???
     if IsValidTarget("target") and UnitAffectingCombat("target") and HasBuff("Отражение заклинания", 1, "target") and DoSpell("Пронизывающий ветер") then return end
+    -- Рес по средней мышке + контрол
     if IsLeftControlKeyDown() and IsMouseButtonDown(3) then
         if CanRes("mouseover") then
-            TryResUnit = BlizzName("mouseover")
+            TryResUnit = TryEach(GetGroupUnits(), function(u) return IsOneUnit(u, "mouseover") end) or "mouseover"
             TryResTime = GetTime()
             Notify("Пробуем воскресить " ..UnitName(TryResUnit) .. "("..TryResUnit..")")
         else
@@ -27,12 +23,13 @@ function Idle()
             if name and UnitIsPlayer("mouseover") then print("Не могу реснуть", name) end
         end
     end
-    
+    -- не судьма реснуть...
     if TryResUnit and (not CanRes(TryResUnit) or (CanRes(TryResUnit) and (GetTime() - TryResTime) > 60) or not PlayerInPlace())  then
         if UnitName(TryResUnit) and not CanHeal(TryResUnit) then Notify("Не удалось воскресить " .. UnitName(TryResUnit)) end
         TryResUnit = nil
         TryResTime = 0
     end
+    -- пробуем реснуть
     if TryResUnit and CanRes(TryResUnit) and TryRes(TryResUnit) then return end
     
     if IsHeal() then 
@@ -42,13 +39,13 @@ function Idle()
     
     if (IsAttack() or InCombatLockdown()) then
 
-        if TryEach(harmTarget, TryInterrupt) then return end
+        if TryEach(TARGETS, TryInterrupt) then return end
            
         if InCombatLockdown() and UnitHealth100() < 31 and UseHealPotion() then return end
         
         if TryProtect() then return end
 
-        if TryDispel("player") then return end
+        --if TryDispel("player") then return end
         TryTarget()
         if not CanAttack() then return end
         if IsMDD() then 
@@ -64,7 +61,7 @@ end
 
   
 
-function CheckHealCast(u, h)
+--[[function CheckHealCast(u, h)
     local spell, _, _, _, _, endTime, _, _, notinterrupt = UnitCastingInfo("player")
     local lastHealCastTarget = GetLastHealCastTarget()
     if not lastHealCastTarget then return end
@@ -83,12 +80,12 @@ function CheckHealCast(u, h)
         RunMacroText("/stopcasting")
         print("Для игрока ", UnitName(lastHealCastTarget), " хилка ", spell, " особо не нужна." )
     end
-end
+end]]
 
 
 local shieldChangeTime = 0
 function HealRotation()
-    if (IsPvP() and InCombatLockdown()) and TryEach(harmTarget, function(t) return CanAttack(t) 
+    if (IsPvP() and InCombatLockdown()) and TryEach(TARGETS, function(t) return CanAttack(t) 
         and UnitHealth100(t) < 4 and not HasMyDebuff("шок", 1, t) and DoSpell("Огненный шок", t) end) then return end
     
     if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16) and DoSpell("Оружие жизни земли") then return end
@@ -96,17 +93,17 @@ function HealRotation()
     
     if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() then
         if HasMyDebuff("шок", 1, "target") and PlayerInPlace() then
-            if PlayerInPlace() and DoSpell("Выброс лавы") then return end
+            if DoSpell("Выброс лавы") then return end
         else
             if DoSpell("Огненный шок") then return end
         end
     end    
 
     if IsAttack() then 
-        if not IsInteractTarget("target") then TryTarget(false) end
+        if not IsInteractUnit("target") then TryTarget(false) end
         if IsLeftShiftKeyDown() and HasTotem(1) and DoSpell("Кольцо огня") then return end
     else
-        if InCombatLockdown() and UnitName("target") and not IsInteractTarget("target") and not IsOneUnit("target-target", "player") and UnitThreat("player") == 3 then
+        if InCombatLockdown() and UnitName("target") and not IsInteractUnit("target") and not IsOneUnit("target-target", "player") and UnitThreat("player") == 3 then
             RunMacroText("/cleattarget")
         end
     end
@@ -136,20 +133,20 @@ function HealRotation()
             return
         end
         local res = false
-        for i=1,#units do
-           if not res and TryRes(units[i]) then res = true end
+        for i=1,#UNITS do
+           if not res and TryRes(UNITS[i]) then res = true end
         end
         if res then return end
         
-        for i=1,#units do
-           if CanRes(units[i]) then needRes = true end
+        for i=1,#UNITS do
+           if CanRes(UNITS[i]) then needRes = true end
         end
         if res then return end
     end
     
            
-    for i=1,#units do
-        local u = units[i]
+    for i=1,#UNITS do
+        local u = UNITS[i]
         if CanHeal(u) then  
             h =  CalculateHP(u)
             if IsFriend(u) or IsOneUnit(u, "player") then 
@@ -205,19 +202,19 @@ function HealRotation()
     local u, h, l = members[1].Unit, members[1].HP, members[1].Lost
     
     if  h > 40 then
-        if TryEach(harmTarget, TryInterrupt) then return end
-        if UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") and TryEach(harmTarget, 
+        if TryEach(TARGETS, TryInterrupt) then return end
+        if UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") and TryEach(TARGETS, 
             function(t) return IsVisible(t) and HasBuff(StealRedList, 2, t) and DoSpell("Развеивание магии", t) end
         ) then return  end
-        if UnitMana100("player") > 30 and IsReadySpell("Очищение духа") and TryEach(units, 
+        if UnitMana100("player") > 30 and IsReadySpell("Очищение духа") and TryEach(UNITS, 
             function(u) return CanHeal(u) and HasDebuff(DispelRedList, 2, u) and DoSpell("Очищение духа", u) end
         ) then return end
     end
     
     
-    CheckHealCast(u, h)
+    --CheckHealCast(u, h)
 
-    if not IsAttack() and CanHeal("focus") and h > 40  and CalculateHP("focus") < 100 then
+    if not IsArena() and not IsAttack() and CanHeal("focus") and h > 40  and CalculateHP("focus") < 100 then
         u = "focus"
         h = 40
         rUnits[u] = 0
@@ -283,10 +280,10 @@ function HealRotation()
         if UnitThreatAlert("player") < 3 and (l > HealingWaveHeal) and DoSpell("Волна исцеления", u) then return end
     end
     
-    if (h > 60 and UnitMana100("player") > 50) and TryEach(harmTarget, TrySteal) then return end
-    if (h > 60 and UnitMana100("player") > 50) and TryEach(units, TryDispel) then return end
+    --if (h > 60 and UnitMana100("player") > 50) and TryEach(TARGETS, TrySteal) then return end
+    --if (h > 60 and UnitMana100("player") > 50) and TryEach(UNITS, TryDispel) then return end
     if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and PlayerInPlace() and DoSpell("Молния") then return end
-    if not IsAttack() and (h > 20 and IsPvP()) and TryEach(harmTarget, 
+    if not IsAttack() and (h > 20 and IsPvP()) and TryEach(TARGETS, 
         function(t) return CanControl(t) and UnitIsPlayer(t) and not HasDebuff({"Оковы земли", "Ледяной шок"}, 0,1, t) and DoSpell("Ледяной шок", t) end
     ) then return end
         
@@ -375,7 +372,7 @@ function TryTarget(useFocus)
     if useFocus == nil then useFocus = true end
     if not IsValidTarget("target") then
         local found = false
-        local members = GetPartyOrRaidMembers()
+        local members = GetGroupUnits()
         for _,member in pairs(members) do 
             target = member .. "-target"
             if not found and IsValidTarget(target) and UnitCanAttack("player", target) and ActualDistance(target)  then 
@@ -415,7 +412,7 @@ function TryTarget(useFocus)
     if not IsArena() then
         if useFocus and not IsValidTarget("focus") then
             local found = false
-            for _,target in pairs(harmTarget) do 
+            for _,target in pairs(TARGETS) do 
                 if not found and IsValidTarget(target) and UnitCanAttack("player", target) and ActualDistance(target) and not IsOneUnit("target", target) then 
                     found = true 
                     RunMacroText("/focus " .. target) 

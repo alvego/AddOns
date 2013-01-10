@@ -1,5 +1,18 @@
 ﻿-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
+-- friend list
+function IsFriend(unit)
+    if not IsInteractUnit(unit) or not UnitIsPlayer(unit) then return false end
+    local numberOfFriends, onlineFriends = GetNumFriends()
+    local unitName, isFriend = UnitName(unit), false
+    for friendIndex = 1, numberOfFriends do
+        local name, level, class, area, connected, status, note = GetFriendInfo(friendIndex);
+        if name and name == unitName then isFriend = true end
+    end
+    return isFriend
+end
+
+------------------------------------------------------------------------------------------------------------------
 -- unit filted start
 local IgnoredNames = {}
 
@@ -58,8 +71,7 @@ function GetUnits()
     end
     return realUnits
 end
---/run print(GetBlizzName(UnitGUID('mouseover')))
---/run print(GetGroupUnits())
+
 ------------------------------------------------------------------------------------------------------------------
 function GetGroupUnits()
     local units = {}
@@ -144,7 +156,9 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function HasClass(units, classes) 
-    return TryEach(units, function(u) return UnitExists(u) and UnitIsPlayer(u) and tContains(classes, GetClass(u)) end) 
+    return TryEach(units, 
+        function(u) return UnitExists(u) and UnitIsPlayer(u) and tContains(classes, GetClass(u)) end
+    ) 
 end
 
 ------------------------------------------------------------------------------------------------------------------

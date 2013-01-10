@@ -64,30 +64,29 @@ local function UpdateIdle(elapsed)
 	
     if UnitIsDeadOrGhost("player") or UnitIsCharmed("player") 
 		or not UnitPlayerControlled("player") then return end
+        
     -- Update units
     UNITS = GetUnits()
     local function GetUnitWeight(u)
         local w = 0
         if IsFriend(u) then w = 2 end
         if IsOneUnit(u, "player") then w = 3 end
+        return w
     end
     table.sort(UNITS, function(u1,u2) return GetUnitWeight(u1) < GetUnitWeight(w2) end)
     -- Update targets
     TARGETS = GetTargets()
-    table.sort(TARGETS, function(t1,t2) 
-        local w1, w2 = 0, 0
-        for _,u in pairs(units) do
-            if IsOneUnit(u .. "-target", t1) then w1 = IsFriend(u) and 2 or 1 end
-            if IsOneUnit(u .. "-target", t2) then w2 = IsFriend(u) and 2 or 1 end
+    local function GetTargetWeight(t)
+        local w = 0
+        for _,u in pairs(UNITS) do
+            if IsOneUnit(u .. "-target", t) then w = max(w, IsFriend(u) and 2 or 1) end
         end
-        if IsOneUnit("focus", t1) then w1 = 3 end
-        if IsOneUnit("focus", t2) then w2 = 3 end
-        if IsOneUnit("target", t1) then w1 = 4 end
-        if IsOneUnit("target", t2) then w2 = 4 end
-        if IsOneUnit("mouseover", t1) then w1 = 5 end
-        if IsOneUnit("mouseover", t2) then w2 = 5 end
-        return w1 < w2 end
-    )
+        if IsOneUnit("focus", t) then w = 3 end
+        if IsOneUnit("target", t) then w = 4 end
+        if IsOneUnit("mouseover", t) then w = 5 end
+        return w
+    end
+    table.sort(TARGETS, function(t1,t2) return GetTargetWeight(t1) < GetTargetWeight(t2) end)
     
     if Idle then Idle() end
 end

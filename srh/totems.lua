@@ -22,7 +22,7 @@ function TryTotems(forceTotems)
         if IsHeal() then priority = 20 end
         table.insert(earthTotems, { N = "Тотем каменной кожи", P = priority })
     end
-    if not HasBuff("Сила земли") and not (HasClass(units, {"DEATHKNIGHT"}) or HasBuff("Зимний горн"))then
+    if not HasBuff("Сила земли") and not (HasClass(UNITS, {"DEATHKNIGHT"}) or HasBuff("Зимний горн"))then
         local priority = 10
         if IsMDD() then priority = 20 end
         table.insert(earthTotems, { N = "Тотем силы земли", P = priority })
@@ -32,13 +32,13 @@ function TryTotems(forceTotems)
         force[earth] = true
     end
     if HasTotem("Тотем каменного когтя") then force[earth] = true end
-    if not HasTotem("Тотем трепета") and HasDebuff({"Страх", "Вой ужаса", "Устрашающий крик", "Контроль над разумом", "Глубинный ужас", "Ментальный крик"}, 1,units) then 
+    if not HasTotem("Тотем трепета") and HasDebuff({"Страх", "Вой ужаса", "Устрашающий крик", "Контроль над разумом", "Глубинный ужас", "Ментальный крик"}, 1,UNITS) then 
         TotemAlert["Тотем трепета"] = GetTime() 
     end
     if IsReadySpell("Тотем трепета") then
         local priority = 10
         if not HasTotem("Тотем трепета") 
-            and (HasClass(harmTarget, {"WARLOCK", "PRIEST"}) or (TotemAlert["Тотем трепета"] and GetTime() - TotemAlert["Тотем трепета"] < 10)) then 
+            and (HasClass(TARGETS, {"WARLOCK", "PRIEST"}) or (TotemAlert["Тотем трепета"] and GetTime() - TotemAlert["Тотем трепета"] < 10)) then 
             priority = 100 
             force[earth] = true
         end
@@ -94,10 +94,10 @@ function TryTotems(forceTotems)
     if IsReadySpell("Тотем исцеляющего потока") and not InRaid() then
         table.insert(waterTotems, { N = "Тотем исцеляющего потока", P = 15 })
     end
-    if not HasTotem("Тотем очищения") and HasDebuff({"Disease", "Poison"}, 1,units) then TotemAlert["Тотем очищения"] = GetTime() end
+    if not HasTotem("Тотем очищения") and HasDebuff({"Disease", "Poison"}, 1,UNITS) then TotemAlert["Тотем очищения"] = GetTime() end
     if IsReadySpell("Тотем очищения") then
         local priority = 9
-        if not HasTotem("Тотем очищения") and  HasClass(harmTarget, {"DEATHKNIGHT", "WARLOCK", "PRIEST", "ROGUE"}) 
+        if not HasTotem("Тотем очищения") and  HasClass(TARGETS, {"DEATHKNIGHT", "WARLOCK", "PRIEST", "ROGUE"}) 
             or (TotemAlert["Тотем очищения"] and GetTime() - TotemAlert["Тотем очищения"] < 3) then 
             priority = 90
             force[water] = true

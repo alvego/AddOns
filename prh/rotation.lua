@@ -23,7 +23,7 @@ function Retribution()
             -- "Замораживающая ловушка",
             --"Смерч"
         }
-        if IsReadySpell("Очищение") and TryEach(GetUnitNames(),
+        if IsReadySpell("Очищение") and TryEach(UNITS,
             function(u) return CanHeal(u) and IsVisible(u) and HasDebuff(redDispelList, 2, u) and DoSpell("Очищение", u) end
         ) then return end
     end
@@ -53,10 +53,10 @@ function Retribution()
     if DoSpell("Удар воина Света") then return end
     if (UnitCreatureType("target") == "Нежить") and UnitMana100() > 40 and InMelee() and DoSpell("Гнев небес") then return end    
     if UnitMana100() < 50 and DoSpell("Святая клятва") then return end
-    if not TryEach(GetUnitNames(), function(u) return HasMyBuff("Священный щит", 0.1, u) end) and DoSpell("Священный щит","player") then return end
+    if not TryEach(UNITS, function(u) return HasMyBuff("Священный щит", 0.1, u) end) and DoSpell("Священный щит","player") then return end
     -- Dispel
     if IsArena() then
-        if IsReadySpell("Очищение") and TryEach(GetUnitNames(), 
+        if IsReadySpell("Очищение") and TryEach(UNITS, 
             function(u) return CanHeal(u) and IsVisible(u) and HasDebuff({"Magic", "Disease", "Poison"}, 3, u) and DoSpell("Очищение", u) end
         ) then return end
     else
@@ -67,24 +67,22 @@ end
 
 function Idle()
     if (IsAttack() or InCombatLockdown()) then
-        local harmTarget = GetHarmTarget()
-        local units = GetPartyOrRaidMembers()
-        if CanUseInterrupt() and TryEach(harmTarget, TryInterrupt) then return end
+        if CanUseInterrupt() and TryEach(TARGETS, TryInterrupt) then return end
         if IsMouseButtonDown(3) and TryTaunt("mouseover") then return end
         if GetAutoAGGRO() and InGroup() and ((GetTime() - StartCombatTime > 1)) then
-            if (GetTime() - StartCombatTime < 3) and TryEach(units, function(unit) 
-                if IsInteractTarget(unit) and  UnitThreat(unit) > 1 and not IsOneUnit("player", unit) and DoSpell("Длань спасения",unit) then 
+            if (GetTime() - StartCombatTime < 3) and TryEach(UNITS, function(unit) 
+                if IsInteractUnit(unit) and  UnitThreat(unit) > 1 and not IsOneUnit("player", unit) and DoSpell("Длань спасения",unit) then 
                     echo("Длань спасения " .. unit) 
                     return true
                 end
                 return false
             end) then return end
-            if TryEach(harmTarget, function(target) return IsValidTarget(target) and UnitAffectingCombat(target) and TryTaunt(target) end) then return end
+            if TryEach(TARGETS, function(target) return IsValidTarget(target) and UnitAffectingCombat(target) and TryTaunt(target) end) then return end
         end
         -- Священная жертва
         if InCombatLockdown() and HasSpell("Щит мстителя") and InGroup() and CalculateHP("player") > 70 then
             local lowhpmembers = 0
-            for _,target in pairs(units) do if CalculateHP(target) <= 50 then lowhpmembers = lowhpmembers + 1 end end
+            for _,target in pairs(UNITS) do if CalculateHP(target) <= 50 then lowhpmembers = lowhpmembers + 1 end end
             if lowhpmembers > 2 and DoSpell("Священная жертва") then return end
         end
         
@@ -126,7 +124,7 @@ function TryBuffs()
 end
 
 function CanHeal(t)
-    if IsInteractTarget(t) 
+    if IsInteractUnit(t) 
         and InRange("Вспышка света", t)
         and IsVisible(t)
     then return true end 
@@ -136,15 +134,15 @@ end
 local HolyShieldTime  =  0
 function TryHealing()
     if IsArena() then
-        local members, units = {}, GetUnitNames()
-        for i=1,#units do
-            local u = units[i]
+        local members = {}
+        for i=1,#UNITS do
+            local u = UNITS[i]
             if CanHeal(u) then table.insert(members, { Unit = u, HP = CalculateHP(u), Lost = UnitLostHP(u) } ) end
         end
         table.sort(members, function(x,y) return x.HP < y.HP end)
         local unitWithShield = nil
-        for i=1,#units do 
-            if HasMyBuff("Священный щит",1,units[i]) then unitWithShield = units[i] end 
+        for i=1,#UNITS do 
+            if HasMyBuff("Священный щит",1,UNITS[i]) then unitWithShield = UNITS[i] end 
         end 
         if #members > 0 then 
             local u, h, l = members[1].Unit, members[1].HP, members[1].Lost
@@ -289,7 +287,7 @@ function TryTaunt(target)
      return true  
  end
 
- if IsInteractTarget(tt) and DoSpell("Праведная защита", tt) then 
+ if IsInteractUnit(tt) and DoSpell("Праведная защита", tt) then 
      TauntTime = GetTime()
      -- chat("Праведная защита на " .. UnitName(tt))
      return true  

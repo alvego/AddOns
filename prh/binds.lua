@@ -7,13 +7,11 @@ BINDING_NAME_PRH_AUTOAGGRO = "Авто АГГРО"
 BINDING_NAME_PRH_BERSMOD = "Режим берсерка"
 
 -- addon main frame
-local frame=CreateFrame("Frame",nil,UIParent)
 print("Paladin Rotation Helper loaded")
--- protected lock test
-RunMacroText("/cleartarget")
+
 -- attach events
-frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-frame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
+--frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+--frame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
 if AutoAGGRO == nil then AutoAGGRO = true end
 if BersState == nil then BersState = false end
 if CanInterrupt == nil then CanInterrupt = true end
@@ -141,7 +139,7 @@ function onEvent(self, event, ...)
         end
     end
 end
-frame:SetScript("OnEvent", onEvent)
+--frame:SetScript("OnEvent", onEvent)
 
 
 
