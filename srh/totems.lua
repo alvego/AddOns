@@ -17,12 +17,12 @@ function TryTotems(forceTotems)
     local earthTotems, fireTotems, waterTotems, airTotems = {}, {}, {}, {}
     -- earth
     --if not HasBuff("Каменная кожа") and not HasBuff("Аура благочестия") then
-    if not HasBuff("Каменная кожа") then
+    if not IsPvP() and not HasBuff("Каменная кожа") then
         local priority = 10
         if IsHeal() then priority = 20 end
         table.insert(earthTotems, { N = "Тотем каменной кожи", P = priority })
     end
-    if not HasBuff("Сила земли") and not (HasClass(UNITS, {"DEATHKNIGHT"}) or HasBuff("Зимний горн"))then
+    if not IsPvP() and  not HasBuff("Сила земли") and not (HasClass(UNITS, {"DEATHKNIGHT"}) or HasBuff("Зимний горн"))then
         local priority = 10
         if IsMDD() then priority = 20 end
         table.insert(earthTotems, { N = "Тотем силы земли", P = priority })

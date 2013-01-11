@@ -8,10 +8,6 @@ BINDING_NAME_SRH_TOTEMS = "Автоматически ставить тотем�
 ------------------------------------------------------------------------------------------------------------------
 if CanInterrupt == nil then CanInterrupt = true end
 
-function CanUseInterrupt()
-    return CanInterrupt
-end
-
 function UseInterrupt()
     CanInterrupt = not CanInterrupt
     if CanInterrupt then
@@ -195,7 +191,7 @@ function TryDispel(target)
                     else
                         local positiveTry = 0
                         if DispelWhiteList[name] then positiveTry = DispelWhiteList[name] end
-                        if not IsPvP() and positiveTry > 0 and CanUseInterrupt() and IsHeal() and InGroup() and not HasTotem("Тотем очищения") and DoSpell("Тотем очищения") then return false end
+                        if not IsPvP() and positiveTry > 0 and CanInterrupt and IsHeal() and InGroup() and not HasTotem("Тотем очищения") and DoSpell("Тотем очищения") then return false end
                     end 
                 end
                 if HasSpell("Очищение духа") then 
@@ -238,7 +234,7 @@ function TryInterrupt(target)
     end
     
     if not spell then return false end
-    if not CanUseInterrupt() and not InInterruptRedList(spell) then return false end
+    if not CanInterrupt and not InInterruptRedList(spell) then return false end
     local t = endTime/1000 - GetTime()
 
     if t < 0.2 then return false end
