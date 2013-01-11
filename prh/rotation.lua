@@ -54,7 +54,7 @@ function Tank()
 end
 
 ------------------------------------------------------------------------------------------------------------------
-local redDispelList = { "Превращение", "Глубокая заморозка", "Огненный шок", "Покаяние", "Молот правосудия" }
+local redDispelList = { "Превращение", "Глубокая заморозка", "Огненный шок", "Покаяние", "Молот правосудия", "Эффект ледяной ловушки" }
 local function IsFinishHim(target) return IsValidTarget(target) and CanAttack("target") and UnitHealth100(target) < 35 end 
 function Retribution()
     local target = "target"
