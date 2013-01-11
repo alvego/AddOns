@@ -41,6 +41,7 @@ end
 -- при включенной Авто-ротации
 TARGETS = {}
 UNITS = {}
+IUNITS = {} -- Important Units
 local StartTime = GetTime()
 local LastUpdate = 0
 local UpdateInterval = 0.0001
@@ -83,7 +84,16 @@ local function UpdateIdle(elapsed)
         return w
     end
     table.sort(TARGETS, function(t1,t2) return GetTargetWeight(t1) < GetTargetWeight(t2) end)
-    
+    IUNITS = {"player"}
+    if IsArena() then IUNITS = UNITS end
+    if IsBattleground() then
+        for i = 1, #UNITS do
+            local u = UNITS[i]
+            if IsFriend(u) then
+                tinsert(IUNITS, u)
+            end
+        end
+    end
     if Idle then Idle() end
 end
 AttachUpdate(UpdateIdle, -1000)

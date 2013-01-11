@@ -58,22 +58,18 @@ local redDispelList = { "Превращение", "Глубокая заморо
 local function IsFinishHim(target) return IsValidTarget(target) and CanAttack("target") and UnitHealth100(target) < 35 end 
 function Retribution()
     local target = "target"
-    local dispelUnits = {"player"}
-    if IsArena() then dispelUnits = UNITS end
-    
-    if not IsFinishHim(target) and IsReadySpell("Очищение") and TryEach(dispelUnits,
+    if not IsFinishHim(target) and IsReadySpell("Очищение") and TryEach(IUNITS,
         function(u) return CanHeal(u) and HasDebuff(redDispelList, 2, u) and DoSpell("Очищение", u) end
     ) then return end
     if UnitMana100("player") < 20 and not HasBuff("Печать мудрости") and DoSpell("Печать мудрости") then return end
     if UnitMana100("player") > 70 then RunMacroText("/cancelaura Печать мудрости") end
-    
     if TryEach(TARGETS, function(t)
-        return IsValidTarget(t) and (UnitCreatureType(t) == "Нежить" or UnitCreatureType(t) == "Демон") 
+        return CanAttack(t) and (UnitCreatureType(t) == "Нежить" or UnitCreatureType(t) == "Демон") 
         and not HasDebuff("Изгнание зла", 0.3, t) and DoSpell("Изгнание зла",t) end
     ) then return end
-    
-    if IsValidTarget("mouseover") and (UnitName("mouseover") == "Тотем оков земли") and DoSpell("Длань возмездия", "mouseover") then return end
-    
+    if TryEach(TARGETS, function(t)
+        return CanAttack(t) and (UnitName("mouseover") == "Тотем оков земли") and DoSpell("Длань возмездия",t) end
+    ) then return end
     if not (IsValidTarget(target) and (UnitAffectingCombat(target) and CanAttack(target) or IsAttack()))  then return end
     if InMelee(target) and HasBuff("Гнев карателя") and UseItem("Знак превосходства")then return end
     if IsShiftKeyDown() == 1 and DoSpell("Освящение") then return end
@@ -87,7 +83,7 @@ function Retribution()
     if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    
     if UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
     if not TryEach(UNITS, function(u) return HasMyBuff("Священный щит", 0.1, u) end) and DoSpell("Священный щит","player") then return end
-    if not IsFinishHim(target) and IsReadySpell("Очищение") and TryEach(dispelUnits, TryDispel) then return end
+    if not IsFinishHim(target) and IsReadySpell("Очищение") and TryEach(IUNITS, TryDispel) then return end
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -194,10 +190,14 @@ function TryTarget()
     if not IsValidTarget("focus") then
         RunMacroText("/clearfocus")
     end
+    TryEach(TARGETS, function(t)
+        if IsValidTarget(t) and (UnitCreatureType(t) == "Нежить" or UnitCreatureType(t) == "Демон") and IsOneUnit("focus",t) then
+            RunMacroText("/focus " .. t)
+            return true
+        end
+        return false
+    end)
     
-    if IsValidTarget("mouseover") and (UnitCreatureType("mouseover") == "Нежить" or UnitCreatureType("mouseover") == "Демон") and IsOneUnit("focus","mouseover") then
-        RunMacroText("/focus mouseover")
-    end
     
     if IsArena() and IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
         if IsOneUnit("target","arena1") then RunMacroText("/focus arena2") end
@@ -240,7 +240,7 @@ function TryInterrupt(target)
     
     if not spell then return false end
     
-    if IsPVP() and not (IsFinishHim(target) and InInterruptRedList(spell)) then return false end
+    if IsPvP() and not (IsFinishHim(target) and InInterruptRedList(spell)) then return false end
 
     local time = endTime/1000 - GetTime()
     if time < 0.1 or time > 1.8 then 
