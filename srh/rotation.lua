@@ -59,16 +59,16 @@ function Idle()
     end
 end
 
-  
-
---[[function CheckHealCast(u, h)
+function CheckHealCast(u, h)
     local spell, _, _, _, _, endTime, _, _, notinterrupt = UnitCastingInfo("player")
-    local lastHealCastTarget = GetLastHealCastTarget()
+    if not spell or not endTime then return end
+    if not tContains({"Малая волна исцеления", "Волна исцеления", "Цепное исцеление"}, spell) then return end
+    --if not InCombatLockdown() then return end
+    
+    local lastHealCastTarget = GetLastSpellTarget(spell)
     if not lastHealCastTarget then return end
     if UnitThreat(lastHealCastTarget) == 3 then return end
-    if not spell or not endTime then return end
-    if not IsHealCast(spell) then return end
-    if not InCombatLockdown() then return end
+
     local last = endTime/1000 - GetTime()
     if last > 0.4 and not(h < 45 and not IsOneUnit(u, lastHealCastTarget)) then return end
     local incomingheals = UnitGetIncomingHeals(u)
@@ -80,7 +80,7 @@ end
         RunMacroText("/stopcasting")
         print("Для игрока ", UnitName(lastHealCastTarget), " хилка ", spell, " особо не нужна." )
     end
-end]]
+end
 
 
 local shieldChangeTime = 0
@@ -212,7 +212,7 @@ function HealRotation()
     end
     
     
-    --CheckHealCast(u, h)
+    CheckHealCast(u, h)
 
     if not IsArena() and not IsAttack() and CanHeal("focus") and h > 40  and CalculateHP("focus") < 100 then
         u = "focus"

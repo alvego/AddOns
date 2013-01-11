@@ -5,9 +5,6 @@
   <Binding name="SRH_AUTOAOE" description="Toggle Auto AOE" header="SRH">
     AutoAOEToggle();
   </Binding>
-  <Binding name="SRH_LISTMODE" description="Toggle List Mode" header="SRH">
-    ListModeToggle();
-  </Binding>
   <Binding name="SRH_TOTEMS" description="Auto Install Totems" header="SRH">
     Totems();
   </Binding>

@@ -4,13 +4,59 @@
 BINDING_HEADER_SRH = "Shaman Rotation Helper"
 BINDING_NAME_SRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 BINDING_NAME_SRH_AUTOAOE = "Вкл/Выкл авто AOE"
-BINDING_NAME_SRH_LISTMODE = "Вкл/Выкл WhiteList"
 BINDING_NAME_SRH_TOTEMS = "Автоматически ставить тотемы"
 ------------------------------------------------------------------------------------------------------------------
--- Saved variables (public)
 if CanInterrupt == nil then CanInterrupt = true end
+
+function CanUseInterrupt()
+    return CanInterrupt
+end
+
+function UseInterrupt()
+    CanInterrupt = not CanInterrupt
+    if CanInterrupt then
+        echo("Interrupt: ON",true)
+    else
+        echo("Interrupt: OFF",true)
+    end 
+end
+------------------------------------------------------------------------------------------------------------------
+
 if AutoAOE == nil then AutoAOE = true end
 
+function AutoAOEToggle()
+    AutoAOE = not AutoAOE
+    if AutoAOE then
+        echo("Авто АОЕ: ON",true)
+    else
+        echo("Авто АОЕ: OFF",true)
+    end 
+end
+
+
+function IsAOE()
+   return (IsShiftKeyDown() == 1) 
+    or (AutoAOE and IsValidTarget("target") and IsValidTarget("focus") 
+        and not IsOneUnit("target", "focus") 
+        and UnitAffectingCombat("focus") and UnitAffectingCombat("target"))
+end
+
+------------------------------------------------------------------------------------------------------------------
+local AutoTotems = true
+function CanAutoTotems()
+    return AutoTotems
+end
+
+function Totems()
+    AutoTotems = not AutoTotems
+    if AutoTotems then
+        echo("AutoTotems: ON",true)
+    else
+        echo("AutoTotems: OFF",true)
+    end 
+end
+
+------------------------------------------------------------------------------------------------------------------
 if DispelWhiteList == nil then DispelWhiteList = {} end
 if DispelBlackList == nil then DispelBlackList = {} end
 
@@ -50,54 +96,6 @@ function RoleHeal()
 end
 
 ------------------------------------------------------------------------------------------------------------------
-local AutoTotems = true
-function CanAutoTotems()
-    return AutoTotems
-end
-
-function Totems()
-    AutoTotems = not AutoTotems
-    if AutoTotems then
-        echo("AutoTotems: ON",true)
-    else
-        echo("AutoTotems: OFF",true)
-    end 
-end
-
-
-function CanUseInterrupt()
-    return CanInterrupt
-end
-
-
-function UseInterrupt()
-    CanInterrupt = not CanInterrupt
-    if CanInterrupt then
-        echo("Interrupt: ON",true)
-    else
-        echo("Interrupt: OFF",true)
-    end 
-end
-
-------------------------------------------------------------------------------------------------------------------
-
-function AutoAOEToggle()
-    AutoAOE = not AutoAOE
-    if AutoAOE then
-        echo("Авто АОЕ: ON",true)
-    else
-        echo("Авто АОЕ: OFF",true)
-    end 
-end
-
-function CanAutoAOE()
-    return AutoAOE
-end 
-
-function IsAOE()
-   return (IsShiftKeyDown() == 1) or (CanAutoAOE() and IsValidTarget("target") and IsValidTarget("focus") and not IsOneUnit("target", "focus") and UnitAffectingCombat("focus") and UnitAffectingCombat("target"))
-end
-------------------------------------------------------------------------------------------------------------------
 local resList = {}
 local resSpell = nil
 local resUnit = nil
@@ -133,35 +131,6 @@ function TryRes(t)
     return false
 end
 ------------------------------------------------------------------------------------------------------------------
-function IsHealCast(spell)
-    if not spell then return false end
-    local healCasts = {"Малая волна исцеления", "Волна исцеления", "Цепное исцеление"}
-    local result = false
-    for name,value in pairs(healCasts) do 
-        if value == spell then result = true end
-    end
-    return result
-end
-
-local lastHealCastTarget = nil
-function GetLastHealCastTarget()
-    return lastHealCastTarget
-end
-
-local lastTarget = nil
-
-
-local whiteListMode = false
-function ListModeToggle()
-    whiteListMode = not whiteListMode
-    if whiteListMode then 
-        echo("Режим WhiteList: ON",true)
-    else
-        echo("Режим WhiteList: OFF",true)
-    end
-end
-
-
 
 local stealTime = GetTime()
 local stealTarget = nil
@@ -183,7 +152,7 @@ function TrySteal(target)
                 local negativeTry = 0
                 if StealBlackList[name] then negativeTry = StealBlackList[name] end
                 --if positiveTry > 0 then negativeTry = 0 end
-                if (not whiteListMode or positiveTry > 5) and  (negativeTry < 5) then
+                if ( positiveTry > 5) and  (negativeTry < 5) then
                     if DoSpell("Развеивание магии", target) then 
                         stealTarget = target
                         stealTargetGUID = UnitGUID(target)
@@ -239,7 +208,7 @@ function TryDispel(target)
                 local negativeTry = 0
                 if DispelBlackList[name] then negativeTry = DispelBlackList[name] end
                 --if positiveTry > 0 then negativeTry = 0 end
-                if allowTypes[debuffType] and (not whiteListMode or positiveTry > 5) and  (negativeTry < 5) then
+                if allowTypes[debuffType] and ( positiveTry > 5) and  (negativeTry < 5) then
                     if DoSpell(spell, target) then
                         dispelTarget = target
                         dispelTargetGUID = UnitGUID(target)
@@ -282,7 +251,7 @@ function TryInterrupt(target)
     local negativeTry = 0
     if InterruptBlackList[name] then negativeTry = InterruptBlackList[name] end
     --if positiveTry > 0 then negativeTry = 0 end
-    if not ((not whiteListMode or positiveTry > 5) and (negativeTry < 5)) and not InInterruptRedList(spell) then return false end
+    if not (( positiveTry > 5) and (negativeTry < 5)) and not InInterruptRedList(spell) then return false end
    
     if (channel or t < 0.8) and not notinterrupt and IsReadySpell("Пронизывающий ветер") and InRange("Пронизывающий ветер",target) 
         and not HasBuff({"Мастер аур"}, 0.1, target) and CanMagicAttack(target) then
@@ -328,37 +297,20 @@ local function onUpdate(elapsed)
 end
 AttachUpdate(onUpdate)
 
-function onEvent(self, event, ...)
-
+function onEvent(event, ...)
     if event:match("^UNIT_SPELLCAST") then
         local unit, spell = select(1,...)
 --~         print(event,  unit, spell )
         if spell and unit == "player" then
-            if event == "UNIT_SPELLCAST_SENT" then
-                local _,_,_,target = select(1,...)
-                if target and UnitExists(target) then
-                    lastTarget = target
-                    if IsHealCast(spell) then
-                        targetPartyName = BlizzName(lastTarget)
-                        if targetPartyName then
-                            lastHealCastTarget = targetPartyName
-                        end
-                    end
-                end
-            end
              if  event == "UNIT_SPELLCAST_SUCCEEDED" then
                  --if Debug then chat(spell) end
                  if spell == resSpell then
                     --RunMacroText("/w " .. resUnit .. " Реснул тебя, вставай давай!")
-                    --if InCombatLockdown() then RunMacroText("/w " .. resUnit .. " Но смотри аккуратно, чтоб сразу не умереть!") end
                     resList[resUnit] = GetTime()
                     Notify("Успешно применил "..resSpell .. " на " .. resUnit)
                 end
             end
             if event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_FAILED" then
-                if IsHealCast(spell) then
-                    lastHealCastTarget = nil
-                end
                 if spell == resSpell then
                     resSpell = nil
                     resUnit = nil
@@ -461,7 +413,9 @@ function onEvent(self, event, ...)
         end
     end
 end
---frame:SetScript("OnEvent", onEvent)
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", onEvent)
+AttachEvent("UNIT_SPELLCAST_SUCCEEDED", onEvent)
+AttachEvent("UNIT_SPELLCAST_FAILED", onEvent)
 
 function DoSpell(spell, target)
     return UseSpell(spell, target)
