@@ -76,7 +76,7 @@ end
 function GetGroupUnits()
     local units = {}
     if not InGroup() then return units end
-    local group = InRaid() and {group = "raid", size = 40} or {name = "party", size = 4}
+    local group = InRaid() and {name = "raid", size = 40} or {name = "party", size = 4}
     for i = 0, group.size do 
         local u = group.name..i
         if UnitExists(u) and UnitName(u) ~= nil then tinsert(units, u) end
