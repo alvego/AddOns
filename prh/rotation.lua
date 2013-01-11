@@ -68,7 +68,7 @@ function Retribution()
         and not HasDebuff("Изгнание зла", 0.3, t) and DoSpell("Изгнание зла",t) end
     ) then return end
     if TryEach(TARGETS, function(t)
-        return CanAttack(t) and (UnitName("mouseover") == "Тотем оков земли") and DoSpell("Длань возмездия",t) end
+        return CanAttack(t) and (UnitName(t) == "Тотем оков земли") and DoSpell("Длань возмездия",t) end
     ) then return end
     if not (IsValidTarget(target) and (UnitAffectingCombat(target) and CanAttack(target) or IsAttack()))  then return end
     if InMelee(target) and HasBuff("Гнев карателя") and UseItem("Знак превосходства")then return end
