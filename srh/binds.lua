@@ -321,6 +321,7 @@ function onEvent(event, ...)
     end
 
     if (event=="COMBAT_LOG_EVENT_UNFILTERED") then
+        local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel = select(1, ...)
 --[[        if sourceGUID == UnitGUID("player") and spellId and spellName  then
             print(type, spellName, err, dispel)
         end]]

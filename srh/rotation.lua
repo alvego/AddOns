@@ -280,8 +280,8 @@ function HealRotation()
         if UnitThreatAlert("player") < 3 and (l > HealingWaveHeal) and DoSpell("Волна исцеления", u) then return end
     end
     
-    --if (h > 60 and UnitMana100("player") > 50) and TryEach(TARGETS, TrySteal) then return end
-    --if (h > 60 and UnitMana100("player") > 50) and TryEach(UNITS, TryDispel) then return end
+    if (h > 60 and UnitMana100("player") > 50) and TryEach(TARGETS, TrySteal) then return end
+    if (h > 60 and UnitMana100("player") > 50) and TryEach(UNITS, TryDispel) then return end
     if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and PlayerInPlace() and DoSpell("Молния") then return end
     if not IsAttack() and (h > 20 and IsPvP()) and TryEach(TARGETS, 
         function(t) return CanControl(t) and UnitIsPlayer(t) and not HasDebuff({"Оковы земли", "Ледяной шок"}, 0,1, t) and DoSpell("Ледяной шок", t) end
