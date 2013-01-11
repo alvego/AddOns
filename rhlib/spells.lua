@@ -191,6 +191,10 @@ AttachEvent('UNIT_SPELLCAST_SENT', UpdateIsCast)
 AttachEvent('UNIT_SPELLCAST_SUCCEEDED', UpdateIsCast)
 AttachEvent('UNIT_SPELLCAST_FAILED', UpdateIsCast)
 
+function GetLastSpellTarget(spell)
+    local cast = InCast[spell] or {}
+    return (cast.Target and cast.TargetGUID and UnitExists(cast.Target) and UnitGUID(cast.Target) == cast.TargetGUID) and cast.Target or nil
+end
 ------------------------------------------------------------------------------------------------------------------
 local function checkTargetInErrList(target, list)
     if not target or target == "player"  then return true end
@@ -284,6 +288,9 @@ function UseSpell(spellName, target)
                     --chat("bad target", target, spellName)
                     badTargets[UnitGUID(target)] = GetTime()
                     badSpellTarget[spellName] = badTargets
+                    cast.Target = nil
+                    cast.TargetName = nil
+                    cast.TargetGUID = nil
                 else
                     cast.Target = target
                     cast.TargetName = UnitName(target)

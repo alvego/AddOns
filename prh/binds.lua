@@ -1,27 +1,12 @@
 ﻿-- Paladin Rotation Helper by Timofeev Alexey & Co
+------------------------------------------------------------------------------------------------------------------
 -- Binding
 BINDING_HEADER_PRH = "Paladin Rotation Helper"
 BINDING_NAME_PRH_AOE = "Вкл/Выкл AOE в ротации"
 BINDING_NAME_PRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 BINDING_NAME_PRH_AUTOAGGRO = "Авто АГГРО"
-BINDING_NAME_PRH_BERSMOD = "Режим берсерка"
-
--- addon main frame
-print("Paladin Rotation Helper loaded")
-
--- attach events
---frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
---frame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-if AutoAGGRO == nil then AutoAGGRO = true end
-if BersState == nil then BersState = false end
+------------------------------------------------------------------------------------------------------------------
 if CanInterrupt == nil then CanInterrupt = true end
-
-local NextTarget = nil
-local NextGUID = nil
-
-function CanUseInterrupt()
-    return CanInterrupt
-end
 
 function UseInterrupt()
     CanInterrupt = not CanInterrupt
@@ -32,19 +17,8 @@ function UseInterrupt()
     end 
 end
 
-function NextIsTarget(target)
-    if not target then target = "target" end
-    return (UnitGUID("target") == NextGUID)
-end
-
-function ClearNextTarget()
-    NextTarget = nil
-    NextGUID = nil
-end
-
-function GetNextTarget()
-    return NextTarget
-end
+------------------------------------------------------------------------------------------------------------------
+if AutoAGGRO == nil then AutoAGGRO = true end
 
 function AutoAGGROToggle()
     AutoAGGRO = not AutoAGGRO
@@ -55,42 +29,31 @@ function AutoAGGROToggle()
     end 
 end
 
-function GetAutoAGGRO()
-    return AutoAGGRO
-end 
-
-function BersModToggle()
-    BersState = not BersState
-    if BersState then
-        echo("Берс Мод: ON",true)
-    else
-        echo("Берс Мод: OFF",true)
-    end 
-end
-
-function GetBersState()
-    return BersState
-end  
-
+------------------------------------------------------------------------------------------------------------------
 function IsAOE()
    if IsShiftKeyDown() == 1 then return true end
-   return (IsValidTarget("target") and IsValidTarget("focus") and not IsOneUnit("target", "focus") and InMelee())
+   return (IsValidTarget("target") and InMelee("target")
+    and IsValidTarget("focus") and InMelee("focus")
+    and not IsOneUnit("target", "focus"))
 end
 
-local dispellBlacklist = {}
-local dispell = nil
+------------------------------------------------------------------------------------------------------------------
+if DispelBlacklist == nil then DispelBlacklist = {} end
+if DispelWhitelist == nil then DispelWhitelist = {} end
 local dispelTime = GetTime()
-function TryDispell(unit)
-    if not CanHeal( unit) then return false end
-    if GetTime() - dispelTime < 3 then return false end
+local dispelSpell = "Очищение"
+local dispelType = { ["Poison"] = true, ["Disease"] = true, ["Magic"] = true}
+function TryDispel(unit)
+    if GetTime() - dispelTime < 2 then return false end
+    if not IsReadySpell(dispelSpell) or InGCD() then return false end
+    if not CanHeal(unit) then return false end
     local ret = false
     for i = 1, 40 do
         if not ret then
             local name, _, _, _, debuffType, duration, expirationTime   = UnitDebuff(unit, i,true) 
-            if name and (expirationTime - GetTime() >= 3 or expirationTime == 0) and (debuffType == "Poison" or debuffType == "Disease" or debuffType == "Magic") and (not dispellBlacklist[name] or GetTime() - dispellBlacklist[name] > 30) then
-                if DoSpell("Очищение", unit) then 
-                    print("Очищение ", unit, name)
-                    dispell = name
+            if name and (expirationTime - GetTime() >= 3 or expirationTime == 0) 
+                and (DispelWhitelist[name] or dispelType[debuffType] and not DispelBlacklist[name]) then
+                if DoSpell(dispelSpell, unit) then 
                     dispelTime = GetTime()
                     ret = true 
                 end
@@ -100,49 +63,48 @@ function TryDispell(unit)
     return ret
 end
 
+local function UpdateDispelLists(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel = select(1, ...)
+    local unit = GetLastSpellTarget(dispelSpell)
+    if sourceGUID == UnitGUID("player")
+        and spellId and spellName and spellName == dispelSpell then
+        
+        if type:match("^SPELL_CAST") 
+            and unit and GetTime() - dispelTime < 1
+            and err and err == "Нечего рассеивать." then
+            for i = 1, 40 do
+                local name, _, _, _, debuffType, duration, expirationTime   = UnitDebuff(unit, i,true) 
+                if name and dispelType[debuffType] then
+                    DispelBlacklist[name] = true
+                end
+            end
+        end
+        
+        if type == "SPELL_DISPEL" and dispel then
+            DispelWhitelist[dispel] = true
+            --print("Рассеян", dispel)
+        end
+    end
+end    
 
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateDispelLists)
+
+------------------------------------------------------------------------------------------------------------------
 local ForbearanceTime = 0
 function InForbearance(unit)
     if unit == nil then unit = "player" end
     return ((GetTime() - ForbearanceTime < 30) or HasDebuff("Воздержанность", 0.01, unit))
 end
 
-
-function onEvent(self, event, ...)
-    if event == "UNIT_SPELLCAST_SUCCEEDED" then
-        local unit, spell = select(1,...)
-        if spell == "Гнев карателя" and unit == "player" then ForbearanceTime = GetTime() end
-        return
-    end
-    if (event=="COMBAT_LOG_EVENT_UNFILTERED") then
-        local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err = select(1, ...)
-        if not(destName ~= GetUnitName("player")) and sourceName ~= nil and not UnitCanCooperate("player",sourceName) then 
-            if not Paused then 
-                NextTarget = sourceName
-                NextGUID = sourceGUID
-            end
-        end
-        if sourceGUID == UnitGUID("player") and (type:match("^SPELL_CAST") and spellId and spellName)  then
-
-            if  err then
-                
-                if dispell and err == "Нечего рассеивать." then
-                    print(dispell, "не снимается")
-                    dispellBlacklist[dispell] = GetTime()
-                end
-                
-                if Debug then
-                    print("["..spellName .. "]: ".. err)
-                end
-            end
-            
-        end
+local function UpdateForbearanceTime(event, ...)
+    local unit, spell = select(1, ...)
+    if unit == "player" and spell == "Гнев карателя" then 
+        ForbearanceTime = GetTime() 
     end
 end
---frame:SetScript("OnEvent", onEvent)
+AttachEvent("UNIT_SPELLCAST_SUCCEEDED", UpdateForbearanceTime)
 
-
-
+------------------------------------------------------------------------------------------------------------------
 
 function DoSpell(spellName, target)
     if tContains({"Гнев карателя", "Божественный щит", "Возложение рук", "Божественная защита", "Длань защиты"}, spellName) and InForbearance(target) then return false end

@@ -1,17 +1,8 @@
 <Bindings>
-  <Binding name="PRH_OFF" description="Auto rotation off" header="PRH">
-    AutoRotationOff();
-  </Binding>
-  <Binding name="PRH_DEBUG" description="Debug mode toggle" header="PRH">
-    DebugToggle();
-  </Binding>
   <Binding name="PRH_INTERRUPT" description="Use cust interrupt" header="PRH">
     UseInterrupt();
   </Binding>
   <Binding name="PRH_AUTOAGGRO" description="Auto AGGRO" header="PRH">
     AutoAGGROToggle();
-  </Binding>
-  <Binding name="PRH_BERSMOD" description="Use Bers Mode" header="PRH">
-    BersModToggle();
   </Binding>
 </Bindings>

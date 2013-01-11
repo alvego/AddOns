@@ -4,12 +4,6 @@
 BINDING_HEADER_RHLIB = "Rotation Helper Library"
 BINDING_NAME_RHLIB_OFF = "Выкл ротацию"
 BINDING_NAME_RHLIB_DEBUG = "Вкл/Выкл режим отладки"
-
-------------------------------------------------------------------------------------------------------------------
--- public variables (saved)
-if Paused == nil then Paused = false end
-if Debug == nil then Debug = false end
-
 ------------------------------------------------------------------------------------------------------------------
 -- Условие для включения ротации
 function IsAttack()
@@ -17,6 +11,7 @@ function IsAttack()
 end
 
 ------------------------------------------------------------------------------------------------------------------
+if Paused == nil then Paused = false end
 -- Отключаем авторотацию, при повторном нажатии останавливаем каст (если есть)
 function AutoRotationOff()
     if IsPlayerCasting() and Paused then 
@@ -28,6 +23,7 @@ function AutoRotationOff()
 end
 
 ------------------------------------------------------------------------------------------------------------------
+if Debug == nil then Debug = false end
 -- Переключает режим отладки, а так же и показ ошибок lua
 function DebugToggle()
     Debug = not Debug
@@ -128,6 +124,35 @@ local function UpdateCombatTime()
     end 
 end
 AttachUpdate(UpdateCombatTime)
+------------------------------------------------------------------------------------------------------------------
+-- Запоминаем атакующие нас цели (TODO: need REVIEW)
+local NextTarget = nil
+local NextGUID = nil
+
+function NextIsTarget(target)
+    if not target then target = "target" end
+    return (UnitGUID("target") == NextGUID)
+end
+
+function ClearNextTarget()
+    NextTarget = nil
+    NextGUID = nil
+end
+
+function GetNextTarget()
+    return NextTarget
+end
+
+local function UpdateNextTarget(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err = select(1, ...)
+    if not(destName ~= GetUnitName("player")) and sourceName ~= nil and not UnitCanCooperate("player",sourceName) then 
+        if not Paused then 
+            NextTarget = sourceName
+            NextGUID = sourceGUID
+        end
+    end
+end
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateNextTarget)
 
 ------------------------------------------------------------------------------------------------------------------
 -- Лайфхак, чтоб не разбиться об воду при падении с высоты (защита от ДК с повышенным чувством юмора)

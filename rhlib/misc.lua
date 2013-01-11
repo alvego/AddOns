@@ -127,6 +127,10 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function TryEach(list, func)
+    if not func then 
+      error("Func can't be nil") 
+      return 
+    end
     local state = nil
     for _,value in pairs(list) do 
         if not state then state = func(value) end 

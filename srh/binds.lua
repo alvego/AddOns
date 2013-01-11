@@ -78,24 +78,7 @@ function UseInterrupt()
         echo("Interrupt: OFF",true)
     end 
 end
-------------------------------------------------------------------------------------------------------------------
-local NextTarget = nil
-local NextGUID = nil
 
-function GetNextTarget()
-    return NextTarget
-end
-
-function ClearNextTarget()
-    NextTarget = nil
-    NextGUID = nil
-end
-
-
-function NextIsTarget(target)
-    if not target then target = "target" end
-    return (UnitGUID("target") == NextGUID)
-end
 ------------------------------------------------------------------------------------------------------------------
 
 function AutoAOEToggle()
@@ -383,14 +366,6 @@ function onEvent(self, event, ...)
             end
         end
         return
-    end
-    
-    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel,agrs2 = select(1, ...)
-    if not(destName ~= UnitName("player")) and sourceName ~= nil and not UnitIsFriend("player",sourceName) then 
-        if not Paused then 
-            NextTarget = sourceName 
-            NextGUID = sourceGUID
-        end
     end
 
     if (event=="COMBAT_LOG_EVENT_UNFILTERED") then
