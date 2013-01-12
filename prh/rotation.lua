@@ -1,5 +1,6 @@
 ﻿-- Paladin Rotation Helper by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
+local dispelTime = GetTime()
 function Idle()
     if (IsAttack() or InCombatLockdown()) then
         if CanInterrupt and TryEach(TARGETS, TryInterrupt) then return end
@@ -29,7 +30,8 @@ function Idle()
         if (IsControlKeyDown() == 1) and IsValidTarget("target") and DoSpell("Гнев карателя") then return end
         
         if HasSpell("Щит мстителя") then
-            if TryDispell("player") then return end
+            -- пытаемся сдиспелить с себя каку не чаще чем раз в 5 сек
+            if GetTime() - dispelTime > 5 and TryDispell("player") then dispelTime = GetTime() return end
             Tank() 
         else 
             Retribution()
@@ -54,12 +56,19 @@ function Tank()
 end
 
 ------------------------------------------------------------------------------------------------------------------
-local redDispelList = { "Превращение", "Глубокая заморозка", "Огненный шок", "Покаяние", "Молот правосудия", "Эффект ледяной ловушки" }
+local redDispelList = { 
+    "Превращение", 
+    "Глубокая заморозка", 
+    "Огненный шок", 
+    "Покаяние", 
+    "Молот правосудия", 
+    "Эффект ледяной ловушки"
+}
 local function IsFinishHim(target) return IsValidTarget(target) and CanAttack("target") and UnitHealth100(target) < 35 end 
 function Retribution()
     local target = "target"
     if not IsFinishHim(target) and IsReadySpell("Очищение") and TryEach(IUNITS,
-        function(u) return CanHeal(u) and HasDebuff(redDispelList, 2, u) and DoSpell("Очищение", u) end
+        function(u) return CanHeal(u) and HasDebuff(redDispelList, 2, u) and TryDispel(u) end
     ) then return end
     if UnitMana100("player") < 20 and not HasBuff("Печать мудрости") and DoSpell("Печать мудрости") then return end
     if UnitMana100("player") > 70 then RunMacroText("/cancelaura Печать мудрости") end
@@ -68,7 +77,7 @@ function Retribution()
         and not HasDebuff("Изгнание зла", 0.3, t) and DoSpell("Изгнание зла",t) end
     ) then return end
     if TryEach(TARGETS, function(t)
-        return CanAttack(t) and (UnitName(t) == "Тотем оков земли") and DoSpell("Длань возмездия",t) end
+        return CanAttack(t) and tContains({ "Тотем оков земли", "Тотем прилива маны" }, UnitName(t)) and DoSpell("Длань возмездия",t) end
     ) then return end
     if not (IsValidTarget(target) and (UnitAffectingCombat(target) and CanAttack(target) or IsAttack()))  then return end
     if InMelee(target) and HasBuff("Гнев карателя") and UseItem("Знак превосходства")then return end
@@ -83,7 +92,7 @@ function Retribution()
     if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    
     if UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
     if not TryEach(UNITS, function(u) return HasMyBuff("Священный щит", 0.1, u) end) and DoSpell("Священный щит","player") then return end
-    if not IsFinishHim(target) and IsReadySpell("Очищение") and TryEach(IUNITS, TryDispel) then return end
+    if not IsFinishHim(target) and GetTime() - dispelTime > 2 and IsReadySpell("Очищение") and TryEach(IUNITS, TryDispel) then dispelTime = GetTime() return end
 end
 
 ------------------------------------------------------------------------------------------------------------------

@@ -31,30 +31,26 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function IsAOE()
-   if IsShiftKeyDown() == 1 then return true end
-   return (IsValidTarget("target") and InMelee("target")
-    and IsValidTarget("focus") and InMelee("focus")
-    and not IsOneUnit("target", "focus"))
+    if IsShiftKeyDown() == 1 then return true end
+    return (IsValidTarget("target") and InMelee("target") and TryEach(TARGETS, function(t)
+        return IsValidTarget(t) and InMelee(t) and not IsOneUnit("target", t))
+    end)
 end
 
 ------------------------------------------------------------------------------------------------------------------
 if DispelBlacklist == nil then DispelBlacklist = {} end
 if DispelWhitelist == nil then DispelWhitelist = {} end
-local dispelTime = GetTime()
 local dispelSpell = "Очищение"
-local dispelType = { ["Poison"] = true, ["Disease"] = true, ["Magic"] = true}
+local dispelTypes = {"Poison", "Disease", "Magic"}
 function TryDispel(unit)
-    if GetTime() - dispelTime < 2 then return false end
-    if not IsReadySpell(dispelSpell) or InGCD() then return false end
-    if not CanHeal(unit) then return false end
+    if not IsReadySpell(dispelSpell) or InGCD() or not CanHeal(unit) then return false end
     local ret = false
     for i = 1, 40 do
         if not ret then
             local name, _, _, _, debuffType, duration, expirationTime   = UnitDebuff(unit, i,true) 
             if name and (expirationTime - GetTime() >= 3 or expirationTime == 0) 
-                and (DispelWhitelist[name] or dispelType[debuffType] and not DispelBlacklist[name]) then
+                and (tContains(DispelWhitelist, name) or tContains(dispelTypes, debuffType) and not tContains(DispelBlacklist, name)) then
                 if DoSpell(dispelSpell, unit) then 
-                    dispelTime = GetTime()
                     ret = true 
                 end
             end
@@ -68,21 +64,19 @@ local function UpdateDispelLists(event, ...)
     local unit = GetLastSpellTarget(dispelSpell)
     if sourceGUID == UnitGUID("player")
         and spellId and spellName and spellName == dispelSpell then
-        
+
         if type:match("^SPELL_CAST") 
-            and unit and GetTime() - dispelTime < 1
-            and err and err == "Нечего рассеивать." then
+            and unit and err and err == "Нечего рассеивать." then
             for i = 1, 40 do
-                local name, _, _, _, debuffType, duration, expirationTime   = UnitDebuff(unit, i,true) 
-                if name and dispelType[debuffType] then
-                    DispelBlacklist[name] = true
+                local name, _, _, _, debuffType = UnitDebuff(unit, i,true) 
+                if name and tContains(dispelTypes, debuffType) and not tContains(DispelBlacklist, name) then
+                    tinsert(DispelBlacklist, name)
                 end
             end
         end
         
-        if type == "SPELL_DISPEL" and dispel then
-            DispelWhitelist[dispel] = true
-            --print("Рассеян", dispel)
+        if type == "SPELL_DISPEL" and not tContains(DispelBlacklist, dispel) then
+            tinsert(DispelBlacklist, dispel)
         end
     end
 end    
