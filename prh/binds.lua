@@ -75,8 +75,8 @@ local function UpdateDispelLists(event, ...)
             end
         end
         
-        if type == "SPELL_DISPEL" and not tContains(DispelBlacklist, dispel) then
-            tinsert(DispelBlacklist, dispel)
+        if type == "SPELL_DISPEL" and not tContains(DispelWhitelist, dispel) then
+            tinsert(DispelWhitelist, dispel)
         end
     end
 end    
