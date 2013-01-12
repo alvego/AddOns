@@ -61,7 +61,9 @@ local redDispelList = {
     "Глубокая заморозка", 
     "Огненный шок", 
     "Покаяние", 
-    "Молот правосудия", 
+    "Молот правосудия",
+    "Ледяной шок",
+    "Замедление",
     "Эффект ледяной ловушки"
 }
 local function IsFinishHim(target) return CanAttack(target) and UnitHealth100(target) < 35 end 
