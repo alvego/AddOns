@@ -82,9 +82,14 @@ function CheckHealCast(u, h)
     end
 end
 
-
+local function TryBuff()
+        local name, _, _, _, _, duration, Expires, _, _, _, spellId = UnitBuff("player", "Настой севера") 
+        return not (name and spellId == 67016 and Expires - GetTime() >= duration / 2) and UseItem("Настой севера")
+end
 local shieldChangeTime = 0
 function HealRotation()
+    if not InCombatLockdown() and TryBuff() then return end
+    
     if (IsPvP() and InCombatLockdown()) and TryEach(TARGETS, function(t) return CanAttack(t) 
         and UnitHealth100(t) < 4 and not HasMyDebuff("шок", 1, t) and DoSpell("Огненный шок", t) end) then return end
     
@@ -109,9 +114,11 @@ function HealRotation()
     end
     
     local myHP = CalculateHP("player")
+    local myLostHP = UnitLostHP("player")
 
     if InCombatLockdown() then
-        if myHP < 70 and DoSpell("Дар наару", "player") then return end
+        if (myLostHP > 4035 or myHP < 60) and DoSpell("Кровь земли", "player") then return end
+        if (myLostHP > 6615 or myHP < 50) and DoSpell("Дар наару", "player") then return end
         if myHP < 60 and UseEquippedItem("Проржавевший костяной ключ") then return end
         if myHP < 40 and UseHealPotion() then return end
         if UnitMana100() < 25 and UseItem("Рунический флакон с зельем маны") then return true end

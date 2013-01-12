@@ -126,7 +126,7 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateCombatLogTimer)
 -- Мониторим, когда начался и когда закончился бой
 StartCombatTime = 0
 local function UpdateStartCombatTimer(event, ...)
-        StartCombatTime = GetTime()
+    StartCombatTime = GetTime()
 end
 AttachEvent("PLAYER_ENTER_COMBAT", UpdateStartCombatTimer)   
 

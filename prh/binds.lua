@@ -32,8 +32,8 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function IsAOE()
     if IsShiftKeyDown() == 1 then return true end
-    return (IsValidTarget("target") and InMelee("target") and TryEach(TARGETS, function(t)
-        return IsValidTarget(t) and InMelee(t) and not IsOneUnit("target", t))
+    return IsValidTarget("target") and InMelee("target") and TryEach(TARGETS, function(t)
+        return IsValidTarget(t) and InMelee(t) and not IsOneUnit("target", t)
     end)
 end
 

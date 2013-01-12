@@ -30,8 +30,6 @@ function Idle()
         if (IsControlKeyDown() == 1) and IsValidTarget("target") and DoSpell("Гнев карателя") then return end
         
         if HasSpell("Щит мстителя") then
-            -- пытаемся сдиспелить с себя каку не чаще чем раз в 2 сек
-            if GetTime() - dispelTime > 2 and TryDispell("player") then dispelTime = GetTime() return end
             Tank() 
         else 
             Retribution()
@@ -42,6 +40,8 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function Tank()
     local target = "target"
+    -- пытаемся сдиспелить с себя каку не чаще чем раз в 2 сек
+    if GetTime() - dispelTime > 2 and TryDispell("player") then dispelTime = GetTime() return end
     if not (IsValidTarget(target) and (UnitAffectingCombat(target) and CanAttack(target) or IsAttack()))  then return end
     if DoSpell("Щит мстителя", target) then return end
     if IsAOE() then
@@ -64,7 +64,7 @@ local redDispelList = {
     "Молот правосудия", 
     "Эффект ледяной ловушки"
 }
-local function IsFinishHim(target) return IsValidTarget(target) and CanAttack("target") and UnitHealth100(target) < 35 end 
+local function IsFinishHim(target) return CanAttack(target) and UnitHealth100(target) < 35 end 
 function Retribution()
     local target = "target"
     if not IsFinishHim(target) and IsReadySpell("Очищение") and TryEach(IUNITS,
@@ -80,7 +80,7 @@ function Retribution()
         return CanAttack(t) and tContains({ "Тотем оков земли", "Тотем прилива маны" }, UnitName(t)) and DoSpell("Длань возмездия",t) end
     ) then return end
     if not (IsValidTarget(target) and (UnitAffectingCombat(target) and CanAttack(target) or IsAttack()))  then return end
-    if InMelee(target) and HasBuff("Гнев карателя") and UseItem("Знак превосходства")then return end
+    if InMelee(target) and HasBuff("Гнев карателя") and UseEquippedItem("Знак превосходства")then return end
     if IsShiftKeyDown() == 1 and DoSpell("Освящение") then return end
     if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
     if CanMagicAttack(target) then
@@ -212,6 +212,8 @@ function TryTarget()
         if IsOneUnit("target","arena1") then RunMacroText("/focus arena2") end
         if IsOneUnit("target","arena2") then RunMacroText("/focus arena1") end
     end
+    
+    if IsAttack() and not InCombatLockdown() then RunMacroText("/startattack")  end
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -229,7 +231,7 @@ function TryProtect()
         if HasSpell("Удар воина Света") and (UnitHealth100() < 20) and DoSpell("Божественный щит") then return true end
         if (UnitHealth100() < 15) and not IsReadySpell("Божественный щит") and DoSpell("Божественная защита") then return true end   
         end
-    return false;
+    return false
 end
 
 ------------------------------------------------------------------------------------------------------------------
