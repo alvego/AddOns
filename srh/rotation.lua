@@ -120,9 +120,11 @@ function HealRotation()
         if (myLostHP > 4035 or myHP < 60) and DoSpell("Кровь земли", "player") then return end
         if (myLostHP > 6615 or myHP < 50) and DoSpell("Дар наару", "player") then return end
         if myHP < 60 and UseEquippedItem("Проржавевший костяной ключ") then return end
-        if myHP < 40 and UseHealPotion() then return end
-        if UnitMana100() < 25 and UseItem("Рунический флакон с зельем маны") then return true end
-        if UnitMana100() < 31 and UseItem("Бездонный флакон с зельем маны") then return true end
+        if not IsArena() then
+            if myHP < 40 and UseHealPotion() then return end
+            if UnitMana100() < 25 and UseItem("Рунический флакон с зельем маны") then return true end
+            if UnitMana100() < 51 and UseItem("Бездонный флакон с зельем маны") then return true end
+        end
     end
 
     local RiptideHeal = GetMySpellHeal("Быстрина")
