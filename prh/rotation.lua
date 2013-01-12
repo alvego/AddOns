@@ -30,8 +30,8 @@ function Idle()
         if (IsControlKeyDown() == 1) and IsValidTarget("target") and DoSpell("Гнев карателя") then return end
         
         if HasSpell("Щит мстителя") then
-            -- пытаемся сдиспелить с себя каку не чаще чем раз в 5 сек
-            if GetTime() - dispelTime > 5 and TryDispell("player") then dispelTime = GetTime() return end
+            -- пытаемся сдиспелить с себя каку не чаще чем раз в 2 сек
+            if GetTime() - dispelTime > 2 and TryDispell("player") then dispelTime = GetTime() return end
             Tank() 
         else 
             Retribution()
@@ -74,7 +74,7 @@ function Retribution()
     if UnitMana100("player") > 70 then RunMacroText("/cancelaura Печать мудрости") end
     if TryEach(TARGETS, function(t)
         return CanAttack(t) and (UnitCreatureType(t) == "Нежить" or UnitCreatureType(t) == "Демон") 
-        and not HasDebuff("Изгнание зла", 0.3, t) and DoSpell("Изгнание зла",t) end
+        and not HasDebuff("Изгнание зла", 0.1, t) and DoSpell("Изгнание зла",t) end
     ) then return end
     if TryEach(TARGETS, function(t)
         return CanAttack(t) and tContains({ "Тотем оков земли", "Тотем прилива маны" }, UnitName(t)) and DoSpell("Длань возмездия",t) end
@@ -276,7 +276,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 local TauntTime = 0
 function TryTaunt(target)
- if not IsValidTarget(target) then return false end
+ if not CanAttack(target) then return false end
  if UnitIsPlayer(target) then return false end
  if UnitThreat("player",target) == 3 then return false end
  if (GetTime() - TauntTime < 1.5) then return false end
