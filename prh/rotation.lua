@@ -142,13 +142,12 @@ function TryHealing()
         end 
         if #members > 0 then 
             local u, h, l = members[1].Unit, members[1].HP, members[1].Lost
-            if h > 30 and IsFinishHim("target") then return end
             if ((not unitWithShield and h < 80) or (not HasBuff("Священный щит",1,u) and h < 40 and (GetTime() - holyShieldTime > 3))) and DoSpell("Священный щит",u) then
                 holyShieldTime = GetTime() 
                 return 
             end
             if h < 20 and DoSpell("Возложение рук",u) then return end
-            if h < 70 and HasBuff("Искусство войны") and (not IsReadySpell("Экзорцизм") or h < 40) and DoSpell("Вспышка Света",u) then return end
+            if h < 70 and HasBuff("Искусство войны") and (not IsFinishHim("target") and not IsReadySpell("Экзорцизм") or h < 40 ) and DoSpell("Вспышка Света",u) then return end
         end
     end
     return false
