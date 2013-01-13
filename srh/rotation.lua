@@ -3,13 +3,14 @@
 local TryResUnit = nil
 local TryResTime = 0
 
+local dispelTime = GetTime()
 function Idle()
     -- дайте поесть спокойно
     if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or HasBuff("Призрачный волк")) then return end
     -- геру под крылья на арене
     if IsArena() and TryEach(UNITS, function(u) return HasBuff("Гнев карателя", 10, u) end) then DoCommand("hero") end
     -- тотемчики может поставить?
-    if TryTotems() then return end
+    --if TryTotems() then return end
     -- Зачем вару отражение???
     if IsValidTarget("target") and UnitAffectingCombat("target") and HasBuff("Отражение заклинания", 1, "target") and DoSpell("Пронизывающий ветер") then return end
     -- Рес по средней мышке + контрол
@@ -45,7 +46,7 @@ function Idle()
         
         if TryProtect() then return end
 
-        --if TryDispel("player") then return end
+        if (GetTime() - dispelTime > 5 or not PlayerInPlace()) and TryDispel("player") then dispelTime = GetTime() return end
         TryTarget()
         if not CanAttack() then return end
         if IsMDD() then 
@@ -89,7 +90,7 @@ end
 local shieldChangeTime = 0
 function HealRotation()
     if not InCombatLockdown() and TryBuff() then return end
-    
+    if IsAltKeyDown() and TrySteal("target") then return end
     if (IsPvP() and InCombatLockdown()) and TryEach(TARGETS, function(t) return CanAttack(t) 
         and UnitHealth100(t) < 4 and not HasMyDebuff("шок", 1, t) and DoSpell("Огненный шок", t) end) then return end
     
@@ -212,11 +213,11 @@ function HealRotation()
     
     if  h > 40 then
         if TryEach(TARGETS, TryInterrupt) then return end
-        if UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") and TryEach(TARGETS, 
-            function(t) return IsVisible(t) and HasBuff(StealRedList, 2, t) and DoSpell("Развеивание магии", t) end
+        if UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") and TryEach(ITARGETS, 
+            function(t) return HasBuff(StealRedList, 2, t) and TrySteal(t) end
         ) then return  end
-        if UnitMana100("player") > 30 and IsReadySpell("Очищение духа") and TryEach(UNITS, 
-            function(u) return CanHeal(u) and HasDebuff(DispelRedList, 2, u) and DoSpell("Очищение духа", u) end
+        if UnitMana100("player") > 30 and IsReadySpell("Очищение духа") and TryEach(IUNITS, 
+            function(u) return HasDebuff(DispelRedList, 2, u) and TryDispel(u) end
         ) then return end
     end
     
@@ -289,8 +290,10 @@ function HealRotation()
         if UnitThreatAlert("player") < 3 and (l > HealingWaveHeal) and DoSpell("Волна исцеления", u) then return end
     end
     
-    if (h > 60 and UnitMana100("player") > 50) and TryEach(TARGETS, TrySteal) then return end
-    if (h > 60 and UnitMana100("player") > 50) and TryEach(UNITS, TryDispel) then return end
+    if (GetTime() - dispelTime > 5 or not PlayerInPlace()) and (h > 60 and UnitMana100("player") > 50) 
+        and (TryEach(IUNITS, TryDispel) or TryEach(ITARGETS, TrySteal)) then dispelTime = GetTime() return end
+
+    
     if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and PlayerInPlace() and DoSpell("Молния") then return end
     if not IsAttack() and (h > 20 and IsPvP()) and TryEach(TARGETS, 
         function(t) return CanControl(t) and UnitIsPlayer(t) and not HasDebuff({"Оковы земли", "Ледяной шок"}, 0,1, t) and DoSpell("Ледяной шок", t) end
@@ -345,7 +348,7 @@ function MDDRotation()
         end
         if DoSpell("Молния") then return end
     end
-    if TrySteal("target") then return end
+    if ((GetTime() - dispelTime > 5 or not PlayerInPlace())) and TrySteal("target") then dispelTime = GetTime() return end
     if not HasMyDebuff("Огненный шок", 0.5,"target") and DoSpell("Огненный шок") then return end
     if not HasBuff("Ярость шамана") and DoSpell("Ярость шамана") then return end
     if DoSpell("Удар бури") then return end
@@ -362,7 +365,7 @@ function RDDRotation()
     end
     if not IsValidTarget("target") then return end
     RunMacroText("/startattack")
-    if TrySteal("target") then return end
+    if (GetTime() - dispelTime > 5 or not PlayerInPlace()) and TrySteal("target") then dispelTime = GetTime() return end
     if not HasMyDebuff("Огненный шок", 0.5,"target") and DoSpell("Огненный шок") then return end
     if HasMyDebuff("Огненный шок", 2,"target") and DoSpell("Выброс лавы") then return end
     if IsAOE() and DoSpell("Цепная молния") then return end

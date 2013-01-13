@@ -52,17 +52,7 @@ function Totems()
     end 
 end
 
-------------------------------------------------------------------------------------------------------------------
-if DispelWhiteList == nil then DispelWhiteList = {} end
-if DispelBlackList == nil then DispelBlackList = {} end
 
-if StealWhiteList == nil then StealWhiteList = {} end
-if StealBlackList == nil then StealBlackList = {} end
-
-if InterruptWhiteList == nil then InterruptWhiteList = {} end
-if InterruptBlackList == nil then InterruptBlackList = {} end
-
-------------------------------------------------------------------------------------------------------------------
 function IsMDD()
     return HasSpell("Бой двумя оружиями")
 end
@@ -126,37 +116,95 @@ function TryRes(t)
     end
     return false
 end
+
+function UpdateCanRes(event, ...)
+    local unit, spell = select(1,...)
+    if spell and unit == "player" then
+         if  event == "UNIT_SPELLCAST_SUCCEEDED" then
+             if spell == resSpell then
+                resList[resUnit] = GetTime()
+                Notify("Успешно применил "..resSpell .. " на " .. resUnit)
+            end
+        end
+        if event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_FAILED" then
+            if spell == resSpell then
+                resSpell = nil
+                resUnit = nil
+            end
+        end
+    end
+end
+AttachEvent("UNIT_SPELLCAST_SUCCEEDED", UpdateCanRes)
+AttachEvent("UNIT_SPELLCAST_FAILED", UpdateCanRes)
+
+local function UpdateResCast(elapsed)
+    if (CanHeal(resUnit) and (UnitCastingInfo("player") == "Дух предков"))  then RunMacroText("/stopcasting") end
+end
+AttachUpdate(UpdateResCast)
 ------------------------------------------------------------------------------------------------------------------
+-- dispel
+if DispelBlackList == nil then DispelBlackList = {} end
+if DispelWhiteList == nil then DispelWhiteList = {} end
+local dispelSpell = "Очищение"
+local dispelTypes = {"Poison", "Disease", "Curse"}
+function TryDispel(unit)
+    if not HasSpell(dispelSpell) or not IsReadySpell(dispelSpell) or InGCD() or not CanHeal(unit) then return false end
+    local ret = false
+    for i = 1, 40 do
+        if not ret then
+            local name, _, _, _, debuffType, duration, expirationTime   = UnitDebuff(unit, i,true) 
+            if name and (expirationTime - GetTime() >= 3 or expirationTime == 0) 
+                and (tContains(DispelWhiteList, name) or tContains(dispelTypes, debuffType) and not tContains(DispelBlackList, name)) then
+                if DoSpell(dispelSpell, unit) then 
+                    ret = true 
+                end
+            end
+        end
+    end
+    return ret
+end
 
-local stealTime = GetTime()
-local stealTarget = nil
-local stealTargetGUID = nil
-local stealFailList = {}
+local function UpdateDispelLists(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel = select(1, ...)
+    local unit = GetLastSpellTarget(dispelSpell)
+    if sourceGUID == UnitGUID("player")
+        and spellId and spellName and spellName == dispelSpell then
+
+        if type:match("^SPELL_CAST") 
+            and unit and err and err == "Нечего рассеивать." then
+            for i = 1, 40 do
+                local name, _, _, _, debuffType = UnitDebuff(unit, i,true) 
+                if name and tContains(dispelTypes, debuffType) and not tContains(DispelBlackList, name) then
+                    tinsert(DispelBlackList, name)
+                end
+            end
+        end
+        
+        if type == "SPELL_DISPEL" and not tContains(DispelWhiteList, dispel) then
+            tinsert(DispelWhiteList, dispel)
+        end
+    end
+end    
+
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateDispelLists)
+
+------------------------------------------------------------------------------------------------------------------
+-- steal
+if StealBlackList == nil then StealBlackList = {} end
+if StealWhiteList == nil then StealWhiteList = {} end
+local stealSpell = "Развеивание магии"
+local stealTypes = {"Magic"}
 function TrySteal(target)
-    local t = 5
-    if not PlayerInPlace() then t = 2 end  
-    if (stealTarget and GetTime() - stealTime < t) then return end 
-    if target == nil then target = "target" end
-    if not IsValidTarget(target) then return false end
+    if not HasSpell(stealSpell) or not IsReadySpell(stealSpell) or InGCD() or not CanMagicAttack(target) then return false end
     local ret = false
     for i = 1, 40 do
         if not ret then
-            local name, _, _, _, _, _, expirationTime, _, isStealable = UnitBuff(target, i) 
-            if name and (expirationTime - GetTime() >= 3) and (not stealFailList[name] or (GetTime() - stealFailList[name] > 30)) then
-                local positiveTry = 0
-                if StealWhiteList[name] then positiveTry = StealWhiteList[name] end
-                local negativeTry = 0
-                if StealBlackList[name] then negativeTry = StealBlackList[name] end
-                --if positiveTry > 0 then negativeTry = 0 end
-                if ( positiveTry > 5) and  (negativeTry < 5) then
-                    if DoSpell("Развеивание магии", target) then 
-                        stealTarget = target
-                        stealTargetGUID = UnitGUID(target)
-                        --local uName = UnitName(target) 
-                        --echo(format("Steal: Пробуем развеять %s c %s", name , uName))
-                        stealTime = GetTime()
-                        ret = true 
-                    end
+            local name, _, _, _, debuffType, duration, expirationTime   = UnitBuff(target, i) 
+            if name and (expirationTime - GetTime() >= 3 or expirationTime == 0) 
+                and (tContains(StealWhiteList, name) 
+                or tContains(stealTypes, debuffType) and not tContains(StealBlackList, name)) then
+                if DoSpell(stealSpell, target) then 
+                    ret = true 
                 end
             end
         end
@@ -164,64 +212,33 @@ function TrySteal(target)
     return ret
 end
 
-local dispelTime = GetTime()
-local dispelTarget = nil
-local dispelTargetGUID = nil
-local dispelFailList = {}
-function TryDispel(target)
-    local t = 5
-    if not PlayerInPlace() then t = 2 end  
-    if dispelTarget and (GetTime() - dispelTime < t) then return end 
-    if target == nil then target = "player" end
-    if not IsInteractUnit(target) then return false end
-    local ret = false
-    for i = 1, 40 do
-        if not ret then
-            local name, _, _, _, debuffType, duration, expirationTime = UnitDebuff(target, i,true)
-            if name and debuffType and (expirationTime - GetTime() >= 3) and (not dispelFailList[name] or (GetTime() - dispelFailList[name] > 30)) then
-                local allowTypes = {}
-                local spell = "Оздоровление"
-                -- Болезнь
-                allowTypes["Disease"] = true
-                -- Яд
-                allowTypes["Poison"] = true
-                if (allowTypes[debuffType]) then
-                    if HasTotem("Тотем очищения") then 
-                        return false 
-                    else
-                        local positiveTry = 0
-                        if DispelWhiteList[name] then positiveTry = DispelWhiteList[name] end
-                        if not IsPvP() and positiveTry > 0 and CanInterrupt and IsHeal() and InGroup() and not HasTotem("Тотем очищения") and DoSpell("Тотем очищения") then return false end
-                    end 
-                end
-                if HasSpell("Очищение духа") then 
-                    spell = "Очищение духа"
-                    -- Проклятие
-                    allowTypes["Curse"] = true
-                end
-                local positiveTry = 0
-                if DispelWhiteList[name] then positiveTry = DispelWhiteList[name] end
-                local negativeTry = 0
-                if DispelBlackList[name] then negativeTry = DispelBlackList[name] end
-                --if positiveTry > 0 then negativeTry = 0 end
-                if allowTypes[debuffType] and ( positiveTry > 5) and  (negativeTry < 5) then
-                    if DoSpell(spell, target) then
-                        dispelTarget = target
-                        dispelTargetGUID = UnitGUID(target)
-                        --local uName = UnitName(target) 
-                        --echo(format("Dispel: Пробуем развеять %s c %s", name , uName))
-                        dispelTime = GetTime()
-                        ret = true 
-                    end
+local function UpdateStealLists(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, steal = select(1, ...)
+    local target = GetLastSpellTarget(stealSpell)
+    if sourceGUID == UnitGUID("player")
+        and spellId and spellName and spellName == stealSpell then
+
+        if type:match("^SPELL_CAST") 
+            and target and err and err == "Нечего рассеивать." then
+            for i = 1, 40 do
+                local name, _, _, _, debuffType = UnitBuff(target, i,true) 
+                if name and tContains(stealTypes, debuffType) and not tContains(StealBlackList, name) then
+                    tinsert(StealBlackList, name)
                 end
             end
         end
+        
+        if type == "SPELL_DISPEL" and not tContains(StealWhiteList, steal) then
+            tinsert(StealWhiteList, steal)
+        end
     end
-    return ret
-end
+end    
 
-local InterruptKey = nil
-local InterruptGUID = nil
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateStealLists)
+------------------------------------------------------------------------------------------------------------------
+--if InterruptWhiteList == nil then InterruptWhiteList = {} end
+--if InterruptBlackList == nil then InterruptBlackList = {} end
+local interruptSpell = "Пронизывающий ветер"
 function TryInterrupt(target)
     if target == nil then target = "target" end
     if not IsValidTarget(target) then return false end
@@ -234,31 +251,19 @@ function TryInterrupt(target)
     end
     
     if not spell then return false end
+    --if tContains(InterruptBlackList, spell) then return false end
+    
     if not CanInterrupt and not InInterruptRedList(spell) then return false end
     local t = endTime/1000 - GetTime()
 
     if t < 0.2 then return false end
     if channel and t < 0.7 then return false end
-    
-    local name = GetUnitType(target) .. '|' ..  spell
-    
-    local positiveTry = 0
-    if InterruptWhiteList[name] then positiveTry = InterruptWhiteList[name] end
-    local negativeTry = 0
-    if InterruptBlackList[name] then negativeTry = InterruptBlackList[name] end
-    --if positiveTry > 0 then negativeTry = 0 end
-    if not (( positiveTry > 5) and (negativeTry < 5)) and not InInterruptRedList(spell) then return false end
-   
-    if (channel or t < 0.8) and not notinterrupt and IsReadySpell("Пронизывающий ветер") and InRange("Пронизывающий ветер",target) 
+
+    if (channel or t < 0.8) and not notinterrupt and IsReadySpell(interruptSpell) and InRange(interruptSpell,target) 
         and not HasBuff({"Мастер аур"}, 0.1, target) and CanMagicAttack(target) then
         if UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
-        if UseSpell("Пронизывающий ветер", target) then 
+        if UseSpell(interruptSpell, target) then 
             echo("Interrupt " .. spell .. " ("..target.." => " .. UnitName(target) .. ")")
-            InterruptTime = GetTime()
-            if not(UnitIsPlayer(target) or UnitIsPet(target)) then 
-                InterruptKey = name
-                InterruptGUID = UnitGUID(target)
-            end
             return true 
         end
     end
@@ -268,7 +273,6 @@ function TryInterrupt(target)
         if UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
         if UseSpell("Тотем заземления") then 
             print("Тотем заземления " .. spell .. " (".. UnitName(target) .. ")")
-            InterruptTime = GetTime()
             return true 
         end
     end
@@ -276,143 +280,27 @@ function TryInterrupt(target)
     return false    
 end
 
-
-
-local function onUpdate(elapsed)
-    if (CanHeal(resUnit) and (UnitCastingInfo("player") == "Дух предков"))  then RunMacroText("/stopcasting") end
-    
-    if InterruptKey and InterruptGUID and GetTime() - InterruptTime > 1 and not InterruptWhiteList[InterruptKey] then 
-        local try = 0
-        if InterruptBlackList[InterruptKey] then try = InterruptBlackList[InterruptKey] end
-        if try < 100 then try = try + 1 end
-        InterruptBlackList[InterruptKey] = try
-        InterruptKey = nil
-        InterruptGUID = nil
-    end
-    
-end
-AttachUpdate(onUpdate)
-
-function onEvent(event, ...)
-    if event:match("^UNIT_SPELLCAST") then
-        local unit, spell = select(1,...)
---~         print(event,  unit, spell )
-        if spell and unit == "player" then
-             if  event == "UNIT_SPELLCAST_SUCCEEDED" then
-                 --if Debug then chat(spell) end
-                 if spell == resSpell then
-                    --RunMacroText("/w " .. resUnit .. " Реснул тебя, вставай давай!")
-                    resList[resUnit] = GetTime()
-                    Notify("Успешно применил "..resSpell .. " на " .. resUnit)
-                end
-            end
-            if event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_FAILED" then
-                if spell == resSpell then
-                    resSpell = nil
-                    resUnit = nil
-                end
-            end
-        end
-        return
-    end
-
-    if (event=="COMBAT_LOG_EVENT_UNFILTERED") then
-        local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel = select(1, ...)
---[[        if sourceGUID == UnitGUID("player") and spellId and spellName  then
-            print(type, spellName, err, dispel)
-        end]]
-        if sourceGUID == UnitGUID("player") and (type:match("^SPELL_CAST") and spellId and spellName)  then
-            if err then
-                if err == "Нечего рассеивать." then
-                    if spellName == "Развеивание магии" then
-                        if stealTarget and (UnitGUID(stealTarget) == stealTargetGUID) then
-                            for i = 1, 40 do
-                                local name, _, _, _, _, _, expirationTime, _, isStealable = UnitBuff(stealTarget, i)
-                                if name then
-                                    local try = 0
-                                    if StealBlackList[name] then try = StealBlackList[name] end
-                                    if try < 100 then 
-                                        try = try + 1
-                                        StealBlackList[name] = try
-                                    end
-                                    stealFailList[name] = GetTime()
-                                end
-                            end
-                        end
-                        stealTarget = nil
-                        stealTargetGUID = nil
-                        --print(spellName," не может ничего развеять c ", destName)
-                    else  
-                        if dispelTarget and (UnitGUID(dispelTarget) == dispelTargetGUID) then
-                            for i = 1, 40 do
-                                local name, _, _, _, debuffType, duration, expirationTime = UnitDebuff(dispelTarget, i,true)
-                                if name then
-                                    local try = 0
-                                    if DispelBlackList[name] then try = DispelBlackList[name] end
-                                    if try < 100 then 
-                                        try = try + 1
-                                        DispelBlackList[name] = try
-                                    end
-                                    dispelFailList[name] = GetTime()
-                                end
-                            end
-                        end
-                        dispelTarget = nil
-                        dispelTargetGUID = nil
-                        --print(spellName," не может ничего раccеять c ", destName)
-                    end
-                end
-            
-                if err:match("Действие невозможно") then 
-                    if HasDebuff(ControlList, 3.8, "player") and TryEach(UNITS, function(u) return CanHeal(u) and CalculateHP(u) < 40 end) then 
-                        DoCommand("freedom") 
-                    end
-                end
-                if Debug then
-                    print("["..spellName .. "]: ".. err)
-                end
-            end
-        end
-        if sourceGUID == UnitGUID("player") and ( type == "SPELL_DISPEL") and spellId and spellName and dispel then
-            if spellName == "Развеивание магии" then
-                local try = 0
-                if StealWhiteList[dispel] then try = StealWhiteList[dispel] end
-                if try < 100 then 
-                    try = try + 1
-                    StealWhiteList[dispel] = try
-                end
-                stealTarget = nil
-                stealTargetGUID = nil
-                --print(spellName," рассеяло ", dispel, " c ", destName)
-            else  
-                local try = 0
-                if DispelWhiteList[dispel] then try = DispelWhiteList[dispel] end
-                if try < 100 then 
-                    try = try + 1
-                    DispelWhiteList[dispel] = try
-                end
-                dispelTarget = nil
-                dispelTargetGUID = nil
-                --print(spellName," рассеяло ", dispel, " c ", destName)
-            end
-        end
-
-        if sourceGUID == UnitGUID("player") and ( type == "SPELL_INTERRUPT") and spellId and spellName then
-            --print(2, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel,agrs2)
-            if InterruptKey and InterruptGUID and InterruptGUID == destGUID and GetTime() - InterruptTime < 1 then 
-                local try = 0
-                if InterruptWhiteList[InterruptKey] then try = InterruptWhiteList[InterruptKey] end
-                if try < 100 then try = try + 1 end
-                InterruptWhiteList[InterruptKey] = try
-                InterruptKey = nil
-                InterruptGUID = nil
-            end
-        end
+function UpdateInterruptWhiteList(event, ...)
+    local _, type = select(1, ...)
+    if type == "SPELL_INTERRUPT" then
+        local timestamp, type, skillID, skillName, skillSchool, extraSkillID, extraSkillName, extraSkillSchool = select(1, ...)
+        print(skillName, extraSkillName)
     end
 end
-AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", onEvent)
-AttachEvent("UNIT_SPELLCAST_SUCCEEDED", onEvent)
-AttachEvent("UNIT_SPELLCAST_FAILED", onEvent)
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateInterruptWhiteList)
+
+------------------------------------------------------------------------------------------------------------------
+function UpdateAutoFreedom(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel = select(1, ...)
+    if sourceGUID == UnitGUID("player") and (type:match("^SPELL_CAST") and spellId and spellName)
+        and err and err:match("Действие невозможно")  
+        and HasDebuff(ControlList, 3.8, "player") 
+        and TryEach(UNITS, function(u) return CanHeal(u) and CalculateHP(u) < 40 end) then 
+        DoCommand("freedom") 
+    end
+end
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateAutoFreedom)
+
 
 function DoSpell(spell, target)
     return UseSpell(spell, target)

@@ -1,6 +1,7 @@
 ﻿-- Paladin Rotation Helper by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
 local dispelTime = GetTime()
+local holyShieldTime  =  0
 function Idle()
     if (IsAttack() or InCombatLockdown()) then
         if CanInterrupt and TryEach(TARGETS, TryInterrupt) then return end
@@ -64,7 +65,10 @@ local redDispelList = {
     "Молот правосудия",
     "Ледяной шок",
     "Замедление",
-    "Эффект ледяной ловушки"
+    "Эффект ледяной ловушки",
+    "Удушение",
+    "Антимагия - немота",
+    "Безмолвие"
 }
 local function IsFinishHim(target) return CanAttack(target) and UnitHealth100(target) < 35 end 
 function Retribution()
@@ -93,8 +97,8 @@ function Retribution()
     if DoSpell("Удар воина Света", target) then return end
     if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    
     if UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
-    if not TryEach(UNITS, function(u) return HasMyBuff("Священный щит", 0.1, u) end) and DoSpell("Священный щит","player") then return end
-    if not IsFinishHim(target) and GetTime() - dispelTime > 2 and IsReadySpell("Очищение") and TryEach(IUNITS, TryDispel) then dispelTime = GetTime() return end
+    if (GetTime() - holyShieldTime > 10) not TryEach(UNITS, function(u) return HasMyBuff("Священный щит", 0.1, u) end) and DoSpell("Священный щит","player") then holyShieldTime = GetTime() return end
+    if not IsFinishHim(target) and IsReadySpell("Очищение") and TryEach(IUNITS, TryDispel) then return end
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -120,7 +124,6 @@ function TryBuffs()
 end
 
 ------------------------------------------------------------------------------------------------------------------
-local HolyShieldTime  =  0
 function TryHealing()
     if IsArena() then
         local members = {}
@@ -135,8 +138,8 @@ function TryHealing()
         end 
         if #members > 0 then 
             local u, h, l = members[1].Unit, members[1].HP, members[1].Lost
-            if ((not unitWithShield and h < 80) or (not HasBuff("Священный щит",1,u) and h < 40 and (GetTime() - HolyShieldTime > 3))) and DoSpell("Священный щит",u) then
-                HolyShieldTime = GetTime() 
+            if ((not unitWithShield and h < 80) or (not HasBuff("Священный щит",1,u) and h < 40 and (GetTime() - holyShieldTime > 3))) and DoSpell("Священный щит",u) then
+                holyShieldTime = GetTime() 
                 return 
             end
             if h < 20 and DoSpell("Возложение рук",u) then return end

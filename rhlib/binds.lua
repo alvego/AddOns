@@ -94,6 +94,8 @@ local function UpdateIdle(elapsed)
             end
         end
     end
+    ITARGETS = {"target", "mouseover"}
+    if IsArena() then ITARGETS = TARGETS end
     if Idle then Idle() end
 end
 AttachUpdate(UpdateIdle, -1000)

@@ -38,6 +38,7 @@ function IsAOE()
 end
 
 ------------------------------------------------------------------------------------------------------------------
+-- dispel
 if DispelBlacklist == nil then DispelBlacklist = {} end
 if DispelWhitelist == nil then DispelWhitelist = {} end
 local dispelSpell = "Очищение"
