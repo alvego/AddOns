@@ -239,10 +239,12 @@ AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateStealLists)
 if InterruptWhiteList == nil then InterruptWhiteList = {} end
 if InterruptBlackList == nil then InterruptBlackList = {} end
 local interruptSpell = "Пронизывающий ветер"
-function TryInterrupt(target)
+local interruptedSpell = nil
+function TryInterrupt(target, hp)
     if target == nil then target = "target" end
     if not IsValidTarget(target) then return false end
     local channel = false
+    local canBreak = not hp or hp > 60
     local spell, _, _, _, _, endTime, _, _, notinterrupt = UnitCastingInfo(target)
         
     if not spell then 
@@ -263,8 +265,9 @@ function TryInterrupt(target)
 
     if (channel or t < 0.8) and not notinterrupt and IsReadySpell(interruptSpell) and InRange(interruptSpell,target) 
         and not HasBuff({"Мастер аур"}, 0.1, target) and CanMagicAttack(target) then
-        if UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
+        if canBreak and UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
         if UseSpell(interruptSpell, target) then 
+            interruptedSpell = spell 
             echo("Interrupt " .. spell .. " ("..target.." => " .. UnitName(target) .. ")")
             return true 
         end
@@ -272,7 +275,7 @@ function TryInterrupt(target)
      
     if (not channel and t < 1.8) and not HasTotem("Тотем заземления") and IsReadySpell("Тотем заземления") 
         and IsHarmfulCast(spell) then
-        if UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
+        if canBreak and UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
         if UseSpell("Тотем заземления") then 
             print("Тотем заземления " .. spell .. " (".. UnitName(target) .. ")")
             return true 
@@ -288,8 +291,14 @@ local function UpdateInterruptErr(event, ...)
         and spellId and spellName and spellName == interruptSpell then
         if type:match("^SPELL_CAST") then
             local target = GetLastSpellTarget(interruptSpell)
-            if target and err then
-                print(type, interruptSpell, target, err, arg13)
+            if target and err and interruptedSpell then
+                local utype = GetUnitType(target)
+                local spells = InterruptBlackList[utype] or {}
+                local info = interruptedSpell + '|' + err
+                if not tContains(spells, info) then
+                    tinsert(spells, info)
+                end
+                InterruptBlackList[utype] = spells
             end
         end
     end
