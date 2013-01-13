@@ -177,14 +177,18 @@ local InCast = {}
 local function UpdateIsCast(event, ...)
 	local unit, spell, rank, target = select(1,...)
 	if spell and unit == "player" then
-        local cast = InCast[spell] or {}
-        if event == "UNIT_SPELLCAST_SENT" then
-            cast.StartTime = GetTime()
-            cast.TargetName = target
-        else
-            cast.StartTime = 0
+        local castInfo = InCast[spell] or {}
+        if event == "UNIT_SPELLCAST_SUCCEEDED"
+            and castInfo.StartTime and castInfo.StartTime > 0 then
+            castInfo.LastCastTime = castInfo.StartTime 
         end
-        InCast[spell] = cast
+        if event == "UNIT_SPELLCAST_SENT" then
+            castInfo.StartTime = GetTime()
+            castInfo.TargetName = target
+        else
+            castInfo.StartTime = 0
+        end
+        InCast[spell] = castInfo
     end
 end
 AttachEvent('UNIT_SPELLCAST_SENT', UpdateIsCast)
@@ -192,8 +196,18 @@ AttachEvent('UNIT_SPELLCAST_SUCCEEDED', UpdateIsCast)
 AttachEvent('UNIT_SPELLCAST_FAILED', UpdateIsCast)
 
 function GetLastSpellTarget(spell)
-    local cast = InCast[spell] or {}
-    return (cast.Target and cast.TargetGUID and UnitExists(cast.Target) and UnitGUID(cast.Target) == cast.TargetGUID) and cast.Target or nil
+    local castInfo = InCast[spell] or {}
+    return (castInfo.Target and castInfo.TargetGUID and UnitExists(castInfo.Target) and UnitGUID(castInfo.Target) == castInfo.TargetGUID) and castInfo.Target or nil
+end
+
+function GetSpellLastTime(spell)
+    local castInfo = InCast[spell] or {}
+    return castInfo.LastCastTime or 0
+end
+
+function IsSpellNotUsed(spell, t)
+    local last  = GetSpellLastTime(spell)
+    return GetTime() - last >= t
 end
 ------------------------------------------------------------------------------------------------------------------
 local function checkTargetInErrList(target, list)
@@ -272,6 +286,14 @@ function UseSpell(spellName, target)
         if target ~= nil then cast = cast .."[target=".. target .."] "  end
         -- проверяем, хвататет ли нам маны
         if cost and cost > 0 and UnitManaMax("player") > cost and UnitMana("player") <= cost then return false end
+        if UnitExists(target) then 
+            -- данные о кастах
+            local castInfo = InCast[spellName] or {}
+            castInfo.Target = target
+            castInfo.TargetName = UnitName(target)
+            castInfo.TargetGUID = UnitGUID(target)
+            InCast[spellName] = castInfo
+        end
         -- пробуем скастовать
         RunMacroText(cast .. "!" .. spellName)
         -- если нужно выбрать область - кидаем на текущий mouseover
@@ -279,25 +301,22 @@ function UseSpell(spellName, target)
         -- проверка на успешное начало кд
         local start, duration, enabled = GetSpellCooldown(spellName)
         if start > 0 and (GetTime() - start < 0.01) then
-            -- данные о кастах
-            local cast = InCast[spellName] or {}
-            if UnitExists(target) then 
+            if UnitExists(target) then
+                -- данные о кастах
+                local castInfo = InCast[spellName] or {}
                 -- проверяем цель на соответствие реальной
-                if cast.TargetName and cast.TargetName ~= UnitName(target) then 
+                if castInfo.TargetName and castInfo.TargetName ~= UnitName(target) then 
                     RunMacroText("/stopcasting") 
                     --chat("bad target", target, spellName)
                     badTargets[UnitGUID(target)] = GetTime()
                     badSpellTarget[spellName] = badTargets
-                    cast.Target = nil
-                    cast.TargetName = nil
-                    cast.TargetGUID = nil
-                else
-                    cast.Target = target
-                    cast.TargetName = UnitName(target)
-                    cast.TargetGUID = UnitGUID(target)
+                    castInfo.Target = nil
+                    castInfo.TargetName = nil
+                    castInfo.TargetGUID = nil
                 end
+                InCast[spellName] = castInfo
             end
-            InCast[spellName] = cast
+            
             if Debug then
                 print(spellName, cost, UnitMana("player"), target)
             end

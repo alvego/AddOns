@@ -145,7 +145,7 @@ AttachUpdate(UpdateResCast)
 -- dispel
 if DispelBlackList == nil then DispelBlackList = {} end
 if DispelWhiteList == nil then DispelWhiteList = {} end
-local dispelSpell = "Очищение"
+local dispelSpell = "Очищение духа"
 local dispelTypes = {"Poison", "Disease", "Curse"}
 function TryDispel(unit)
     if not HasSpell(dispelSpell) or not IsReadySpell(dispelSpell) or InGCD() or not CanHeal(unit) then return false end
@@ -236,8 +236,8 @@ end
 
 AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateStealLists)
 ------------------------------------------------------------------------------------------------------------------
---if InterruptWhiteList == nil then InterruptWhiteList = {} end
---if InterruptBlackList == nil then InterruptBlackList = {} end
+if InterruptWhiteList == nil then InterruptWhiteList = {} end
+if InterruptBlackList == nil then InterruptBlackList = {} end
 local interruptSpell = "Пронизывающий ветер"
 function TryInterrupt(target)
     if target == nil then target = "target" end
@@ -251,6 +251,8 @@ function TryInterrupt(target)
     end
     
     if not spell then return false end
+    
+    
     --if tContains(InterruptBlackList, spell) then return false end
     
     if not CanInterrupt and not InInterruptRedList(spell) then return false end
@@ -280,11 +282,32 @@ function TryInterrupt(target)
     return false    
 end
 
+local function UpdateInterruptErr(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, arg13 = select(1, ...)
+    if sourceGUID == UnitGUID("player")
+        and spellId and spellName and spellName == interruptSpell then
+        if type:match("^SPELL_CAST") then
+            local target = GetLastSpellTarget(interruptSpell)
+            if target and err then
+                print(type, interruptSpell, target, err, arg13)
+            end
+        end
+    end
+end    
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateInterruptErr)
+
 function UpdateInterruptWhiteList(event, ...)
-    local _, type = select(1, ...)
-    if type == "SPELL_INTERRUPT" then
-        local timestamp, type, skillID, skillName, skillSchool, extraSkillID, extraSkillName, extraSkillSchool = select(1, ...)
-        print(skillName, extraSkillName)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, args12, interruptedSpell = select(1, ...)
+    if type == "SPELL_INTERRUPT" and sourceGUID == UnitGUID("player") and spellId and spellName and spellName == interruptSpell then 
+        local target = GetLastSpellTarget(interruptSpell)
+        if target then
+            local utype = GetUnitType(target)
+            local spells = InterruptWhiteList[utype] or {}
+            if not tContains(spells, interruptedSpell) then
+                tinsert(spells, interruptedSpell)
+            end
+            InterruptWhiteList[utype] = spells
+        end
     end
 end
 AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateInterruptWhiteList)

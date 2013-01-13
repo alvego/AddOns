@@ -3,20 +3,19 @@
 local TryResUnit = nil
 local TryResTime = 0
 
-local dispelTime = GetTime()
 function Idle()
     -- дайте поесть спокойно
     if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or HasBuff("Призрачный волк")) then return end
     -- геру под крылья на арене
     if IsArena() and TryEach(UNITS, function(u) return HasBuff("Гнев карателя", 10, u) end) then DoCommand("hero") end
     -- тотемчики может поставить?
-    --if TryTotems() then return end
+    if TryTotems() then return end
     -- Зачем вару отражение???
     if IsValidTarget("target") and UnitAffectingCombat("target") and HasBuff("Отражение заклинания", 1, "target") and DoSpell("Пронизывающий ветер") then return end
     -- Рес по средней мышке + контрол
     if IsLeftControlKeyDown() and IsMouseButtonDown(3) then
         if CanRes("mouseover") then
-            TryResUnit = TryEach(GetGroupUnits(), function(u) return IsOneUnit(u, "mouseover") end) or "mouseover"
+            TryResUnit = TryEach(GetGroupUnits(), function(u) return IsOneUnit(u, "mouseover") and u end) or "mouseover"
             TryResTime = GetTime()
             Notify("Пробуем воскресить " ..UnitName(TryResUnit) .. "("..TryResUnit..")")
         else
@@ -32,12 +31,11 @@ function Idle()
     end
     -- пробуем реснуть
     if TryResUnit and CanRes(TryResUnit) and TryRes(TryResUnit) then return end
-    
     if IsHeal() then 
         HealRotation() 
         return
     end
-    
+   
     if (IsAttack() or InCombatLockdown()) then
 
         if TryEach(TARGETS, TryInterrupt) then return end
@@ -46,7 +44,7 @@ function Idle()
         
         if TryProtect() then return end
 
-        if (GetTime() - dispelTime > 5 or not PlayerInPlace()) and TryDispel("player") then dispelTime = GetTime() return end
+        if IsSpellNotUsed("Очищение духа", 5) and TryDispel("player") then return end
         TryTarget()
         if not CanAttack() then return end
         if IsMDD() then 
@@ -290,12 +288,14 @@ function HealRotation()
         if UnitThreatAlert("player") < 3 and (l > HealingWaveHeal) and DoSpell("Волна исцеления", u) then return end
     end
     
-    if (GetTime() - dispelTime > 5 or not PlayerInPlace()) and (h > 60 and UnitMana100("player") > 50) 
-        and (TryEach(IUNITS, TryDispel) or TryEach(ITARGETS, TrySteal)) then dispelTime = GetTime() return end
+    if (h > 60 and UnitMana100("player") > 50) then
+        if IsSpellNotUsed("Очищение духа", 5) and TryEach(IUNITS, TryDispel) then return end
+        if IsSpellNotUsed("Развеивание магии", 5) and TryEach(ITARGETS, TrySteal) then return end
+    end
 
     
     if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and PlayerInPlace() and DoSpell("Молния") then return end
-    if not IsAttack() and (h > 20 and IsPvP()) and TryEach(TARGETS, 
+    if false and not IsAttack() and (h > 20 and IsPvP()) and TryEach(TARGETS, 
         function(t) return CanControl(t) and UnitIsPlayer(t) and not HasDebuff({"Оковы земли", "Ледяной шок"}, 0,1, t) and DoSpell("Ледяной шок", t) end
     ) then return end
         

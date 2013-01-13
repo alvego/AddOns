@@ -37,7 +37,7 @@ end
 function CanMagicAttack(target)
     if nil == target then target = "target" end 
     return CanAttack(target) 
-		and not HasBuff({"Отражение заклинания", "Антимагический панцирь"}, 0.1, target)
+		and not HasBuff({"Отражение заклинания", "Антимагический панцирь", "Рунический покров"}, 0.1, target)
 end
 
 ------------------------------------------------------------------------------------------------------------------

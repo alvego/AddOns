@@ -85,20 +85,10 @@ end
 AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateDispelLists)
 
 ------------------------------------------------------------------------------------------------------------------
-local ForbearanceTime = 0
 function InForbearance(unit)
     if unit == nil then unit = "player" end
-    return ((GetTime() - ForbearanceTime < 30) or HasDebuff("Воздержанность", 0.01, unit))
+    return ((GetTime() - GetSpellLastTime("Гнев карателя") < 30) or HasDebuff("Воздержанность", 0.01, unit))
 end
-
-local function UpdateForbearanceTime(event, ...)
-    local unit, spell = select(1, ...)
-    if unit == "player" and spell == "Гнев карателя" then 
-        ForbearanceTime = GetTime() 
-    end
-end
-AttachEvent("UNIT_SPELLCAST_SUCCEEDED", UpdateForbearanceTime)
-
 ------------------------------------------------------------------------------------------------------------------
 
 function DoSpell(spellName, target)
