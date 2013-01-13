@@ -106,6 +106,7 @@ function TryRes(t)
     if InCombatLockdown() then
         return false
     end
+
     if not CanRes(t) then return false end
   
     if DoSpell(spell, t) then
@@ -332,7 +333,7 @@ function UpdateAutoFreedom(event, ...)
     end
 end
 AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateAutoFreedom)
-
+------------------------------------------------------------------------------------------------------------------
 
 function DoSpell(spell, target)
     return UseSpell(spell, target)

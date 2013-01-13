@@ -133,7 +133,6 @@ function HealRotation()
     local LesserHealingWaveHeal = GetMySpellHeal("Малая волна исцеления")
     
     local members = {}
-   
     if not IsPvP() and PlayerInPlace() and not InCombatLockdown() then
         if myHP < 100 and (IsReadySpell("Быстрина") or HasMyBuff("Приливные волны",1,u))  then 
             local u = "player"
@@ -142,13 +141,18 @@ function HealRotation()
             return
         end
         local res = false
-        for i=1,#UNITS do
-           if not res and TryRes(UNITS[i]) then res = true end
+        local groupUnits = GetGroupUnits()
+        tinsert(groupUnits, "target")
+        tinsert(groupUnits, "focus")
+        tinsert(groupUnits, "mouseover")
+        for i=1,#groupUnits do
+        
+           if not res and TryRes(groupUnits[i]) then res = true end
         end
         if res then return end
         
-        for i=1,#UNITS do
-           if CanRes(UNITS[i]) then needRes = true end
+        for i=1,#groupUnits do
+           if CanRes(groupUnits[i]) then needRes = true end
         end
         if res then return end
     end

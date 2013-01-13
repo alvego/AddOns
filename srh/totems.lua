@@ -1,13 +1,14 @@
 ﻿-- Shaman Rotation Helper by Timofeev Alexey
+------------------------------------------------------------------------------------------------------------------
 local TotemAlert = {}
 function TryTotems(forceTotems)
 
     if forceTotems then
+        print("TryTotems:NeedTotems = true")
         NeedTotems = true
     else
-        
         if NeedTotems and (NotInCombat(5) or not CanAutoTotems()) then
-            print("NeedTotems = false")
+            print("TryTotems:NeedTotems = false")
             NeedTotems = false
         end 
     end
@@ -17,6 +18,7 @@ function TryTotems(forceTotems)
     local force = {}
     local totem = {}
     local earthTotems, fireTotems, waterTotems, airTotems = {}, {}, {}, {}
+    -------------------------------------------------------------------------------------------------------------
     -- earth
     --if not HasBuff("Каменная кожа") and not HasBuff("Аура благочестия") then
     if not IsPvP() and not HasBuff("Каменная кожа") then
@@ -62,6 +64,7 @@ function TryTotems(forceTotems)
     else
         totem[earth] = nil
     end
+    -------------------------------------------------------------------------------------------------------------
     --fire
     if not HasBuff("Тотем языка пламени")  then
         local priority = 10
@@ -87,6 +90,7 @@ function TryTotems(forceTotems)
     else
         totem[fire] = nil
     end
+    -------------------------------------------------------------------------------------------------------------
     --water
     if HasTotem("Тотем прилива маны") then Notify("Тотем прилива маны!!!") end
     if PlayerInPlace() and not HasTotem("Тотем прилива маны") and HasSpell("Тотем прилива маны") and IsReadySpell("Тотем прилива маны") and UnitMana100("player") < 70 then
@@ -124,6 +128,7 @@ function TryTotems(forceTotems)
     else
         totem[water] = nil
     end
+    -------------------------------------------------------------------------------------------------------------
     --air
     if not HasBuff("Тотем неистовства ветра") and not HasBuff("Цепкие ледяные когти") then
         local priority = 10
@@ -144,16 +149,26 @@ function TryTotems(forceTotems)
     else
         totem[air] = nil
     end
-    local forcedNow = TryEach(force, function(value) return value end) and not NeedTotems  and InCombatLockdown()
+    -------------------------------------------------------------------------------------------------------------
+    -- нужно поставить какой-то тотем, несмотря но то что NeedTotems = false (Экстренная ситуация)
+    local forcedNow = TryEach(force, function(value) return value end) and not NeedTotems and InCombatLockdown()
 
     if forcedNow then 
+        -- оставляем только экстренные тотемы
         for i = 1, 4 do 
             if not force[i] then totem[i] = nil end
         end
-    else
-        if not NeedTotems  then return false end
-        if not PlayerInPlace() then return false end
-        if (UnitHealth100("player") < 30 or (GetTime() - TotemTime < 2) or not InCombatLockdown()) then return false end
+    end
+    -- нет критических тотемов или вообще NeedTotems = false (выходим)
+    if not (forcedNow or NeedTotems) then 
+        return false 
+    end
+    -- ничего настолько строчного, чтоб ставить тотемы
+    if not (forcedNow or forceTotems) and (UnitHealth100("player") < 30 -- когда мало хп
+        or (GetTime() - TotemTime < 2) -- или только недавно ставил
+        or not InCombatLockdown() -- или не в бою
+        or not PlayerInPlace()) then -- или на бегу
+        return false 
     end
 
     --try totems

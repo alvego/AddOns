@@ -41,7 +41,7 @@ end
 function Tank()
     local target = "target"
     -- пытаемся сдиспелить с себя каку не чаще чем раз в 2 сек
-    if IsSpellNotUsed("Очищение" , 2) and TryDispell("player") then return end
+    if IsSpellNotUsed("Очищение" , 2) and TryDispel("player") then return end
     if not (IsValidTarget(target) and (UnitAffectingCombat(target) and CanAttack(target) or IsAttack()))  then return end
     if DoSpell("Щит мстителя", target) then return end
     if IsAOE() then

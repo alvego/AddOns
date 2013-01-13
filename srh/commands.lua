@@ -1,5 +1,5 @@
 ﻿-- Shaman Rotation Helper by Timofeev Alexey
-
+------------------------------------------------------------------------------------------------------------------
 SetCommand("hero", 
     function() 
         if DoSpell("Героизм") then
@@ -10,14 +10,14 @@ SetCommand("hero",
         return not InCombatLockdown() or HasDebuff("Изнеможение", 1, "player") or (not InGCD() and not IsReadySpell("Героизм")) 
     end
 )
+
+------------------------------------------------------------------------------------------------------------------
 SetCommand("hex", 
     function() 
 --[[        if HasSpell("Природная стремительность") then 
             DoSpell("Природная стремительность") 
         end]]
-        if DoSpell("Сглаз") then
-            print("Сглаз")
-        end
+        return DoSpell("Сглаз")
     end, 
     function() 
         if not CanControl() or (not InGCD() and not IsReadySpell("Сглаз"))  then return true end
@@ -28,12 +28,13 @@ SetCommand("hex",
         return false
     end
 )
-
+------------------------------------------------------------------------------------------------------------------
 SetCommand("freedom", 
     function() return UseEquippedItem("Медальон Альянса") end, 
     function() local item = "Медальон Альянса" return IsPlayerCasting() or not IsEquippedItem(item) or (not InGCD() and not IsReadyItem(item)) end
 )
 
+------------------------------------------------------------------------------------------------------------------
 local tryMount = false
 SetCommand("mount", 
     function() 
@@ -57,6 +58,7 @@ SetCommand("mount",
     end
 )
 
+------------------------------------------------------------------------------------------------------------------
 SetCommand("dismount", 
     function() 
         if HasBuff("Призрачный волк") then RunMacroText("/cancelaura Призрачный волк") return end
@@ -68,23 +70,21 @@ SetCommand("dismount",
     end
 )
 
+------------------------------------------------------------------------------------------------------------------
 TotemTime, NeedTotems = GetTime(), false
 SetCommand("totems", 
     function() 
-        if TryTotems(true) then
-            print("Тотемы!")
-            return true
-        end
-        return false
+        print("Тотемы!")
+        return TryTotems(true)
     end, 
     function() 
         if InCombatLockdown() and not NeedTotems then 
+            print("Totems:NeedTotems = true")
             NeedTotems = true
-            print("Тотемы! not NeedTotems", not NeedTotems)
             return true
         end
-        if GetTime() - TotemTime < 0.5  then
-            print("Тотемы! TryTotems is DONE!")
+        if GetTime() - TotemTime < 1  then
+            print("Тотемы! TryTotems is true!")
             return true
         end
         return false

@@ -110,7 +110,7 @@ local function UpdateCombatLogFix()
         and GetTime() - CombatLogTimer > 15
         and GetTime() - CombatLogResetTimer > 30 then 
         CombatLogClearEntries()
-        chat("Reset CombatLog!")
+        --chat("Reset CombatLog!")
         CombatLogResetTimer = GetTime()
     end 
 end
@@ -123,15 +123,20 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateCombatLogTimer)
 
 ------------------------------------------------------------------------------------------------------------------
 -- Мониторим, когда начался и когда закончился бой
-local startCombatTime = 0
-local endCombatTime = 0     
+local startCombatTime = nil
+local endCombatTime = nil     
 local function UpdateCombatTimers()
     if InCombatLockdown() then
-        startCombatTime = GetTime()
+        if not startCombatTime then 
+            startCombatTime = GetTime()
+        end
         endCombatTime = nil
     else
+        if not endCombatTime then
+            endCombatTime = GetTime()
+        end
         startCombatTime = nil
-        endCombatTime = GetTime()
+        
     end
 end
 AttachUpdate(UpdateCombatTimers)   
