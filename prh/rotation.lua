@@ -97,7 +97,8 @@ function Retribution()
     if DoSpell("Удар воина Света", target) then return end
     if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    
     if UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
-    if (GetTime() - holyShieldTime > 10) not TryEach(UNITS, function(u) return HasMyBuff("Священный щит", 0.1, u) end) and DoSpell("Священный щит","player") then holyShieldTime = GetTime() return end
+    if (GetTime() - holyShieldTime > 10) 
+        and not TryEach(UNITS, function(u) return HasMyBuff("Священный щит", 0.1, u) end) and DoSpell("Священный щит","player") then holyShieldTime = GetTime() return end
     if not IsFinishHim(target) and IsReadySpell("Очищение") and TryEach(IUNITS, TryDispel) then return end
 end
 
