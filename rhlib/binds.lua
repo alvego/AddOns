@@ -107,8 +107,8 @@ local CombatLogResetTimer = GetTime();
 
 local function UpdateCombatLogFix()
 	if InCombatLockdown() 
-        and GetTime() - CombatLogTimer > 10
-        and GetTime() - CombatLogResetTimer > 10 then 
+        and GetTime() - CombatLogTimer > 15
+        and GetTime() - CombatLogResetTimer > 30 then 
         CombatLogClearEntries()
         chat("Reset CombatLog!")
         CombatLogResetTimer = GetTime()
@@ -117,27 +117,33 @@ end
 AttachUpdate(UpdateCombatLogFix)
 
 local function UpdateCombatLogTimer(event, ...)
-    local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
-    if event:match("DAMAGE") or event:match("HEAL") then 
-        CombatLogTimer = GetTime()
-    end
+    CombatLogTimer = GetTime()
 end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateCombatLogTimer)
 
 ------------------------------------------------------------------------------------------------------------------
 -- Мониторим, когда начался и когда закончился бой
-StartCombatTime = 0
-local function UpdateStartCombatTimer(event, ...)
-    StartCombatTime = GetTime()
+local startCombatTime = 0
+local endCombatTime = 0     
+local function UpdateCombatTimers()
+    if InCombatLockdown() then
+        startCombatTime = GetTime()
+        endCombatTime = nil
+    else
+        startCombatTime = nil
+        endCombatTime = GetTime()
+    end
 end
-AttachEvent("PLAYER_ENTER_COMBAT", UpdateStartCombatTimer)   
+AttachUpdate(UpdateCombatTimers)   
 
-EndCombatTime = 0     
-local function UpdateEndCombatTimer(event, ...) 
-    EndCombatTime = GetTime()  
-end 
-AttachEvent("PLAYER_LEAVE_COMBAT", UpdateEndCombatTimer)
-
+function InCombat(t) 
+    if not t then t = 0 end
+    return InCombatLockdown() and startCombatTime and GetTime() - startCombatTime > t
+end
+function NotInCombat(t) 
+    if not t then t = 0 end
+    return not InCombatLockdown() and endCombatTime and GetTime() - endCombatTime > t
+end
 ------------------------------------------------------------------------------------------------------------------
 -- Запоминаем атакующие нас цели (TODO: need REVIEW)
 local NextTarget = nil

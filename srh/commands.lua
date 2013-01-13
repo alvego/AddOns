@@ -68,16 +68,25 @@ SetCommand("dismount",
     end
 )
 
-TotemTime, NeedTotems = GetTime(), false, false
+TotemTime, NeedTotems = GetTime(), false
 SetCommand("totems", 
     function() 
-        return TryTotems(true)
+        if TryTotems(true) then
+            print("Тотемы!")
+            return true
+        end
+        return false
     end, 
     function() 
         if InCombatLockdown() and not NeedTotems then 
             NeedTotems = true
+            print("Тотемы! not NeedTotems", not NeedTotems)
             return true
         end
-        return (GetTime() - TotemTime < 0.5)
+        if GetTime() - TotemTime < 0.5  then
+            print("Тотемы! TryTotems is DONE!")
+            return true
+        end
+        return false
     end
 )

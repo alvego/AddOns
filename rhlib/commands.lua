@@ -18,7 +18,7 @@ function DoCommand(cmd)
         print("DoCommand: Ошибка! Нет такой комманды ".. cmd)
         return
     end 
-    local d = 1.8
+    local d = 1.85
     local t = GetTime() + d
     local spell, _, _, _, _, endTime  = UnitCastingInfo("player")
     if not spell then spell, _, _, _, _, endTime, _, nointerrupt = UnitChannelInfo("player") end

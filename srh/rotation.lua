@@ -6,6 +6,8 @@ local TryResTime = 0
 function Idle()
     -- дайте поесть спокойно
     if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or HasBuff("Призрачный волк")) then return end
+    -- чтоб контроли не сбивать
+    if not CanControl("target") then RunMacroText("/stopattack") end
     -- геру под крылья на арене
     if IsArena() and TryEach(UNITS, function(u) return HasBuff("Гнев карателя", 10, u) end) then DoCommand("hero") end
     -- тотемчики может поставить?
@@ -87,13 +89,13 @@ local function TryBuff()
 end
 local shieldChangeTime = 0
 function HealRotation()
-    if not InCombatLockdown() and TryBuff() then return end
+    
     if IsAltKeyDown() and TrySteal("target") then return end
     if (IsPvP() and InCombatLockdown()) and TryEach(TARGETS, function(t) return CanAttack(t) 
         and UnitHealth100(t) < 4 and not HasMyDebuff("шок", 1, t) and DoSpell("Огненный шок", t) end) then return end
     
     if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16) and DoSpell("Оружие жизни земли") then return end
-    if UnitMana100() < 80 and (GetTime() - StartCombatTime > 3) and UnitHealth100("player") > 30 and not HasBuff("Водный щит") and DoSpell("Водный щит") then return end
+    if UnitMana100() < 80 and InCombat(3) and UnitHealth100("player") > 30 and not HasBuff("Водный щит") and DoSpell("Водный щит") then return end
     
     if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() then
         if HasMyDebuff("шок", 1, "target") and PlayerInPlace() then
@@ -113,11 +115,10 @@ function HealRotation()
     end
     
     local myHP = CalculateHP("player")
-    local myLostHP = UnitLostHP("player")
 
     if InCombatLockdown() then
-        if (myLostHP > 4035 or myHP < 60) and DoSpell("Кровь земли", "player") then return end
-        if (myLostHP > 6615 or myHP < 50) and DoSpell("Дар наару", "player") then return end
+        if (myHP < 30) and DoSpell("Кровь земли", "player") then return end
+        if (myHP < 40) and DoSpell("Дар наару", "player") then return end
         if myHP < 60 and UseEquippedItem("Проржавевший костяной ключ") then return end
         if not IsArena() then
             if myHP < 40 and UseHealPotion() then return end
@@ -152,6 +153,7 @@ function HealRotation()
         if res then return end
     end
     
+    if not InCombatLockdown() and TryBuff() then return end
            
     for i=1,#UNITS do
         local u = UNITS[i]
@@ -239,7 +241,7 @@ function HealRotation()
     end
     
     if IsArena() and not InCombatLockdown() and not HasBuff("Водный щит") and not unitWithShield and DoSpell("Щит земли", "player") then return end
-    if threatLowHPUnit and (GetTime() - StartCombatTime > 3) then
+    if threatLowHPUnit and InCombat(3) then
         if unitWithShield and UnitThreatAlert(unitWithShield) < 3 and threatLowHPUnit and (threatLowHP < 70) then
             shieldChangeTime = 0
             unitWithShield = nil
@@ -257,7 +259,7 @@ function HealRotation()
     end
     
     if InCombatLockdown() then
-        if h < 80 and DoSpell("Дар наару", u) then return end
+        if h < 20 and DoSpell("Дар наару", u) then return end
         if lowhpmembers > 0 and UseEquippedItem("Талисман восстановления") then return end
         if lowhpmembers > 0 and UseEquippedItem("Руна конечной вариации") then return end
         if lowhpmembers > 0 and UseEquippedItem("Брошь в виде розы с шипами") then return end
@@ -277,15 +279,18 @@ function HealRotation()
     if PlayerInPlace() then
     
         if h < 25 and (l > HealingWaveHeal) and HasMyBuff("Приливные волны", 1, "player") and DoSpell("Волна исцеления", u) then return end
-        if h < 20 and DoSpell("Малая волна исцеления", u) then return end
+        if h < 10 and DoSpell("Малая волна исцеления", u) then return end
         
-        if h > 30 and rUnits[u] > 1 and not IsPvP() and l > ChainHeal and DoSpell("Цепное исцеление", u) then return end 
-        if h > 40 and rUnits[u] > 1 and IsBattleground() and (UnitThreatAlert("player") < 3) and l > ChainHeal and DoSpell("Цепное исцеление", u) then return end 
+        if h > 40 and rUnits[u] > 1 and not IsPvP() and l > ChainHeal and DoSpell("Цепное исцеление", u) then return end 
+        if h > 70 and rUnits[u] > 1 and IsBattleground() and (UnitThreatAlert("player") < 3) and l > ChainHeal and DoSpell("Цепное исцеление", u) then return end 
         
-        if (l > LesserHealingWaveHeal) and not (l > HealingWaveHeal) and not HasMyBuff("Приливные волны", 0.1, "player") and DoSpell("Малая волна исцеления", u) then return end
-        if IsPvP() and not InMelee() and (l > HealingWaveHeal) and HasMyBuff("Приливные волны", 1, "player") and DoSpell("Волна исцеления", u) then return end
+        if (l > LesserHealingWaveHeal) and (l < HealingWaveHeal) and not HasMyBuff("Приливные волны", 0.1, "player") and DoSpell("Малая волна исцеления", u) then return end
+        
+        if IsPvP() and (l > HealingWaveHeal) and HasMyBuff("Приливные волны", 1, "player") and DoSpell("Волна исцеления", u) then return end
+        
         if IsPvP() and (l > LesserHealingWaveHeal) and DoSpell("Малая волна исцеления", u) then return end 
-        if UnitThreatAlert("player") < 3 and (l > HealingWaveHeal) and DoSpell("Волна исцеления", u) then return end
+        
+        if h > 30 and (l > HealingWaveHeal) and DoSpell("Волна исцеления", u) then return end
     end
     
     if (h > 60 and UnitMana100("player") > 50) then
@@ -448,8 +453,10 @@ end
 function TryProtect()
     local h = CalculateHP("player")
     if InCombatLockdown() then
-        if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
-        if UnitMana100() < 10 and UseItem("Бездонный флакон с зельем маны") then return true end
+        if (h < 30) and DoSpell("Кровь земли", "player") then return end
+        if (h < 40) and DoSpell("Дар наару", "player") then return end
+        if not IsArena() and UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
+        if not IsArena() and UnitMana100() < 20 and UseItem("Бездонный флакон с зельем маны") then return true end
         if h < 70 and DoSpell("Дар наару", "player") then return true end
         if GetBuffStack("Оружие Водоворота") == 5 then
             if h < 60 and DoSpell("Волна исцеления", "player") then return true end

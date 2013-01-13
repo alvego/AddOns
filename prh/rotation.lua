@@ -5,8 +5,8 @@ function Idle()
     if (IsAttack() or InCombatLockdown()) then
         if CanInterrupt and TryEach(TARGETS, TryInterrupt) then return end
         if IsMouseButtonDown(3) and TryTaunt("mouseover") then return end
-        if AutoAGGRO and InGroup() and ((GetTime() - StartCombatTime > 1)) then
-            if (GetTime() - StartCombatTime < 3) and TryEach(UNITS, function(unit) 
+        if AutoAGGRO and InGroup() and InCombat(1) then
+            if InCombat(3) and TryEach(UNITS, function(unit) 
                 if IsInteractUnit(unit) and  UnitThreat(unit) > 1 and not IsOneUnit("player", unit) and DoSpell("Длань спасения",unit) then 
                     echo("Длань спасения " .. unit) 
                     return true
@@ -125,10 +125,14 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function TryHealing()
-    if IsArena() then
+    if not IsArena() and InCombatLockdown() then
+        if CalculateHP("player") < 35 and UseHealPotion() then return true end
+        if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
+    end
+    if InCombatLockdown or IsArena() then
         local members = {}
-        for i=1,#UNITS do
-            local u = UNITS[i]
+        for i=1,#IUNITS do
+            local u = IUNITS[i]
             if CanHeal(u) then table.insert(members, { Unit = u, HP = CalculateHP(u), Lost = UnitLostHP(u) } ) end
         end
         table.sort(members, function(x,y) return x.HP < y.HP end)
@@ -138,23 +142,13 @@ function TryHealing()
         end 
         if #members > 0 then 
             local u, h, l = members[1].Unit, members[1].HP, members[1].Lost
+            if h > 30 and IsFinishHim("target") then return end
             if ((not unitWithShield and h < 80) or (not HasBuff("Священный щит",1,u) and h < 40 and (GetTime() - holyShieldTime > 3))) and DoSpell("Священный щит",u) then
                 holyShieldTime = GetTime() 
                 return 
             end
             if h < 20 and DoSpell("Возложение рук",u) then return end
             if h < 70 and HasBuff("Искусство войны") and (not IsReadySpell("Экзорцизм") or h < 40) and DoSpell("Вспышка Света",u) then return end
-        end
-    else
-        local h = CalculateHP("player")
-        if InCombatLockdown() then
-            -- if h < 40 and not HasBuff("Печать Света") and DoSpell("Печать Света") then return end
-            -- if h > 80 and not HasBuff("Печать праведности") and DoSpell("Печать праведности") then return end
-            -- if h < 50 and HasBuff("Искусство войны") and EquipItemByName("Манускрипт правосудия гневного гладиатора") and DoSpell("Вспышка Света") and EquipItemByName("Манускрипт стойкости гневного гладиатора") then return end
-            if h < 35 and UseHealPotion() then return true end
-            if h < 30 and DoSpell("Возложение рук") then return true end
-            if h < 80 and HasBuff("Искусство войны") and (not IsReadySpell("Экзорцизм") or h < 40) then DoSpell("Вспышка Света") return end
-            if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
         end
     end
     return false

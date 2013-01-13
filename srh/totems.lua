@@ -5,12 +5,14 @@ function TryTotems(forceTotems)
     if forceTotems then
         NeedTotems = true
     else
-        if (GetTime() - EndCombatTime > 5) or not CanAutoTotems() then
+        
+        if NeedTotems and (NotInCombat(5) or not CanAutoTotems()) then
+            print("NeedTotems = false")
             NeedTotems = false
         end 
     end
     if InGCD() then return false end
-    
+
     local fire, earth, water, air = 1,2,3,4
     local force = {}
     local totem = {}
@@ -143,15 +145,17 @@ function TryTotems(forceTotems)
         totem[air] = nil
     end
     local forcedNow = TryEach(force, function(value) return value end) and not NeedTotems  and InCombatLockdown()
+
     if forcedNow then 
         for i = 1, 4 do 
             if not force[i] then totem[i] = nil end
         end
     else
         if not NeedTotems  then return false end
+        if not PlayerInPlace() then return false end
+        if (UnitHealth100("player") < 30 or (GetTime() - TotemTime < 2) or not InCombatLockdown()) then return false end
     end
-    if not forceTotems and not PlayerInPlace() then return false end
-    if not forceTotems and (UnitHealth100("player") < 30 or (GetTime() - TotemTime < 2) or not InCombatLockdown()) then return false end
+
     --try totems
     local try = false;
     local totemNames = 'Ставим '
@@ -166,10 +170,14 @@ function TryTotems(forceTotems)
             SetMultiCastSpell(s)
         end
     end
-    
-    if try and DoSpell("Зов Духов") then
+    if try then 
+        if DoSpell("Зов Духов") then
+            print(totemNames)
+            TotemTime = GetTime()
+        end
+    else 
         TotemTime = GetTime()
-        --print(totemNames)
     end
+
     return try
 end
