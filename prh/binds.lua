@@ -63,12 +63,10 @@ end
 local function UpdateDispelLists(event, ...)
     local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel = select(1, ...)
     local unit = GetLastSpellTarget(dispelSpell)
-    
     if sourceGUID == UnitGUID("player")
         and spellId and spellName and spellName == dispelSpell then
 
-        if type:match("^SPELL_CAST") 
-            and unit and err and err == "Нечего рассеивать." then
+        if type:match("^SPELL_CAST") and unit and err and err == "Нечего рассеивать." then
             for i = 1, 40 do
                 local name, _, _, _, debuffType = UnitDebuff(unit, i,true) 
                 if name and tContains(dispelTypes, debuffType)
