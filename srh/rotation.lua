@@ -64,7 +64,7 @@ function CheckHealCast(u, h)
     local spell, _, _, _, _, endTime, _, _, notinterrupt = UnitCastingInfo("player")
     if not spell or not endTime then return end
     if not tContains({"Малая волна исцеления", "Волна исцеления", "Цепное исцеление"}, spell) then return end
-    --if not InCombatLockdown() then return end
+    if not InCombatLockdown() then return end
     
     local lastHealCastTarget = GetLastSpellTarget(spell)
     if not lastHealCastTarget then return end
@@ -215,7 +215,7 @@ function HealRotation()
     if #members < 1 then print("Некого лечить!!!") return end
     local u, h, l = members[1].Unit, members[1].HP, members[1].Lost
     
-    if  h > 30 then
+    if  h > 40 then
         if TryEach(TARGETS, function(t) return TryInterrupt(t, h) end) then return end
         if UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") and TryEach(ITARGETS, 
             function(t) return HasBuff(StealRedList, 2, t) and TrySteal(t) end
@@ -304,7 +304,7 @@ function HealRotation()
 
     
     if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and PlayerInPlace() and DoSpell("Молния") then return end
-    if not IsAttack() and (h > 20 and IsPvP()) and TryEach(TARGETS, 
+    if not IsAttack() and (h > 50 and IsPvP()) and TryEach(TARGETS, 
         function(t) return CanControl(t) and UnitIsPlayer(t) and not HasDebuff({"Оковы земли", "Ледяной шок"}, 0,1, t) and DoSpell("Ледяной шок", t) end
     ) then return end
         

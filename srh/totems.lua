@@ -49,7 +49,7 @@ function TryTotems(forceTotems)
         table.insert(earthTotems, { N = "Тотем трепета", P = priority })
     end
     if not HasTotem("Тотем оков земли") and (IsMouseButtonDown(1) == 1) then TotemAlert["Тотем оков земли"] = GetTime() end
-    if IsReadySpell("Тотем оков земли") then
+    if not HasClass(TARGETS, {"WARLOCK", "PRIEST"}) and IsReadySpell("Тотем оков земли") then
         local priority = 9
         if IsPvP() then priority = 11 end
         if (TotemAlert["Тотем оков земли"] and GetTime() - TotemAlert["Тотем оков земли"] < 2) then 
