@@ -63,6 +63,7 @@ end
 local function UpdateDispelLists(event, ...)
     local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel = select(1, ...)
     local unit = GetLastSpellTarget(dispelSpell)
+    
     if sourceGUID == UnitGUID("player")
         and spellId and spellName and spellName == dispelSpell then
 
@@ -70,7 +71,9 @@ local function UpdateDispelLists(event, ...)
             and unit and err and err == "Нечего рассеивать." then
             for i = 1, 40 do
                 local name, _, _, _, debuffType = UnitDebuff(unit, i,true) 
-                if name and tContains(dispelTypes, debuffType) and not tContains(DispelBlacklist, name) then
+                if name and tContains(dispelTypes, debuffType)
+                    and not tContains(DispelWhitelist, name)
+                    and not tContains(DispelBlacklist, name) then
                     tinsert(DispelBlacklist, name)
                 end
             end

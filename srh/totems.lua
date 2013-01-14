@@ -22,12 +22,12 @@ function TryTotems(forceTotems)
     -- earth
     --if not HasBuff("Каменная кожа") and not HasBuff("Аура благочестия") then
     if not IsPvP() and not HasBuff("Каменная кожа") then
-        local priority = 10
+        local priority = 11
         if IsHeal() then priority = 20 end
         table.insert(earthTotems, { N = "Тотем каменной кожи", P = priority })
     end
     if not IsPvP() and  not HasBuff("Сила земли") and not (HasClass(UNITS, {"DEATHKNIGHT"}) or HasBuff("Зимний горн"))then
-        local priority = 10
+        local priority = 11
         if IsMDD() then priority = 20 end
         table.insert(earthTotems, { N = "Тотем силы земли", P = priority })
     end
@@ -35,7 +35,7 @@ function TryTotems(forceTotems)
         table.insert(earthTotems, { N = "Тотем каменного когтя", P = 100 })
         force[earth] = true
     end
-    if HasTotem("Тотем каменного когтя") then force[earth] = true end
+    --if HasTotem("Тотем каменного когтя") then force[earth] = true end
     if not HasTotem("Тотем трепета") and HasDebuff({"Страх", "Вой ужаса", "Устрашающий крик", "Контроль над разумом", "Глубинный ужас", "Ментальный крик"}, 1,UNITS) then 
         TotemAlert["Тотем трепета"] = GetTime() 
     end
@@ -48,10 +48,13 @@ function TryTotems(forceTotems)
         end
         table.insert(earthTotems, { N = "Тотем трепета", P = priority })
     end
-    if not HasTotem("Тотем оков земли") and (IsMouseButtonDown(1) == 1) then TotemAlert["Тотем оков земли"] = GetTime() end
-    if not HasClass(TARGETS, {"WARLOCK", "PRIEST"}) and IsReadySpell("Тотем оков земли") then
-        local priority = 9
+    if not HasTotem("Тотем оков земли") and (IsMouseButtonDown(1) == 1 and IsMouseButtonDown(2) == 1) then TotemAlert["Тотем оков земли"] = GetTime() end
+    if IsReadySpell("Тотем оков земли") then
+        local priority = 5
         if IsPvP() then priority = 11 end
+        if HasClass(TARGETS, {"WARLOCK", "PRIEST"}) then 
+            priority = 0
+        end 
         if (TotemAlert["Тотем оков земли"] and GetTime() - TotemAlert["Тотем оков земли"] < 2) then 
             priority = 90 
             force[earth] = true
@@ -100,7 +103,7 @@ function TryTotems(forceTotems)
     if IsReadySpell("Тотем исцеляющего потока") and not InRaid() then
         table.insert(waterTotems, { N = "Тотем исцеляющего потока", P = 15 })
     end
-    if not HasTotem("Тотем очищения") and HasDebuff({"Disease", "Poison"}, 1,UNITS) then TotemAlert["Тотем очищения"] = GetTime() end
+    if not HasTotem("Тотем очищения") and IsDispelTotemNeed(UNITS) then TotemAlert["Тотем очищения"] = GetTime() end
     if IsReadySpell("Тотем очищения") then
         local priority = 9
         if not HasTotem("Тотем очищения") and  HasClass(TARGETS, {"DEATHKNIGHT", "WARLOCK", "PRIEST", "ROGUE"}) 
@@ -165,12 +168,11 @@ function TryTotems(forceTotems)
     end
     -- ничего настолько строчного, чтоб ставить тотемы
     if not (forcedNow or forceTotems) and (UnitHealth100("player") < 30 -- когда мало хп
-        or (GetTime() - TotemTime < 2) -- или только недавно ставил
         or not InCombatLockdown() -- или не в бою
         or not PlayerInPlace()) then -- или на бегу
         return false 
     end
-
+    if (GetTime() - TotemTime < 2) then return false end -- или только недавно ставил
     --try totems
     local try = false;
     local totemNames = 'Ставим '

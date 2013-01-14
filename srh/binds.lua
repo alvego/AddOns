@@ -146,6 +146,22 @@ AttachUpdate(UpdateResCast)
 -- dispel
 if DispelBlackList == nil then DispelBlackList = {} end
 if DispelWhiteList == nil then DispelWhiteList = {} end
+function IsDispelTotemNeed(units)
+    return TryEach(units, function(unit) 
+        local ret = false
+        for i = 1, 40 do
+            if not ret then
+                local name, _, _, _, debuffType, duration, expirationTime   = UnitDebuff(unit, i,true) 
+                if name and (expirationTime - GetTime() >= 3 or expirationTime == 0) 
+                    and tContains({"Poison", "Disease"}, debuffType) and tContains(DispelWhiteList, name) then
+                    ret = true 
+                end
+            end
+        end
+        return ret
+    end)
+end
+
 local dispelSpell = "Очищение духа"
 local dispelTypes = {"Poison", "Disease", "Curse"}
 function TryDispel(unit)
@@ -156,7 +172,7 @@ function TryDispel(unit)
             local name, _, _, _, debuffType, duration, expirationTime   = UnitDebuff(unit, i,true) 
             if name and (expirationTime - GetTime() >= 3 or expirationTime == 0) 
                 and (tContains(DispelWhiteList, name) or tContains(dispelTypes, debuffType) and not tContains(DispelBlackList, name)) then
-                if DoSpell(dispelSpell, unit) then 
+                if not (UnitMana100("player") < 50 and HasTotem("Тотем очищения") and tContains({"Poison", "Disease"}, debuffType)) and DoSpell(dispelSpell, unit) then 
                     ret = true 
                 end
             end
@@ -168,22 +184,23 @@ end
 local function UpdateDispelLists(event, ...)
     local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel = select(1, ...)
     local unit = GetLastSpellTarget(dispelSpell)
-    if sourceGUID == UnitGUID("player")
-        and spellId and spellName and spellName == dispelSpell then
-
-        if type:match("^SPELL_CAST") 
-            and unit and err and err == "Нечего рассеивать." then
-            for i = 1, 40 do
-                local name, _, _, _, debuffType = UnitDebuff(unit, i,true) 
-                if name and tContains(dispelTypes, debuffType) and not tContains(DispelBlackList, name) then
-                    tinsert(DispelBlackList, name)
-                end
+    
+    if type:match("^SPELL_CAST") and sourceGUID == UnitGUID("player") 
+        and spellId and spellName and spellName == dispelSpell
+        and unit and err and err == "Нечего рассеивать." then
+        for i = 1, 40 do
+            local name, _, _, _, debuffType = UnitDebuff(unit, i,true) 
+            if name and tContains(dispelTypes, debuffType) 
+                and not tContains(DispelWhiteList, name)
+                and not tContains(DispelBlackList, name) then
+                tinsert(DispelBlackList, name)
             end
         end
+    end
         
-        if type == "SPELL_DISPEL" and not tContains(DispelWhiteList, dispel) then
-            tinsert(DispelWhiteList, dispel)
-        end
+    if type == "SPELL_DISPEL" and (sourceGUID == UnitGUID("player") or sourceName == "Тотем очищения") 
+        and dispel and not tContains(DispelWhiteList, dispel) then
+        tinsert(DispelWhiteList, dispel)
     end
 end    
 
@@ -223,7 +240,9 @@ local function UpdateStealLists(event, ...)
             and target and err and err == "Нечего рассеивать." then
             for i = 1, 40 do
                 local name, _, _, _, debuffType = UnitBuff(target, i,true) 
-                if name and tContains(stealTypes, debuffType) and not tContains(StealBlackList, name) then
+                if name and tContains(stealTypes, debuffType) 
+                    and not tContains(StealWhiteList, name)
+                    and not tContains(StealBlackList, name) then
                     tinsert(StealBlackList, name)
                 end
             end
