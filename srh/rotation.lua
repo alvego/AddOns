@@ -283,18 +283,18 @@ function HealRotation()
     if PlayerInPlace() then
     
         if h < 25 and (l > HealingWaveHeal) and HasMyBuff("Приливные волны", 1, "player") and DoSpell("Волна исцеления", u) then return end
-        if h < 10 and DoSpell("Малая волна исцеления", u) then return end
+        if h < 7 and DoSpell("Малая волна исцеления", u) then return end
         
         if h > 40 and rUnits[u] > 1 and not IsPvP() and l > ChainHeal and DoSpell("Цепное исцеление", u) then return end 
         if h > 70 and rUnits[u] > 1 and IsBattleground() and (UnitThreatAlert("player") < 3) and l > ChainHeal and DoSpell("Цепное исцеление", u) then return end 
         
-        if (l > LesserHealingWaveHeal) and (l < HealingWaveHeal) and not HasMyBuff("Приливные волны", 0.1, "player") and DoSpell("Малая волна исцеления", u) then return end
+        -- мана сейв
+        if h > 50 and UnitMana100("player") < 50 and (l > LesserHealingWaveHeal * 1.2) and HasMyBuff("Приливные волны", 1.5, "player") and DoSpell("Малая волна исцеления", u) then return end
         
-        if IsPvP() and (l > HealingWaveHeal) and HasMyBuff("Приливные волны", 1, "player") and DoSpell("Волна исцеления", u) then return end
-        
-        if IsPvP() and (l > LesserHealingWaveHeal) and DoSpell("Малая волна исцеления", u) then return end 
-        
-        if h > 30 and (l > HealingWaveHeal) and DoSpell("Волна исцеления", u) then return end
+        if IsPvP() and (l > HealingWaveHeal) and HasMyBuff("Приливные волны", 1.5, "player") and DoSpell("Волна исцеления", u) then return end
+        if IsPvP() and (l > LesserHealingWaveHeal) and (l < HealingWaveHeal) and DoSpell("Малая волна исцеления", u) then return end 
+        if (l > HealingWaveHeal) and DoSpell("Волна исцеления", u) then return end
+        if (l > LesserHealingWaveHeal) and DoSpell("Малая волна исцеления", u) then return end
     end
     
     if (h > 60 and UnitMana100("player") > 50) then

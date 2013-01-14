@@ -79,12 +79,10 @@ SetCommand("totems",
     end, 
     function() 
         if InCombatLockdown() and not NeedTotems then 
-            print("Totems:NeedTotems = true")
             NeedTotems = true
             return true
         end
         if GetTime() - TotemTime < 1  then
-            print("Тотемы! TryTotems is true!")
             return true
         end
         return false
