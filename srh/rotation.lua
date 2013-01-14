@@ -196,14 +196,14 @@ function HealRotation()
         end
 
         for j=1,#members do
-            local ju, jl = members[j].Unit, members[j].Lost
+            local ju, jl, jh = members[j].Unit, members[j].Lost, members[j].HP
             local d = CheckDistance(u, ju)
             
             if not IsOneUnit("player", ju) 
                 and not IsOneUnit("player", u) 
                 and d 
                 and d < 10 --12.5
-                and jl > ChainHeal / 4 then
+                and (jl > ChainHeal / 4  or jh < 70) then
                 c = c + 1 
             end
         end
@@ -277,7 +277,7 @@ function HealRotation()
     --local LesserHealingWaveHeal = GetMySpellHeal("Малая волна исцеления")
     
     if HasSpell("Быстрина") and IsReadySpell("Быстрина") and TryEach(members, 
-        function(m) return not HasMyBuff("Быстрина",1,m.Unit) and (m.Lost > RiptideHeal) and DoSpell("Быстрина", m.Unit) end
+        function(m) return not HasMyBuff("Быстрина",1,m.Unit) and (m.Lost > RiptideHeal or m.HP < 65) and DoSpell("Быстрина", m.Unit) end
         ) then return end
     
     if PlayerInPlace() then
@@ -294,7 +294,7 @@ function HealRotation()
         if IsPvP() and (l > HealingWaveHeal) and HasMyBuff("Приливные волны", 1.5, "player") and DoSpell("Волна исцеления", u) then return end
         if IsPvP() and (l > LesserHealingWaveHeal) and (l < HealingWaveHeal) and DoSpell("Малая волна исцеления", u) then return end 
         if (l > HealingWaveHeal) and DoSpell("Волна исцеления", u) then return end
-        if (l > LesserHealingWaveHeal) and DoSpell("Малая волна исцеления", u) then return end
+        if (l > LesserHealingWaveHeal or h < 70) and DoSpell("Малая волна исцеления", u) then return end
     end
     
     if (h > 60 and UnitMana100("player") > 50) then
