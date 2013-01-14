@@ -3,7 +3,7 @@
 SetCommand("hero", 
     function() 
         if DoSpell("Героизм") then
-            print("Гера!")
+            echo("Гера!",1)
         end
     end, 
     function() 
@@ -17,6 +17,7 @@ SetCommand("hex",
 --[[        if HasSpell("Природная стремительность") then 
             DoSpell("Природная стремительность") 
         end]]
+        echo("Сглаз",1)
         return DoSpell("Сглаз")
     end, 
     function() 
@@ -74,7 +75,7 @@ SetCommand("dismount",
 TotemTime, NeedTotems = GetTime(), false
 SetCommand("totems", 
     function() 
-        print("Тотемы!")
+        echo("Тотемы!",1)
         return TryTotems(true)
     end, 
     function() 
@@ -86,5 +87,18 @@ SetCommand("totems",
             return true
         end
         return false
+    end
+)
+
+SetCommand("untotems", 
+    function() 
+        echo("Убрать Тотемы!",1)
+        return DoSpell("Возвращение тотемов")
+    end, 
+    function() 
+        if NeedTotems then
+            NeedTotems = false
+        end
+        return TotemCount() < 1 or not IsSpellNotUsed("Возвращение тотемов", 1)
     end
 )

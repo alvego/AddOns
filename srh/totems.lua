@@ -53,7 +53,7 @@ function TryTotems(forceTotems)
         
         if IsReadySpell("Тотем оков земли") then 
             force[earth] = true
-            table.insert(earthTotems, { N = "Тотем оков земли", P = earthTotems })
+            table.insert(earthTotems, { N = "Тотем оков земли", P = priority })
         end
     end
     -------------------------------------------------------------------------------------------------------------
@@ -90,7 +90,7 @@ function TryTotems(forceTotems)
     if IsReadySpell("Тотем каменного когтя") 
         and not HasTotem("Тотем каменного когтя")
         and ((PlayerThreatTime and GetTime() - PlayerThreatTime > 3) 
-            or (InCombatLockdown() and UnitHealth100("player") < 70)) then
+            or (InCombatLockdown() and UnitHealth100("player") < 85)) then
         table.insert(earthTotems, { N = "Тотем каменного когтя", P = 100 })
         force[earth] = true
     end

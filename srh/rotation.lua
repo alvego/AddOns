@@ -303,8 +303,8 @@ function HealRotation()
     end
 
     
-    if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and PlayerInPlace() and DoSpell("Молния") then return end
-    if not IsAttack() and (h > 50 and IsPvP()) and TryEach(TARGETS, 
+    if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and PlayerInPlace() and DoSpell("Молния", "target") then return end
+    if not IsAttack() and h > 50 and (IsPvP() or IsLeftControlKeyDown()) and TryEach(TARGETS, 
         function(t) return CanControl(t) and UnitIsPlayer(t) and not HasDebuff({"Оковы земли", "Ледяной шок"}, 0,1, t) and DoSpell("Ледяной шок", t) end
     ) then return end
         
