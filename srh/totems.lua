@@ -5,7 +5,6 @@ local PlayerThreatTime = nil
 ForceRoot = false
 TotemTime, NeedTotems = GetTime(), false
 function TryTotems(forceTotems)
-
     -- поставить независимо от наличия тотемов (например отбежал далеко)
     if forceTotems then
         -- обновлять тотемы по необходимости
@@ -251,7 +250,7 @@ function TryTotems(forceTotems)
     -- нужно поставить какой-то тотем, несмотря но то что NeedTotems = false (Экстренная ситуация)
     local forcedNow = TryEach(force, function(value) return value end) 
                         and not NeedTotems 
-                        --and InCombatLockdown()
+                        and InCombatLockdown()
     
     
     if forcedNow then 
@@ -267,7 +266,7 @@ function TryTotems(forceTotems)
     end
     -- ничего настолько строчного, чтоб ставить тотемы
     if not (forcedNow or forceTotems) and (UnitHealth100("player") < 30 -- когда мало хп
-        --or not InCombatLockdown() -- или не в бою
+        or not InCombatLockdown() -- или не в бою
         or not PlayerInPlace()) then -- или на бегу
         return false 
     end

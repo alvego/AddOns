@@ -85,7 +85,7 @@ local function UpdateIdle(elapsed)
         return w
     end
     table.sort(TARGETS, function(t1,t2) return GetTargetWeight(t1) < GetTargetWeight(t2) end)
-    IUNITS = {"player"}
+    IUNITS = {}
     if IsArena() then 
         IUNITS = UNITS 
     else

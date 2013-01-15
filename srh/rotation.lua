@@ -543,18 +543,27 @@ function TryTarget(useFocus)
 end
 
 function TryProtect()
-    local h = CalculateHP("player")
-    if InCombatLockdown() then
-        if (h < 30) and DoSpell("Кровь земли", "player") then return end
-        if (h < 40) and DoSpell("Дар наару", "player") then return end
-        if not IsArena() and UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
-        if not IsArena() and UnitMana100() < 20 and UseItem("Бездонный флакон с зельем маны") then return true end
-        if h < 70 and DoSpell("Дар наару", "player") then return true end
-        if GetBuffStack("Оружие Водоворота") == 5 then
-            if h < 60 and DoSpell("Волна исцеления", "player") then return true end
+    if InCombatLockdown or IsArena() then
+        local hp = CalculateHP("player")
+        if (hp < 30) and DoSpell("Кровь земли", "player") then return end
+        if not IsArena() and hp < 35 and UseHealPotion() then return true end
+        if not IsArena() and UnitMana100("player") < 10 and UseItem("Рунический флакон с зельем маны") then return true end
+        if not IsArena() and UnitMana100("player") < 20 and UseItem("Бездонный флакон с зельем маны") then return true end
+        local members = {}
+        for i=1,#IUNITS do
+            local u = IUNITS[i]
+            if CanHeal(u) then table.insert(members, { Unit = u, HP = CalculateHP(u), Lost = UnitLostHP(u) } ) end
         end
-        if h < 50 and UseHealPotion() then return true end
-        if h < 30 and PlayerInPlace() and DoSpell("Малая волна исцеления", "player") then return true end
+        table.sort(members, function(x,y) return x.HP < y.HP end)
+        if #members > 0 then 
+            local u, h, l = members[1].Unit, members[1].HP, members[1].Lost
+            
+            if h < 70 and DoSpell("Дар наару", u) then return true end
+            if GetBuffStack("Оружие Водоворота") == 5 then
+                if h < 60 and DoSpell("Волна исцеления", u) then return true end
+            end
+            if h < 30 and PlayerInPlace() and DoSpell("Малая волна исцеления", u) then return true end
+        end
     end
-    return false;
+    return false
 end
