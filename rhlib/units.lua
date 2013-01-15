@@ -2,6 +2,7 @@
 ------------------------------------------------------------------------------------------------------------------
 -- friend list
 function IsFriend(unit)
+    if IsOneUnit(unit, "player") then return true end
     if not IsInteractUnit(unit) or not UnitIsPlayer(unit) then return false end
     local numberOfFriends, onlineFriends = GetNumFriends()
     local unitName, isFriend = UnitName(unit), false
@@ -74,12 +75,15 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function GetGroupUnits()
-    local units = {}
+    local units = {"player"}
     if not InGroup() then return units end
     local group = InRaid() and {name = "raid", size = 40} or {name = "party", size = 4}
     for i = 0, group.size do 
         local u = group.name..i
-        if UnitExists(u) and UnitName(u) ~= nil then tinsert(units, u) end
+        if UnitExists(u) and UnitName(u) ~= nil 
+            and not TryEach(units, function(unit) return IsOneUnit(unit, u) end) then
+            tinsert(units, u)
+        end
     end
     return units
 end

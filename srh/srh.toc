@@ -4,7 +4,7 @@
 ## Interface: 30300
 ## Dependencies: rhlib
 ## SavedVariables: CanInterrupt, AutoAOE, DispelWhiteList, DispelBlackList, StealWhiteList, StealBlackList, InterruptWhiteList, InterruptBlackList
-commands.lua
 totems.lua
 rotation.lua
+commands.lua
 binds.lua

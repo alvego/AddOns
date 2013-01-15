@@ -81,12 +81,14 @@ local function UpdateIdle(elapsed)
         if IsOneUnit("focus", t) then w = 3 end
         if IsOneUnit("target", t) then w = 4 end
         if IsOneUnit("mouseover", t) then w = 5 end
+        w = w + (1 - UnitHealth100(t) / 100) 
         return w
     end
     table.sort(TARGETS, function(t1,t2) return GetTargetWeight(t1) < GetTargetWeight(t2) end)
     IUNITS = {"player"}
-    if IsArena() then IUNITS = UNITS end
-    if IsBattleground() then
+    if IsArena() then 
+        IUNITS = UNITS 
+    else
         for i = 1, #UNITS do
             local u = UNITS[i]
             if IsFriend(u) then

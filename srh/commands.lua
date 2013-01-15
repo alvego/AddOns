@@ -7,7 +7,50 @@ SetCommand("hero",
         end
     end, 
     function() 
-        return not InCombatLockdown() or HasDebuff("Изнеможение", 1, "player") or (not InGCD() and not IsReadySpell("Героизм")) 
+        return not InCombatLockdown() or HasDebuff("Изнеможение", 1, "player") or not IsSpellNotUsed("Героизм", 1) 
+    end
+)
+
+------------------------------------------------------------------------------------------------------------------
+SetCommand("frostshock", 
+    function() 
+        if DoSpell("Ледяной шок", "target") then
+            echo("Ледяной шок!", 1)
+        end
+    end, 
+    function() 
+        return not InCombatLockdown() or not CanControl("target") or HasDebuff("Ледяной шок", 0,1, "target") or not IsSpellNotUsed("Ледяной шок", 1) 
+    end
+)
+
+------------------------------------------------------------------------------------------------------------------
+SetCommand("wolf", 
+    function() 
+        if DoSpell("Дух дикого волка") then
+            echo("Волки!", 1)
+        end
+    end, 
+    function() 
+        return not CanControl("target") or not IsSpellNotUsed("Дух дикого волка", 1) 
+    end
+)
+
+------------------------------------------------------------------------------------------------------------------
+SetCommand("root", 
+    function() 
+        echo("Root!",1)
+        return TryTotems()
+    end, 
+    function() 
+        if ForceRoot then
+            if HasTotem("Тотем оков земли") then
+                ForceRoot = false
+                return true
+            end
+        else
+            ForceRoot = true
+        end
+        return false  
     end
 )
 
@@ -18,10 +61,10 @@ SetCommand("hex",
             DoSpell("Природная стремительность") 
         end]]
         echo("Сглаз",1)
-        return DoSpell("Сглаз")
+        return DoSpell("Сглаз", "target")
     end, 
     function() 
-        if not CanControl() or (not InGCD() and not IsReadySpell("Сглаз"))  then return true end
+        if not CanControl("target") or not IsSpellNotUsed("Сглаз", 1)  then return true end
         if not UnitIsPlayer("target") then
             local creatureType = UnitCreatureType("target")
             if creatureType ~= "Гуманоид" or creatureType ~= "Животное" then return true end
@@ -72,7 +115,6 @@ SetCommand("dismount",
 )
 
 ------------------------------------------------------------------------------------------------------------------
-TotemTime, NeedTotems = GetTime(), false
 SetCommand("totems", 
     function() 
         echo("Тотемы!",1)

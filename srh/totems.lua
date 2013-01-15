@@ -2,7 +2,10 @@
 ------------------------------------------------------------------------------------------------------------------
 local TotemAlert = {}
 local PlayerThreatTime = nil
+ForceRoot = false
+TotemTime, NeedTotems = GetTime(), false
 function TryTotems(forceTotems)
+
     -- поставить независимо от наличия тотемов (например отбежал далеко)
     if forceTotems then
         -- обновлять тотемы по необходимости
@@ -13,6 +16,7 @@ function TryTotems(forceTotems)
             NeedTotems = false
         end 
     end
+    
     -- в гкд не поствить тотемы
     if InGCD() then return false end
     -------------------------------------------------------------------------------------------------------------
@@ -27,56 +31,65 @@ function TryTotems(forceTotems)
     -------------------------------------------------------------------------------------------------------------
     -- earth ----------------------------------------------------------------------------------------------------
     -------------------------------------------------------------------------------------------------------------
-    if not IsPvP() and not HasBuff("Каменная кожа") then
-        local priority = 11
-        if IsHeal() then priority = 20 end
-        table.insert(earthTotems, { N = "Тотем каменной кожи", P = priority })
-    end
-    -------------------------------------------------------------------------------------------------------------
-    if not IsPvP() and not HasBuff("Сила земли") 
-        and not (HasClass(UNITS, {"DEATHKNIGHT"}) or HasBuff("Зимний горн"))then
-        local priority = 11
-        if IsMDD() then priority = 20 end
-        table.insert(earthTotems, { N = "Тотем силы земли", P = priority })
-    end
-    -------------------------------------------------------------------------------------------------------------
-    local forceRoot = forceTotems and IsLeftAltKeyDown()
-    if forceRoot or (IsPvP() and  not HasClass(TARGETS, {"WARLOCK", "PRIEST"})) then
-        
-        local priority = 20
-        
-        if forceRoot then
-            force[earth] = false
-            priority = 90
-            wipe(earthTotems)
-        end
-        
-        if IsReadySpell("Тотем оков земли") then 
-            force[earth] = true
-            table.insert(earthTotems, { N = "Тотем оков земли", P = priority })
-        end
-    end
-    -------------------------------------------------------------------------------------------------------------
     if HasDebuff({
         "Страх", 
         "Вой ужаса", 
         "Устрашающий крик", 
         "Контроль над разумом", 
         "Глубинный ужас", 
-        "Ментальный крик"}, 1,UNITS) then 
+        "Ментальный крик"}, 1,UNITS) or
+        (IsPvP() and HasClass(TARGETS, {"WARLOCK", "PRIEST"})) then 
         
         TotemAlert["Тотем трепета"] = GetTime() 
-        
     end
+    local needTremor = (TotemAlert["Тотем трепета"] and GetTime() - TotemAlert["Тотем трепета"] < 5)
+    -------------------------------------------------------------------------------------------------------------
     
-    if (IsPvP() and HasClass(TARGETS, {"WARLOCK", "PRIEST"})) 
-        or (TotemAlert["Тотем трепета"] and GetTime() - TotemAlert["Тотем трепета"] < 5) then
+    if not needTremor and not ForceRoot and not HasBuff("Каменная кожа") then
+        local priority = 11
+        if IsHeal() then priority = 20 end
+        table.insert(earthTotems, { N = "Тотем каменной кожи", P = priority })
+    end
+    -------------------------------------------------------------------------------------------------------------
+    if not needTremor and not ForceRoot and not HasBuff("Сила земли") 
+        and not (HasClass(UNITS, {"DEATHKNIGHT"}) or HasBuff("Зимний горн"))then
+        local priority = 12
+        if IsMDD() then priority = 20 end
+        table.insert(earthTotems, { N = "Тотем силы земли", P = priority })
+    end
+    -------------------------------------------------------------------------------------------------------------
+    if not needTremor and (ForceRoot or IsPvP()) then
         
+        local priority = 10
+        
+        if ForceRoot or HasTotem("Тотем оков земли") then
+            TotemAlert["Тотем оков земли"] = GetTime()
+        end
+        
+        if (TotemAlert["Тотем оков земли"] and GetTime() - TotemAlert["Тотем оков земли"] < 5) then
+            priority = 25
+        end
+        
+        if ForceRoot then
+            force[earth] = true
+            wipe(earthTotems)
+        end
+        
+        if IsReadySpell("Тотем оков земли") then 
+            if ForceRoot then priority = 90 end
+            table.insert(earthTotems, { N = "Тотем оков земли", P = priority })
+        end
+    end
+    -------------------------------------------------------------------------------------------------------------
+    
+    if needTremor then
+
         wipe(earthTotems)
         force[earth] = false
         
         if not HasTotem("Тотем трепета") and IsReadySpell("Тотем трепета") then
             force[earth] = true
+        
             table.insert(earthTotems, { N = "Тотем трепета", P = 80 })
         end
     end
@@ -237,21 +250,24 @@ function TryTotems(forceTotems)
     -------------------------------------------------------------------------------------------------------------
     -- нужно поставить какой-то тотем, несмотря но то что NeedTotems = false (Экстренная ситуация)
     local forcedNow = TryEach(force, function(value) return value end) 
-                        and not NeedTotems and InCombatLockdown()
-
+                        and not NeedTotems 
+                        --and InCombatLockdown()
+    
+    
     if forcedNow then 
         -- оставляем только экстренные тотемы
         for i = 1, 4 do 
             if not force[i] then totem[i] = nil end
         end
     end
+    
     -- нет критических тотемов или вообще NeedTotems = false (выходим)
     if not (forcedNow or NeedTotems) then 
         return false 
     end
     -- ничего настолько строчного, чтоб ставить тотемы
     if not (forcedNow or forceTotems) and (UnitHealth100("player") < 30 -- когда мало хп
-        or not InCombatLockdown() -- или не в бою
+        --or not InCombatLockdown() -- или не в бою
         or not PlayerInPlace()) then -- или на бегу
         return false 
     end

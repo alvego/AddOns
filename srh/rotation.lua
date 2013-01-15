@@ -3,6 +3,70 @@
 local TryResUnit = nil
 local TryResTime = 0
 
+-- дебафы обязательные к снятию в первую очередь
+DispelRedList = {
+    "Озноб",
+    "Сглаз",
+    "Проклятие стихий",
+    "Проклятие косноязычия",
+    "Проклятие агонии",
+    "Укус змеи",
+    "Укус гадюки"
+}
+
+-- бафы противников обязательные к снятию в первю очередь
+StealRedList = {
+    -- Burst
+    "Жажда крови",
+    "Святая клятва",
+    "Гнев карателя",
+    "Стылая кровь",
+    "Чародейское ускорение",
+    "Героизм",
+    "Мощь тайной магии"
+}
+
+StealHotRedList = {
+    -- Hots etc
+    "Быстрина",
+    "Быстрота хищника",
+    "Озарение",
+    "Молитва восстановления",
+    "Частица Света",
+    "Жизнь Земли",
+    "Покров Света",
+    "Жизнецвет",
+    "Омоложение",
+    "Буйный рост",
+    "Божественное покровительство",
+    "Вдохновение",
+    "Милость"
+}
+
+StealShieldsRedList = {
+    -- defs
+    "Слово силы: Щит",
+    "Дубовая кожа",
+    "Щит Бездны",
+    "Щит маны",
+    "Щит земли",
+    "Щит из костей",
+    "Защита Пустоты",
+    "Быстрина",
+    "Божественная защита",
+    "Призрачный волк",
+    "Длань свободы",
+    "Длань защиты",
+    "Ледяная преграда",
+    "Жертвоприношение",
+    "Незыблемость льда",
+    "Быстрота хищника",
+    "Затвердевшая кожа",
+    "Покровительство",
+    "Священный щит",
+    "Совершенство природы"
+}
+
 function Idle()
     -- дайте поесть спокойно
     if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or HasBuff("Призрачный волк")) then return end
@@ -48,7 +112,7 @@ function Idle()
 
         if IsSpellNotUsed("Очищение духа", 5) and TryDispel("player") then return end
         TryTarget()
-        if not CanAttack() then return end
+        if not IsAttack() and not CanAttack() then return end
         if IsMDD() then 
             MDDRotation() 
             return
@@ -97,7 +161,7 @@ function HealRotation()
     if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16) and DoSpell("Оружие жизни земли") then return end
     if UnitMana100() < 80 and InCombat(3) and UnitHealth100("player") > 30 and not HasBuff("Водный щит") and DoSpell("Водный щит") then return end
     
-    if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() then
+    if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and not IsLeftControlKeyDown() then
         if HasMyDebuff("шок", 1, "target") and PlayerInPlace() then
             if DoSpell("Выброс лавы") then return end
         else
@@ -215,14 +279,48 @@ function HealRotation()
     if #members < 1 then print("Некого лечить!!!") return end
     local u, h, l = members[1].Unit, members[1].HP, members[1].Lost
     
-    if  h > 40 then
-        if TryEach(TARGETS, function(t) return TryInterrupt(t, h) end) then return end
-        if UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") and TryEach(ITARGETS, 
-            function(t) return HasBuff(StealRedList, 2, t) and TrySteal(t) end
-        ) then return  end
+    if TryEach(TARGETS, function(t) return TryInterrupt(t, h) end) then return end
+    
+    if  h > 50 then
+        
         if UnitMana100("player") > 30 and IsReadySpell("Очищение духа") and TryEach(IUNITS, 
             function(u) return HasDebuff(DispelRedList, 2, u) and TryDispel(u) end
         ) then return end
+        
+        
+        if UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") then
+            -- получаем приоритетные цели (паример цель дд в тиме, сортируем их по хп)
+            local targets = {}
+            table.foreach(IUNITS, function(u) 
+                local t = u .. "-target"
+                if IsFriend(u) and IsValidTarget(t) and CanMagicAttack(t) then
+                    tinsert(targets, t)
+                end
+            end)
+            -- снимем щитфы с целей дд
+            table.sort(targets, function(t1, t2) return UnitHealth100(t1) < UnitHealth100(t2) end)
+            TryEach(targets, 
+                function(t) return HasBuff(StealShieldsRedList, 2, t) and TrySteal(t) end
+            ) then return  end
+            -- снимаем хоты, с делей дд, если есть смысл (не фул хп)
+            TryEach(targets, 
+                function(t) return UnitHealth100(t) < 100 and HasBuff(StealHotRedList, 2, t) and TrySteal(t) end
+            ) then return  end
+            -- обрабатываем по стандартной схеме всех ( снимаем бурст бафы)
+            TryEach(ITARGETS, 
+                function(t) return HasBuff(StealRedList, 2, t) and TrySteal(t) end
+            ) then return  end
+            -- зачем противнику хоты? (если фул хп то в хотах нет осбого смысла)
+            TryEach(ITARGETS, 
+                function(t) return UnitHealth100(t) < 99 and HasBuff(StealHotRedList, 2, t) and TrySteal(t) end
+            ) then return  end
+        end
+        
+        
+        
+        if UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") and TryEach(ITARGETS, 
+            function(t) return HasBuff(StealRedList, 2, t) and TrySteal(t) end
+        ) then return  end
     end
     
     
@@ -285,8 +383,8 @@ function HealRotation()
         if h < 25 and (l > HealingWaveHeal) and HasMyBuff("Приливные волны", 1, "player") and DoSpell("Волна исцеления", u) then return end
         if h < 7 and DoSpell("Малая волна исцеления", u) then return end
         
-        if h > 40 and rUnits[u] > 1 and not IsPvP() and l > ChainHeal and DoSpell("Цепное исцеление", u) then return end 
-        if h > 70 and rUnits[u] > 1 and IsBattleground() and (UnitThreatAlert("player") < 3) and l > ChainHeal and DoSpell("Цепное исцеление", u) then return end 
+        if h > 40 and rUnits[u] > 1 and not IsPvP() and (l > ChainHeal or h < 80) and DoSpell("Цепное исцеление", u) then return end 
+        if h > 70 and rUnits[u] > 1 and IsBattleground() and (UnitThreatAlert("player") < 3) and (l > ChainHeal or h < 80) and DoSpell("Цепное исцеление", u) then return end 
         
         -- мана сейв
         if h > 50 and UnitMana100("player") < 50 and (l > LesserHealingWaveHeal * 1.2) and HasMyBuff("Приливные волны", 1.5, "player") and DoSpell("Малая волна исцеления", u) then return end
@@ -304,28 +402,18 @@ function HealRotation()
 
     
     if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and PlayerInPlace() and DoSpell("Молния", "target") then return end
-    if not IsAttack() and h > 50 and (IsPvP() or IsLeftControlKeyDown()) and TryEach(TARGETS, 
+    if not IsAttack() and h > 50 and IsPvP() and TryEach(TARGETS, 
         function(t) return CanControl(t) and UnitIsPlayer(t) and not HasDebuff({"Оковы земли", "Ледяной шок"}, 0,1, t) and DoSpell("Ледяной шок", t) end
     ) then return end
         
 end    
 
-local useWolf = false
 function MDDRotation()
-    if IsLeftAltKeyDown() then
-        if InCombatLockdown() and IsValidTarget("target") then
-            useWolf = true
-        end
-    else
-        if not InCombatLockdown() or not IsValidTarget("target") then
-            useWolf = false
-        end
-    end
+    if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16) and UseSpell("Оружие неистовства ветра") then return end
+    if GetInventoryItemID("player",17) and not DetermineTempEnchantFromTooltip(17) and UseSpell("Оружие языка пламени") then return end
     
     if not (UnitAffectingCombat("target") or IsAttack()) then return end
     
-    if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16) and UseSpell("Оружие неистовства ветра") then return end
-    if GetInventoryItemID("player",17) and not DetermineTempEnchantFromTooltip(17) and UseSpell("Оружие языка пламени") then return end
     if not UnitAffectingCombat("target") and (not HasBuff("Водный щит") or UnitMana100("player") > 50) then
         if not HasBuff("Щит молний") and DoSpell("Щит молний") then return end
     end
@@ -333,37 +421,37 @@ function MDDRotation()
     if (not HasBuff("Водный щит") and UnitMana100("player") < 30) and not HasBuff("Водный щит") and DoSpell("Водный щит") then return end
     
     if not IsValidTarget("target") then return end
-    RunMacroText("/startattack")
-    if (useWolf or UnitHealth100("player") < 40) and DoSpell("Дух дикого волка") then return end
+    if IsAttack() then RunMacroText("/startattack") end
+    if (UnitHealth100("player") < 35) and DoSpell("Дух дикого волка") then return end
     if not ActualDistance() and IsAttack() then
         if UnitAffectingCombat("target") then
-            if not HasMyDebuff("Огненный шок", 0.5,"target") and DoSpell("Огненный шок") then return end
+            if not HasMyDebuff("Огненный шок", 0.5,"target") and DoSpell("Огненный шок", "target") then return end
             if DoSpell("Земной шок") then return end
         end 
         if PlayerInPlace() then
             if IsAOE() then
-                if DoSpell("Цепная молния") then return end
+                if DoSpell("Цепная молния", "target") then return end
             end
-            if DoSpell("Молния") then return end
+            if DoSpell("Молния", "target") then return end
         end
     end
     
     if InMelee() and UseEquippedItem("Карманные часы Феззика") then return end
-    if InMelee() and UseEquippedItem("Брошь в виде розы с шипами") then return end
+    if InMelee() and UseEquippedItem("Знак превосходства") then return end
     if IsAOE() and HasTotem(1) and DoSpell("Кольцо огня") then return end
     if GetBuffStack("Оружие Водоворота") == 5 then
         if IsAOE() then
-            if DoSpell("Цепная молния") then return end
+            if DoSpell("Цепная молния", "target") then return end
         end
-        if DoSpell("Молния") then return end
+        if DoSpell("Молния", "target") then return end
     end
-    if ((GetTime() - dispelTime > 5 or not PlayerInPlace())) and TrySteal("target") then dispelTime = GetTime() return end
-    if not HasMyDebuff("Огненный шок", 0.5,"target") and DoSpell("Огненный шок") then return end
+    if (IsSpellNotUsed("Развеивание магии", 5) or not PlayerInPlace()) and TrySteal("target") then dispelTime = GetTime() return end
+    if not HasMyDebuff("Огненный шок", 0.5,"target") and DoSpell("Огненный шок", "target") then return end
     if not HasBuff("Ярость шамана") and DoSpell("Ярость шамана") then return end
-    if DoSpell("Удар бури") then return end
-    if DoSpell("Земной шок") then return end
+    if DoSpell("Удар бури", "target") then return end
+    if DoSpell("Земной шок", "target") then return end
     if (not HasBuff("Водный щит") or UnitMana100("player") > 50) and not HasBuff("Щит молний") and DoSpell("Щит молний") then return end
-    if DoSpell("Вскипание лавы") then return end
+    if DoSpell("Вскипание лавы", "target") then return end
 end
 
 function RDDRotation()
@@ -375,11 +463,11 @@ function RDDRotation()
     if not IsValidTarget("target") then return end
     RunMacroText("/startattack")
     if (GetTime() - dispelTime > 5 or not PlayerInPlace()) and TrySteal("target") then dispelTime = GetTime() return end
-    if not HasMyDebuff("Огненный шок", 0.5,"target") and DoSpell("Огненный шок") then return end
-    if HasMyDebuff("Огненный шок", 2,"target") and DoSpell("Выброс лавы") then return end
-    if IsAOE() and DoSpell("Цепная молния") then return end
+    if not HasMyDebuff("Огненный шок", 0.5,"target") and DoSpell("Огненный шок", "target") then return end
+    if HasMyDebuff("Огненный шок", 2,"target") and DoSpell("Выброс лавы", "target") then return end
+    if IsAOE() and DoSpell("Цепная молния", "target") then return end
     if IsAOE() and HasTotem(1) and DoSpell("Кольцо огня") then return end
-    if DoSpell("Молния") then return end
+    if DoSpell("Молния", "target") then return end
     if not HasBuff("Водный щит") and DoSpell("Водный щит") then return end
 end
 
