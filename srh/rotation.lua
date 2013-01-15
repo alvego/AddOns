@@ -291,7 +291,7 @@ function HealRotation()
         if UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") then
             -- получаем приоритетные цели (паример цель дд в тиме, сортируем их по хп)
             local targets = {}
-            table.foreach(IUNITS, function(u) 
+            table.foreach(IUNITS, function(_,u)
                 local t = u .. "-target"
                 if IsFriend(u) and IsValidTarget(t) and CanMagicAttack(t) then
                     tinsert(targets, t)
@@ -299,19 +299,19 @@ function HealRotation()
             end)
             -- снимем щитфы с целей дд
             table.sort(targets, function(t1, t2) return UnitHealth100(t1) < UnitHealth100(t2) end)
-            TryEach(targets, 
+            if TryEach(targets, 
                 function(t) return HasBuff(StealShieldsRedList, 2, t) and TrySteal(t) end
             ) then return  end
             -- снимаем хоты, с делей дд, если есть смысл (не фул хп)
-            TryEach(targets, 
+            if TryEach(targets, 
                 function(t) return UnitHealth100(t) < 100 and HasBuff(StealHotRedList, 2, t) and TrySteal(t) end
             ) then return  end
             -- обрабатываем по стандартной схеме всех ( снимаем бурст бафы)
-            TryEach(ITARGETS, 
+            if TryEach(ITARGETS, 
                 function(t) return HasBuff(StealRedList, 2, t) and TrySteal(t) end
             ) then return  end
             -- зачем противнику хоты? (если фул хп то в хотах нет осбого смысла)
-            TryEach(ITARGETS, 
+            if TryEach(ITARGETS, 
                 function(t) return UnitHealth100(t) < 99 and HasBuff(StealHotRedList, 2, t) and TrySteal(t) end
             ) then return  end
         end
