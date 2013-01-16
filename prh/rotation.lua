@@ -2,6 +2,11 @@
 ------------------------------------------------------------------------------------------------------------------
 local holyShieldTime  =  0
 function Idle()
+    if IsAttack() then 
+        if CanExitVehicle() then VehicleExit() return end
+        if IsMounted() then Dismount() return end 
+    end
+    if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted()) then return end
     if (IsAttack() or InCombatLockdown()) then
         if CanInterrupt and TryEach(TARGETS, TryInterrupt) then return end
         if IsMouseButtonDown(3) and TryTaunt("mouseover") then return end
@@ -92,7 +97,7 @@ local rootDispelList = {
     "Замедление",
     "Удержание",
     "Гнев деревьев",
-    "Обездвиживающее поле"
+    "Обездвиживающее поле",
     "Леденящий взгляд",
     "Хватка земли"
 }

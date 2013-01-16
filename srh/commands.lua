@@ -103,18 +103,6 @@ SetCommand("mount",
 )
 
 ------------------------------------------------------------------------------------------------------------------
-SetCommand("dismount", 
-    function() 
-        if HasBuff("Призрачный волк") then RunMacroText("/cancelaura Призрачный волк") return end
-        if CanExitVehicle() then VehicleExit() return end
-        if IsMounted() then Dismount() return end 
-    end, 
-    function() 
-        return not (HasBuff("Призрачный волк") or IsMounted() or CanExitVehicle())
-    end
-)
-
-------------------------------------------------------------------------------------------------------------------
 SetCommand("totems", 
     function() 
         echo("Тотемы!",1)

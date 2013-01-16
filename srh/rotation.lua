@@ -71,6 +71,11 @@ StealShieldsRedList = {
 ------------------------------------------------------------------------------------------------------------------
 -- Общее для всех ротаций
 function Idle()
+    if IsAttack() then
+        if HasBuff("Призрачный волк") then RunMacroText("/cancelaura Призрачный волк") return end
+        if CanExitVehicle() then VehicleExit() return end
+        if IsMounted() then Dismount() return end 
+    end
     -- дайте поесть спокойно
     if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or HasBuff("Призрачный волк")) then return end
     -- чтоб контроли не сбивать
@@ -97,7 +102,7 @@ function Idle()
         end
     end
     --------------------------------------------------------------------------------------------------------------
-    -- не судьма реснуть...
+    -- не судьба реснуть...
     if TryResUnit and (not CanRes(TryResUnit) or (CanRes(TryResUnit) and (GetTime() - TryResTime) > 60) or not PlayerInPlace())  then
         if UnitName(TryResUnit) and not CanHeal(TryResUnit) then Notify("Не удалось воскресить " .. UnitName(TryResUnit)) end
         TryResUnit = nil
