@@ -2,7 +2,7 @@
 ------------------------------------------------------------------------------------------------------------------
 local TryResUnit = nil
 local TryResTime = 0
-
+------------------------------------------------------------------------------------------------------------------
 -- дебафы обязательные к снятию в первую очередь
 DispelRedList = {
     "Озноб",
@@ -13,7 +13,7 @@ DispelRedList = {
     "Укус змеи",
     "Укус гадюки"
 }
-
+------------------------------------------------------------------------------------------------------------------
 -- бафы противников обязательные к снятию в первю очередь
 StealRedList = {
     -- Burst
@@ -25,7 +25,8 @@ StealRedList = {
     "Героизм",
     "Мощь тайной магии"
 }
-
+------------------------------------------------------------------------------------------------------------------
+-- Хоты и т. д.
 StealHotRedList = {
     -- Hots etc
     "Быстрина",
@@ -42,7 +43,8 @@ StealHotRedList = {
     "Вдохновение",
     "Милость"
 }
-
+------------------------------------------------------------------------------------------------------------------
+-- Щиты и деф абилки
 StealShieldsRedList = {
     -- defs
     "Слово силы: Щит",
@@ -66,7 +68,8 @@ StealShieldsRedList = {
     "Священный щит",
     "Совершенство природы"
 }
-
+------------------------------------------------------------------------------------------------------------------
+-- Общее для всех ротаций
 function Idle()
     -- дайте поесть спокойно
     if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or HasBuff("Призрачный волк")) then return end
@@ -77,7 +80,11 @@ function Idle()
     -- тотемчики может поставить?
     if TryTotems() then return end
     -- Зачем вару отражение???
-    if IsValidTarget("target") and UnitAffectingCombat("target") and HasBuff("Отражение заклинания", 1, "target") and DoSpell("Пронизывающий ветер") then return end
+    if TryEach(TARGETS, function(t) 
+        return CanAttack(t) and UnitAffectingCombat(t) and HasBuff({"Отражение заклинания", "Рунический покров"}, 1, t) and DoSpell("Пронизывающий ветер", t)
+    end) then return end
+    
+    --------------------------------------------------------------------------------------------------------------
     -- Рес по средней мышке + контрол
     if IsLeftControlKeyDown() and IsMouseButtonDown(3) then
         if CanRes("mouseover") then
@@ -89,41 +96,47 @@ function Idle()
             if name and UnitIsPlayer("mouseover") then print("Не могу реснуть", name) end
         end
     end
+    --------------------------------------------------------------------------------------------------------------
     -- не судьма реснуть...
     if TryResUnit and (not CanRes(TryResUnit) or (CanRes(TryResUnit) and (GetTime() - TryResTime) > 60) or not PlayerInPlace())  then
         if UnitName(TryResUnit) and not CanHeal(TryResUnit) then Notify("Не удалось воскресить " .. UnitName(TryResUnit)) end
         TryResUnit = nil
         TryResTime = 0
     end
+    --------------------------------------------------------------------------------------------------------------
     -- пробуем реснуть
     if TryResUnit and CanRes(TryResUnit) and TryRes(TryResUnit) then return end
+    
+    --------------------------------------------------------------------------------------------------------------
+    -- Хил ротация
     if IsHeal() then 
         HealRotation() 
         return
     end
-   
-    if (IsAttack() or InCombatLockdown()) then
-
-        if TryEach(TARGETS, TryInterrupt) then return end
-           
-        if InCombatLockdown() and UnitHealth100() < 31 and UseHealPotion() then return end
-        
-        if TryProtect() then return end
-
-        if IsSpellNotUsed("Очищение духа", 5) and TryDispel("player") then return end
-        TryTarget()
-        if not IsAttack() and not CanAttack() then return end
-        if IsMDD() then 
-            MDDRotation() 
-            return
-        end
-        if IsRDD() then 
-            RDDRotation() 
-            return
-        end
+   ---------------------------------------------------------------------------------------------------------------
+    
+    -- прожим деф абилок
+    if TryProtect() then return end
+    -- Выбор цели
+    if IsAttack() or InCombatLockdown() then TryTarget() end
+    -- сбиваем касты
+    if TryEach(TARGETS, TryInterrupt) then return end
+    --------------------------------------------------------------------------------------------------------------
+    -- Энх
+    if IsMDD() then 
+        MDDRotation() 
+        return
     end
+    --------------------------------------------------------------------------------------------------------------
+    -- Элем
+    if IsRDD() then 
+        RDDRotation() 
+        return
+    end
+    
 end
 
+-- Актуально при игре в 2 хила, для уменьшения оверхила
 function CheckHealCast(u, h)
     local spell, _, _, _, _, endTime, _, _, notinterrupt = UnitCastingInfo("player")
     if not spell or not endTime then return end
@@ -141,7 +154,7 @@ function CheckHealCast(u, h)
     local maxhp = UnitHealthMax(u)
     local spellHeal = GetMySpellHeal(spell)
     local lost = maxhp - (hp - spellHeal)
-    if (lost < (spellHeal * 0.3)) then
+    if (lost < (spellHeal * 0.3)) then -- 30% оверхила допустимо
         RunMacroText("/stopcasting")
         print("Для игрока ", UnitName(lastHealCastTarget), " хилка ", spell, " особо не нужна." )
     end
@@ -149,7 +162,7 @@ end
 
 local function TryBuff()
         local name, _, _, _, _, duration, Expires, _, _, _, spellId = UnitBuff("player", "Настой севера") 
-        return not (name and spellId == 67016 and Expires - GetTime() >= duration / 2) and UseItem("Настой севера")
+        return not (name and spellId == (IsMDD() and 67017 or 67016) and Expires - GetTime() >= duration / 2) and UseItem("Настой севера")
 end
 local shieldChangeTime = 0
 function HealRotation()
@@ -409,9 +422,11 @@ function HealRotation()
 end    
 
 function MDDRotation()
+    if not InCombatLockdown() and TryBuff() then return end
     if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16) and UseSpell("Оружие неистовства ветра") then return end
-    if GetInventoryItemID("player",17) and not DetermineTempEnchantFromTooltip(17) and UseSpell("Оружие языка пламени") then return end
+    if OffhandHasWeapon() and GetInventoryItemID("player",17) and not DetermineTempEnchantFromTooltip(17) and UseSpell("Оружие языка пламени") then return end
     
+    if not IsAttack() and not CanAttack() then return end
     if not (UnitAffectingCombat("target") or IsAttack()) then return end
     
     if not UnitAffectingCombat("target") and (not HasBuff("Водный щит") or UnitMana100("player") > 50) then
@@ -455,10 +470,15 @@ function MDDRotation()
 end
 
 function RDDRotation()
-    if not (UnitAffectingCombat("target") or IsAttack()) then return end
+    if not InCombatLockdown() and TryBuff() then return end
+    if not InCombatLockdown() and not HasBuff("Водный щит") and DoSpell("Водный щит") then return end
     if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16) and DoSpell("Оружие языка пламени") then return end
+    
+    if not IsAttack() and not CanAttack() then return end
+    if not (UnitAffectingCombat("target") or IsAttack()) then return end
+    
     if not UnitAffectingCombat("target") then
-        if not HasBuff("Водный щит") and DoSpell("Водный щит") then return end
+        
     end
     if not IsValidTarget("target") then return end
     RunMacroText("/startattack")
@@ -546,9 +566,9 @@ function TryProtect()
     if InCombatLockdown or IsArena() then
         local hp = CalculateHP("player")
         if (hp < 30) and DoSpell("Кровь земли", "player") then return end
-        if not IsArena() and hp < 35 and UseHealPotion() then return true end
+        if not IsArena() and hp < 40 and UseHealPotion() then return true end
         if not IsArena() and UnitMana100("player") < 10 and UseItem("Рунический флакон с зельем маны") then return true end
-        if not IsArena() and UnitMana100("player") < 20 and UseItem("Бездонный флакон с зельем маны") then return true end
+        if not IsArena() and UnitMana100("player") < 30 and UseItem("Бездонный флакон с зельем маны") then return true end
         local members = {}
         for i=1,#IUNITS do
             local u = IUNITS[i]

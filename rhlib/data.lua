@@ -29,7 +29,7 @@ ControlList = { -- > 4
 function CanControl(target)
     if nil == target then target = "target" end 
     return CanMagicAttack(target) and not HasBuff({"Вихрь клинков", "Зверь внутри"}, 0.1, target) 
-		and not HasDebuff(ControlList, 3, target)
+        and not HasDebuff(ControlList, 3, target)
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ end
 function CanMagicAttack(target)
     if nil == target then target = "target" end 
     return CanAttack(target) 
-		and not HasBuff({"Отражение заклинания", "Антимагический панцирь", "Рунический покров"}, 0.1, target)
+        and not HasBuff({"Отражение заклинания", "Антимагический панцирь", "Рунический покров"}, 0.1, target)
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -46,8 +46,8 @@ function CanAttack(target)
     if nil == target then target = "target" end 
     return IsValidTarget(target) 
         and IsInView(target)
-		and not HasBuff({"Божественный щит", "Ледяная глыба","Сдерживание"}, 0.01, target) 
-		and not HasDebuff("Смерч", 0.01, target)
+        and not HasBuff({"Божественный щит", "Ледяная глыба","Сдерживание"}, 0.01, target) 
+        and not HasDebuff("Смерч", 0.01, target)
 end
 
 ------------------------------------------------------------------------------------------------------------------

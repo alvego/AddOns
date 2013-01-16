@@ -15,8 +15,8 @@ end
 local UpdateList = {}
 function AttachUpdate(f, w) 
     if nil == f then error("Func can't be nil") end  
-	if w == nil then w = 0 end
-	tinsert(UpdateList, { func = f, weight = w })
+    if w == nil then w = 0 end
+    tinsert(UpdateList, { func = f, weight = w })
 end
 
 ------------------------------------------------------------------------------------------------------------------

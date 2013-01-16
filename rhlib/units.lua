@@ -116,8 +116,8 @@ function GetTargets()
             and (IsArena() 
                 or CheckInteractDistance(u, 1) 
                 or IsOneUnit("player", u .. '-target')) then 
-			tinsert(realUnits, u) 
-		end
+            tinsert(realUnits, u) 
+        end
     end
     return realUnits
 end

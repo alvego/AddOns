@@ -60,7 +60,6 @@ local redDispelList = {
     "Превращение", 
     "Глубокая заморозка", 
     "Огненный шок", 
-    "Ледяной шок",
     "Покаяние", 
     "Молот правосудия",
     "Замедление",
@@ -69,8 +68,35 @@ local redDispelList = {
     "Удушение",
     "Антимагия - немота",
     "Безмолвие",
-    "Волшебный поток"
+    "Волшебный поток",
+    "Озноб",
+    "Вой ужаса",
+    "Ментальный крик",
+    "Успокаивающий поцелуй"
 }
+
+local rootDispelList = {
+    "Ледяной шок", 
+    "Оковы земли", 
+    "Заморозка",
+    "Удар грома",
+    "Ледяная стрела", 
+    "Ночной кошмар",
+    "Ледяные оковы",
+    "Обморожение",
+    "Кольцо льда",
+    "Стрела ледяного огня",
+    "Холод",
+    "Конус холода",
+    "Разрушенная преграда",
+    "Замедление",
+    "Удержание",
+    "Гнев деревьев",
+    "Обездвиживающее поле"
+    "Леденящий взгляд",
+    "Хватка земли"
+}
+
 local function IsFinishHim(target) return CanAttack(target) and UnitHealth100(target) < 35 end 
 function Retribution()
     local target = "target"
@@ -95,6 +121,7 @@ function Retribution()
         if HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end   
         if DoSpell(IsAltKeyDown() and "Правосудие справедливости" or (UnitMana100("player") < 60 and "Правосудие мудрости" or "Правосудие света"), target) then return end
     end
+    if CanAttack(tagret) and not InMelee(target) and HasDebuff(rootDispelList, 1, "player") and TryDispel("player") then return end
     if InMelee(target) and DoSpell("Божественная буря") then return end
     if DoSpell("Удар воина Света", target) then return end
     if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    

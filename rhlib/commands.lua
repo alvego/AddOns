@@ -34,7 +34,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 -- навешиваем обработчик с максимальным приоритетом на событие OnUpdate, для обработки вызванных комманд
-local function UpdateCommands()
+function UpdateCommands()
     if IsPlayerCasting() then return false end
     local ret = false
     for cmd,_ in pairs(Commands) do 
@@ -53,4 +53,3 @@ local function UpdateCommands()
     end
     return ret
 end
-AttachUpdate(UpdateCommands, 1000)

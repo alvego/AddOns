@@ -44,23 +44,25 @@ UNITS = {}
 IUNITS = {} -- Important Units
 local StartTime = GetTime()
 local LastUpdate = 0
-local UpdateInterval = 0.0001
+local UpdateInterval = 0.0005
 local function UpdateIdle(elapsed)
-	LastUpdate = LastUpdate + elapsed
+    LastUpdate = LastUpdate + elapsed
     if LastUpdate < UpdateInterval then return end
     LastUpdate = 0
-	
-	if (IsAttack() and Paused) then
+    
+    if (IsAttack() and Paused) then
         echo("Авто ротация: ON",true)
         Paused = false
     end
-	
-	if Paused then return end
-	
-	if GetTime() - StartTime < 3 then return end
-	
+    
+    if UpdateCommands() then return end
+    
+    if Paused then return end
+    
+    if GetTime() - StartTime < 3 then return end
+    
     if UnitIsDeadOrGhost("player") or UnitIsCharmed("player") 
-		or not UnitPlayerControlled("player") then return end
+        or not UnitPlayerControlled("player") then return end
         
     -- Update units
     UNITS = GetUnits()
@@ -108,7 +110,7 @@ local CombatLogTimer = GetTime();
 local CombatLogResetTimer = GetTime();
 
 local function UpdateCombatLogFix()
-	if InCombatLockdown() 
+    if InCombatLockdown() 
         and GetTime() - CombatLogTimer > 15
         and GetTime() - CombatLogResetTimer > 30 then 
         CombatLogClearEntries()

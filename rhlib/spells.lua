@@ -49,18 +49,18 @@ end
 ------------------------------------------------------------------------------------------------------------------
 local function GetGCDSpellID()
     -- Use these spells to detect GCD
-	local spells = {
-		PALADIN = 635,       -- Holy Light I [OK]
-		PRIEST = 1243,       -- Power Word: Fortitude I
-		SHAMAN = 8071,       -- Rockbiter I
-		WARRIOR = 772,       -- Rend I (only from level 4) [OK]
-		DRUID = 5176,        -- Wrath I
-		MAGE = 168,          -- Frost Armor I
-		WARLOCK = 687,       -- Demon Skin I
-		ROGUE = 1752,        -- Sinister Strike I
-		HUNTER = 1978,       -- Serpent Sting I (only from level 4)
-		DEATHKNIGHT = 45902, -- Blood Strike I
-	}
+    local spells = {
+        PALADIN = 635,       -- Holy Light I [OK]
+        PRIEST = 1243,       -- Power Word: Fortitude I
+        SHAMAN = 8071,       -- Rockbiter I
+        WARRIOR = 772,       -- Rend I (only from level 4) [OK]
+        DRUID = 5176,        -- Wrath I
+        MAGE = 168,          -- Frost Armor I
+        WARLOCK = 687,       -- Demon Skin I
+        ROGUE = 1752,        -- Sinister Strike I
+        HUNTER = 1978,       -- Serpent Sting I (only from level 4)
+        DEATHKNIGHT = 45902, -- Blood Strike I
+    }
     return spells[GetClass()]
 end
 
@@ -71,12 +71,12 @@ end
 ------------------------------------------------------------------------------------------------------------------
 -- Interact range - 40 yards
 local function GetInteractRangeSpell()
-	local spells = {
-		DRUID = "Целительное прикосновение",
+    local spells = {
+        DRUID = "Целительное прикосновение",
         PALADIN = "Свет небес",
         SHAMAN = "Волна исцеления",
         PRIEST = "Малое исцеление"
-	}
+    }
     return spells[GetClass()]
 end
 
@@ -92,12 +92,12 @@ end
 ------------------------------------------------------------------------------------------------------------------
 local function GetMeleeSpell()
     -- Use these spells to melee
-	local spells = {
-		DRUID = "Цапнуть",        
-		DEATHKNIGHT = "Удар чумы", 
+    local spells = {
+        DRUID = "Цапнуть",        
+        DEATHKNIGHT = "Удар чумы", 
         PALADIN = "Щит праведности",
         SHAMAN = "Удар бури"
-	}
+    }
     return spells[GetClass()]
 end
 
@@ -175,8 +175,8 @@ end
 ------------------------------------------------------------------------------------------------------------------
 local InCast = {}
 local function UpdateIsCast(event, ...)
-	local unit, spell, rank, target = select(1,...)
-	if spell and unit == "player" then
+    local unit, spell, rank, target = select(1,...)
+    if spell and unit == "player" then
         local castInfo = InCast[spell] or {}
         if event == "UNIT_SPELLCAST_SUCCEEDED"
             and castInfo.StartTime and castInfo.StartTime > 0 then

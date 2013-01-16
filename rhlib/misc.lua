@@ -1,14 +1,14 @@
 ﻿-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
 function SellGray()
-	for b=0,4 do                                   
-	  for s=1, GetContainerNumSlots(b) do          
-		n=GetContainerItemLink(b,s)               
-		if n and string.find(n, "ff9d9d9d") then                                 
-			UseContainerItem(b,s)                   
-		end                                        
-	  end                                          
-	end                                            
+    for b=0,4 do                                   
+      for s=1, GetContainerNumSlots(b) do          
+        n=GetContainerItemLink(b,s)               
+        if n and string.find(n, "ff9d9d9d") then                                 
+            UseContainerItem(b,s)                   
+        end                                        
+      end                                          
+    end                                            
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -33,13 +33,13 @@ end
 function sell(name) 
     if not name then name = "" end
     for bag = 0,4,1 do 
-		for slot = 1, GetContainerNumSlots(bag), 1 do 
-			local item = GetContainerItemLink(bag,slot)
-			if item and string.find(item,name) then 
-				UseContainerItem(bag,slot) 
-			end
-		end
-	end
+        for slot = 1, GetContainerNumSlots(bag), 1 do 
+            local item = GetContainerItemLink(bag,slot)
+            if item and string.find(item,name) then 
+                UseContainerItem(bag,slot) 
+            end
+        end
+    end
 end
 
 ------------------------------------------------------------------------------------------------------------------
