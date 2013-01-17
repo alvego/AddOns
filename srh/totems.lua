@@ -177,7 +177,7 @@ function TryTotems(forceTotems)
     -------------------------------------------------------------------------------------------------------------
     if not HasBuff("Источник маны") and not HasBuff("Групповая охота") then
         local priority = 10
-        if UnitMana100("player") < 50 and not HasTotem("Тотем источника маны") then 
+        if not HasTotem("Тотем очищения") and UnitMana100("player") < 50 and not HasTotem("Тотем источника маны") then 
             priority = 50 
             force[water] = true 
         end
