@@ -44,7 +44,7 @@ UNITS = {}
 IUNITS = {} -- Important Units
 local StartTime = GetTime()
 local LastUpdate = 0
-local UpdateInterval = 0.0005
+local UpdateInterval = 0.01
 local function UpdateIdle(elapsed)
     LastUpdate = LastUpdate + elapsed
     if LastUpdate < UpdateInterval then return end
@@ -199,6 +199,19 @@ local function UpdateFallingFix()
 end
 AttachUpdate(UpdateFallingFix)
 
+------------------------------------------------------------------------------------------------------------------
+-- нас сапнул рога
+function UpdateSapped(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err = select(1, ...)
+	if ((spellId == 6770)
+	and (destGUID == UnitGUID("player"))
+	and (type == "SPELL_AURA_APPLIED" or type == "SPELL_AURA_REFRESH"))
+	then
+		SendChatMessage("Меня сапнули, помогите плиз!","SAY")
+		DEFAULT_CHAT_FRAME:AddMessage("Словил сап от роги: "..(sourceName or "(unknown)"))
+	end
+end
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateSapped)
 ------------------------------------------------------------------------------------------------------------------
 -- Автоматическая продажа хлама и починка
 local function SellGrayAndRepair()
