@@ -1,10 +1,12 @@
 ﻿-- Shaman Rotation Helper by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
+
 local TotemAlert = {}
 local PlayerThreatTime = nil
 ForceRoot = false
 TotemTime, NeedTotems = GetTime(), false
-function TryTotems(forceTotems)
+function TryTotems(forceTotems, h)
+    if h == nil then h = UnitHealth100("player") end
     -- поставить независимо от наличия тотемов (например отбежал далеко)
     if forceTotems then
         -- обновлять тотемы по необходимости
@@ -41,29 +43,32 @@ function TryTotems(forceTotems)
         
         TotemAlert["Тотем трепета"] = GetTime() 
     end
-    local needTremor = (TotemAlert["Тотем трепета"] and GetTime() - TotemAlert["Тотем трепета"] < 5)
+    local needTremor = (TotemAlert["Тотем трепета"] and GetTime() - TotemAlert["Тотем трепета"] < 25)
     -------------------------------------------------------------------------------------------------------------
     
-    if not needTremor and not ForceRoot and not HasBuff("Каменная кожа") then
+    if not (needTremor or ForceRoot or IsPvP()) 
+        and not (HasBuff("Каменная кожа") and not HasTotem("Тотем каменной кожи")) then
         local priority = 11
         if IsHeal() then priority = 20 end
         table.insert(earthTotems, { N = "Тотем каменной кожи", P = priority })
     end
     -------------------------------------------------------------------------------------------------------------
-    if not needTremor and not ForceRoot and not HasBuff("Сила земли") 
+    if not (needTremor or ForceRoot or IsPvP()) 
+        and not (HasBuff("Сила земли") and not HasTotem("Тотем силы земли"))
         and not (HasClass(UNITS, {"DEATHKNIGHT"}) or HasBuff("Зимний горн"))then
         local priority = 12
         if IsMDD() then priority = 20 end
         table.insert(earthTotems, { N = "Тотем силы земли", P = priority })
     end
     -------------------------------------------------------------------------------------------------------------
-    if not needTremor and (ForceRoot or IsPvP()) then
+    if ForceRoot then
+        TotemAlert["Тотем оков земли"] = GetTime()
+    end
+    if not needTremor and ForceRoot then
         
         local priority = 10
         
-        if ForceRoot or HasTotem("Тотем оков земли") then
-            TotemAlert["Тотем оков земли"] = GetTime()
-        end
+
         
         if (TotemAlert["Тотем оков земли"] and GetTime() - TotemAlert["Тотем оков земли"] < 5) then
             priority = 25
@@ -81,15 +86,17 @@ function TryTotems(forceTotems)
     end
     -------------------------------------------------------------------------------------------------------------
     
-    if needTremor then
-
-        wipe(earthTotems)
-        force[earth] = false
-        
+    if needTremor or IsPvP() then
+        if needTremor then
+            wipe(earthTotems)
+            force[earth] = false
+        end
+        local priority = 0
+        if IsPvP() then priority = 30 end
         if not HasTotem("Тотем трепета") and IsReadySpell("Тотем трепета") then
             force[earth] = true
-        
-            table.insert(earthTotems, { N = "Тотем трепета", P = 80 })
+            priority = 80
+            table.insert(earthTotems, { N = "Тотем трепета", P = priority })
         end
     end
     -------------------------------------------------------------------------------------------------------------
@@ -99,7 +106,7 @@ function TryTotems(forceTotems)
         PlayerThreatTime = nil
     end
     
-    if IsReadySpell("Тотем каменного когтя") 
+    if h > 30 and IsReadySpell("Тотем каменного когтя") 
         and not HasTotem("Тотем каменного когтя")
         and ((PlayerThreatTime and GetTime() - PlayerThreatTime > 3) 
             or (InCombatLockdown() and UnitHealth100("player") < 85)) then
@@ -107,7 +114,7 @@ function TryTotems(forceTotems)
         force[earth] = true
     end
     -------------------------------------------------------------------------------------------------------------
-    -- sort air totems by priority
+    -- sort earth totems by priority
     -------------------------------------------------------------------------------------------------------------
     if #earthTotems > 0 then
         table.sort(earthTotems, function(x,y) return x.P > y.P end)
@@ -160,7 +167,7 @@ function TryTotems(forceTotems)
     -------------------------------------------------------------------------------------------------------------
     --water -----------------------------------------------------------------------------------------------------
     -------------------------------------------------------------------------------------------------------------
-    if IsReadySpell("Тотем исцеляющего потока") and not InRaid() then
+    if not IsReadySpell("Тотем исцеляющего потока") and not InRaid() then
         table.insert(waterTotems, { N = "Тотем исцеляющего потока", P = 15 })
     end
     -------------------------------------------------------------------------------------------------------------
@@ -207,13 +214,13 @@ function TryTotems(forceTotems)
     -------------------------------------------------------------------------------------------------------------
     --air -------------------------------------------------------------------------------------------------------
     -------------------------------------------------------------------------------------------------------------
-    if not HasBuff("Тотем неистовства ветра") and not HasBuff("Цепкие ледяные когти") then
+    if not (HasBuff("Тотем неистовства ветра") and not HasTotem("Тотем неистовства ветра")) and not HasBuff("Цепкие ледяные когти") then
         local priority = 10
         if IsMDD() then priority = 20 end
         table.insert(airTotems, { N = "Тотем неистовства ветра", P = priority })
     end
     -------------------------------------------------------------------------------------------------------------
-    if not HasBuff("Тотем гнева воздуха") then
+    if not (HasBuff("Тотем гнева воздуха") and not HasTotem("Тотем гнева воздуха")) then
         local priority = 15
         table.insert(airTotems, { N = "Тотем гнева воздуха", P = priority })
     end
@@ -265,12 +272,26 @@ function TryTotems(forceTotems)
         return false 
     end
     -- ничего настолько строчного, чтоб ставить тотемы
-    if not (forcedNow or forceTotems) and (UnitHealth100("player") < 30 -- когда мало хп
+    if not (forcedNow or forceTotems) and (h < 30 -- когда мало хп
         or not InCombatLockdown() -- или не в бою
         or not PlayerInPlace()) then -- или на бегу
         return false 
     end
     if (GetTime() - TotemTime < 2) then return false end -- или только недавно ставил
+    
+    if h < 40 then 
+        -- нужно хилиться, а не тотемы кидать
+         for i = 1, 4 do 
+            if not totem[i] ~= "Тотем трепета" then totem[i] = nil end
+        end
+    end
+    
+    if UnitMana100("player") < 40 then 
+        -- нужно только самое необходимое
+         for i = 1, 4 do 
+            if totem[i] and not tContains({"Тотем трепета", "Тотем прилива маны", "Тотем источника маны"}, totem[i]) then totem[i] = nil end
+        end
+    end
     -------------------------------------------------------------------------------------------------------------
     -- try totems -----------------------------------------------------------------------------------------------
     -------------------------------------------------------------------------------------------------------------

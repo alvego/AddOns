@@ -82,8 +82,6 @@ function Idle()
     if not CanControl("target") then RunMacroText("/stopattack") end
     -- геру под крылья на арене
     if IsArena() and TryEach(UNITS, function(u) return HasBuff("Гнев карателя", 10, u) end) then DoCommand("hero") end
-    -- тотемчики может поставить?
-    if TryTotems() then return end
     -- Зачем вару отражение???
     if TryEach(TARGETS, function(t) 
         return CanAttack(t) and UnitAffectingCombat(t) and HasBuff({"Отражение заклинания", "Рунический покров"}, 1, t) and DoSpell("Пронизывающий ветер", t)
@@ -126,6 +124,8 @@ function Idle()
     if IsAttack() or InCombatLockdown() then TryTarget() end
     -- сбиваем касты
     if TryEach(TARGETS, TryInterrupt) then return end
+    -- тотемчики может поставить?
+    if TryTotems() then return end
     --------------------------------------------------------------------------------------------------------------
     -- Энх
     if IsMDD() then 
@@ -204,8 +204,8 @@ function HealRotation()
         if myHP < 60 and UseEquippedItem("Проржавевший костяной ключ") then return end
         if not IsArena() then
             if myHP < 40 and UseHealPotion() then return end
-            if UnitMana100() < 25 and UseItem("Рунический флакон с зельем маны") then return true end
-            if UnitMana100() < 51 and UseItem("Бездонный флакон с зельем маны") then return true end
+            if UnitMana100("player") < 25 and UseItem("Рунический флакон с зельем маны") then return true end
+            if UnitMana100("player") < 51 and UseItem("Бездонный флакон с зельем маны") then return true end
         end
     end
 
@@ -228,7 +228,6 @@ function HealRotation()
         tinsert(groupUnits, "focus")
         tinsert(groupUnits, "mouseover")
         for i=1,#groupUnits do
-        
            if not res and TryRes(groupUnits[i]) then res = true end
         end
         if res then return end
@@ -298,6 +297,8 @@ function HealRotation()
     local u, h, l = members[1].Unit, members[1].HP, members[1].Lost
     
     if TryEach(TARGETS, function(t) return TryInterrupt(t, h) end) then return end
+    -- тотемчики может поставить?
+    if TryTotems(nil, h) then return end
     
     if  h > 50 then
         

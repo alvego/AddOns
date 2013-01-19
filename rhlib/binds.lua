@@ -203,12 +203,12 @@ AttachUpdate(UpdateFallingFix)
 -- нас сапнул рога
 function UpdateSapped(event, ...)
     local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err = select(1, ...)
-	if ((spellId == 6770)
-	and (destGUID == UnitGUID("player"))
-	and (type == "SPELL_AURA_APPLIED" or type == "SPELL_AURA_REFRESH"))
+	if spellName == "Ошеломление"
+	and destGUID == UnitGUID("player")
+	and (type == "SPELL_AURA_APPLIED" or type == "SPELL_AURA_REFRESH")
 	then
 		SendChatMessage("Меня сапнули, помогите плиз!","SAY")
-		DEFAULT_CHAT_FRAME:AddMessage("Словил сап от роги: "..(sourceName or "(unknown)"))
+		Notify("Словил сап от роги: "..(sourceName or "(unknown)"))
 	end
 end
 AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateSapped)
@@ -216,6 +216,7 @@ AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateSapped)
 -- Автоматическая продажа хлама и починка
 local function SellGrayAndRepair()
     SellGray();
+    RepairAllItems(1);
     RepairAllItems();
 end
 AttachEvent('MERCHANT_SHOW', SellGrayAndRepair)
