@@ -381,9 +381,8 @@ function HealRotation()
     
     if InCombatLockdown() then
         if h < 20 and DoSpell("Дар наару", u) then return end
-        if lowhpmembers > 0 and UseEquippedItem("Талисман восстановления") then return end
-        if lowhpmembers > 0 and UseEquippedItem("Руна конечной вариации") then return end
-        if lowhpmembers > 0 and UseEquippedItem("Брошь в виде розы с шипами") then return end
+        if (lowhpmembers > 2 or l > HealingWaveHeal * 1.5) and UseEquippedItem("Талисман восстановления") then return end
+        if (lowhpmembers > 1 or l > HealingWaveHeal * 1.2) and UseEquippedItem("Крылатый талисман") then return end
         if (l > (HealingWaveHeal * 1.5)) and HasSpell("Сила прилива") then DoSpell("Сила прилива") end
         if (h < 20 or lowhpmembers > 2) and HasSpell("Природная стремительность") and DoSpell("Природная стремительность") then return end
     end

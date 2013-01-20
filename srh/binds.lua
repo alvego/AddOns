@@ -83,9 +83,9 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 local resList = {}
-local resSpell = nil
-local resUnit = nil
+local resSpell = "Дух предков"
 function CanRes(t)
+    if InCombatLockdown() then return false end
     if not (UnitExists(t)
         and UnitIsPlayer(t)
         and not UnitIsAFK(t)
@@ -95,24 +95,17 @@ function CanRes(t)
         and not UnitIsGhost(t)
         and UnitIsConnected(t)
         and IsVisible(t)
-        and InRange("Дух предков", t)
-        and (not resList[UnitName(t)] or (GetTime() - resList[UnitName(t)]) > 60)
+        and InRange(resSpell, t)
+        and (not resList[UnitName(t)] or (GetTime() - resList[UnitName(t)]) > 5)
     ) then return false end
     return true
 end
 
 function TryRes(t)
-    local spell = "Дух предков"
-    if InCombatLockdown() then
-        return false
-    end
-
     if not CanRes(t) then return false end
-  
-    if DoSpell(spell, t) then
-        resUnit = UnitName(t)
-        resSpell = spell
-        Notify(spell .. " " .. resUnit .. "(" ..t ..")")
+    if DoSpell(resSpell, t) then
+        Notify(resSpell .. " на " .. UnitName(t))
+        resList[UnitName(t)] = GetTime()
         return true
     end
     return false
@@ -120,28 +113,19 @@ end
 
 function UpdateCanRes(event, ...)
     local unit, spell = select(1,...)
-    if spell and unit == "player" then
-         if  event == "UNIT_SPELLCAST_SUCCEEDED" then
-             if spell == resSpell then
-                resList[resUnit] = GetTime()
-                Notify("Успешно применил "..resSpell .. " на " .. resUnit)
-            end
-        end
-        if event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_FAILED" then
-            if spell == resSpell then
-                resSpell = nil
-                resUnit = nil
-            end
-        end
+    if spell and spell == resSpell and unit == "player" then
+        local unit = GetLastSpellTarget(resSpell)
+        Notify("Успешно применил "..resSpell .. " на " .. unit)
     end
 end
 AttachEvent("UNIT_SPELLCAST_SUCCEEDED", UpdateCanRes)
-AttachEvent("UNIT_SPELLCAST_FAILED", UpdateCanRes)
 
 local function UpdateResCast(elapsed)
     if (CanHeal(resUnit) and (UnitCastingInfo("player") == "Дух предков"))  then RunMacroText("/stopcasting") end
 end
 AttachUpdate(UpdateResCast)
+
+
 ------------------------------------------------------------------------------------------------------------------
 -- dispel
 if DispelBlackList == nil then DispelBlackList = {} end
