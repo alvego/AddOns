@@ -96,7 +96,7 @@ function CanRes(t)
         and UnitIsConnected(t)
         and IsVisible(t)
         and InRange(resSpell, t)
-        and (not resList[UnitName(t)] or (GetTime() - resList[UnitName(t)]) > 5)
+        and (not resList[UnitGUID(t)] or (GetTime() - resList[UnitGUID(t)]) > 5)
     ) then return false end
     return true
 end
@@ -105,7 +105,7 @@ function TryRes(t)
     if not CanRes(t) then return false end
     if DoSpell(resSpell, t) then
         Notify(resSpell .. " на " .. UnitName(t))
-        resList[UnitName(t)] = GetTime()
+        resList[UnitGUID(t)] = GetTime()
         return true
     end
     return false
@@ -114,16 +114,17 @@ end
 function UpdateCanRes(event, ...)
     local unit, spell = select(1,...)
     if spell and spell == resSpell and unit == "player" then
-        local unit = GetLastSpellTarget(resSpell)
-        Notify("Успешно применил "..resSpell .. " на " .. unit)
+        local u = GetLastSpellTarget(resSpell)
+        resList[UnitGUID(u)] = GetTime() + 60
+        Notify("Успешно применил "..resSpell .. " на " .. u)
     end
 end
 AttachEvent("UNIT_SPELLCAST_SUCCEEDED", UpdateCanRes)
 
 local function UpdateResCast(elapsed)
-    if (CanHeal(resUnit) and (UnitCastingInfo("player") == "Дух предков"))  then RunMacroText("/stopcasting") end
+    if (CanHeal(resUnit) and UnitCastingInfo("player") == resSpell)  then RunMacroText("/stopcasting") end
 end
-AttachUpdate(UpdateResCast)
+AttachUpdate(UpdateResCast, 900)
 
 
 ------------------------------------------------------------------------------------------------------------------

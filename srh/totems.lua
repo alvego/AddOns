@@ -61,27 +61,12 @@ function TryTotems(forceTotems, h)
         table.insert(earthTotems, { N = "Тотем силы земли", P = priority })
     end
     -------------------------------------------------------------------------------------------------------------
-    if ForceRoot then
-        TotemAlert["Тотем оков земли"] = GetTime()
-    end
-    if not needTremor and ForceRoot then
+    if not HasTotem("Тотем трепета") and not needTremor and ForceRoot then
         
-        local priority = 10
-        
-
-        
-        if (TotemAlert["Тотем оков земли"] and GetTime() - TotemAlert["Тотем оков земли"] < 5) then
-            priority = 25
-        end
-        
-        if ForceRoot then
-            force[earth] = true
-            wipe(earthTotems)
-        end
-        
+        force[earth] = true
+        wipe(earthTotems)
         if IsReadySpell("Тотем оков земли") then 
-            if ForceRoot then priority = 90 end
-            table.insert(earthTotems, { N = "Тотем оков земли", P = priority })
+            table.insert(earthTotems, { N = "Тотем оков земли", P = 90 })
         end
     end
     -------------------------------------------------------------------------------------------------------------

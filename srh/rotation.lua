@@ -146,7 +146,7 @@ function CheckHealCast(u, h)
     local spell, _, _, _, _, endTime, _, _, notinterrupt = UnitCastingInfo("player")
     if not spell or not endTime then return end
     if not tContains({"Малая волна исцеления", "Волна исцеления", "Цепное исцеление"}, spell) then return end
-    if not InCombatLockdown() then return end
+    if not InCombatLockdown() or IsControlKeyDown() then return end
     
     local lastHealCastTarget = GetLastSpellTarget(spell)
     if not lastHealCastTarget then return end
@@ -264,7 +264,7 @@ function HealRotation()
     table.sort(members, function(x,y) return x.HP < y.HP end)
 
     local unitWithShield, threatLowHPUnit, threatLowHP = nil, nil, 1000
-    local threatLowHPUnit, lowhpmembers = nil, 0
+    local threatLowHPUnit, lowhpmembers, notfullhpmembers = nil, 0, 0
     local rUnit, rCount, rUnits = nil, 0, {}
     for i=1,#members do 
         local u, hp, c = members[i].Unit,members[i].HP, 0
@@ -284,14 +284,21 @@ function HealRotation()
                 and not IsOneUnit("player", u) 
                 and d 
                 and d < 10 --12.5
-                and (jl > ChainHeal / 4  or jh < 70) then
-                c = c + 1 
+                then
+                if jh < 100 then
+                    if h < 100 then notfullhpmembers = notfullhpmembers + 1 end
+                end
+                if (jl > ChainHeal / 4  or jh < 70) then
+                    c = c + 1 
+                end
             end
+                       
         end
         
         rUnits[u] = c
         
         if h < 40 then lowhpmembers = lowhpmembers + 1 end
+        
    end 
     if #members < 1 then print("Некого лечить!!!") return end
     local u, h, l = members[1].Unit, members[1].HP, members[1].Lost
@@ -399,7 +406,7 @@ function HealRotation()
     if PlayerInPlace() then
     
         if h < 25 and (l > HealingWaveHeal) and HasMyBuff("Приливные волны", 1, "player") and DoSpell("Волна исцеления", u) then return end
-        if h < 7 and DoSpell("Малая волна исцеления", u) then return end
+        if h < 10 and DoSpell("Малая волна исцеления", u) then return end
         
         if h > 40 and rUnits[u] > 1 and not IsPvP() and (l > ChainHeal or h < 80) and DoSpell("Цепное исцеление", u) then return end 
         if h > 70 and rUnits[u] > 1 and IsBattleground() and (UnitThreatAlert("player") < 3) and (l > ChainHeal or h < 80) and DoSpell("Цепное исцеление", u) then return end 
@@ -409,8 +416,20 @@ function HealRotation()
         
         if IsPvP() and (l > HealingWaveHeal) and HasMyBuff("Приливные волны", 1.5, "player") and DoSpell("Волна исцеления", u) then return end
         if IsPvP() and (l > LesserHealingWaveHeal) and (l < HealingWaveHeal) and DoSpell("Малая волна исцеления", u) then return end 
+        
         if (l > HealingWaveHeal) and DoSpell("Волна исцеления", u) then return end
-        if (l > LesserHealingWaveHeal or h < 70) and DoSpell("Малая волна исцеления", u) then return end
+        
+        if (h < 40 or l > LesserHealingWaveHeal) and UnitMana100("player") > 50 and DoSpell("Малая волна исцеления", u) then return end
+        
+        
+        if h < 100 and IsControlKeyDown() then
+            if notfullhpmembers > 1 and rUnits[u] > 0 then
+                if DoSpell("Цепное исцеление", u) then return end 
+            else
+                if DoSpell("Малая волна исцеления", u) then return end
+            end
+        end
+        
     end
     
     if (h > 60 and UnitMana100("player") > 50) then
