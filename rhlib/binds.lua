@@ -105,6 +105,21 @@ end
 AttachUpdate(UpdateIdle, -1000)
 
 ------------------------------------------------------------------------------------------------------------------
+--Arena Raid Icons
+function UpdateArenaRaidIcons(event, ...)
+    if IsActiveBattlefieldArena() == 1 then
+        members = GetNumGroupMembers();
+        ci = {WARRIOR=8,DEATHKNIGHT=7,PALADIN=3,MONK=4,PRIEST=5,SHAMAN=6,DRUID=2,ROGUE=1,MAGE=8,WARLOCK=3,HUNTER=4}
+        SetRaidTarget('player',ci[select(2,UnitClass('player'))])
+        for i=1,(members-1) do
+            SetRaidTarget('party'..i,ci[select(2,UnitClass('party'..i))])
+        end
+	end
+end
+AttachEvent("GROUP_ROSTER_UPDATE", UpdateArenaRaidIcons)
+AttachEvent("ARENA_OPPONENT_UPDATE", UpdateArenaRaidIcons)
+AttachEvent("ARENA_PREP_OPPONENT_SPECIALIZATIONS", UpdateArenaRaidIcons)
+------------------------------------------------------------------------------------------------------------------
 -- Фиксим возможные подвисвния CombatLog
 local CombatLogTimer = GetTime();
 local CombatLogResetTimer = GetTime();
