@@ -108,12 +108,11 @@ AttachUpdate(UpdateIdle, -1000)
 --Arena Raid Icons
 function UpdateArenaRaidIcons(event, ...)
     if IsActiveBattlefieldArena() == 1 then
-        members = GetNumGroupMembers();
-        ci = {WARRIOR=8,DEATHKNIGHT=7,PALADIN=3,MONK=4,PRIEST=5,SHAMAN=6,DRUID=2,ROGUE=1,MAGE=8,WARLOCK=3,HUNTER=4}
-        SetRaidTarget('player',ci[select(2,UnitClass('player'))])
-        for i=1,(members-1) do
-            SetRaidTarget('party'..i,ci[select(2,UnitClass('party'..i))])
-        end
+        members = GetGroupUnits()
+        ci = {WARRIOR=8,DEATHKNIGHT=7,PALADIN=3,PRIEST=5,SHAMAN=6,DRUID=2,ROGUE=1,MAGE=8,WARLOCK=3,HUNTER=4}
+        table.foreach(members, function(_, u) 
+            SetRaidTarget(u,ci[select(2,UnitClass(u))])
+        end)
 	end
 end
 AttachEvent("GROUP_ROSTER_UPDATE", UpdateArenaRaidIcons)
@@ -222,7 +221,7 @@ function UpdateSapped(event, ...)
 	and destGUID == UnitGUID("player")
 	and (type == "SPELL_AURA_APPLIED" or type == "SPELL_AURA_REFRESH")
 	then
-		SendChatMessage("Меня сапнули, помогите плиз!","SAY")
+		RunMacroText("/к Меня сапнули, помогите плиз!")
 		Notify("Словил сап от роги: "..(sourceName or "(unknown)"))
 	end
 end
