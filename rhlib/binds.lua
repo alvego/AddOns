@@ -106,10 +106,10 @@ AttachUpdate(UpdateIdle, -1000)
 
 ------------------------------------------------------------------------------------------------------------------
 --Arena Raid Icons
-function UpdateArenaRaidIcons(event, ...)
-    if IsActiveBattlefieldArena() == 1 then
-        members = GetGroupUnits()
-        ci = {WARRIOR=8,DEATHKNIGHT=7,PALADIN=3,PRIEST=5,SHAMAN=6,DRUID=2,ROGUE=1,MAGE=8,WARLOCK=3,HUNTER=4}
+local function UpdateArenaRaidIcons(event, ...)
+    if IsArena() then
+        local members = GetGroupUnits()
+        local ci = {WARRIOR=8,DEATHKNIGHT=7,PALADIN=3,PRIEST=5,SHAMAN=6,DRUID=2,ROGUE=1,MAGE=8,WARLOCK=3,HUNTER=4}
         table.foreach(members, function(_, u) 
             SetRaidTarget(u,ci[select(2,UnitClass(u))])
         end)
