@@ -71,17 +71,12 @@ function TryTotems(forceTotems, h)
     end
     -------------------------------------------------------------------------------------------------------------
     
-    if needTremor or IsPvP() then
-        if needTremor then
-            wipe(earthTotems)
-            force[earth] = false
-        end
-        local priority = 0
-        if IsPvP() then priority = 30 end
+    if needTremor then
+        wipe(earthTotems)
+        force[earth] = false
         if not HasTotem("Тотем трепета") and IsReadySpell("Тотем трепета") then
             force[earth] = true
-            priority = 80
-            table.insert(earthTotems, { N = "Тотем трепета", P = priority })
+            table.insert(earthTotems, { N = "Тотем трепета", P = 80 })
         end
     end
     -------------------------------------------------------------------------------------------------------------
