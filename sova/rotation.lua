@@ -19,6 +19,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function Sova()
+local target = "target"
     if not HasBuff("Облик лунного совуха") and DoSpell("Облик лунного совуха") then return end
     if UnitMana100("player") < 50 and DoSpell("Озарение") then return end
     if not HasDebuff("Волшебный огонь") and DoSpell("Волшебный огонь", target) then return end

@@ -1,21 +1,9 @@
 ﻿-- Sova Rotation Helper by Timofeev Alexey & Co
 ------------------------------------------------------------------------------------------------------------------
 -- Binding
-BINDING_HEADER_PRH = "Sova Rotation Helper"
-BINDING_NAME_PRH_AOE = "Вкл/Выкл AOE в ротации"
-BINDING_NAME_PRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
-BINDING_NAME_PRH_AUTOAGGRO = "Авто АГГРО"
-------------------------------------------------------------------------------------------------------------------
-if CanInterrupt == nil then CanInterrupt = true end
-
-function UseInterrupt()
-    CanInterrupt = not CanInterrupt
-    if CanInterrupt then
-        echo("Interrupt: ON",true)
-    else
-        echo("Interrupt: OFF",true)
-    end 
-end
+BINDING_HEADER_SOVA = "Sova Rotation Helper"
+BINDING_NAME_SOVA_AOE = "Вкл/Выкл AOE в ротации"
+BINDING_NAME_SOVA_AUTOAGGRO = "Авто АГГРО"
 
 ------------------------------------------------------------------------------------------------------------------
 if AutoAGGRO == nil then AutoAGGRO = true end
@@ -38,7 +26,7 @@ function IsAOE()
 end
 
 ------------------------------------------------------------------------------------------------------------------
--- dispel
+--[[-- dispel
 if DispelBlacklist == nil then DispelBlacklist = {} end
 if DispelWhitelist == nil then DispelWhitelist = {} end
 local dispelSpell = "Очищение"
@@ -83,16 +71,10 @@ local function UpdateDispelLists(event, ...)
     end
 end    
 
-AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateDispelLists)
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateDispelLists)]]
 
-------------------------------------------------------------------------------------------------------------------
-function InForbearance(unit)
-    if unit == nil then unit = "player" end
-    return ((GetTime() - GetSpellLastTime("Гнев карателя") < 30) or HasDebuff("Воздержанность", 0.01, unit))
-end
 ------------------------------------------------------------------------------------------------------------------
 
 function DoSpell(spellName, target)
-    if tContains({"Гнев карателя", "Божественный щит", "Возложение рук", "Божественная защита", "Длань защиты"}, spellName) and InForbearance(target) then return false end
     return UseSpell(spellName, target)
 end
