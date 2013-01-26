@@ -44,7 +44,7 @@ UNITS = {}
 IUNITS = {} -- Important Units
 local StartTime = GetTime()
 local LastUpdate = 0
-local UpdateInterval = 0.25
+local UpdateInterval = 0.05
 local function UpdateIdle(elapsed)
     LastUpdate = LastUpdate + elapsed
     if LastUpdate < UpdateInterval then return end

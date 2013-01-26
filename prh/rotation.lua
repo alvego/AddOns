@@ -15,8 +15,7 @@ function Idle()
                 if IsInteractUnit(unit) and  UnitThreat(unit) > 1 and not IsOneUnit("player", unit) and DoSpell("Длань спасения",unit) then 
                     echo("Длань спасения " .. unit) 
                     return true
-                end
-                return false
+                end return false
             end) then return end
             if TryEach(TARGETS, function(target) return IsValidTarget(target) and UnitAffectingCombat(target) and TryTaunt(target) end) then return end
         end
