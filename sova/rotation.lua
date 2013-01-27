@@ -22,12 +22,12 @@ end
 function Tank()
     if not HasBuff("Облик лунного совуха") and DoSpell("Облик лунного совуха") then return end
     if UnitMana100("player") < 50 and DoSpell("Озарение") then return end
-    if UnitHealth("target") > 100000 and not HasDebuff("Волшебный огонь") and DoSpell("Волшебный огонь") then return end
+    if UnitHealth("target") > 200000 and not HasDebuff("Волшебный огонь") and DoSpell("Волшебный огонь") then return end
     -- if not HasDebuff("Земля и луна") and DoSpell("Гнев", target) then end
-    if not HasMyDebuff("Рой насекомых", 0.3) and DoSpell("Рой насекомых") then return end
-    if not HasMyDebuff("Лунный огонь", 0.3) and DoSpell("Лунный огонь") then return end
-    if HasMyBuff("Лунное затмение") and DoSpell("Звездный огонь") then return end
-    if not HasMyBuff("Лунное затмение") and DoSpell("Гнев") then return end
+    if not HasMyDebuff("Рой насекомых", 1) and DoSpell("Рой насекомых") then return end
+    if not HasMyDebuff("Лунный огонь", 1) and DoSpell("Лунный огонь") then return end
+    if HasBuff("Лунное затмение") then DoSpell("Звездный огонь") return end
+    if DoSpell("Гнев") then return end
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -84,20 +84,7 @@ function TryTarget()
     if not IsValidTarget("focus") then
         RunMacroText("/clearfocus")
     end
-    TryEach(TARGETS, function(t)
-        if IsValidTarget(t) and (UnitCreatureType(t) == "Нежить" or UnitCreatureType(t) == "Демон") and IsOneUnit("focus",t) then
-            RunMacroText("/focus " .. t)
-            return true
-        end
-        return false
-    end)
-    
-    
-    if IsArena() and IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
-        if IsOneUnit("target","arena1") then RunMacroText("/focus arena2") end
-        if IsOneUnit("target","arena2") then RunMacroText("/focus arena1") end
-    end
-    
+
     if IsAttack() and not InCombatLockdown() then RunMacroText("/startattack")  end
 end
 
