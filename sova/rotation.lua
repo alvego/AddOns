@@ -1,4 +1,4 @@
-﻿-- Sova
+﻿-- Sova Rotation Helper by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
 function Idle()
     if IsAttack() then 
@@ -6,39 +6,38 @@ function Idle()
         if IsMounted() then Dismount() return end 
     end
     if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted()) then return end
+    if (IsAttack() or InCombatLockdown()) then
         if TryHealing() then return end
         if TryProtect() then return end
         if TryBuffs() then return end
         TryTarget()
+        
         if HasSpell("Звездопад") then
-            Sova() 
-        else 
-            return
+            Tank() 
         end
+    end
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function Sova()
-local target = "target"
+function Tank()
     if not HasBuff("Облик лунного совуха") and DoSpell("Облик лунного совуха") then return end
     if UnitMana100("player") < 50 and DoSpell("Озарение") then return end
-    if not HasDebuff("Волшебный огонь") and DoSpell("Волшебный огонь", target) then return end
-    if not HasDebuff("Земля и луна") and DoSpell("Гнев", target) then end
-    if not HasMyDebuff("Рой насекомых", 0.3) and DoSpell("Рой насекомых", target) then return end
-    if not HasMyDebuff("Лунный огонь", 0.3) and DoSpell("Лунный огонь", target) then return end
-    if HasMyBuff("Лунное затмение") and DoSpell("Звездный огонь", target) then return end
-    if not HasMyBuff("Лунное затмение") and DoSpell("Гнев", target) then return end
+    if UnitHealth("target") > 100000 and not HasDebuff("Волшебный огонь") and DoSpell("Волшебный огонь") then return end
+    -- if not HasDebuff("Земля и луна") and DoSpell("Гнев", target) then end
+    if not HasMyDebuff("Рой насекомых", 0.3) and DoSpell("Рой насекомых") then return end
+    if not HasMyDebuff("Лунный огонь", 0.3) and DoSpell("Лунный огонь") then return end
+    if HasMyBuff("Лунное затмение") and DoSpell("Звездный огонь") then return end
+    if not HasMyBuff("Лунное затмение") and DoSpell("Гнев") then return end
 end
 
 ------------------------------------------------------------------------------------------------------------------
 function TryBuffs()
-            if not HasBuff("дикой природы") and DoSpell("Знак дикой природы") then return end
+    if not HasBuff("дикой природы") and DoSpell("Знак дикой природы") then return end
 end
+
 ------------------------------------------------------------------------------------------------------------------
 function TryHealing()
-    
-        -- if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
-
+    if UnitMana100() < 30 and UseItem("Рунический флакон с зельем маны") then return true end
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -104,8 +103,5 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function TryProtect()
-    if InCombatLockdown() then
-        if (UnitHealth100() < 40) and DoSpell("Дубовая кожа") then return true end
-        end
-    return false
+    if InCombatLockdown() then end
 end

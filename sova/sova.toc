@@ -3,7 +3,6 @@
 ## Version: 0.1
 ## Interface: 30300
 ## Dependencies: rhlib
-## SavedVariables: AutoAGGRO, CanInterrupt, DispelBlacklist, DispelWhitelist
 commands.lua
 rotation.lua
 binds.lua
