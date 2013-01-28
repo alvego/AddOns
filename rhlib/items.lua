@@ -41,9 +41,17 @@ function UseItem(itemName)
     if SpellIsTargeting() then CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() end  
     if IsPlayerCasting() then return false end
     if not IsEquippedItem(itemName) and not IsUsableItem(itemName) then return false end
-    if not IsReadyItem(itemName) then return false end
-    RunMacroText("/use " .. itemName)
-    return true
+    local start, try, count, state = GetTime(), 0, IsEquippedItem(itemName) and 3 or 1, IsReadyItem(itemName)
+    while state do
+        RunMacroText("/use " .. itemName)
+        if Debug then
+            print(itemName)
+        end
+        try = try + 1
+        state = IsReadyItem(itemName) and GetTime() - start < 1 and try < count
+    end
+    local start, duration = GetItemCooldown(itemName)
+    return start > 0 and (GetTime() - start < 0.01)
 end
 
 ------------------------------------------------------------------------------------------------------------------

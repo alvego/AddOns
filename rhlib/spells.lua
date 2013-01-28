@@ -318,7 +318,7 @@ function UseSpell(spellName, target)
             end
             
             if Debug then
-                print(spellName, cost, UnitMana("player"), target)
+                print(spellName, cost, target)
             end
             return true
         end
