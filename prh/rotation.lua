@@ -104,7 +104,7 @@ local rootDispelList = {
 local function IsFinishHim(target) return CanAttack(target) and UnitHealth100(target) < 35 end 
 function Retribution()
     local target = "target"
-    if not IsFinishHim(target) and IsReadySpell("Очищение") and TryEach(IUNITS,
+    if not IsFinishHim(target) and UnitMana100("player") > 10 and IsReadySpell("Очищение") and TryEach(IUNITS,
         function(u) return CanHeal(u) and HasDebuff(redDispelList, 2, u) and TryDispel(u) end
     ) then return end
     if UnitMana100("player") < 20 and not HasBuff("Печать мудрости") and DoSpell("Печать мудрости") then return end
@@ -125,14 +125,14 @@ function Retribution()
         if HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end   
         if DoSpell(IsAltKeyDown() and "Правосудие справедливости" or (UnitMana100("player") < 60 and "Правосудие мудрости" or "Правосудие света"), target) then return end
     end
-    if CanAttack(tagret) and not InMelee(target) and HasDebuff(rootDispelList, 1, "player") and TryDispel("player") then return end
+    if CanAttack(tagret) and UnitMana100("player") > 20 and not InMelee(target) and HasDebuff(rootDispelList, 1, "player") and TryDispel("player") then return end
     if InMelee(target) and DoSpell("Божественная буря") then return end
     if DoSpell("Удар воина Света", target) then return end
     if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    
     if UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
     if (GetTime() - holyShieldTime > 10) 
         and not TryEach(UNITS, function(u) return HasMyBuff("Священный щит", 0.1, u) end) and DoSpell("Священный щит","player") then holyShieldTime = GetTime() return end
-    if not IsFinishHim(target) and IsReadySpell("Очищение") and TryEach(IUNITS, TryDispel) then return end
+    if not IsFinishHim(target) and UnitMana100("player") > 40 and IsReadySpell("Очищение") and TryEach(IUNITS, TryDispel) then return end
 end
 
 ------------------------------------------------------------------------------------------------------------------

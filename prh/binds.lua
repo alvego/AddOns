@@ -44,7 +44,7 @@ if DispelWhitelist == nil then DispelWhitelist = {} end
 local dispelSpell = "Очищение"
 local dispelTypes = {"Poison", "Disease", "Magic"}
 function TryDispel(unit)
-    if not IsReadySpell(dispelSpell) or InGCD() or not CanHeal(unit) then return false end
+    if not IsReadySpell(dispelSpell) or InGCD() or not CanHeal(unit) or HasDebuff("Нестабильное колдовство", 0.1, unit) then return false end
     local ret = false
     for i = 1, 40 do
         if not ret then
