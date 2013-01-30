@@ -10,6 +10,8 @@ function Idle()
     if IsNeedTaunt() and TryTaunt("mouseover") then return end
     
     if (IsAttack() or InCombatLockdown()) then
+        if TryEach(TARGETS, TryInterrupt) then return end
+        
         if HasRunes(100) and not (HasBuff("Власть крови") or HasBuff("Власть льда") or HasBuff("Власть нечестивости")) 
             and DoSpell("Власть крови") then return end
         

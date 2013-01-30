@@ -1,9 +1,9 @@
 ﻿-- Shaman Rotation Helper by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("freedom", 
-    function() return UseEquippedItem("Медальон Альянса") end, 
+    function() return UseEquippedItem("Медальон Орды") end, 
     function() 
-        local item = "Медальон Альянса" 
+        local item = "Медальон Орды" 
         return IsPlayerCasting() or not IsEquippedItem(item) 
             or (not InGCD() and not IsReadyItem(item)) 
     end

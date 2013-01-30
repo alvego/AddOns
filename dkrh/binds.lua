@@ -106,7 +106,7 @@ function TryInterrupt(target)
         end
     end
     
-    if CanAttack(target) and (channel or t < 0.8) and (GetDeathGripState() or UnitIsPlayer("target")) and DoSpell("Хватка смерти", target) then 
+    if CanAttack(target) and (channel or t < 0.8) and (DeathGripState or UnitIsPlayer("target")) and DoSpell("Хватка смерти", target) then 
         echo("Хватка смерти"..m)
         interruptTime = GetTime()
         return true 
