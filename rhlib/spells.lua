@@ -263,6 +263,7 @@ function UseSpell(spellName, target)
     if SpellIsTargeting() then return false end 
     -- Не пытаемся что либо прожимать во время каста
     if IsPlayerCasting() then return false end
+    if target == nil and IsHarmfulSpell(spellName) then target = "target" end
     -- Проверяем на наличе спела в спелбуке
     local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spellName)
     if not name or (name ~= spellName)  then
@@ -298,12 +299,12 @@ function UseSpell(spellName, target)
         RunMacroText(cast .. "!" .. spellName)
         -- если нужно выбрать область - кидаем на текущий mouseover
         if SpellIsTargeting() then CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() end 
+        
+        -- данные о кастах
+        local castInfo = InCast[spellName] or {}
         -- проверка на успешное начало кд
-        local start, duration, enabled = GetSpellCooldown(spellName)
-        if start > 0 and (GetTime() - start < 0.01) then
+        if castInfo.StartTime and (GetTime() - castInfo.StartTime < 0.01) then
             if UnitExists(target) then
-                -- данные о кастах
-                local castInfo = InCast[spellName] or {}
                 -- проверяем цель на соответствие реальной
                 if castInfo.TargetName and castInfo.TargetName ~= UnitName(target) then 
                     RunMacroText("/stopcasting") 

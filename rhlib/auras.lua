@@ -20,7 +20,7 @@ local function HasAura(aura, last, target, method, my)
     while (i <= 40) and not result do
         if name and (strlower(name):match(strlower(aura)) or (debuffType and strlower(debuffType):match(strlower(aura)) )) 
             and (Expires - GetTime() >= last or Expires == 0) 
-            and (not my or (unitCaster == nil or unitCaster == "player")) then
+            and (not my or unitCaster == "player") then
             result = true
         end
         i = i + 1

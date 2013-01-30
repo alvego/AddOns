@@ -245,7 +245,7 @@ function TryTarget()
         if IsOneUnit("target","arena2") then RunMacroText("/focus arena1") end
     end
     
-    if IsAttack() and not InCombatLockdown() then RunMacroText("/startattack")  end
+    if IsAttack() or InCombatLockdown() then RunMacroText("/startattack")  end
 end
 
 ------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,9 @@
+## Author: Timofeev Alvexey
+## Title:|cff69ccf0 DK|r |cffffd200 Rotation Helper|r
+## Version: 0.2
+## Interface: 30300
+## Dependencies: rhlib
+## SavedVariables: CanInterrupt, CanAOE, DeathGripState, BersState
+rotation.lua
+commands.lua
+binds.lua
