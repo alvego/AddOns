@@ -24,10 +24,10 @@ function Tank()
     if UnitMana100("player") < 50 and DoSpell("Озарение") then return end
     if UnitHealth("target") > 200000 and not HasDebuff("Волшебный огонь") and DoSpell("Волшебный огонь") then return end
     -- if not HasDebuff("Земля и луна") and DoSpell("Гнев", target) then end
-    if not HasMyDebuff("Рой насекомых", 1) and DoSpell("Рой насекомых") then return end
-    if not HasMyDebuff("Лунный огонь", 1) and DoSpell("Лунный огонь") then return end
-    if HasBuff("Лунное затмение") then DoSpell("Звездный огонь") return end
-    if DoSpell("Гнев") then return end
+    if not HasMyDebuff("Рой насекомых", 1,"target") and DoSpell("Рой насекомых","target") then return end
+    if not HasMyDebuff("Лунный огонь", 1,"target") and DoSpell("Лунный огонь","target") then return end
+    if HasBuff("Лунное", 0.1, "player") and DoSpell("Звездный огонь","target") then return end
+    if not HasBuff("Лунное", 0.1, "player") and DoSpell("Гнев","target") then return end
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -41,19 +41,25 @@ function TryHealing()
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function TryTarget()
+function ActualDistance(target)
+    if target == nil then target = "target" end
+    return (CheckInteractDistance(target, 3) == 1)
+end
+
+function TryTarget(useFocus)
+    if useFocus == nil then useFocus = true end
     if not IsValidTarget("target") then
         local found = false
         local members = GetGroupUnits()
         for _,member in pairs(members) do 
             target = member .. "-target"
-            if not found and IsValidTarget(target) and UnitCanAttack("player", target) and (CheckInteractDistance(target, 2) == 1)  then 
+            if not found and IsValidTarget(target) and UnitCanAttack("player", target) and ActualDistance(target)  then 
                 found = true 
                 RunMacroText("/startattack " .. target) 
             end
         end
 
-        if not (CheckInteractDistance("target", 2) == 1) or not UnitCanAttack("player", "target") then
+        if not ActualDistance("target") or not UnitCanAttack("player", "target") then
             RunMacroText("/cleartarget")
         end
 
@@ -62,7 +68,7 @@ function TryTarget()
     if  not IsValidTarget("target") then
         if GetNextTarget() ~= nil then
             RunMacroText("/startattack "..GetNextTarget())
-            if not (CheckInteractDistance("target", 2) == 1) or not NextIsTarget() or not UnitCanAttack("player", "target") then
+            if not ActualDistance("target") or not NextIsTarget() or not UnitCanAttack("player", "target") then
                 RunMacroText("/cleartarget")
             end
             ClearNextTarget()
@@ -72,7 +78,7 @@ function TryTarget()
     if not IsValidTarget("target") then
         RunMacroText("/targetenemy [nodead]")
         
-        if not IsAttack() and not (CheckInteractDistance("target", 2) == 1) or not UnitCanAttack("player", "target") then
+        if not IsAttack() and not ActualDistance("target") or not UnitCanAttack("player", "target") then
             RunMacroText("/cleartarget")
         end
     end
@@ -80,12 +86,29 @@ function TryTarget()
     if not IsValidTarget("target") or (IsAttack() and  not UnitCanAttack("player", "target")) then
         RunMacroText("/cleartarget")
     end
-    
-    if not IsValidTarget("focus") then
-        RunMacroText("/clearfocus")
-    end
+   
+    if not IsArena() then
+        if useFocus and not IsValidTarget("focus") then
+            local found = false
+            for _,target in pairs(TARGETS) do 
+                if not found and IsValidTarget(target) and UnitCanAttack("player", target) and ActualDistance(target) and not IsOneUnit("target", target) then 
+                    found = true 
+                    RunMacroText("/focus " .. target) 
+                end
+            end
+        end
 
-    if IsAttack() and not InCombatLockdown() then RunMacroText("/startattack")  end
+        if useFocus and not IsValidTarget("focus") or IsOneUnit("target", "focus") or not ActualDistance("focus") then
+            RunMacroText("/clearfocus")
+        end
+    else
+        if IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
+            if IsOneUnit("target","arena1") then RunMacroText("/focus arena2") end
+            if IsOneUnit("target","arena2") then RunMacroText("/focus arena1") end
+        end
+    end
+    
+
 end
 
 ------------------------------------------------------------------------------------------------------------------
