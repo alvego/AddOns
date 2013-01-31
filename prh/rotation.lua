@@ -10,15 +10,7 @@ function Idle()
     if (IsAttack() or InCombatLockdown()) then
         if CanInterrupt and TryEach(TARGETS, TryInterrupt) then return end
         if IsMouseButtonDown(3) and TryTaunt("mouseover") then return end
-        if AutoAGGRO and InGroup() and InCombat(1) then
-            if InCombat(3) and TryEach(UNITS, function(unit) 
-                if IsInteractUnit(unit) and  UnitThreat(unit) > 1 and not IsOneUnit("player", unit) and DoSpell("Длань спасения",unit) then 
-                    echo("Длань спасения " .. unit) 
-                    return true
-                end return false
-            end) then return end
-            if TryEach(TARGETS, function(target) return IsValidTarget(target) and UnitAffectingCombat(target) and TryTaunt(target) end) then return end
-        end
+        if AutoAGGRO and InGroup() and InCombat(1) and TryEach(TARGETS, function(target) return IsValidTarget(target) and UnitAffectingCombat(target) and TryTaunt(target) end) then return end
         -- Священная жертва
         if InCombatLockdown() and HasSpell("Щит мстителя") and InGroup() and CalculateHP("player") > 70 then
             local lowhpmembers = 0

@@ -61,3 +61,10 @@ SetCommand("cl",
    function() end, 
    function() return not InGCD() and DoSpell("Очищение","Ириха") end
 )
+
+------------------------------------------------------------------------------------------------------------------
+SetCommand("salva", 
+   function() return DoSpell("Длань спасения") end, 
+   function() return HasBuff("Длань спасения") 
+      or (not InGCD() and not IsReadySpell("Длань спасения")) end
+)
