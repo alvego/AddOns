@@ -1,5 +1,32 @@
 ﻿-- Paladin Rotation Helper by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
+local freedomItem = nil
+local freedomSpell = "Каждый за себя"
+SetCommand("freedom", 
+   function() 
+       if HasSpell(freedomSpell) then
+           DoSpell(freedomSpell)
+           return
+       end
+       UseEquippedItem(freedomItem) 
+   end, 
+   function() 
+       if IsPlayerCasting() then return true end
+       if HasSpell(freedomSpell) and (not InGCD() and not IsReadySpell(freedomSpell)) then return true end
+       if freedomItem == nil then
+          freedomItem = (UnitFactionGroup("player") == "Horde" and "Медальон Орды" or "Медальон Альянса")
+       end
+       return not IsEquippedItem(freedomItem) or (not InGCD() and not IsReadyItem(freedomItem)) 
+   end
+)
+
+------------------------------------------------------------------------------------------------------------------
+SetCommand("vp", 
+   function() return DoSpell("Волшебный поток") end, 
+   function() return not InGCD() and not IsReadySpell("Волшебный поток") end
+)
+
+------------------------------------------------------------------------------------------------------------------
 SetCommand("free", 
    function() return DoSpell("Длань свободы") end, 
    function() return HasBuff("Длань свободы") 
@@ -45,6 +72,12 @@ SetCommand("sv",
 )
 
 ------------------------------------------------------------------------------------------------------------------
+SetCommand("svi", 
+   function() return DoSpell("Длань защиты","Идеал") end, 
+   function() return not InForbearance("Идеал") and not InGCD() and not IsReadySpell("Длань защиты") end
+)
+
+------------------------------------------------------------------------------------------------------------------
 SetCommand("hp", 
    function() return DoSpell("Печать Света") end, 
    function() return not InGCD() and HasBuff("Печать Света") end
@@ -60,6 +93,12 @@ SetCommand("dd",
 SetCommand("cl", 
    function() end, 
    function() return not InGCD() and DoSpell("Очищение","Ириха") end
+)
+
+------------------------------------------------------------------------------------------------------------------
+SetCommand("cli", 
+   function() end, 
+   function() return not InGCD() and DoSpell("Очищение","Идеал") end
 )
 
 ------------------------------------------------------------------------------------------------------------------
