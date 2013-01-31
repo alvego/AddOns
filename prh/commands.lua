@@ -64,7 +64,6 @@ SetCommand("cl",
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("salva", 
-   function() return DoSpell("Длань спасения") end, 
-   function() return HasBuff("Длань спасения") 
-      or (not InGCD() and not IsReadySpell("Длань спасения")) end
+   function() return DoSpell("Длань спасения","mouseover") end, 
+   function() return not InGCD() and not IsReadySpell("Длань спасения") end
 )
