@@ -77,7 +77,7 @@ function Idle()
         if IsMounted() then Dismount() return end 
     end
     -- дайте поесть спокойно
-    if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or HasBuff("Призрачный волк")) then return end
+    if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or CanExitVehicle() or HasBuff("Призрачный волк")) then return end
     -- чтоб контроли не сбивать
     if not CanControl("target") then RunMacroText("/stopattack") end
     -- геру под крылья на арене
@@ -89,7 +89,7 @@ function Idle()
     
     --------------------------------------------------------------------------------------------------------------
     -- Рес по средней мышке + контрол
-    if IsLeftControlKeyDown() and IsMouseButtonDown(3) then
+    if IsLeftControlKeyDown() and IsMouseButtonDown(4) then
         if CanRes("mouseover") then
             TryResUnit = TryEach(GetGroupUnits(), function(u) return IsOneUnit(u, "mouseover") and u end) or "mouseover"
             TryResTime = GetTime()

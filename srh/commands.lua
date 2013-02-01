@@ -97,11 +97,17 @@ SetCommand("freedom",
 local tryMount = false
 SetCommand("mount", 
     function() 
-        if (IsLeftControlKeyDown() or IsSwimming()) and not HasBuff("Хождение по воде", 1, "player") and DoSpell("Хождение по воде", "player") then return end
-        if InCombatLockdown() or IsArena() or not PlayerInPlace() then
-            return DoSpell("Призрачный волк") 
+        if InGCD() or IsPlayerCasting() then return end
+        if (IsLeftControlKeyDown() or IsSwimming()) and not HasBuff("Хождение по воде", 1, "player") and DoSpell("Хождение по воде", "player") then 
+            tryMount = true
+            return 
         end
-        if InGCD() or IsPlayerCasting() or InCombatLockdown() or not IsOutdoors() then return false end
+        if InCombatLockdown() or IsArena() or not PlayerInPlace() then
+            DoSpell("Призрачный волк") 
+            tryMount = true
+            return 
+        end
+        if InCombatLockdown() or not IsOutdoors() then return end
         local mount = "Стремительный белый рысак"
         if IsFlyableArea() and not IsLeftControlKeyDown() then mount = "Черный дракон" end
         if IsAltKeyDown() then mount = "Тундровый мамонт путешественника" end
