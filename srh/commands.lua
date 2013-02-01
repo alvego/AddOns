@@ -73,9 +73,24 @@ SetCommand("hex",
     end
 )
 ------------------------------------------------------------------------------------------------------------------
+local freedomItem = nil
+local freedomSpell = "Каждый за себя"
 SetCommand("freedom", 
-    function() return UseEquippedItem("Медальон Альянса") end, 
-    function() local item = "Медальон Альянса" return IsPlayerCasting() or not IsEquippedItem(item) or (not InGCD() and not IsReadyItem(item)) end
+    function() 
+        if HasSpell(freedomSpell) then
+            DoSpell(freedomSpell)
+            return
+        end
+        UseEquippedItem(freedomItem) 
+    end, 
+    function() 
+        if IsPlayerCasting() then return true end
+        if HasSpell(freedomSpell) and (not InGCD() and not IsReadySpell(freedomSpell)) then return true end
+        if freedomItem == nil then
+           freedomItem = (UnitFactionGroup("player") == "Horde" and "Медальон Орды" or "Медальон Альянса")
+        end
+        return not IsEquippedItem(freedomItem) or (not InGCD() and not IsReadyItem(freedomItem)) 
+    end
 )
 
 ------------------------------------------------------------------------------------------------------------------

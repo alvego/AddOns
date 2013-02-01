@@ -15,6 +15,14 @@ function Idle()
         if HasRunes(100) and not (HasBuff("Власть крови") or HasBuff("Власть льда") or HasBuff("Власть нечестивости")) 
             and DoSpell("Власть крови") then return end
         
+        if HasClass(TARGETS, {"PALADIN", "PRIEST"}) and HasBuff("Перерождение") then RunMacroText("/cancelaura Перерождение") end
+        if TryEach(TARGETS, function(t) 
+            return UnitIsPlayer(t) and tContains({"ROGUE", "DRUID"}, GetClass(t)) and not InRange("Ледяные оковы", t) and not HasDebuff("Темная власть", 1, t) and DoSpell("Темная власть", t) 
+        end) then return end
+        if TryEach(TARGETS, function(t) 
+            return UnitIsPlayer(t) and not InRange("Ледяные оковы", t) and not HasDebuff("Темная власть", 1, t) and DoSpell("Темная власть", t) 
+        end) then return end
+        
         if DeathGripState and HasBuff("Власть льда") and InGroup() and InCombat(3) 
             and TryEach(TARGETS, function(target) return IsValidTarget(target) and UnitAffectingCombat(target) and TryTaunt(target) end) then return end
             
@@ -65,7 +73,11 @@ function Frost()
         end
 
         if not IsAOE() and Dotes() then
-            if HasRunes(011) and DoSpell("Уничтожение") then return end 
+            if IsPvP() and UnitHealth100("player") < 85 then
+                if HasRunes(011) and DoSpell("Удар смерти") then return end 
+            else
+                if HasRunes(011) and DoSpell("Уничтожение") then return end 
+            end
             if HasRunes(100) and DoSpell("Кровавый удар") then return end
         end
 
@@ -111,7 +123,7 @@ end
 function TryBuffs()
     if CanAttack("target") and UnitHealth("target") < 19000 then return false end
     if not HasBuff("Зимний горн") and DoSpell("Зимний горн") then return true end
-    if not (FindAura("Настой") or FindAura("Эликсир")) then 
+    if not (HasBuff("Настой") or HasBuff("Эликсир")) then 
         if (BersState and IsUsableItem("Настой бесконечной ярости")) then
             if UseItem("Настой бесконечной ярости") then return true end
         else

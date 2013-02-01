@@ -106,12 +106,18 @@ function TryInterrupt(target)
         end
     end
     
-    if CanAttack(target) and (channel or t < 0.8) and (DeathGripState or UnitIsPlayer("target")) and DoSpell("Хватка смерти", target) then 
+    if CanAttack(target) and (channel or t < 0.8) and (DeathGripState or UnitIsPlayer(target)) and DoSpell("Хватка смерти", target) then 
         echo("Хватка смерти"..m)
         interruptTime = GetTime()
         return true 
     end
 
+    if CanAttack(target) and (channel or t < 1.8) and HasSpell("Ненасытная стужа") and (CheckInteractDistance(target,3) == 1) and DoSpell("Ненасытная стужа") then 
+        echo("Ненасытная стужа"..m)
+        interruptTime = GetTime()+2
+       return true 
+    end
+    
     if CanAttack(target) and (channel or t < 1.8) and IsOneUnit(target, "mouseover") 
         and (GetUnitName("player") == GetUnitName(target .. "-target") or  UnitClassification(target) == "worldboss") and UseSlot(6) then 
         echo("Наременная граната"..m)
@@ -122,6 +128,12 @@ function TryInterrupt(target)
     if GetUnitName("player") == GetUnitName(target .. "-target") and DoSpell("Антимагический панцирь") then 
         echo("Антимагический панцирь"..m)
         interruptTime = GetTime() + 5
+        return true 
+    end
+    
+    if HasSpell("Перерождение") and tContains({"Превращение", "Сглаз"}, spell) and DoSpell("Перерождение") then 
+        echo("Перерождение"..m)
+        interruptTime = GetTime() + 2
         return true 
     end
 --~     echo("Нечем сбить"..m)
@@ -152,6 +164,7 @@ function NeedDeathPact()
         chat("Сожрал пета!")
         pact = false
     end
+    if UnitHealth100(player) > 80 then pact = false end
     if pact then return true end
     if (InCombatLockdown() and CalculateHP("player") < 60) and IsReadySpell("Войско мертвых") and IsReadySpell("Смертельный союз") and (GetTime() - DeathPact > 10) then return true end
     return false
@@ -206,12 +219,27 @@ local lichList = {
 "Глубинный ужас", 
 "Ментальный крик"
 }
+
+local freedomTime = 0
 function UpdateAutoFreedom(event, ...)
     local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel = select(1, ...)
     if sourceGUID == UnitGUID("player") and (type:match("^SPELL_CAST") and spellId and spellName)
-        and err and err:match("Действие невозможно")  then
-        if HasDebuff(lichList, 3.8, "player") then DoCommand("lich") end 
-        if HasDebuff(freedomList, 3.8, "player") then DoCommand("freedom") end 
+        and err and err:match("Действие невозможно") and GetTime() - freedomTime > 1 then
+        if HasDebuff(lichList, 3.1, "player") then 
+            print(GetSpellCooldownLeft("Перерождение"))
+            if HasSpell("Перерождение") and GetSpellCooldownLeft("Перерождение") < 2 then
+                DoCommand("lich") 
+            else
+                DoCommand("freedom")
+            end
+            freedomTime = GetTime()
+            return
+        end 
+        if HasDebuff(freedomList, 3.1, "player") then 
+            DoCommand("freedom") 
+            freedomTime = GetTime()
+            return
+        end 
     end
 end
 AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateAutoFreedom)
