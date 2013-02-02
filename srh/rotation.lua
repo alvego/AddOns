@@ -489,7 +489,11 @@ function MDDRotation()
         end
         if DoSpell("Молния", "target") then return end
     end
-    if (IsSpellNotUsed("Развеивание магии", 5) or not PlayerInPlace()) and TrySteal("target") then dispelTime = GetTime() return end
+    if IsSpellNotUsed("Развеивание магии", 5) and UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") and CanMagicAttack("target") then
+        if HasBuff(StealShieldsRedList, 2, "target") and TrySteal("target") then return end
+        if HasBuff(StealRedList, 2, "target") and TrySteal("target") then return end
+        if UnitHealth100("target") < 100 and HasBuff(StealHotRedList, 2, "target") and TrySteal("target") then return end
+    end
     if not HasMyDebuff("Огненный шок", 0.5,"target") and DoSpell("Огненный шок", "target") then return end
     if not HasBuff("Ярость шамана") and DoSpell("Ярость шамана") then return end
     if DoSpell("Удар бури", "target") then return end
@@ -511,7 +515,11 @@ function RDDRotation()
     end
     if not IsValidTarget("target") then return end
     RunMacroText("/startattack")
-    if (GetTime() - dispelTime > 5 or not PlayerInPlace()) and TrySteal("target") then dispelTime = GetTime() return end
+    if IsSpellNotUsed("Развеивание магии", 5) and UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") and CanMagicAttack("target") then
+        if HasBuff(StealShieldsRedList, 2, "target") and TrySteal("target") then return end
+        if HasBuff(StealRedList, 2, "target") and TrySteal("target") then return end
+        if UnitHealth100("target") < 100 and HasBuff(StealHotRedList, 2, "target") and TrySteal("target") then return end
+    end
     if not HasMyDebuff("Огненный шок", 0.5,"target") and DoSpell("Огненный шок", "target") then return end
     if HasMyDebuff("Огненный шок", 2,"target") and DoSpell("Выброс лавы", "target") then return end
     if IsAOE() and DoSpell("Цепная молния", "target") then return end
@@ -533,13 +541,13 @@ function TryTarget(useFocus)
         local members = GetGroupUnits()
         for _,member in pairs(members) do 
             target = member .. "-target"
-            if not found and IsValidTarget(target) and UnitCanAttack("player", target) and ActualDistance(target)  then 
+            if not found and IsValidTarget(target) and UnitCanAttack("player", target) and ActualDistance(target) and (not IsPvP() or UnitIsPlayer(target))  then 
                 found = true 
                 RunMacroText("/startattack " .. target) 
             end
         end
 
-        if not ActualDistance("target") or not UnitCanAttack("player", "target") then
+        if not ActualDistance("target") or not UnitCanAttack("player", "target") or (IsPvP() and not UnitIsPlayer("target")) then
             RunMacroText("/cleartarget")
         end
 
@@ -548,7 +556,7 @@ function TryTarget(useFocus)
     if  not IsValidTarget("target") then
         if GetNextTarget() ~= nil then
             RunMacroText("/startattack "..GetNextTarget())
-            if not ActualDistance("target") or not NextIsTarget() or not UnitCanAttack("player", "target") then
+            if not ActualDistance("target") or not NextIsTarget() or not UnitCanAttack("player", "target") or (IsPvP() and not UnitIsPlayer("target")) then
                 RunMacroText("/cleartarget")
             end
             ClearNextTarget()
@@ -556,9 +564,12 @@ function TryTarget(useFocus)
     end
 
     if not IsValidTarget("target") then
-        RunMacroText("/targetenemy [nodead]")
-        
-        if not IsAttack() and not ActualDistance("target") or not UnitCanAttack("player", "target") then
+        if IsPvP() then
+            RunMacroText("/targetenemyplayer [nodead]")
+        else
+            RunMacroText("/targetenemy [nodead]")
+        end
+        if not IsAttack() and not ActualDistance("target") or not UnitCanAttack("player", "target") or (IsPvP() and not UnitIsPlayer("target")) then
             RunMacroText("/cleartarget")
         end
     end

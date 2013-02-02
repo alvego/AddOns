@@ -7,9 +7,17 @@ function Idle()
         if IsMounted() then Dismount() return end 
     end
     if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted()) then return end
+    if IsMouseButtonDown(3) and TryTaunt("mouseover") then return end
+    if TryEach(TARGETS, function(t) 
+        return UnitIsPlayer(t) and tContains({"ROGUE", "DRUID"}, GetClass(t)) and not InRange("Покаяние", t) and not HasDebuff("Длань возмездия", 1, t) and DoSpell("Длань возмездия", t) 
+    end) then return end
+    if TryEach(TARGETS, function(t) 
+        return UnitIsPlayer(t) and not InRange("Покаяние", t) and not HasDebuff("Длань возмездия", 1, t) and DoSpell("Длань возмездия", t) 
+    end) then return end
+    
     if (IsAttack() or InCombatLockdown()) then
         if CanInterrupt and TryEach(TARGETS, TryInterrupt) then return end
-        if IsMouseButtonDown(3) and TryTaunt("mouseover") then return end
+        
         if AutoAGGRO and InGroup() and InCombat(1) and TryEach(TARGETS, function(target) return IsValidTarget(target) and UnitAffectingCombat(target) and TryTaunt(target) end) then return end
         -- Священная жертва
         if InCombatLockdown() and HasSpell("Щит мстителя") and InGroup() and CalculateHP("player") > 70 then
@@ -181,19 +189,24 @@ function TryHealing()
 end
 
 ------------------------------------------------------------------------------------------------------------------
+function ActualDistance(target)
+    if target == nil then target = "target" end
+    return (CheckInteractDistance(target, 3) == 1)
+end
+
 function TryTarget()
     if not IsValidTarget("target") then
         local found = false
         local members = GetGroupUnits()
         for _,member in pairs(members) do 
             target = member .. "-target"
-            if not found and IsValidTarget(target) and UnitCanAttack("player", target) and (CheckInteractDistance(target, 2) == 1)  then 
+            if not found and IsValidTarget(target) and UnitCanAttack("player", target) and ActualDistance(target) and (not IsPvP() or UnitIsPlayer(target))  then 
                 found = true 
                 RunMacroText("/startattack " .. target) 
             end
         end
 
-        if not (CheckInteractDistance("target", 2) == 1) or not UnitCanAttack("player", "target") then
+        if not ActualDistance("target") or not UnitCanAttack("player", "target") or (IsPvP() and not UnitIsPlayer("target")) then
             RunMacroText("/cleartarget")
         end
 
@@ -202,7 +215,7 @@ function TryTarget()
     if  not IsValidTarget("target") then
         if GetNextTarget() ~= nil then
             RunMacroText("/startattack "..GetNextTarget())
-            if not (CheckInteractDistance("target", 2) == 1) or not NextIsTarget() or not UnitCanAttack("player", "target") then
+            if not ActualDistance("target") or not NextIsTarget() or not UnitCanAttack("player", "target") or (IsPvP() and not UnitIsPlayer("target")) then
                 RunMacroText("/cleartarget")
             end
             ClearNextTarget()
@@ -210,9 +223,12 @@ function TryTarget()
     end
 
     if not IsValidTarget("target") then
-        RunMacroText("/targetenemy [nodead]")
-        
-        if not IsAttack() and not (CheckInteractDistance("target", 2) == 1) or not UnitCanAttack("player", "target") then
+        if IsPvP() then
+            RunMacroText("/targetenemyplayer [nodead]")
+        else
+            RunMacroText("/targetenemy [nodead]")
+        end
+        if not IsAttack() and not ActualDistance("target") or not UnitCanAttack("player", "target") or (IsPvP() and not UnitIsPlayer("target")) then
             RunMacroText("/cleartarget")
         end
     end
@@ -242,6 +258,7 @@ function TryTarget()
 end
 
 ------------------------------------------------------------------------------------------------------------------
+local tryShieldTime = 0
 function TryProtect()
     if InCombatLockdown() then
         if (UnitHealth100() < 90 and not (HasBuff("Крепнущая броня"))) then
@@ -253,9 +270,23 @@ function TryProtect()
         if (UnitHealth100() < 50 and not (HasBuff("Затвердевшая кожа"))) then
             if UseEquippedItem("Проржавевший костяной ключ") then return true end
         end
-        if HasSpell("Удар воина Света") and (UnitHealth100() < 20) and DoSpell("Божественный щит") then return true end
-        if (UnitHealth100() < 15) and not IsReadySpell("Божественный щит") and DoSpell("Божественная защита") then return true end   
+        
+        if GetTime() - tryShieldTime > 5 then 
+        
+            if HasSpell("Удар воина Света") and (UnitHealth100() < 20) then 
+                if DoSpell("Божественный щит") then 
+                    tryShieldTime = GetTime()
+                    return true 
+                end
+                if IsReadySpell("Божественный щит") then return false end
+            end
+            
+            if (UnitHealth100() < 15) and DoSpell("Божественная защита") then 
+                tryShieldTime = GetTime()
+                return true 
+            end   
         end
+    end
     return false
 end
 
@@ -317,7 +348,7 @@ function TryTaunt(target)
      return true  
  end
 
- if IsInteractUnit(tt) and DoSpell("Праведная защита", tt) then 
+ if not IsReadySpell("Длань возмездия") and IsInteractUnit(tt) and DoSpell("Праведная защита", tt) then 
      TauntTime = GetTime()
      -- chat("Праведная защита на " .. UnitName(tt))
      return true  

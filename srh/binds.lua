@@ -296,7 +296,7 @@ local function UpdateInterruptErr(event, ...)
         and spellId and spellName and spellName == interruptSpell then
         if type:match("^SPELL_CAST") then
             local target = GetLastSpellTarget(interruptSpell)
-            if target and err and interruptedSpell then
+            if target and err and type(err) == "string" and interruptedSpell then
                 local utype = GetUnitType(target)
                 local spells = InterruptBlackList[utype] or {}
                 local info = interruptedSpell + '|' + err
