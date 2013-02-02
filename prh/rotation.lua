@@ -46,7 +46,8 @@ function Tank()
     local target = "target"
     -- пытаемся сдиспелить с себя каку не чаще чем раз в 2 сек
     if IsSpellNotUsed("Очищение" , 2) and TryDispel("player") then return end
-    if not (IsValidTarget(target) and (UnitAffectingCombat(target) and CanAttack(target) or IsAttack()))  then return end
+    if not IsAttack() and not CanAttack(target) then return end
+    if not (UnitAffectingCombat(target) or IsAttack()) then return end
     if DoSpell("Щит мстителя", target) then return end
     if IsAOE() then
         if UnitMana100("player") > 50 and InMelee(target) and DoSpell("Освящение", target) then return end
@@ -116,7 +117,8 @@ function Retribution()
     if TryEach(TARGETS, function(t)
         return CanAttack(t) and tContains({ "Тотем оков земли", "Тотем прилива маны" }, UnitName(t)) and DoSpell("Длань возмездия",t) end
     ) then return end
-    if not (IsValidTarget(target) and (UnitAffectingCombat(target) and CanAttack(target) or IsAttack()))  then return end
+    if not IsAttack() and not CanAttack(target) then return end
+    if not (UnitAffectingCombat(target) or IsAttack()) then return end
     if InMelee(target) and HasBuff("Гнев карателя") and UseEquippedItem("Знак превосходства")then return end
     if IsShiftKeyDown() == 1 and DoSpell("Освящение") then return end
     if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end

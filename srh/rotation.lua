@@ -455,19 +455,18 @@ function MDDRotation()
     if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16) and UseSpell("Оружие неистовства ветра") then return end
     if OffhandHasWeapon() and GetInventoryItemID("player",17) and not DetermineTempEnchantFromTooltip(17) and UseSpell("Оружие языка пламени") then return end
     
-    if not IsAttack() and not CanAttack() then return end
-    if not (UnitAffectingCombat("target") or IsAttack()) then return end
-    
     if not UnitAffectingCombat("target") and (not HasBuff("Водный щит") or UnitMana100("player") > 50) then
         if not HasBuff("Щит молний") and DoSpell("Щит молний") then return end
     end
     
     if (not HasBuff("Водный щит") and UnitMana100("player") < 30) and not HasBuff("Водный щит") and DoSpell("Водный щит") then return end
     
-    if not IsValidTarget("target") then return end
+    if not IsAttack() and not CanAttack("target") then return end
+    if not (UnitAffectingCombat("target") or IsAttack()) then return end
+    
     if IsAttack() then RunMacroText("/startattack") end
     if (UnitHealth100("player") < 35) and DoSpell("Дух дикого волка") then return end
-    if not ActualDistance() and IsAttack() then
+    if CanMagicAttack("target") and not ActualDistance() and IsAttack() then
         if UnitAffectingCombat("target") then
             if not HasMyDebuff("Огненный шок", 0.5,"target") and DoSpell("Огненный шок", "target") then return end
             if DoSpell("Земной шок") then return end
@@ -483,7 +482,7 @@ function MDDRotation()
     if InMelee() and UseEquippedItem("Карманные часы Феззика") then return end
     if InMelee() and UseEquippedItem("Знак превосходства") then return end
     if IsAOE() and HasTotem(1) and DoSpell("Кольцо огня") then return end
-    if GetBuffStack("Оружие Водоворота") == 5 then
+    if CanMagicAttack("target") and GetBuffStack("Оружие Водоворота") == 5 then
         if IsAOE() then
             if DoSpell("Цепная молния", "target") then return end
         end
