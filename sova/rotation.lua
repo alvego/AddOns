@@ -5,7 +5,7 @@ function Idle()
         if CanExitVehicle() then VehicleExit() return end
         if IsMounted() then Dismount() return end 
     end
-    if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted()) then return end
+    if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or CanExitVehicle()) then return end
     if (IsAttack() or InCombatLockdown()) then
         if TryHealing() then return end
         if TryProtect() then return end
@@ -13,21 +13,31 @@ function Idle()
         TryTarget()
         
         if HasSpell("Звездопад") then
-            Tank() 
+            Sova() 
         end
     end
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function Tank()
+local t = 0
+function Sova()
+    if t ~= 7 and Debug then print(t) end
+    t = 0
     if not HasBuff("Облик лунного совуха") and DoSpell("Облик лунного совуха") then return end
-    if UnitMana100("player") < 50 and DoSpell("Озарение") then return end
+    t = 1
+    if UnitMana100("player") < 50 and DoSpell("Озарение", "player") then return end
+    t = 2
     if UnitHealth("target") > 200000 and not HasDebuff("Волшебный огонь") and DoSpell("Волшебный огонь") then return end
-    -- if not HasDebuff("Земля и луна") and DoSpell("Гнев", target) then end
-    if not HasMyDebuff("Рой насекомых", 1,"target") and DoSpell("Рой насекомых","target") then return end
-    if not HasMyDebuff("Лунный огонь", 1,"target") and DoSpell("Лунный огонь","target") then return end
-    if HasBuff("Лунное", 0.1, "player") and DoSpell("Звездный огонь","target") then return end
-    if not HasBuff("Лунное", 0.1, "player") and DoSpell("Гнев","target") then return end
+    t = 3
+    --if not HasDebuff("Земля и луна") and DoSpell("Гнев") then end
+    if not HasMyDebuff("Рой насекомых", 1,"target") and DoSpell("Рой насекомых") then return end
+    t = 4
+    if not HasMyDebuff("Лунный огонь", 1,"target") and DoSpell("Лунный огонь") then return end
+    t = 5
+    if HasBuff("Лунное") and DoSpell("Звездный огонь") then return end
+    t = 6
+    if DoSpell("Гнев") then return end
+    t = 7
 end
 
 ------------------------------------------------------------------------------------------------------------------

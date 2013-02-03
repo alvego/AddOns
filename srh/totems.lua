@@ -71,11 +71,11 @@ function TryTotems(forceTotems, h)
     end
     -------------------------------------------------------------------------------------------------------------
     
-    if needTremor then
+    if needTremor or IsPvP() then
         wipe(earthTotems)
         force[earth] = false
         if not HasTotem("Тотем трепета") and IsReadySpell("Тотем трепета") then
-            force[earth] = true
+            if needTremor then force[earth] = true end
             table.insert(earthTotems, { N = "Тотем трепета", P = 80 })
         end
     end
