@@ -29,6 +29,16 @@ function GetItemCooldownLeft(name)
 end
 
 ------------------------------------------------------------------------------------------------------------------
+function ItemExists(item)
+    return GetItemInfo(item) and true or false
+end
+function ItemInRange(item, unit)
+    if ItemExists(item) then
+        return (IsItemInRange(item, unit) == 1)
+    end
+    return false
+end
+------------------------------------------------------------------------------------------------------------------
 function IsReadyItem(name)
    local usable = IsUsableItem(name) 
    if not usable then return true end
