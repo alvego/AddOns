@@ -283,7 +283,7 @@ function TryProtect()
                 if IsReadySpell("Божественный щит") then return false end
             end
             
-            if (not IsPvP() or IsSpellNotUsed("Божественный щит", 60)) and (UnitHealth100() < 15) and DoSpell("Божественная защита") then 
+            if not IsPvP() and (UnitHealth100() < 15) and DoSpell("Божественная защита") then 
                 tryShieldTime = GetTime()
                 return true 
             end   
