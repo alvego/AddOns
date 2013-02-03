@@ -128,7 +128,7 @@ function Retribution()
         if DoSpell(IsAltKeyDown() and "Правосудие справедливости" or (UnitMana100("player") < 60 and "Правосудие мудрости" or "Правосудие света"), target) then return end
     end
     if CanAttack(tagret) and UnitMana100("player") > 20 and not InMelee(target) and HasDebuff(rootDispelList, 1, "player") and TryDispel("player") then return end
-    if InMelee(target) and DoSpell("Божественная буря") then return end
+    if CheckInteractDistance("target", 3) == 1 and DoSpell("Божественная буря") then return end
     if DoSpell("Удар воина Света", target) then return end
     if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    
     if UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
@@ -283,7 +283,7 @@ function TryProtect()
                 if IsReadySpell("Божественный щит") then return false end
             end
             
-            if (UnitHealth100() < 15) and DoSpell("Божественная защита") then 
+            if (not IsPvP() or IsSpellNotUsed("Божественный щит", 60)) and (UnitHealth100() < 15) and DoSpell("Божественная защита") then 
                 tryShieldTime = GetTime()
                 return true 
             end   

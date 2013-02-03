@@ -61,7 +61,7 @@ SetCommand("hex",
             DoSpell("Природная стремительность") 
         end]]
         echo("Сглаз",1)
-        return DoSpell("Сглаз", "target")
+        if not IsPlayerCasting() then DoSpell("Сглаз", "target") end
     end, 
     function() 
         if not CanControl("target") or not IsSpellNotUsed("Сглаз", 1)  then return true end

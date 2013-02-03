@@ -290,11 +290,11 @@ function TryInterrupt(target, hp)
     return false    
 end
 
-local function UpdateInterruptErr(event, ...)
-    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, arg13 = select(1, ...)
+--[[local function UpdateInterruptErr(event, ...)
+    local timestamp, _type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, arg13 = select(1, ...)
     if sourceGUID == UnitGUID("player")
         and spellId and spellName and spellName == interruptSpell then
-        if type:match("^SPELL_CAST") then
+        if _type:match("^SPELL_CAST") then
             local target = GetLastSpellTarget(interruptSpell)
             if target and err and type(err) == "string" and interruptedSpell then
                 local utype = GetUnitType(target)
@@ -308,7 +308,7 @@ local function UpdateInterruptErr(event, ...)
         end
     end
 end    
-AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateInterruptErr)
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateInterruptErr)]]
 
 function UpdateInterruptWhiteList(event, ...)
     local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, args12, interruptedSpell = select(1, ...)
