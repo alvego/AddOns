@@ -285,7 +285,7 @@ function UseSpell(spellName, target)
         local cast = "/cast "
         -- с учетом цели
         if target ~= nil then cast = cast .."[target=".. target .."] "  end
-        -- проверяем, хвататет ли нам маны
+        -- проверяем, хватает ли нам маны
         if cost and cost > 0 and UnitManaMax("player") > cost and UnitMana("player") <= cost then return false end
         if UnitExists(target) then 
             -- данные о кастах
