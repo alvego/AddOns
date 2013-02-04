@@ -6,7 +6,7 @@ function Idle()
         if CanExitVehicle() then VehicleExit() return end
         if IsMounted() then Dismount() return end 
     end
-    if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted()) then return end
+    if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or  CanExitVehicle()) then return end
     if IsMouseButtonDown(3) and TryTaunt("mouseover") then return end
     if TryEach(TARGETS, function(t) 
         return UnitIsPlayer(t) and tContains({"ROGUE", "DRUID"}, GetClass(t)) and not InRange("Покаяние", t) and not HasDebuff("Длань возмездия", 1, t) and DoSpell("Длань возмездия", t) 

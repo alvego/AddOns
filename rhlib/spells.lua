@@ -209,6 +209,14 @@ function IsSpellNotUsed(spell, t)
     local last  = GetSpellLastTime(spell)
     return GetTime() - last >= t
 end
+
+function IsSpellInUse(spellName)
+    if not spellName or not InCast[spellName] or not InCast[spellName].StartTime then return false end
+    local start = InCast[spellName].StartTime
+    if (GetTime() - start <= 0.3) then return true end
+    if IsReadySpell(spellName) then InCast[spellName].StartTime = 0 end
+    return false
+end
 ------------------------------------------------------------------------------------------------------------------
 local function checkTargetInErrList(target, list)
     if not target or target == "player"  then return true end
@@ -270,10 +278,8 @@ function UseSpell(spellName, target)
         if Debug then error("Спел [".. spellName .. "] не найден!") end
         return false;
     end
-    -- чтоб не залипало, ставим минимальный интервал
-    if not castTime or castTime < 0.5 then castTime = 0.5 end
     -- проверяем, что этот спел не используется сейчас
-    if InCast[spellName] and InCast[spellName].StartTime and (GetTime() - InCast[spellName].StartTime <= castTime) then return false end
+    if IsSpellInUse(spellName) then return false end
     -- проверяем, что цель подходящая для этого спела
     local badTargets =  badSpellTarget[spellName] or {}
     if UnitExists(target) and badTargets[UnitGUID(target)] and (GetTime() - badTargets[UnitGUID(target)] < 10) then return false end
