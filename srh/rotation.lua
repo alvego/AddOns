@@ -315,7 +315,7 @@ function HealRotation()
         
         
         if UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") then
-            -- получаем приоритетные цели (паример цель дд в тиме, сортируем их по хп)
+            -- получаем приоритетные цели (например цель дд в тиме, сортируем их по хп)
             local targets = {}
             table.foreach(IUNITS, function(_,u)
                 local t = u .. "-target"
@@ -323,12 +323,12 @@ function HealRotation()
                     tinsert(targets, t)
                 end
             end)
-            -- снимем щитфы с целей дд
+            -- снимем щиты с целей дд
             table.sort(targets, function(t1, t2) return UnitHealth100(t1) < UnitHealth100(t2) end)
             if TryEach(targets, 
                 function(t) return HasBuff(StealShieldsRedList, 2, t) and TrySteal(t) end
             ) then return  end
-            -- снимаем хоты, с делей дд, если есть смысл (не фул хп)
+            -- снимаем хоты, с целей дд, если есть смысл (не фул хп)
             if TryEach(targets, 
                 function(t) return UnitHealth100(t) < 100 and HasBuff(StealHotRedList, 2, t) and TrySteal(t) end
             ) then return  end

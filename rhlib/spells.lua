@@ -213,7 +213,7 @@ end
 function IsSpellInUse(spellName)
     if not spellName or not InCast[spellName] or not InCast[spellName].StartTime then return false end
     local start = InCast[spellName].StartTime
-    if (GetTime() - start <= 0.3) then return true end
+    if (GetTime() - start <= 0.5) then return true end
     if IsReadySpell(spellName) then InCast[spellName].StartTime = 0 end
     return false
 end
@@ -267,10 +267,18 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateTargetPosition)
 ------------------------------------------------------------------------------------------------------------------
 local badSpellTarget = {}
 function UseSpell(spellName, target)
+    local dump = false --spellName == "Божественная буря"
+    --if spellName == "Священный щит" then error("Щит") end
     -- Не мешаем выбрать облась для спела (нажат вручную)
-    if SpellIsTargeting() then return false end 
+    if SpellIsTargeting() then 
+        if dump then print("Ждем выбор цели, не можем прожать", spellName) end
+        return false 
+    end 
     -- Не пытаемся что либо прожимать во время каста
-    if IsPlayerCasting() then return false end
+    if IsPlayerCasting() then 
+        if dump then print("Кастим, не можем прожать", spellName) end
+        return false 
+    end
     if target == nil and IsHarmfulSpell(spellName) then target = "target" end
     -- Проверяем на наличе спела в спелбуке
     local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spellName)
@@ -279,12 +287,26 @@ function UseSpell(spellName, target)
         return false;
     end
     -- проверяем, что этот спел не используется сейчас
-    if IsSpellInUse(spellName) then return false end
+    if IsSpellInUse(spellName) then 
+        if dump then print("Уже прожали, SPELL_SENT пошел, не можем больше прожать", spellName) end
+        return false 
+    end
     -- проверяем, что цель подходящая для этого спела
     local badTargets =  badSpellTarget[spellName] or {}
-    if UnitExists(target) and badTargets[UnitGUID(target)] and (GetTime() - badTargets[UnitGUID(target)] < 10) then return false end
+    if UnitExists(target) then 
+        local badTargetTime = badTargets[UnitGUID(target)]
+        if badTargetTime and (GetTime() - badTargetTime < 10) then 
+            if dump then 
+                print(target, "- Цель не подходящая, не можем прожать", spellName) 
+            end
+            return false 
+        end
+    end
     -- проверяем что цель в зоне досягаемости
-    if not InRange(spellName, target) then return false end  
+    if not InRange(spellName, target) then 
+        if dump then print(target," - Цель вне зоны досягаемости, не можем прожать", spellName) end
+        return false
+    end  
     -- Проверяем что все готово
     if IsReadySpell(spellName) then
         -- собираем команду
@@ -292,7 +314,10 @@ function UseSpell(spellName, target)
         -- с учетом цели
         if target ~= nil then cast = cast .."[target=".. target .."] "  end
         -- проверяем, хватает ли нам маны
-        if cost and cost > 0 and UnitManaMax("player") > cost and UnitMana("player") <= cost then return false end
+        if cost and cost > 0 and UnitManaMax("player") > cost and UnitMana("player") <= cost then 
+            if dump then print("Не достаточно маны, не можем прожать", spellName) end
+            return false
+        end
         if UnitExists(target) then 
             -- данные о кастах
             local castInfo = InCast[spellName] or {}
@@ -302,6 +327,7 @@ function UseSpell(spellName, target)
             InCast[spellName] = castInfo
         end
         -- пробуем скастовать
+        if dump then print("Жмем", cast .. "!" .. spellName) end
         RunMacroText(cast .. "!" .. spellName)
         -- если нужно выбрать область - кидаем на текущий mouseover
         if SpellIsTargeting() then CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() end 
@@ -312,7 +338,8 @@ function UseSpell(spellName, target)
         if castInfo.StartTime and (GetTime() - castInfo.StartTime < 0.01) then
             if UnitExists(target) then
                 -- проверяем цель на соответствие реальной
-                if castInfo.TargetName and castInfo.TargetName ~= UnitName(target) then 
+                if castInfo.TargetName and castInfo.TargetName ~= "" and castInfo.TargetName ~= UnitName(target) then 
+                    if dump then print("Цели не совпали", spellName) end
                     RunMacroText("/stopcasting") 
                     --chat("bad target", target, spellName)
                     badTargets[UnitGUID(target)] = GetTime()
@@ -323,12 +350,14 @@ function UseSpell(spellName, target)
                 end
                 InCast[spellName] = castInfo
             end
-            
+            if dump then print("Спел вроде прожался", spellName) end
             if Debug then
                 print(spellName, cost, target)
             end
             return true
         end
+        if dump then print("SPELL_CAST - не произошел для", spellName) end
     end
+    if dump then print("Не готово, не можем прожать", spellName) end
     return false
 end

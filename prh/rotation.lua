@@ -132,7 +132,7 @@ function Retribution()
     if DoSpell("Удар воина Света", target) then return end
     if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    
     if UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
-    if (GetTime() - holyShieldTime > 10) 
+    if (IsPvP() or (UnitThreat("player") == 3 and UnitHealth100("player") < 95)) and (GetTime() - holyShieldTime > 10) 
         and not TryEach(UNITS, function(u) return HasMyBuff("Священный щит", 0.1, u) end) and DoSpell("Священный щит","player") then holyShieldTime = GetTime() return end
     if not IsFinishHim(target) and UnitMana100("player") > 40 and IsReadySpell("Очищение") and TryEach(IUNITS, TryDispel) then return end
 end
@@ -336,13 +336,18 @@ end
 ------------------------------------------------------------------------------------------------------------------
 local TauntTime = 0
 function TryTaunt(target)
+ if (GetTime() - TauntTime < 1.5) then return false end
  if not CanAttack(target) then return false end
  if UnitIsPlayer(target) then return false end
- if UnitThreat("player",target) == 3 then return false end
- if (GetTime() - TauntTime < 1.5) then return false end
+ 
  local tt = UnitName(target .. "-target")
  if not UnitExists(tt) then return false end
+ 
  if IsOneUnit("player", tt) then return false end
+ -- Снимаем только с игроков, причем только с тех, которые не в черном списке
+ if not TryEach(GetGroupUnits(), function(u)
+    return (not IsOneUnit("player", u) and not IsIgnored(u) and UnitThreat(u,target) == 3) 
+    end) then return false end
  
  if DoSpell("Длань возмездия", target) then 
      TauntTime = GetTime()
