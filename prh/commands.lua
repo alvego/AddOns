@@ -34,6 +34,13 @@ SetCommand("free",
 )
 
 ------------------------------------------------------------------------------------------------------------------
+SetCommand("frees", 
+   function() return DoSpell("Длань свободы","Shizm") end, 
+   function() return HasBuff("Длань свободы","Shizm") 
+      or (not InGCD() and not IsReadySpell("Длань свободы")) end
+)
+
+------------------------------------------------------------------------------------------------------------------
 SetCommand("freedom", 
    function() return DoSpell("Каждый за себя") end, 
    function() return not InGCD() and not IsReadySpell("Каждый за себя") end
@@ -68,6 +75,12 @@ SetCommand("fstun",
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("sv", 
    function() return DoSpell("Длань защиты","Ириха") end, 
+   function() return not InForbearance("Ириха") and not InGCD() and not IsReadySpell("Длань защиты") end
+)
+
+------------------------------------------------------------------------------------------------------------------
+SetCommand("svs", 
+   function() return DoSpell("Длань защиты","Shizm") end, 
    function() return not InForbearance("Ириха") and not InGCD() and not IsReadySpell("Длань защиты") end
 )
 

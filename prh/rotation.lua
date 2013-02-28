@@ -11,9 +11,9 @@ function Idle()
     if TryEach(TARGETS, function(t) 
         return UnitIsPlayer(t) and tContains({"ROGUE", "DRUID"}, GetClass(t)) and not InRange("Покаяние", t) and not HasDebuff("Длань возмездия", 1, t) and DoSpell("Длань возмездия", t) 
     end) then return end
-    if TryEach(TARGETS, function(t) 
-        return UnitIsPlayer(t) and not InRange("Покаяние", t) and not HasDebuff("Длань возмездия", 1, t) and DoSpell("Длань возмездия", t) 
-    end) then return end
+    -- if TryEach(TARGETS, function(t) 
+        -- return UnitIsPlayer(t) and not InRange("Покаяние", t) and not HasDebuff("Длань возмездия", 1, t) and DoSpell("Длань возмездия", t) 
+    -- end) then return end
     
     if (IsAttack() or InCombatLockdown()) then
         if CanInterrupt and TryEach(TARGETS, TryInterrupt) then return end
@@ -111,7 +111,7 @@ function Retribution()
     if UnitMana100("player") < 20 and not HasBuff("Печать мудрости") and DoSpell("Печать мудрости") then return end
     if UnitMana100("player") > 70 then RunMacroText("/cancelaura Печать мудрости") end
     if TryEach(TARGETS, function(t)
-        return CanAttack(t) and (UnitCreatureType(t) == "Нежить" or UnitCreatureType(t) == "Демон") 
+        return CanAttack(t) and IsPvP() and (UnitCreatureType(t) == "Нежить" or UnitCreatureType(t) == "Демон") 
         and not HasDebuff("Изгнание зла", 0.1, t) and DoSpell("Изгнание зла",t) end
     ) then return end
     if TryEach(TARGETS, function(t)
@@ -128,7 +128,7 @@ function Retribution()
         if DoSpell(IsAltKeyDown() and "Правосудие справедливости" or (UnitMana100("player") < 60 and "Правосудие мудрости" or "Правосудие света"), target) then return end
     end
     if CanAttack(tagret) and UnitMana100("player") > 20 and not InMelee(target) and HasDebuff(rootDispelList, 1, "player") and TryDispel("player") then return end
-    if (CheckInteractDistance("target", 3) == 1) and DoSpell("Божественная буря") then return end
+    if InMelee(target) and DoSpell("Божественная буря") then return end
     if DoSpell("Удар воина Света", target) then return end
     if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    
     if UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
@@ -251,10 +251,10 @@ function TryTarget()
     end)
     
     
-    if IsArena() and IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
+    --[[if IsArena() and IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
         if IsOneUnit("target","arena1") then RunMacroText("/focus arena2") end
         if IsOneUnit("target","arena2") then RunMacroText("/focus arena1") end
-    end
+    end]]
     
     if IsAttack() or InCombatLockdown() then RunMacroText("/startattack")  end
 end
@@ -318,7 +318,7 @@ function TryInterrupt(target)
     m = " -> " .. spell .. " ("..target..")"
     
     if not notinterrupt then 
-        if CanControl(target) and DoSpell("Покаяние", target) then 
+        if HasSpell("Удар воина Света") and CanControl(target) and DoSpell("Покаяние", target) then 
             echo("Покаяние"..m)
             InterruptTime = GetTime()
             return true 
