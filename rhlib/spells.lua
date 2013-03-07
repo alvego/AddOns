@@ -267,7 +267,7 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateTargetPosition)
 ------------------------------------------------------------------------------------------------------------------
 local badSpellTarget = {}
 function UseSpell(spellName, target)
-    local dump = false --spellName == "Божественная буря"
+    local dump = true --spellName == "Божественная буря"
     --if spellName == "Священный щит" then error("Щит") end
     -- Не мешаем выбрать облась для спела (нажат вручную)
     if SpellIsTargeting() then 
@@ -287,10 +287,22 @@ function UseSpell(spellName, target)
         return false;
     end
     -- проверяем, что этот спел не используется сейчас
-    if IsSpellInUse(spellName) then 
+    local IsBusy = IsSpellInUse(spellName)
+    if IsBusy then
         if dump then print("Уже прожали, SPELL_SENT пошел, не можем больше прожать", spellName) end
         return false 
     end
+     -- проверяем, что не кастится другой спел
+    local inCastSpells = {"Рунический удар", "Удар героя", "Рассекающий удар","Гиперскоростное ускорение","Освященные перчатки ледяной ведьмы"} -- TODO: Нужно уточнить и дополнить.
+   foreach(InCast,
+       function(s)
+          if not IsBusy and not tContains(inCastSpells, s) and not IsReadySpell(s) then
+                if dump then print("Уже прожали " .. s .. ", ждем окончания, пока не можем больше прожать", spellName) end
+                IsBusy = true
+            end
+        end
+)
+   -- if IsBusy then return false end
     -- проверяем, что цель подходящая для этого спела
     local badTargets =  badSpellTarget[spellName] or {}
     if UnitExists(target) then 

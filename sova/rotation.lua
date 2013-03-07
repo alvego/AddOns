@@ -20,6 +20,8 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 local t = 0
+local s = 0
+local l = 0
 function Sova()
     if t ~= 7 and Debug then print(t) end
     t = 0
@@ -34,7 +36,8 @@ function Sova()
     t = 4
     if not HasMyDebuff("Лунный огонь", 1,"target") and DoSpell("Лунный огонь") then return end
     t = 5
-    if HasBuff("Лунное") and DoSpell("Звездный огонь") then return end
+
+    if not HasBuff("Солнечное") and (HasBuff("Лунное") or GetTime() - l < 4.6) and DoSpell("Звездный огонь") then l = GetTime() return end
     t = 6
     if DoSpell("Гнев") then return end
     t = 7
