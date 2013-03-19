@@ -267,7 +267,7 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateTargetPosition)
 ------------------------------------------------------------------------------------------------------------------
 local badSpellTarget = {}
 function UseSpell(spellName, target)
-    local dump = true --spellName == "Божественная буря"
+    local dump = false --spellName == "Божественная буря"
     --if spellName == "Священный щит" then error("Щит") end
     -- Не мешаем выбрать облась для спела (нажат вручную)
     if SpellIsTargeting() then 

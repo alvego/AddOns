@@ -32,6 +32,11 @@ SetCommand("lich",
         return not HasSpell("Перерождение") or  HasBuff("Перерождение", 1, "player") or not IsSpellNotUsed("Перерождение", 1) 
     end
 )
+------------------------------------------------------------------------------------------------------------------
+SetCommand("dg", 
+   function() return DoSpell("Хватка смерти") end, 
+   function() return not InGCD() and not IsReadySpell("Хватка смерти") end
+)
 
 ------------------------------------------------------------------------------------------------------------------
 local stopTarget = false

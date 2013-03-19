@@ -89,7 +89,7 @@ function Idle()
     
     --------------------------------------------------------------------------------------------------------------
     -- Рес по средней мышке + контрол
-    if IsLeftControlKeyDown() and IsMouseButtonDown(4) then
+    --[[if IsLeftControlKeyDown() and IsMouseButtonDown(4) then
         if CanRes("mouseover") then
             TryResUnit = TryEach(GetGroupUnits(), function(u) return IsOneUnit(u, "mouseover") and u end) or "mouseover"
             TryResTime = GetTime()
@@ -98,17 +98,17 @@ function Idle()
             local name = UnitName("mouseover")
             if name and UnitIsPlayer("mouseover") then print("Не могу реснуть", name) end
         end
-    end
+    end]]
     --------------------------------------------------------------------------------------------------------------
     -- не судьба реснуть...
-    if TryResUnit and (not CanRes(TryResUnit) or (CanRes(TryResUnit) and (GetTime() - TryResTime) > 60) or not PlayerInPlace())  then
+    --[[if TryResUnit and (not CanRes(TryResUnit) or (CanRes(TryResUnit) and (GetTime() - TryResTime) > 60) or not PlayerInPlace())  then
         if UnitName(TryResUnit) and not CanHeal(TryResUnit) then Notify("Не удалось воскресить " .. UnitName(TryResUnit)) end
         TryResUnit = nil
         TryResTime = 0
-    end
+    end]]
     --------------------------------------------------------------------------------------------------------------
     -- пробуем реснуть
-    if TryResUnit and CanRes(TryResUnit) and TryRes(TryResUnit) then return end
+    -- if TryResUnit and CanRes(TryResUnit) and TryRes(TryResUnit) then return end
     
     --------------------------------------------------------------------------------------------------------------
     -- Хил ротация
@@ -123,9 +123,9 @@ function Idle()
     -- Выбор цели
     if IsAttack() or InCombatLockdown() then TryTarget() end
     -- сбиваем касты
-    if TryEach(TARGETS, TryInterrupt) then return end
+    -- if TryEach(TARGETS, TryInterrupt) then return end
     -- тотемчики может поставить?
-     if TryTotems() then return end
+    -- if TryTotems() then return end
     --------------------------------------------------------------------------------------------------------------
     -- Энх
     if IsMDD() then 
@@ -166,8 +166,10 @@ function CheckHealCast(u, h)
 end
 
 local function TryBuff()
+        if not HasBuff("Настой ледяного змея") then
         local name, _, _, _, _, duration, Expires, _, _, _, spellId = UnitBuff("player", "Настой севера") 
         return not (name and spellId == (IsMDD() and 67017 or 67016) and Expires - GetTime() >= duration / 2) and UseItem("Настой севера")
+        end
 end
 local shieldChangeTime = 0
 function HealRotation()
@@ -199,7 +201,7 @@ function HealRotation()
     local myHP = CalculateHP("player")
 
     if InCombatLockdown() then
-        if (myHP < 30) and DoSpell("Кровь земли", "player") then return end
+        if (myHP < 30) and HasSpell("Кровь земли") and DoSpell("Кровь земли", "player") then return end
         if (myHP < 40) and HasSpell("Дар наару") and DoSpell("Дар наару", "player") then return end
         if myHP < 60 and UseEquippedItem("Проржавевший костяной ключ") then return end
         if not IsArena() then
@@ -387,7 +389,7 @@ function HealRotation()
     end
     
     if InCombatLockdown() then
-        if h < 20 and DoSpell("Дар наару", u) then return end
+        if h < 20 and HasSpell("Дар наару") and DoSpell("Дар наару", u) then return end
         if (lowhpmembers > 2 or l > HealingWaveHeal * 1.5) and UseEquippedItem("Талисман восстановления") then return end
         if (lowhpmembers > 1 or l > HealingWaveHeal * 1.2) and UseEquippedItem("Крылатый талисман") then return end
         if (l > (HealingWaveHeal * 1.5)) and HasSpell("Сила прилива") then DoSpell("Сила прилива") end
@@ -640,7 +642,8 @@ end
 function TryProtect()
     if InCombatLockdown or IsArena() then
         local hp = CalculateHP("player")
-        if (hp < 30) and DoSpell("Кровь земли", "player") then return end
+        if (hp < 30) and
+        HasSpell("Кровь земли") and DoSpell("Кровь земли", "player") then return end
         if not IsArena() and hp < 40 and UseHealPotion() then return true end
         if not IsArena() and UnitMana100("player") < 10 and UseItem("Рунический флакон с зельем маны") then return true end
         if not IsArena() and UnitMana100("player") < 30 and UseItem("Бездонный флакон с зельем маны") then return true end
@@ -653,7 +656,7 @@ function TryProtect()
         if #members > 0 then 
             local u, h, l = members[1].Unit, members[1].HP, members[1].Lost
             
-            if h < 70 and DoSpell("Дар наару", u) then return true end
+            if h < 70 and HasSpell("Дар наару") and DoSpell("Дар наару", u) then return true end
             if GetBuffStack("Оружие Водоворота") == 5 then
                 if h < 60 and DoSpell("Волна исцеления", u) then return true end
             end

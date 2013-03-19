@@ -26,18 +26,58 @@ function Idle()
         if DeathGripState and HasBuff("Власть льда") and InGroup() and InCombat(3) 
             and TryEach(TARGETS, function(target) return IsValidTarget(target) and UnitAffectingCombat(target) and TryTaunt(target) end) then return end
             
-        if TryPestilence() then return end
+        if not HasSpell("Удар Плети") then TryPestilence() return end
         if TryHealing() then return end
         if TryProtect() then return end
         if TryBuffs() then return end
         TryTarget()
 
-        if HasSpell("Удар в сердце") then
-            Blood() 
-        else
-            Frost() 
+        -- if HasSpell("Удар в сердце") then Blood() 
+            if HasSpell("Удар Плети") then Anh() else
+                Frost() 
+            -- end
         end
     end
+end
+
+------------------------------------------------------------------------------------------------------------------
+function Anh()
+        if not (IsValidTarget("target") and (UnitAffectingCombat("target") and CanAttack("target") or IsAttack()))  then return end
+        RunMacroText("/startattack")
+        RunMacroText("/petattack")
+        
+        -- if CanAOE and HasBuff("Морозная дымка") and DoSpell("Воющий ветер") then return end
+        
+        if NoRunes() then DoSpell("Усиление рунического оружия") end
+        if not HasRunes(100, false) and  min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2)) > 4 then DoSpell("Кровоотвод") end
+
+        if not HasMyDebuff("Озноб", 1, "target") and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
+        if not HasMyDebuff("Кровавая чума", 1, "target") and HasRunes(001) and DoSpell("Удар чумы") then return end
+        
+        -- DoSpell("Рунический удар")
+        -- if DoSpell("Призыв горгульи") then return end
+        if not Dotes() and not(IsAOE() or IsAttack()) then return end
+        
+        if Dotes() and InMelee() then
+            DoSpell("Кровавое неистовство")
+        end 
+
+        if IsAOE() then
+            if HasRunes(100) and DoSpell("Вскипание крови") then return end
+        end
+        
+        if not IsAOE() and Dotes() then
+            if IsPvP() and UnitHealth100("player") < 85 then
+                if HasRunes(011) and DoSpell("Удар смерти") then return end 
+            else
+                if HasMyDebuff("Нечестивая порча", 1, "target") and HasRunes(011) and DoSpell("Удар Плети") then return end 
+            end
+            if HasRunes(100) and UnitMana("player") < 40 and DoSpell("Кровавый удар") then return end
+            if DoSpell("Лик смерти") then return end
+        end
+        if DoSpell("Зимний горн") then return end
+        -- if HasRunes(001) and not HasBuff("Костяной щит") and DoSpell("Костяной щит") then return end
+        
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -46,7 +86,7 @@ function Frost()
         RunMacroText("/startattack")
         RunMacroText("/petattack")
         
-        if CanAOE and HasBuff("Морозная дымка") and DoSpell("Воющий ветер") then return end
+        -- if CanAOE and HasBuff("Морозная дымка") and DoSpell("Воющий ветер") then return end
         
         if NoRunes() then DoSpell("Усиление рунического оружия") end
         if not HasRunes(100, false) and  min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2)) > 4 then DoSpell("Кровоотвод") end
@@ -80,7 +120,7 @@ function Frost()
             end
             if HasRunes(100) and DoSpell("Кровавый удар") then return end
         end
-
+        if HasBuff("Морозная дымка") and DoSpell("Воющий ветер") then return end
         if NoRunes() and UnitMana("player") < 90 and DoSpell("Зимний горн") then return end
         
 end
@@ -122,6 +162,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function TryBuffs()
     if CanAttack("target") and UnitHealth("target") < 19000 then return false end
+    if HasSpell("Удар Плети") and not InCombatLockdown() and not HasBuff("Костяной щит") and HasRunes(001) and DoSpell("Костяной щит") then return end
     if not HasBuff("Зимний горн") and DoSpell("Зимний горн") then return true end
     if not (HasBuff("Настой") or HasBuff("Эликсир")) then 
         if (BersState and IsUsableItem("Настой бесконечной ярости")) then
@@ -334,7 +375,7 @@ function HasRunes(runes)
         end
     end
     
-    if LockBloodRunes() then
+    if not HasSpell("Удар Плети") and LockBloodRunes() then
         if m then
             if a > 0 then a = a - 1 end
         else
