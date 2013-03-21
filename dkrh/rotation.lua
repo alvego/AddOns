@@ -26,7 +26,7 @@ function Idle()
         if DeathGripState and HasBuff("Власть льда") and InGroup() and InCombat(3) 
             and TryEach(TARGETS, function(target) return IsValidTarget(target) and UnitAffectingCombat(target) and TryTaunt(target) end) then return end
             
-        if TryPestilence() then return end
+        if not HasSpell("Удар Плети") and TryPestilence() then return end
         if TryHealing() then return end
         if TryProtect() then return end
         if TryBuffs() then return end
@@ -46,37 +46,43 @@ function Anh()
         RunMacroText("/startattack")
         RunMacroText("/petattack")
         
-        -- if CanAOE and HasBuff("Морозная дымка") and DoSpell("Воющий ветер") then return end
+        if not HasSpell("Цапнуть") and DoSpell("Воскрешение мертвых") then return end
         
         if NoRunes() then DoSpell("Усиление рунического оружия") end
-        if not HasRunes(100, false) and  min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2)) > 4 then DoSpell("Кровоотвод") end
-
-        if not HasMyDebuff("Озноб", 1, "target") and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
-        if not HasMyDebuff("Кровавая чума", 1, "target") and HasRunes(001) and DoSpell("Удар чумы") then return end
+        -- if not HasRunes(100, false) and  min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2)) > 4 then DoSpell("Кровоотвод") end
+        
+        if not HasMyDebuff("Кровавая чума", 1, "target") and HasRunes(001) and DoSpell("Удар чумы") then end
+        if not HasMyDebuff("Озноб", 1, "target") and HasRunes(010) and DoSpell("Ледяное прикосновение") then end
         
         -- DoSpell("Рунический удар")
         -- if DoSpell("Призыв горгульи") then return end
-        if not Dotes() and not(IsAOE() or IsAttack()) then return end
+        -- if not Dotes() and not(IsAOE() or IsAttack()) then return end
         
         if Dotes() and InMelee() then
             DoSpell("Кровавое неистовство")
         end 
-        if UnitMana("player") > 80 and DoSpell("Лик смерти") then return end
+        
+        if HasRunes(100) and not HasBuff("Отчаяние") and DoSpell("Кровавый удар") then end
+        
+        if UnitMana("player") > 85 and DoSpell("Лик смерти") then return end
+        
         if IsAOE() then
             if HasRunes(100) and DoSpell("Вскипание крови") then return end
         end
-        if DoSpell("Лик смерти") then return end
+        
         if not IsAOE() and Dotes() then
             if IsPvP() and UnitHealth100("player") < 85 then
                 if HasRunes(011) and DoSpell("Удар смерти") then return end 
             else
-                if HasRunes(011) and DoSpell("Удар Плети") then return end 
+                if HasMyDebuff("Озноб") and HasMyDebuff("Кровавая чума") and HasRunes(011) and DoSpell("Удар Плети") then return end 
             end
-            if HasRunes(100) and UnitMana("player") < 40 and DoSpell("Кровавый удар") then return end
+            
             if DoSpell("Лик смерти") then return end
+            
+            if HasRunes(100) and DoSpell("Кровавый удар") then return end
         end
         if DoSpell("Зимний горн") then return end
-        -- if HasRunes(001) and not HasBuff("Костяной щит") and DoSpell("Костяной щит") then return end
+        if HasRunes(001) and not HasBuff("Костяной щит") and DoSpell("Костяной щит") then return end
         
 end
 
@@ -257,7 +263,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function TryProtect()
     if InCombatLockdown() then
-        if (UnitThreat("player") == 3) and (UnitHealth100() < 90 
+        if (UnitThreat("player") == 3) and (UnitHealth100() < 70 
             and not (HasBuff("Незыблемость льда") or HasBuff("Повышенная стойкость") or HasBuff("Тактика защиты") or HasBuff("Кровь вампира"))) then
             if DoSpell("Незыблемость льда") then return true end
             if UseEquippedItem("Гниющий палец Ика") then return true end
