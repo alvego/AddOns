@@ -26,7 +26,7 @@ function Idle()
         if DeathGripState and HasBuff("Власть льда") and InGroup() and InCombat(3) 
             and TryEach(TARGETS, function(target) return IsValidTarget(target) and UnitAffectingCombat(target) and TryTaunt(target) end) then return end
             
-        if not HasSpell("Удар Плети") then TryPestilence() return end
+        if TryPestilence() then return end
         if TryHealing() then return end
         if TryProtect() then return end
         if TryBuffs() then return end
@@ -61,16 +61,16 @@ function Anh()
         if Dotes() and InMelee() then
             DoSpell("Кровавое неистовство")
         end 
-
+        if UnitMana("player") > 80 and DoSpell("Лик смерти") then return end
         if IsAOE() then
             if HasRunes(100) and DoSpell("Вскипание крови") then return end
         end
-        
+        if DoSpell("Лик смерти") then return end
         if not IsAOE() and Dotes() then
             if IsPvP() and UnitHealth100("player") < 85 then
                 if HasRunes(011) and DoSpell("Удар смерти") then return end 
             else
-                if HasMyDebuff("Нечестивая порча", 1, "target") and HasRunes(011) and DoSpell("Удар Плети") then return end 
+                if HasRunes(011) and DoSpell("Удар Плети") then return end 
             end
             if HasRunes(100) and UnitMana("player") < 40 and DoSpell("Кровавый удар") then return end
             if DoSpell("Лик смерти") then return end
@@ -375,7 +375,7 @@ function HasRunes(runes)
         end
     end
     
-    if not HasSpell("Удар Плети") and LockBloodRunes() then
+    if CanAOE and LockBloodRunes() then
         if m then
             if a > 0 then a = a - 1 end
         else
