@@ -50,38 +50,38 @@ function Anh()
         
         if NoRunes() then DoSpell("Усиление рунического оружия") end
         -- if not HasRunes(100, false) and  min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2)) > 4 then DoSpell("Кровоотвод") end
-        
         if not HasMyDebuff("Кровавая чума", 1, "target") and HasRunes(001) and DoSpell("Удар чумы") then end
+        -- print(1)
         if not HasMyDebuff("Озноб", 1, "target") and HasRunes(010) and DoSpell("Ледяное прикосновение") then end
-        
+        -- print(2)
         -- DoSpell("Рунический удар")
         -- if DoSpell("Призыв горгульи") then return end
         -- if not Dotes() and not(IsAOE() or IsAttack()) then return end
-        
         if Dotes() and InMelee() then
             DoSpell("Кровавое неистовство")
         end 
-        
         if HasRunes(100) and not HasBuff("Отчаяние") and DoSpell("Кровавый удар") then end
-        
+        -- print(3)
         if UnitMana("player") > 85 and DoSpell("Лик смерти") then return end
-        
+        -- print(4)
         if IsAOE() then
             if HasRunes(100) and DoSpell("Вскипание крови") then return end
         end
-        
+        -- print(5)
         if not IsAOE() and Dotes() then
             if IsPvP() and UnitHealth100("player") < 85 then
                 if HasRunes(011) and DoSpell("Удар смерти") then return end 
             else
                 if HasMyDebuff("Озноб") and HasMyDebuff("Кровавая чума") and HasRunes(011) and DoSpell("Удар Плети") then return end 
             end
-            
-            if DoSpell("Лик смерти") then return end
-            
-            if HasRunes(100) and DoSpell("Кровавый удар") then return end
         end
+        -- print(6)
+        if DoSpell("Лик смерти") then return end
+        -- print(7)
+        if HasRunes(100) and DoSpell("Кровавый удар") then return end
+        -- print(8)
         if DoSpell("Зимний горн") then return end
+        
         if HasRunes(001) and not HasBuff("Костяной щит") and DoSpell("Костяной щит") then return end
         
 end
