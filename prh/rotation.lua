@@ -123,7 +123,7 @@ function Retribution()
     if IsShiftKeyDown() == 1 and DoSpell("Освящение") then return end
     if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
     if CanMagicAttack(target) then
-        if UseEquippedItem("Чешуйчатые рукавицы неумолимого гладиатора")then return end
+        if UseEquippedItem("Чешуйчатые рукавицы разгневанного гладиатора")then return end
         if HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end   
         if DoSpell(IsAltKeyDown() and "Правосудие справедливости" or (UnitMana100("player") < 60 and "Правосудие мудрости" or "Правосудие света"), target) then return end
     end
@@ -252,10 +252,10 @@ function TryTarget()
     end)
     
     
-    --[[if IsArena() and IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
+    if IsArena() and IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
         if IsOneUnit("target","arena1") then RunMacroText("/focus arena2") end
         if IsOneUnit("target","arena2") then RunMacroText("/focus arena1") end
-    end]]
+    end
     
     if IsAttack() or InCombatLockdown() then RunMacroText("/startattack")  end
 end

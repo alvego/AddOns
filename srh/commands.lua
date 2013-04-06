@@ -1,14 +1,8 @@
 ﻿-- Shaman Rotation Helper by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("hero", 
-    function() 
-        if DoSpell("Героизм") then
-            echo("Гера!",1)
-        end
-    end, 
-    function() 
-        return not InCombatLockdown() or HasDebuff("Изнеможение", 1, "player") or not IsSpellNotUsed("Героизм", 1) 
-    end
+    function() return DoSpell("Жажда крови") end, 
+    function() return not InGCD() and not IsReadySpell("Жажда крови") end
 )
 
 ------------------------------------------------------------------------------------------------------------------

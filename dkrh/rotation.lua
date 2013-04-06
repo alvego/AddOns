@@ -60,7 +60,8 @@ function Anh()
         if Dotes() and InMelee() then
             DoSpell("Кровавое неистовство")
         end 
-        if HasRunes(100) and not HasBuff("Отчаяние") and DoSpell("Кровавый удар") then end
+        if IsAltKeyDown() == 1 and HasRunes(100) and DoSpell("Мор") then return end
+        if HasRunes(100) and not HasBuff("Отчаяние") and DoSpell("Кровавый удар") then return end
         -- print(3)
         if UnitMana("player") > 85 and DoSpell("Лик смерти") then return end
         -- print(4)
