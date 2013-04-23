@@ -108,6 +108,7 @@ function Retribution()
     if not IsFinishHim(target) and UnitMana100("player") > 10 and IsReadySpell("Очищение") and TryEach(IUNITS,
         function(u) return CanHeal(u) and HasDebuff(redDispelList, 2, u) and TryDispel(u) end
     ) then return end
+    if UnitHealth100("player") < 50 and UseItem("Камень здоровья из Скверны") then return end
     if UnitMana100("player") < 20 and not HasBuff("Печать мудрости") and DoSpell("Печать мудрости") then return end
     if UnitMana100("player") > 70 then RunMacroText("/cancelaura Печать мудрости") end
     if TryEach(TARGETS, function(t)
@@ -123,7 +124,7 @@ function Retribution()
     if IsShiftKeyDown() == 1 and DoSpell("Освящение") then return end
     if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
     if CanMagicAttack(target) then
-        if UseEquippedItem("Чешуйчатые рукавицы разгневанного гладиатора")then return end
+        -- if UseEquippedItem("Чешуйчатые рукавицы разгневанного гладиатора")then return end
         if HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end   
         if DoSpell(IsAltKeyDown() and "Правосудие справедливости" or (UnitMana100("player") < 60 and "Правосудие мудрости" or "Правосудие света"), target) then return end
     end
@@ -141,7 +142,8 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function TryBuffs()
         if HasSpell("Удар воина Света") then
-            if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
+        if not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
+            -- if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
             if not HasBuff("Печать") and DoSpell("Печать праведности") then return end
             if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
                 if not HasBuff("Боевой крик")

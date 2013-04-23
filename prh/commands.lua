@@ -35,8 +35,8 @@ SetCommand("free",
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("frees", 
-   function() return DoSpell("Длань свободы","Shizm") end, 
-   function() return HasBuff("Длань свободы","Shizm") 
+   function() return DoSpell("Длань свободы","Pippo") end, 
+   function() return HasBuff("Длань свободы","Pippo") 
       or (not InGCD() and not IsReadySpell("Длань свободы")) end
 )
 
@@ -74,14 +74,14 @@ SetCommand("fstun",
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("sv", 
-   function() return DoSpell("Длань защиты","Koperfild") end, 
-   function() return not InForbearance("Koperfild") and not InGCD() and not IsReadySpell("Длань защиты") end
+   function() return DoSpell("Длань защиты","Pippo") end, 
+   function() return not InForbearance("Pippo") and not InGCD() and not IsReadySpell("Длань защиты") end
 )
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("svs", 
-   function() return DoSpell("Длань защиты","Shizm") end, 
-   function() return not InForbearance("Ириха") and not InGCD() and not IsReadySpell("Длань защиты") end
+   function() return DoSpell("Длань защиты","Pippo") end, 
+   function() return not InForbearance("Pippo") and not InGCD() and not IsReadySpell("Длань защиты") end
 )
 
 ------------------------------------------------------------------------------------------------------------------
@@ -105,7 +105,7 @@ SetCommand("dd",
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("cl", 
    function() end, 
-   function() return not InGCD() and DoSpell("Очищение","Koperfild") end
+   function() return not InGCD() and DoSpell("Очищение","Pippo") end
 )
 
 ------------------------------------------------------------------------------------------------------------------

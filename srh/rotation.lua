@@ -453,9 +453,8 @@ end
 
 function MDDRotation()
     if not InCombatLockdown() and TryBuff() then return end
-    if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16) and UseSpell("Оружие неистовства ветра") then return end
-    if OffhandHasWeapon() and GetInventoryItemID("player",17) and not DetermineTempEnchantFromTooltip(17) and UseSpell("Оружие языка пламени") then return end
-    
+    if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16) and DoSpell("Оружие неистовства ветра") then return end
+    if OffhandHasWeapon() and GetInventoryItemID("player",17) and not DetermineTempEnchantFromTooltip(17) and DoSpell("Оружие языка пламени") then return end
     if not UnitAffectingCombat("target") and (not HasBuff("Водный щит") or UnitMana100("player") > 50) then
         if not HasBuff("Щит молний") and DoSpell("Щит молний") then return end
     end
@@ -494,11 +493,16 @@ function MDDRotation()
         -- if HasBuff(StealRedList, 2, "target") and TrySteal("target") then return end
         -- if UnitHealth100("target") < 100 and HasBuff(StealHotRedList, 2, "target") and TrySteal("target") then return end
     -- end
+    if (IsRightAltKeyDown() == 1) and DoSpell("Зов Стихий") then return end
+    if (IsLeftAltKeyDown() == 1) and HasTotem(1) ~= "Тотем магмы VII" and DoSpell("Тотем магмы") then return end
     if not HasMyDebuff("Огненный шок", 0.5,"target") and DoSpell("Огненный шок", "target") then return end
-    if not HasBuff("Ярость шамана") and DoSpell("Ярость шамана") then return end
+    if UnitAffectingCombat("target") and not HasBuff("Ярость шамана") and DoSpell("Ярость шамана") then return end
+    if HasBuff("Ярость шамана") and DoSpell("Берсерк") then return end
+    if HasBuff("Ярость шамана") and (IsReadySlot(10)) then UseSlot(10) return end
     if DoSpell("Удар бури", "target") then return end
     if DoSpell("Земной шок", "target") then return end
     if (not HasBuff("Водный щит") or UnitMana100("player") > 50) and not HasBuff("Щит молний") and DoSpell("Щит молний") then return end
+    if HasTotem(1) and DoSpell("Кольцо огня") then return end
     if DoSpell("Вскипание лавы", "target") then return end
 end
 
@@ -527,7 +531,7 @@ function RDDRotation()
     if DoSpell("Молния", "target") then return end
     if not HasBuff("Водный щит") and DoSpell("Водный щит") then return end]]
     --ротация элема древняя версия для Идеала
-    if (
+                        if (
                             HasBuff("Жажда крови") or
                             HasBuff("Неустойчивая сила") or
                             HasBuff("Гиперскоростное ускорение") or
@@ -542,8 +546,6 @@ function RDDRotation()
                             HasBuff("Гиперскоростное ускорение") or
                             HasBuff("Покорение стихий") or
                             HasBuff("Берсерк")) then
-
-                            
                             if UseSpell("Покорение стихий") then return end
                             if (IsReadySlot(10)) then UseSlot(10) return end
                             if UseSpell("Берсерк") then return end
@@ -551,16 +553,15 @@ function RDDRotation()
                         end
                         
                         if HasBuff("Жажда крови") and not(HasBuff("Дикая магия")) then UseItem("Зелье дикой магии") end
-                           
-                        --if not HasMyDebuff("Огненный шок", 0.5) and (IsSpellInRange("Огненный шок", "target") == 1) and  UseSpell("Огненный шок") then return end
-                        --if HasMyDebuff("Огненный шок", 3) and (IsSpellInRange("Выброс лавы", "target") == 1) and  UseSpell("Выброс лавы") then return end
-                        if not HasMyDebuff("Огненный шок", 0.5,"target") and (IsSpellInRange("Огненный шок", "target") == 1) and  UseSpell("Огненный шок") then return end
-                        if HasMyDebuff("Огненный шок", 2,"target") and (IsSpellInRange("Выброс лавы", "target") == 1) and  UseSpell("Выброс лавы") then return end
-                        if (IsRightControlKeyDown() == 1) and not (FindAura("Жажада крови")) and UseSpell("Жажда крови") then return end
-                        if (IsAOE() and IsSpellInRange("Цепная молния", "target") == 1) and UseSpell("Цепная молния") then return end
-                        if (IsLeftAltKeyDown() == 1) and HasTotem(1) ~= "Тотем магмы VII" and UseSpell("Тотем магмы") then return end
-                        if (IsRightAltKeyDown() == 1) and UseSpell("Зов стихий") then return end
-                        if (IsSpellInRange("Молния", "target") == 1) and UseSpell("Молния") then return end
+                        
+                        if not HasMyDebuff("Огненный шок", 0.5,"target") and DoSpell("Огненный шок") then return end
+                        if HasMyDebuff("Огненный шок", 2,"target") and DoSpell("Выброс лавы") then return end
+                        if (IsRightControlKeyDown() == 1) and not (FindAura("Жажда крови")) and DoSpell("Жажда крови") then return end
+                        if (IsAOE()) and DoSpell("Цепная молния") then return end
+                        if (IsLeftAltKeyDown() == 1) and HasTotem(1) ~= "Тотем магмы VII" and DoSpell("Тотем магмы") then return end
+                        if (IsRightAltKeyDown() == 1) and DoSpell("Зов Стихий") then return end
+                        if UnitMana100() < 10 and DoSpell("Гром и молния") then return end
+                        if DoSpell("Молния") then return end
     
 end
 
