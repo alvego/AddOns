@@ -224,19 +224,27 @@ function UnitMana100(target)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-local HealComm = LibStub("LibHealComm-4.0")
-function UnitGetIncomingHeals(target, s)
-    if not target then 
-        target = "player" 
-    end
-    if not s then 
-        if UnitHealth100(target) < 10 then return 0 end
-        s = 4
-        if UnitThreatSituation(target) == 3 then s = 2 end
-    end
-    return HealComm:GetHealAmount(UnitGUID(target), HealComm.CASTED_HEALS, GetTime() + s) or 0
+local HealComm = nil
+if LibStub then
+    HealComm = LibStub("LibHealComm-4.0")
 end
-
+if HealComm then
+    function UnitGetIncomingHeals(target, s)
+        if not target then 
+            target = "player" 
+        end
+        if not s then 
+            if UnitHealth100(target) < 10 then return 0 end
+            s = 4
+            if UnitThreatSituation(target) == 3 then s = 2 end
+        end
+        return HealComm:GetHealAmount(UnitGUID(target), HealComm.CASTED_HEALS, GetTime() + s) or 0
+    end
+else
+    function UnitGetIncomingHeals(target, s)
+        return 0
+    end
+end
 ------------------------------------------------------------------------------------------------------------------
 function CalculateHP(t)
   return 100 * UnitHP(t) / UnitHealthMax(t)

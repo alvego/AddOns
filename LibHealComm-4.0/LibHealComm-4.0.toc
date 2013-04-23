@@ -7,5 +7,5 @@
 ## X-Curse-Project-Name: LibHealComm-4.0
 ## X-Curse-Project-ID: libhealcomm-4-0
 ## X-Curse-Repository-ID: wow/libhealcomm-4-0/mainline
-
+LibStub.lua
 LibHealComm-4.0.xml

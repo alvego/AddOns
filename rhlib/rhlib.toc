@@ -2,7 +2,6 @@
 ## Title:|cff69ccf0 Rotation Helper|r |cffffd200 Library|r
 ## Version: 0.2
 ## Interface: 30300
-## Dependencies: LibHealComm-4.0
 ## SavedVariables: Paused, Debug, HarmfulCastingSpell
 lib.lua
 misc.lua

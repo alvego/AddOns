@@ -176,8 +176,7 @@ function HealRotation()
     if IsAltKeyDown() and TrySteal("target") then return end
     if (IsPvP() and InCombatLockdown()) and TryEach(TARGETS, function(t) return CanAttack(t) 
         and UnitHealth100(t) < 4 and not HasMyDebuff("шок", 1, t) and DoSpell("Огненный шок", t) end) then return end
-    
-    if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16) and DoSpell("Оружие жизни земли") then return end
+    if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16):match("Жизнь Земли") and DoSpell("Оружие жизни земли") then return end
     if UnitMana100() < 80 and InCombat(3) and UnitHealth100("player") > 60 and not HasBuff(" щит") and DoSpell("Водный щит") then return end
     
     if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and not IsLeftControlKeyDown() then
@@ -615,7 +614,7 @@ function TryTarget(useFocus)
         RunMacroText("/cleartarget")
     end
    
-    if not IsArena() then
+    --if not IsArena() then
         if useFocus and not IsValidTarget("focus") then
             local found = false
             for _,target in pairs(TARGETS) do 
@@ -629,12 +628,12 @@ function TryTarget(useFocus)
         if useFocus and not IsValidTarget("focus") or IsOneUnit("target", "focus") or not ActualDistance("focus") then
             RunMacroText("/clearfocus")
         end
-    else
+--[[    else
         if IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
             if IsOneUnit("target","arena1") then RunMacroText("/focus arena2") end
             if IsOneUnit("target","arena2") then RunMacroText("/focus arena1") end
         end
-    end
+    end]]
     
 
 end
