@@ -41,7 +41,7 @@ end
 -- Вызывает функцию Idle если таковая имеется, с заданным рекомендованным интервалом UpdateInterval, 
 -- при включенной Авто-ротации
 TARGETS = {}
-UNITS = {}
+UNITS = {"player"}
 IUNITS = {} -- Important Units
 local StartTime = GetTime()
 local LastUpdate = 0

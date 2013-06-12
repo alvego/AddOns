@@ -198,7 +198,7 @@ function TryHealing()
     local h = CalculateHP("player")
     if InCombatLockdown() then
         if TryDeathPact() then return true end
-        if h < 20 and UseHealPotion() then return true end
+        if h < 20 and not IsArena() and UseHealPotion() then return true end
         if h < 40 and DoSpell("Кровь земли") then return true end
         if h < 50 and HasRunes(100) and HasSpell("Захват рун") and DoSpell("Захват рун") then return true end
     end

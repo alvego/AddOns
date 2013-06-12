@@ -1,0 +1,8 @@
+## Author: Timofeev Alvexey
+## Title:|cff69ccf0 Druid|r |cffffd200 Rotation Helper|r
+## Version: 0.1
+## Interface: 30300
+## Dependencies: rhlib
+## SavedVariables: Paused, Debug, BersState, CanInterrupt, AutoAOE, DispelWhitelist,DispelBlacklist
+rotation.lua
+binds.lua

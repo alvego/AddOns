@@ -7,18 +7,20 @@ local function HasAura(aura, last, target, method, my)
     if method == nil then method = UnitAura end
     if target == nil then target = "player" end
     if last == nil then last = 0.1 end
+    
     if (type(target) == 'table') then 
         return TryEach(target, function(t) return HasAura(aura, last, t, method, my) end)
     end
+    if not UnitExists(target) then return false end
     if (type(aura) == 'table') then
         return TryEach(aura, function(a) return HasAura(a, last, target, method, my) end)
     end
-    if not UnitExists(target) then return false end
+    
     local i = 0
     local name, _, _, _, debuffType, _, Expires, unitCaster  = method(target, i)
     local result = false
     while (i <= 40) and not result do
-        if name and (strlower(name):match(strlower(aura)) or (debuffType and strlower(debuffType):match(strlower(aura)) )) 
+        if (name and sContains(name, aura) or debuffType and sContains(debuffType, aura))
             and (Expires - GetTime() >= last or Expires == 0) 
             and (not my or unitCaster == "player") then
             result = true

@@ -226,7 +226,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 local HealComm = nil
 if LibStub then
-    HealComm = LibStub("LibHealComm-4.0")
+    --HealComm = LibStub("LibHealComm-4.0")
 end
 if HealComm then
     function UnitGetIncomingHeals(target, s)

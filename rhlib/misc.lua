@@ -145,3 +145,10 @@ function tContainsKey(table, key)
     end
     return false
 end
+
+function sContains(str, sub)
+    if (not str or not sub) then
+      return false
+    end
+    return (strlower(str):find(strlower(sub), 1, true) ~= nil)
+end
