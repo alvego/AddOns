@@ -1,5 +1,4 @@
 ﻿-- Druid Rotation Helper by Timofeev Alexey
-local StartComatTime = 0
 local TryResUnit = nil
 local TryResTime = 0
 local ThreatEnd = 0
@@ -58,7 +57,8 @@ function Idle()
     end
 
     if TryResUnit and CanRes(TryResUnit) and not HasBuff("Облик лютого медведя") and (not HasBuff("Облик кошки") or HasBuff("Быстрота хищника")) and TryRes(TryResUnit) then return end
-    if not InCombatLockdown() and #ThreatList > 0 then wipe(ThreatList) end
+    
+    --[[if not InCombatLockdown() and #ThreatList > 0 then wipe(ThreatList) end
     if not IsTank() and InCombatLockdown() and InGroup() and (UnitThreat("player") == 3) and GetTime() - ThreatEnd > 30 then 
         local ret = false
         for _,t in pairs(TARGETS) do 
@@ -75,18 +75,14 @@ function Idle()
                 if ThreatList[g]  then ThreatList[g] = nil end
             end 
         end
-    end
+    end]]
 
     if IsHeal() then
         HealRotation()
         return
     end
     
-    if not InCombatLockdown() then
-        StartComatTime = GetTime()
-    end
-
-    
+   
     if IsAttack() and HasBuff("Облик лютого медведя") then
         if DoSpell("Исступление") then return end
         if IsValidTarget("target") and DoSpell("Звериная атака - медведь", "target")  then return true end
@@ -99,7 +95,7 @@ function Idle()
             if ret then return end
         end 
         if IsMouseButtonDown(3) and IsTank() and TryTaunt("mouseover") then return end
-        if CanUseInterrupt() and IsTank() and InGroup() and (GetTime() - StartComatTime > 3) then
+        if CanUseInterrupt() and IsTank() and InGroup() and InCombat(3) then
             local ret = false
             for _,target in pairs(TARGETS) do if not ret and IsValidTarget(target) and UnitAffectingCombat(target) and TryTaunt(target) then ret = true end end
             if ret then return end
@@ -151,10 +147,12 @@ function TankRotation()
 end 
 
 function CanHeal(t)
+    
     if InInteractRange(t) 
         and InRange("Омоложение", t)
         and IsVisible(t)
     then return true end 
+    
     return false
 end
 
@@ -219,11 +217,8 @@ function HealRotation()
                
         for i=1,#UNITS do
             local u = UNITS[i]
-            
-            
+           
             if CanHeal(u) then  
-                         
---~                 print(u, UnitName(u))
                 h =  CalculateHP(u)
                 if not InCombatLockdown() and IsAttack() and IsOneUnit(u, "mouseover") then 
                     h = h - 56 
@@ -478,13 +473,23 @@ function DDRotation()
             return 
         end
        
+        
+        
         if InCombatLockdown() and IsAttack() and IsValidTarget("target") and InRange("Звериная атака - кошка", "target") and DoSpell("Звериная атака - кошка") then return end
-        
-        if (UnitThreat("player") > 1 and UnitThreat("player") < 3) and DoSpell("Попятиться") then print("Попятиться!!") return end
-        
+                
         RunMacroText("/startattack")
         
-      
+        if InGroup() then
+            if TryEach(TARGETS, function(t) 
+                if tContains({"worldboss", "rareelite", "elite"}, UnitClassification(t)) then 
+                local isTanking, state, scaledPercent, rawPercent, threatValue = UnitDetailedThreatSituation("player", t)
+                    if not isTanking and state == 1 and DoSpell("Попятиться", t) then
+                         print("Попятиться!!")
+                        return true
+                    end
+                end
+            end) then return end
+        end
 
 --~      Ротация для кошки 
         if IsAOE() then
