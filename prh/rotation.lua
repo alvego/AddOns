@@ -142,7 +142,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function TryBuffs()
         if HasSpell("Удар воина Света") then
-        if not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
+        if not InCombatLockdown() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
             -- if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
             if not HasBuff("Печать") and DoSpell("Печать праведности") then return end
             if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
@@ -275,6 +275,8 @@ function TryProtect()
         if (UnitHealth100() < 50 and not (HasBuff("Затвердевшая кожа"))) then
             if UseEquippedItem("Проржавевший костяной ключ") then return true end
         end
+        
+        if HasSpell("Удар воина Света") and (UnitHealth100() < 50) and DoSpell("Священная жертва") then return end
         
         if GetTime() - tryShieldTime > 5 then 
         
