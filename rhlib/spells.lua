@@ -269,7 +269,7 @@ local badSpellTarget = {}
 function UseSpell(spellName, target)
     local dump = false --spellName == "Божественная буря"
     --if spellName == "Священный щит" then error("Щит") end
-    -- Не мешаем выбрать облась для спела (нажат вручную)
+    -- Не мешаем выбрать область для спела (нажат вручную)
     if SpellIsTargeting() then 
         if dump then print("Ждем выбор цели, не можем прожать", spellName) end
         return false 
@@ -293,7 +293,8 @@ function UseSpell(spellName, target)
         return false 
     end
      -- проверяем, что не кастится другой спел
-    local inCastSpells = {"Рунический удар", "Удар героя", "Рассекающий удар","Гиперскоростное ускорение","Освященные перчатки ледяной ведьмы"} -- TODO: Нужно уточнить и дополнить.
+     -- TODO: "Освященные перчатки ледяной ведьмы" -  не спелл, скорее всего тут никогда не бывает. Нужно удалить.
+    local inCastSpells = {"Трепка", "Рунический удар", "Удар героя", "Рассекающий удар", "Гиперскоростное ускорение", "Освященные перчатки ледяной ведьмы"} -- TODO: Нужно уточнить и дополнить.
    foreach(InCast,
        function(s)
           if not IsBusy and not tContains(inCastSpells, s) and not IsReadySpell(s) then

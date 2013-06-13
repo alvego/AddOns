@@ -1,8 +1,6 @@
 ﻿-- Druid Rotation Helper by Timofeev Alexey
 -- Binding
 BINDING_HEADER_DRH = "Druid Rotation Helper"
-BINDING_NAME_DRH_OFF = "Выкл ротацию"
-BINDING_NAME_DRH_DEBUG = "Вкл/Выкл режим отладки"
 BINDING_NAME_DRH_MOUNT = "Вкл/Выкл маунта"
 BINDING_NAME_DRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 BINDING_NAME_DRH_BERSMOD = "Режим берсерка"
@@ -22,8 +20,6 @@ RunMacroText("/cleartarget")
 
 local LastUpdate = 0
 local UpdateInterval = 0.090
-local LastPosX, LastPosY = GetPlayerMapPosition("player")
-local InPlace = true
 local InCast = {}
 local resList = {}
 local NextTarget = nil
@@ -31,8 +27,6 @@ local NextGUID = nil
 local NotBehindTarget = 0
 local Role = 0
 
-if Paused == nil then Paused = false end
-if Debug == nil then Debug = false end
 if CanInterrupt == nil then CanInterrupt = true end
 if BersState == nil then BersState = true end
 if AutoAOE == nil then AutoAOE = true end
@@ -76,10 +70,6 @@ end
 function RoleHeal()
     Role = 2
     Notify(RoleName())
-end
-
-function PlayerInPlace()
-    return InPlace and (not IsFalling() or IsSwimming())
 end
 
 function IsNotBehindTarget()
@@ -215,14 +205,6 @@ function Mount()
         return
     end
 end    
-    
-function AutoRotationOff()
-    Paused = true
-    RunMacroText("/stopattack")
-    wipe(InCast)
-    wipe(resList)
-    echo("Авто ротация: OFF",true)
-end
 
 function BersModToggle()
     BersState = not BersState
@@ -251,25 +233,6 @@ function GetBersState()
     return BersState
 end 
 
-
-function DebugToggle()
-    Debug = not Debug
-    if Debug then
-         SetCVar("scriptErrors", 1)
-        echo("Режим отладки: ON",true)
-    else
-         SetCVar("scriptErrors", 0)
-        echo("Режим отладки: OFF",true)
-    end 
-end
-
-function IsDebug()
-    return Debug
-end    
-
-function IsAttack()
-    return (IsMouseButtonDown(4) == 1)
-end
 
 function IsAOE()
    return (IsShiftKeyDown() == 1) or (CanAutoAOE() and IsValidTarget("target") and IsValidTarget("focus") and not IsOneUnit("target", "focus") and UnitAffectingCombat("focus") and UnitAffectingCombat("target"))
@@ -316,15 +279,6 @@ function TryRes(t)
 end
 
 function onUpdate(frame, elapsed)
-    local posX, posY = GetPlayerMapPosition("player")
-    if posX == 0 and posY == 0 then
-        SetMapToCurrentZone() 
-    end
-    
-    InPlace = (LastPosX == posX and LastPosY == posY)
-    
-    LastPosX = posX
-    LastPosY = posY
     
     if (IsAttack() and Paused) then
         echo("Авто ротация: ON",true)
@@ -495,14 +449,6 @@ function onEvent(self, event, ...)
     end
 end
 frame:SetScript("OnEvent", onEvent)
-
-function UnitThreatAlert(u)
-    local threat = UnitThreatSituation(u)
-    if threat == nil then threat = 0 end
-    if IsOneUnit("player", u) and (CalculateHP(u) < 50 or (UnitIsPlayer("target") and UnitIsEnemy("player","target") and IsOneUnit("player", "target-target"))) then threat = 3 end
-    if IsOneUnit("focus", u) and IsAttack() then threat = 3 end
-    return threat
-end
 
 function DoSpell(spell, target, mana)
     if not spell then return false end

@@ -19,7 +19,7 @@ function AutoRotationOff()
     end
     Paused = true
     RunMacroText("/stopattack")
-    RunMacroText("/PetFollow")
+    RunMacroText("/petfollow")
     echo("Авто ротация: OFF",true)
 end
 
