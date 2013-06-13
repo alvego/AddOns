@@ -219,7 +219,7 @@ function IsSpellInUse(spellName)
 end
 ------------------------------------------------------------------------------------------------------------------
 local function checkTargetInErrList(target, list)
-    if not target or target == "player"  then return true end
+    if not target or target == "target"  then return true end
     if not UnitExists(target) then return false end
     local t = list[UnitGUID(target)]
     if t and GetTime() - t < 1.2 then return false end

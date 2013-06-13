@@ -21,6 +21,8 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 -- Инициализация библиотеки
+local LastUpdate = 0
+local UpdateInterval = 0.05
 function InitRotationHelperLibrary()
     -- protected lock test
     RunMacroText("/cleartarget")
@@ -34,6 +36,9 @@ function InitRotationHelperLibrary()
     table.sort(UpdateList, function(u1,u2) return u1.weight > u2.weight end)
     -- Выполняем обработчики события OnUpdate, согласно приоритету (return true - выход)
     local function OnUpdate(frame, elapsed)
+        LastUpdate = LastUpdate + elapsed 
+        if LastUpdate < UpdateInterval then return end -- для снижения нагрузки на проц
+        LastUpdate = 0
         if TryEach(UpdateList, function(update) return update.func(elapsed) end) then return end
     end
     frame:SetScript("OnUpdate", OnUpdate)

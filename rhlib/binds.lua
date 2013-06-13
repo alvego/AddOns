@@ -235,7 +235,7 @@ AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateSapped)
 -- Автоматическая продажа хлама и починка
 local function SellGrayAndRepair()
     SellGray();
-    RepairAllItems(1);
+    RepairAllItems(1); -- сперва пробуем за счет ги банка
     RepairAllItems();
 end
 AttachEvent('MERCHANT_SHOW', SellGrayAndRepair)

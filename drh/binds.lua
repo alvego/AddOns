@@ -5,26 +5,11 @@ BINDING_NAME_DRH_MOUNT = "Вкл/Выкл маунта"
 BINDING_NAME_DRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 BINDING_NAME_DRH_BERSMOD = "Режим берсерка"
 BINDING_NAME_DRH_AUTOAOE = "Авто AOE"
--- addon main frame
-local frame=CreateFrame("Frame",nil,UIParent)
--- attach events
-frame:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-frame:RegisterEvent("UNIT_SPELLCAST_SUCCEEDED")
-frame:RegisterEvent("UNIT_SPELLCAST_FAILED")
-frame:RegisterEvent("UNIT_SPELLCAST_SENT")
-frame:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-frame:RegisterEvent("PLAYER_ENTERING_WORLD")
 print("Druid Rotation Helper loaded")
--- protected lock test
-RunMacroText("/cleartarget")
 
 local LastUpdate = 0
 local UpdateInterval = 0.090
-local InCast = {}
 local resList = {}
-local NextTarget = nil
-local NextGUID = nil
-local NotBehindTarget = 0
 local Role = 0
 
 if CanInterrupt == nil then CanInterrupt = true end
@@ -34,6 +19,7 @@ if DispelWhitelist == nil then DispelWhitelist = {} end
 if DispelBlacklist == nil then DispelBlacklist = {} end
 if AutoAOE == nil then AutoAOE = true end
 
+------------------------------------------------------------------------------------------------------------------
 function NextRole()
     Role = Role + 1 
     if Role > 2 then Role = 0 end
@@ -72,29 +58,7 @@ function RoleHeal()
     Notify(RoleName())
 end
 
-function IsNotBehindTarget()
-    return GetTime() - NotBehindTarget < 1
-end
-
-
---~ Цель вне поля зрения.
-local notVisible = {}
-local sayNotVisible = 0
-function IsVisible(target)
-    if not target or target == "player"  then return true end
-    if not UnitIsVisible(target) then return false end
-    local t = notVisible[target]
-    if t and GetTime() - t < 1 then
-        local u = UnitName(target)
-        if u and UnitIsPlayer(u) and (GetTime() - sayNotVisible) > 15 and CalculateHP(u) < 50 then
-            print("Не могу подхилить ".. u ..". Вне поля зрения.")
---~             RunMacroText("/с Не могу подхилить ".. u ..". Вне поля зрения.")
-            sayNotVisible = GetTime()
-        end
-        return false
-    end
-    return true;
-end
+------------------------------------------------------------------------------------------------------------------
 
 
 function UnitPartyName(unit)
@@ -106,7 +70,7 @@ function UnitPartyName(unit)
     return unit
 end
 
-
+------------------------------------------------------------------------------------------------------------------
 function CanUseInterrupt()
     return CanInterrupt
 end
@@ -119,22 +83,8 @@ function UseInterrupt()
         echo("Interrupt: OFF",true)
     end 
 end
-
-function GetNextTarget()
-    return NextTarget
-end
-
-function ClearNextTarget()
-    NextTarget = nil
-    NextGUID = nil
-end
-
-
-function NextIsTarget(target)
-    if not target then target = "target" end
-    return (UnitGUID("target") == NextGUID)
-end
-
+------------------------------------------------------------------------------------------------------------------
+-- TODO перенести в команды
 function Mount()
     
     if HasBuff("Облик кошки") and HasBuff("Крадущийся зверь") then
@@ -206,6 +156,7 @@ function Mount()
     end
 end    
 
+------------------------------------------------------------------------------------------------------------------
 function BersModToggle()
     BersState = not BersState
     if BersState then
@@ -215,7 +166,7 @@ function BersModToggle()
     end 
 end
 
-
+------------------------------------------------------------------------------------------------------------------
 function AutoAOEToggle()
     AutoAOE = not AutoAOE
     if AutoAOE then
@@ -225,20 +176,22 @@ function AutoAOEToggle()
     end 
 end
 
+------------------------------------------------------------------------------------------------------------------
 function CanAutoAOE()
     return AutoAOE
 end 
 
+------------------------------------------------------------------------------------------------------------------
 function GetBersState()
     return BersState
 end 
 
-
+------------------------------------------------------------------------------------------------------------------
 function IsAOE()
    return (IsShiftKeyDown() == 1) or (CanAutoAOE() and IsValidTarget("target") and IsValidTarget("focus") and not IsOneUnit("target", "focus") and UnitAffectingCombat("focus") and UnitAffectingCombat("target"))
 end
 
-
+------------------------------------------------------------------------------------------------------------------
 local resSpell = nil
 local resUnit = nil
 function CanRes(t)
@@ -278,32 +231,12 @@ function TryRes(t)
     return false
 end
 
-function onUpdate(frame, elapsed)
-    
-    if (IsAttack() and Paused) then
-        echo("Авто ротация: ON",true)
-        Paused = false
-    end
-    
+--TODO: Посмотреть как реализовано у шамана
+function ResetRes()
     local spell = UnitCastingInfo("player")
     if (not InCombatLockdown() and spell == "Возрождение") or (CanHeal(resUnit) and (spell == "Возрождение" or spell == "Оживление"))  then RunMacroText("/stopcasting") end
-    
-    LastUpdate = LastUpdate + elapsed
-    if LastUpdate < UpdateInterval then return end
-    LastUpdate = 0
-  
-    
-    -- if UnitIsDeadOrGhost("player") or UnitIsCharmed("player") or not UnitPlayerControlled("player") then return end
-    if UnitIsDeadOrGhost("player") then return end
+end    
 
-    if Paused then 
-        return 
-    end
-    
-    Idle()
-    
-end
-frame:SetScript("OnUpdate", onUpdate)
 
 
 function IsHealCast(spell)
@@ -323,7 +256,7 @@ end
 
 local lastTarget = nil
 
-
+------------------------------------------------------------------------------------------------------------------
 local dispel = nil
 local dispelTime = GetTime()
 function TryDispel(unit)
@@ -351,114 +284,95 @@ function TryDispel(unit)
     return ret
 end
 
-
-
-function onEvent(self, event, ...)
-    if event == "ACTIVE_TALENT_GROUP_CHANGED" or event == "PLAYER_ENTERING_WORLD" then
---[[        print(event)]]
-        if HasSpell("Буйный рост") or HasBuff("Древо Жизни") then 
-            RoleHeal() 
+------------------------------------------------------------------------------------------------------------------
+local function UpdateRole(event, ...)
+    if HasSpell("Буйный рост") or HasBuff("Древо Жизни") then 
+        RoleHeal() 
+    else
+        if HasBuff("Облик лютого медведя") then 
+            RoleTank() 
         else
-            if HasBuff("Облик лютого медведя") then 
-                RoleTank() 
-            else
-                RoleDD()
-            end
+            RoleDD()
         end
     end
-
-    if event:match("^UNIT_SPELLCAST") then
-        local unit, spell = select(1,...)
---~         print(event,  unit, spell )
-        if spell and unit == "player" then
-            if event == "UNIT_SPELLCAST_SENT" then
-                local _,_,_,target = select(1,...)
-                if target and UnitExists(target) then
-                    lastTarget = target
-                    if IsHealCast(spell) then
-                        lastHealCastTarget = target
-                    end
-                end
-                InCast[spell] = true
-            end
-            if  event == "UNIT_SPELLCAST_SUCCEEDED" then
---[[                 if Debug then 
-                     chat(spell)
-                 end]]
-                if spell == resSpell then
-                    RunMacroText("/w " .. resUnit .. " Реснул тебя, вставай давай!")
-                    if InCombatLockdown() then RunMacroText("/w " .. resUnit .. " Но смотри аккуратно, чтоб сразу не умереть!") end
-                    resList[resUnit] = GetTime()
-                    Notify("Успешно применил "..resSpell .. " на " .. resUnit)
-                end
-            end
-            if event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_FAILED" then
-                InCast[spell] = false
+end    
+AttachEvent("ACTIVE_TALENT_GROUP_CHANGED", UpdateRole)
+AttachEvent("PLAYER_ENTERING_WORLD", UpdateRole)
+------------------------------------------------------------------------------------------------------------------
+--TODO review this
+local function healCastsUpdate(event, ...)
+    local unit, spell = select(1,...)
+    if spell and unit == "player" then
+        if event == "UNIT_SPELLCAST_SENT" then
+            local _,_,_,target = select(1,...)
+            if target and UnitExists(target) then
+                lastTarget = target
                 if IsHealCast(spell) then
-                    lastHealCastTarget = nil
-                end
-                if spell == resSpell then
-                    resSpell = nil
-                    resUnit = nil
+                    lastHealCastTarget = target
                 end
             end
         end
-        return
-    end
-    
-    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel = select(1, ...)
-    if not(destName ~= GetUnitName("player")) and sourceName ~= nil and not UnitIsFriend("player",sourceName) then 
-        if not Paused then 
-            NextTarget = sourceName 
-            NextGUID = sourceGUID
+        if  event == "UNIT_SPELLCAST_SUCCEEDED" then
+            if spell == resSpell then
+                RunMacroText("/w " .. resUnit .. " Реснул тебя, вставай давай!")
+                if InCombatLockdown() then RunMacroText("/w " .. resUnit .. " Но смотри аккуратно, чтоб сразу не умереть!") end
+                resList[resUnit] = GetTime()
+                Notify("Успешно применил "..resSpell .. " на " .. resUnit)
+            end
+        end
+        if event == "UNIT_SPELLCAST_SUCCEEDED" or event == "UNIT_SPELLCAST_FAILED" then
+            if IsHealCast(spell) then
+                lastHealCastTarget = nil
+            end
+            if spell == resSpell then
+                resSpell = nil
+                resUnit = nil
+            end
         end
     end
+end    
+AttachEvent("UNIT_SPELLCAST_SENT", healCastsUpdate)
+AttachEvent("UNIT_SPELLCAST_SUCCEEDED", healCastsUpdate)
+AttachEvent("UNIT_SPELLCAST_FAILED", healCastsUpdate)
+------------------------------------------------------------------------------------------------------------------
+--TODO review this
+local function UpdateDispel(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel = select(1, ...)
 
-    if (event=="COMBAT_LOG_EVENT_UNFILTERED") then
-        
         if sourceGUID == UnitGUID("player") and ( type == "SPELL_DISPEL") and spellId and spellName and dispel then
             DispelWhitelist[dispel] = true
---~             print(spellName,"рассеяло" dispel)
         end
     
-        if sourceGUID == UnitGUID("player") and (type:match("^SPELL_CAST") and spellId and spellName)  then
-       
-            if err then
-            
-                if dispel and err == "Нечего рассеивать." then
-                    print(dispel, "не снимается")
-                    DispelBlacklist[dispel] = GetTime()
-                end
-            
-                if err == "Цель вне поля зрения." then
-                    local partyName = UnitPartyName(lastTarget)
-                    if partyName then
-                        notVisible[partyName] = GetTime()
-                    end
-                end
-                if err == "Вы должны находиться позади цели." then NotBehindTarget = GetTime() end
-                if HasBuff("Ясность мысли") and err:match("Недостаточно") then 
---~                     print("Ясность мысли залипла!")
-                    RunMacroText("/cancelaura Ясность мысли")
-                end
-                if Debug  then
-                    print("["..spellName .. "]: ".. err)
-                end
+        if sourceGUID == UnitGUID("player") and (type:match("^SPELL_CAST") and spellId and spellName) 
+            and err and dispel and err == "Нечего рассеивать." then
+            print(dispel, "не снимается")
+            DispelBlacklist[dispel] = GetTime()
+        end
+end    
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateDispel)
+------------------------------------------------------------------------------------------------------------------
+-- TODO review this
+-- Ясность мысли залипла
+local function UpdateAura(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel = select(1, ...)
+    if sourceGUID == UnitGUID("player") and (type:match("^SPELL_CAST") and spellId and spellName)  then
+        if err then
+            if HasBuff("Ясность мысли") and err:match("Недостаточно") then 
+                print("Ясность мысли залипла!")
+                RunMacroText("/cancelaura Ясность мысли")
+            end
+            if Debug  then
+                print("["..spellName .. "]: ".. err)
             end
         end
     end
-end
-frame:SetScript("OnEvent", onEvent)
+end    
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateAura)
 
+------------------------------------------------------------------------------------------------------------------
 function DoSpell(spell, target, mana)
+
     if not spell then return false end
-    if (InCast[spell]) then return false end
-    local cast = false
-    for key,value in pairs(InCast) do 
-        if key ~= "Трепка" and value then cast = true end
-    end
-    if cast then return false end
---~     print(spell, InCast[spell])
     if CalculateHP("player") < 60 and UnitMana("player") < 70 and GetShapeshiftForm() == 1 and IsReadySpell("Неистовое восстановление") and spell ~= "Неистовое восстановление" then
         local name, _, _, _, _, powerType  = GetSpellInfo(spell)
         if not name or powerType == 1 then return false end

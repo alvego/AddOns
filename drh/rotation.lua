@@ -1,9 +1,13 @@
 ﻿-- Druid Rotation Helper by Timofeev Alexey
+------------------------------------------------------------------------------------------------------------------
 local TryResUnit = nil
 local TryResTime = 0
 local ThreatEnd = 0
 local ThreatList = {}
+
+
 function Idle()
+   
     if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье")) then return end
     
     if InCombatLockdown() and HasSpell("Кровь земли") and ( UnitHealth100() < 60 or (CanUseInterrupt() and (UnitHealthMax("player") - UnitHealth("player") > 3800))) and DoSpell("Кровь земли") then return end 
@@ -113,7 +117,7 @@ function Idle()
     end
 end
 
-
+------------------------------------------------------------------------------------------------------------------
 function TankRotation()
     if (IsAttack() or InCombatLockdown()) and GetShapeshiftForm() ~= 1 then
         UseMount("Облик лютого медведя(Смена облика)")
@@ -146,6 +150,7 @@ function TankRotation()
    
 end 
 
+------------------------------------------------------------------------------------------------------------------
 function CanHeal(t)
     
     if InInteractRange(t) 
@@ -157,6 +162,7 @@ function CanHeal(t)
 end
 
 
+------------------------------------------------------------------------------------------------------------------
 local manaEnd = 0
 local hpEnd = 0
 local buffTime = 0
@@ -391,6 +397,7 @@ function HealRotation()
         
      end
 
+------------------------------------------------------------------------------------------------------------------
 -- local tRotation = false
 function DDRotation()
     local myHP = CalculateHP("player")
@@ -465,7 +472,7 @@ function DDRotation()
         
         if IsStealthed() then 
             
-            if IsNotBehindTarget() then
+            if not IsBehind() then
                 if DoSpell("Наскок") then return end
             else
                 if DoSpell("Накинуться") then return end
@@ -506,7 +513,7 @@ function DDRotation()
         end
         
         if HasBuff("Ясность мысли") then
-            if IsNotBehindTarget() then
+            if not IsBehind() then
                 if HasSpell("Увечье (кошка)") then
                     if DoSpell("Увечье (кошка)") then return end
                 else
@@ -544,7 +551,7 @@ function DDRotation()
         end
       
       
-        if IsNotBehindTarget() then
+        if not IsBehind() then
             if HasSpell("Увечье (кошка)") then
                 if DoSpell("Увечье (кошка)") then return end
             else
@@ -562,6 +569,7 @@ function DDRotation()
         
 end
 
+------------------------------------------------------------------------------------------------------------------
 local InterruptTime = 0
 function TryInterrupt(target)
     if (GetTime() - InterruptTime < 1) then return false end
@@ -632,6 +640,7 @@ function TryInterrupt(target)
     return false    
 end
 
+------------------------------------------------------------------------------------------------------------------
 function ActualDistance(target)
     if target == nil then target = "target" end
     return (CheckInteractDistance(target, 3) == 1) and not InRange("Звериная атака - медведь", target)
@@ -639,6 +648,7 @@ function ActualDistance(target)
 end
 
 
+------------------------------------------------------------------------------------------------------------------
 local focusTime = 0
 function TryTarget(useFocus)
     if useFocus == nil then useFocus = true end
@@ -710,7 +720,7 @@ function TryTarget(useFocus)
     end
 end
 
-
+------------------------------------------------------------------------------------------------------------------
 function TryProtect()
     local h = CalculateHP("player")
     if InCombatLockdown() then
@@ -730,6 +740,7 @@ function TryProtect()
     return false;
 end
 
+------------------------------------------------------------------------------------------------------------------
 local TauntTime = 0
 function TryTaunt(target)
     if GetShapeshiftForm() ~= 1 then return false end
@@ -752,6 +763,7 @@ function TryTaunt(target)
     return false
 end
 
+------------------------------------------------------------------------------------------------------------------
 function TryBuffs()
     if HasBuff("Крадущийся зверь") or InCombatLockdown() or (IsFalling() or IsSwimming()) or not IsAttack() then return false end
     local t = 15 * 60
