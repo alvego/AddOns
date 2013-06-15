@@ -57,7 +57,21 @@ function RoleHeal()
     Role = 2
     Notify(RoleName())
 end
+------------------------------------------------------------------------------------------------------------------
+local function UpdateRole(event, ...)
+    if HasSpell("Буйный рост") or HasBuff("Древо Жизни") then 
+        RoleHeal() 
+    else
+        if HasBuff("Облик лютого медведя") then 
+            RoleTank() 
+        else
+            RoleDD()
+        end
+    end
+end    
 
+AttachEvent("PLAYER_ENTERING_WORLD", UpdateRole)
+AttachEvent("ACTIVE_TALENT_GROUP_CHANGED", UpdateRole)
 ------------------------------------------------------------------------------------------------------------------
 
 
@@ -83,78 +97,6 @@ function UseInterrupt()
         echo("Interrupt: OFF",true)
     end 
 end
-------------------------------------------------------------------------------------------------------------------
--- TODO перенести в команды
-function Mount()
-    
-    if HasBuff("Облик кошки") and HasBuff("Крадущийся зверь") then
-        RunMacroText("/cancelaura Крадущийся зверь")
-        return
-    end
-    
-    
-    if CanExitVehicle() then
-        VehicleExit()
-        return
-    end
-    
-    if IsMounted() then
-        Dismount()
-        return
-    end 
-    
-    if GetShapeshiftForm() ~= 0 and not (IsFalling() or IsSwimming()) then
-        RunMacroText("/cancelform")
-        return
-    end
-    
-    if InGCD() then return end
-    
-    
-    if IsAltKeyDown() then
-        UseMount("Тундровый мамонт путешественника")
-        return
-    end
-    
-    
-    if IsSwimming() then
-        UseMount("Водный облик")
-        return
-    end
-    
-    if InCombatLockdown() or IsAttack() or IsIndoors() or (IsFalling() and not IsFlyableArea() and not HasBuff("Облик кошки")) then 
-        UseMount("Облик кошки")
-        return 
-    end
-
-    if IsFlyableArea() and not IsControlKeyDown() then
---~         if not PlayerInPlace() then
-            UseMount("Облик стремительной птицы")
-            return
---~         end
---~         if IsOutdoors() then
---~             UseMount("Бронзовый дракон")
---~         return
---~         end
-    end
-        
-
-    
-    if not PlayerInPlace() then
-        if IsControlKeyDown() then
-            UseMount("Облик кошки")
-            return
-        end
-        UseMount("Походный облик")
-        return
-    end
-    
-    if IsOutdoors() then
---~     UseMount("Бронированный бурый медведь")
-        UseMount("Огромный белый кодо")
-        return
-    end
-end    
 
 ------------------------------------------------------------------------------------------------------------------
 function BersModToggle()
@@ -283,21 +225,6 @@ function TryDispel(unit)
     end
     return ret
 end
-
-------------------------------------------------------------------------------------------------------------------
-local function UpdateRole(event, ...)
-    if HasSpell("Буйный рост") or HasBuff("Древо Жизни") then 
-        RoleHeal() 
-    else
-        if HasBuff("Облик лютого медведя") then 
-            RoleTank() 
-        else
-            RoleDD()
-        end
-    end
-end    
-AttachEvent("ACTIVE_TALENT_GROUP_CHANGED", UpdateRole)
-AttachEvent("PLAYER_ENTERING_WORLD", UpdateRole)
 ------------------------------------------------------------------------------------------------------------------
 --TODO review this
 local function healCastsUpdate(event, ...)

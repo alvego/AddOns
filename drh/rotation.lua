@@ -8,7 +8,15 @@ local ThreatList = {}
 
 function Idle()
    
-    if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье")) then return end
+    if IsAttack() then
+        if HasBuff("Походный облик") then RunMacroText("/cancelaura Походный облик") end
+        if CanExitVehicle() then VehicleExit() end
+        if IsMounted() then Dismount() return end 
+    end
+    -- дайте поесть спокойно
+    if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or CanExitVehicle() or HasBuff("Призрачный волк")) then return end
+    -- чтоб контроли не сбивать
+    if not CanControl("target") then RunMacroText("/stopattack") end
     
     if InCombatLockdown() and HasSpell("Кровь земли") and ( UnitHealth100() < 60 or (CanUseInterrupt() and (UnitHealthMax("player") - UnitHealth("player") > 3800))) and DoSpell("Кровь земли") then return end 
     

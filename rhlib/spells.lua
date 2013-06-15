@@ -219,7 +219,8 @@ function IsSpellInUse(spellName)
 end
 ------------------------------------------------------------------------------------------------------------------
 local function checkTargetInErrList(target, list)
-    if not target or target == "target"  then return true end
+    if not target then target = "target" end
+    if target == "player" then return true end
     if not UnitExists(target) then return false end
     local t = list[UnitGUID(target)]
     if t and GetTime() - t < 1.2 then return false end
@@ -243,6 +244,8 @@ local notBehind = {}
 function IsBehind(target)
     return checkTargetInErrList(target, notBehind)
 end
+
+
 
 local function UpdateTargetPosition(event, ...)
     local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)

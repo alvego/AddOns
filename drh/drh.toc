@@ -5,4 +5,5 @@
 ## Dependencies: rhlib
 ## SavedVariables: BersState, CanInterrupt, AutoAOE, DispelWhitelist, DispelBlacklist
 rotation.lua
+commands.lua
 binds.lua

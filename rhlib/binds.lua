@@ -255,7 +255,3 @@ local function UpdateHarmfulSpell(event, ...)
     end
 end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateHarmfulSpell)
-
-------------------------------------------------------------------------------------------------------------------
--- Start event cycle (should be called at last line)
-InitRotationHelperLibrary()
