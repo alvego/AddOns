@@ -55,23 +55,46 @@ local tryMount = false
 SetCommand("mount", 
     function() 
         if InGCD() or IsPlayerCasting() then return end
-        if (IsLeftControlKeyDown() or IsSwimming()) and not HasBuff("Хождение по воде", 1, "player") and DoSpell("Хождение по воде", "player") then 
+
+        if IsControlKeyDown() then
+                
+            if HasBuff("Облик кошки") and HasBuff("Крадущийся зверь") then
+                RunMacroText("/cancelaura Крадущийся зверь")
+                tryMount = true
+                return
+            end
+            
+            if not InCombatLockdown() and GetShapeshiftForm() ~= 0 and not (IsFalling() or IsSwimming()) then 
+                RunMacroText("/cancelform") 
+                tryMount = true
+                return
+            end
+                       
+            return
+        end
+        
+        if InCombatLockdown() or IsArena() or IsAttack() or IsIndoors() or (IsFalling() and not IsFlyableArea() and not HasBuff("Облик кошки")) then 
+            DoSpell("Облик кошки")
             tryMount = true
             return 
         end
-        if InCombatLockdown() or IsArena() or not PlayerInPlace() then
-            DoSpell("Призрачный волк") 
+           
+        if InCombatLockdown() and not (IsFalling() and not IsFlyableArea()) and HasBuff("Облик кошки") then 
+            DoSpell("Облик лютого медведя")
             tryMount = true
             return 
         end
+           
         if InCombatLockdown() or not IsOutdoors() then return end
-        local mount = "Стремительный белый рысак"
-        if IsFlyableArea() and not IsLeftControlKeyDown() then mount = "Черный дракон" end
+        local mount = "Огромный белый кодо"--"Стремительный белый рысак"
         if IsAltKeyDown() then mount = "Тундровый мамонт путешественника" end
+        if not PlayerInPlace() then mount = "Походный облик" end
+        if IsFlyableArea() and (not IsLeftControlKeyDown() or IsFalling()) then mount = "Облик стремительной птицы" end
+        if IsSwimming() then mount = "Водный облик" end
         if UseMount(mount) then tryMount = true return end
+        
     end, 
     function() 
-        if (HasBuff("Призрачный волк") or IsMounted() or CanExitVehicle()) then return true end
         if tryMount then
             tryMount = false
             return true
