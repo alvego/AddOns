@@ -4,6 +4,7 @@
 !.gitignore
 !/LibHealComm-4.0/
 !/rhlib/
+!/rhlib2/
 !/srh/
 !/prh/
 !/sova/
