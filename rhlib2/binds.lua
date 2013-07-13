@@ -285,9 +285,6 @@ end
 local function UpdateMemoryUsage()
 	if not Debug then return end
 	UpdateAddOnMemoryUsage()
-	debugFrame.text:SetText(ceil(GetAddOnMemoryUsage("rhlib2")) .. "Kb")
-    debugFrame:SetAlpha(1)
-    debugFrame:Show()
-    debugFrameTime = GetTime()
+	debug(ceil(GetAddOnMemoryUsage("rhlib2")) .. "Kb")
 end
 AttachUpdate(UpdateMemoryUsage) 

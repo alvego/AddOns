@@ -17,6 +17,10 @@ function Idle()
 end
 
 ------------------------------------------------------------------------------------------------------------------
+
+
+local members = {}
+local function compareMembers(hp1, hp2) return hp1 < hp2 end
 function HealRotation()
     if IsAttack() then
         if HasSpell("Буйный рост") then
@@ -26,9 +30,22 @@ function HealRotation()
         end
     end
     if not (IsAttack() or InCombatLockdown()) then return end
+    wipe(members)
+    for _,u in pairs(UNITS) do
+		members[u] = CalculateHP(u)
+    end
+	table.sort(members, compareMembers)    
+	for u,h in pairs(members) do
+		print(u, h)
+		break
+    end
     
     
-    DoSpell("Покровительство Природы")
+    
+    
+    --GetMySpellHeal("Покровительство Природы"),
+    --Notify(CalculateHP("player"))
+    --DoSpell("Покровительство Природы")
 end
 
 
