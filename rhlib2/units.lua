@@ -52,74 +52,98 @@ end
 -- unit filted start end
 
 ------------------------------------------------------------------------------------------------------------------
+local units
+local realUnits = {}
 function GetUnits()
-    local units = {
-        "player", 
-        "target", 
-        "focus" 
-    }
-    local members = GetGroupUnits()
-    for i = 1, #members, 1 do 
-        tinsert(units, members[i])
-        tinsert(units, members[i] .."pet")
-    end
-    tinsert(units, "mouseover")
-    realUnits = {}
-    for i = 1, #units, 1 do 
+	if nil == units then
+		units = {
+			"target", 
+			"focus" 
+		}
+		local members = GetGroupUnits()
+		for i = 1, #members, 1 do 
+			tinsert(units, members[i])
+			tinsert(units, members[i] .."pet")
+		end
+		tinsert(units, "mouseover")
+	end
+	wipe(realUnits)
+    for i = 1, #units do 
         local u = units[i]
-        if not TryEach(realUnits, function(t) return IsOneUnit(t, u) end) 
-            and InInteractRange(u) then table.insert(realUnits, u) end
+        local exists = false
+        for _,t in pairs(realUnits) do 
+			exists = IsOneUnit(t, u)
+			if exists then break end 
+		end
+        if not exists and InInteractRange(u) then 
+			tinsert(realUnits, u) 
+		end
     end
     return realUnits
 end
 
 ------------------------------------------------------------------------------------------------------------------
+local groupUnits  = {}
 function GetGroupUnits()
-    local units = {"player"}
-    if not InGroup() then return units end
-    local group = InRaid() and {name = "raid", size = 40} or {name = "party", size = 4}
-    for i = 0, group.size do 
-        local u = group.name..i
-        if UnitExists(u) and UnitName(u) ~= nil 
-            and not TryEach(units, function(unit) return IsOneUnit(unit, u) end) then
-            tinsert(units, u)
-        end
+	wipe(groupUnits)
+	tinsert(groupUnits, "player")
+    if not InGroup() then return groupUnits end
+    local name = "party"
+    local size = 4
+    if InRaid() then
+		name = "raid"
+		size = 40
+    end
+    for i = 0, size do 
+		tinsert(units, name..i)
     end
     return units
 end
 
 ------------------------------------------------------------------------------------------------------------------
+local targets
+local realTargets = {}
 function GetTargets()
-    local units = {
-        "target",
-        "focus"
-    }
-    if IsArena() then
-        for i = 1, 5 do 
-             tinsert(units, "arena" .. i)
-        end
-    end
-    for i = 1, 4 do 
-         tinsert(units, "boss" .. i)
-    end
-    local members = GetGroupUnits()
-    for i = 1, #members do 
-         tinsert(units, members[i] .."-target")
-         tinsert(units, members[i] .."pet-target")
-    end
-    tinsert(units, "mouseover")
-    realUnits = {}
-    for i = 1, #units do 
-        local u = units[i]
-        if not TryEach(realUnits, function(t) return IsOneUnit(t, u) end) 
-            and IsValidTarget(u) 
-            and (IsArena() 
-                or CheckInteractDistance(u, 1) 
+	
+	if nil == targets then
+		targets = {
+			"target",
+			"focus"
+		}
+		if IsArena() then
+			for i = 1, 5 do 
+				 tinsert(targets, "arena" .. i)
+			end
+		end
+		for i = 1, 4 do 
+			 tinsert(targets, "boss" .. i)
+		end
+		local members = GetGroupUnits()
+		for i = 1, #members do 
+			 tinsert(targets, members[i] .."-target")
+			 tinsert(targets, members[i] .."pet-target")
+		end
+		tinsert(targets, "mouseover")
+	end
+
+	wipe(realTargets)
+    for i = 1, #targets do 
+        local u = targets[i]
+        
+        local exists = false
+        
+        for _,t in pairs(realTargets) do 
+			exists = IsOneUnit(t, u) 
+			if exists then break end 
+		end
+        
+        if not exists and IsValidTarget(u) and (IsArena() or CheckInteractDistance(u, 1) 
                 or IsOneUnit("player", u .. '-target')) then 
-            tinsert(realUnits, u) 
+            tinsert(realTargets, u) 
         end
+        
     end
-    return realUnits
+    return realTargets
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -159,10 +183,11 @@ function GetClass(target)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function HasClass(units, classes) 
-    return TryEach(units, 
-        function(u) return UnitExists(u) and UnitIsPlayer(u) and tContains(classes, GetClass(u)) end
-    ) 
+function HasClass(units, classes)
+	for _,u in pairs(units) do
+		if UnitExists(u) and UnitIsPlayer(u) and tContains(classes, GetClass(u)) then return true end
+	end
+    return false
 end
 
 ------------------------------------------------------------------------------------------------------------------

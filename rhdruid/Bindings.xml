@@ -1,0 +1,8 @@
+<Bindings>
+  <Binding name="DRH_INTERRUPT" description="Use cast interrupt" header="DRH">
+    UseInterrupt();
+  </Binding>
+  <Binding name="DRH_AUTO_AOE" description="Use Auto AOE" header="DRH">
+    AutoAOEToggle();
+  </Binding>
+</Bindings>

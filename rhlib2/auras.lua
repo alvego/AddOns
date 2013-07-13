@@ -7,18 +7,26 @@ local function HasAura(aura, last, target, method, my)
     if method == nil then method = UnitAura end
     if target == nil then target = "player" end
     if last == nil then last = 0.1 end
-    
+    local result = false
     if (type(target) == 'table') then 
-        return TryEach(target, function(t) return HasAura(aura, last, t, method, my) end)
+		for _,t in pairs(target) do 
+			result = HasAura(aura, last, t, method, my)
+			if result then break end
+		end
+		return result
     end
+    
     if not UnitExists(target) then return false end
     if (type(aura) == 'table') then
-        return TryEach(aura, function(a) return HasAura(a, last, target, method, my) end)
+		for _,a in pairs(aura) do 
+			result = HasAura(a, last, target, method, my)
+			if result then break end
+		end
+		return result
     end
     
     local i = 0
     local name, _, _, _, debuffType, _, Expires, unitCaster  = method(target, i)
-    local result = false
     while (i <= 40) and not result do
         if ((name and sContains(name, aura)) or (debuffType and sContains(debuffType, aura)))
             and (Expires - GetTime() >= last or Expires == 0) 
@@ -148,9 +156,8 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 --~ using: TempEnchantName = DetermineTempEnchantFromTooltip(16 or 17)
+local tt1,tt2 = GetUtilityTooltips()
 function DetermineTempEnchantFromTooltip(i_invID)
-    local tt1,tt2 = GetUtilityTooltips()
-    
     tt1:SetInventoryItem("player", i_invID)
     local n,h = tt1:GetItem()
 

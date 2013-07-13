@@ -1,8 +1,10 @@
-## Author: Timofeev Alvexey
-## Title:|cff0055ffRotation Helper|r|cffffe00a > |r|c00ff00ffLibrary 2|r
-## Version: 2.0
 ## Interface: 30300
-## SavedVariables: Paused, Debug, HarmfulCastingSpell
+## Title: |cff0055ffRotation Helper|r|cffffe00a > |r|c00ff00ffLibrary 2|r
+## Author: Timofeev Alvexey
+## Version: 2.0
+## DefaultState: Enabled
+## LoadOnDemand: 0
+## SavedVariables: Paused,Debug,HarmfulCastingSpell
 lib.lua
 misc.lua
 units.lua
@@ -15,4 +17,3 @@ spells.lua
 items.lua
 commands.lua
 binds.lua
-

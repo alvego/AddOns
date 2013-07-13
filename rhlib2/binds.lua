@@ -40,17 +40,33 @@ end
 ------------------------------------------------------------------------------------------------------------------
 -- Вызывает функцию Idle если таковая имеется, с заданным рекомендованным интервалом UpdateInterval, 
 -- при включенной Авто-ротации
+local iTargets = {"target", "mouseover"}
 TARGETS = {}
+ITARGETS = iTargets
 UNITS = {"player"}
 IUNITS = {} -- Important Units
 local StartTime = GetTime()
-local LastUpdate = 0
-local UpdateInterval = 0.15
-local function UpdateIdle(elapsed)
-    LastUpdate = LastUpdate + elapsed
-    if LastUpdate < UpdateInterval then return end
-    LastUpdate = 0
-    
+
+local function getUnitWeight(u)
+    local w = 0
+    if IsFriend(u) then w = 2 end
+    if IsOneUnit(u, "player") then w = 3 end
+    return w
+end
+local function compareUnits(u1,u2) return getUnitWeight(u1) < getUnitWeight(w2) end
+local function getTargetWeight(t)
+    local w = 0
+    for _,u in pairs(UNITS) do
+        if IsOneUnit(u .. "-target", t) then w = max(w, IsFriend(u) and 2 or 1) end
+    end
+    if IsOneUnit("focus", t) then w = 3 end
+    if IsOneUnit("target", t) then w = 4 end
+    if IsOneUnit("mouseover", t) then w = 5 end
+    w = w + (1 - UnitHealth100(t) / 100) 
+    return w
+end
+function compareTargets(t1,t2) return getTargetWeight(t1) < getTargetWeight(t2) end
+local function UpdateIdle()
     if (IsAttack() and Paused) then
         echo("Авто ротация: ON",true)
         Paused = false
@@ -60,47 +76,25 @@ local function UpdateIdle(elapsed)
     
     if Paused then return end
     
-    if GetTime() - StartTime < 3 then return end
+    if GetTime() - StartTime < 2 then return end
     
     if UnitIsDeadOrGhost("player") or UnitIsCharmed("player") 
         or not UnitPlayerControlled("player") then return end
         
     -- Update units
     UNITS = GetUnits()
-    local function GetUnitWeight(u)
-        local w = 0
-        if IsFriend(u) then w = 2 end
-        if IsOneUnit(u, "player") then w = 3 end
-        return w
-    end
-    table.sort(UNITS, function(u1,u2) return GetUnitWeight(u1) < GetUnitWeight(w2) end)
+    table.sort(UNITS, compareUnits)
+    
     -- Update targets
     TARGETS = GetTargets()
-    local function GetTargetWeight(t)
-        local w = 0
-        for _,u in pairs(UNITS) do
-            if IsOneUnit(u .. "-target", t) then w = max(w, IsFriend(u) and 2 or 1) end
-        end
-        if IsOneUnit("focus", t) then w = 3 end
-        if IsOneUnit("target", t) then w = 4 end
-        if IsOneUnit("mouseover", t) then w = 5 end
-        w = w + (1 - UnitHealth100(t) / 100) 
-        return w
-    end
-    table.sort(TARGETS, function(t1,t2) return GetTargetWeight(t1) < GetTargetWeight(t2) end)
-    IUNITS = {}
-    if IsArena() then 
-        IUNITS = UNITS 
-    else
-        for i = 1, #UNITS do
-            local u = UNITS[i]
-            if IsFriend(u) then
-                tinsert(IUNITS, u)
-            end
-        end
-    end
-    ITARGETS = {"target", "mouseover"}
-    if IsArena() then ITARGETS = TARGETS end
+    table.sort(TARGETS, compareTargets)
+    wipe(IUNITS)
+    for _,u in pairs(UNITS) do
+		if IsArena() or IsFriend(u) then 
+			tinsert(IUNITS, u)
+		end
+	end
+    ITARGETS = IsArena() and iTargets or TARGETS
     if Idle then Idle() end
 end
 AttachUpdate(UpdateIdle, -1000)
@@ -108,13 +102,13 @@ AttachUpdate(UpdateIdle, -1000)
 ------------------------------------------------------------------------------------------------------------------
 --Arena Raid Icons
 local unitCD = {}
+local raidIconsByClass = {WARRIOR=8,DEATHKNIGHT=7,PALADIN=3,PRIEST=5,SHAMAN=6,DRUID=2,ROGUE=1,MAGE=8,WARLOCK=3,HUNTER=4}
 local function UpdateArenaRaidIcons(event, ...)
     if IsArena() then
         local members = GetGroupUnits()
-        local ci = {WARRIOR=8,DEATHKNIGHT=7,PALADIN=3,PRIEST=5,SHAMAN=6,DRUID=2,ROGUE=1,MAGE=8,WARLOCK=3,HUNTER=4}
         table.foreach(members, function(_, u) 
-            if not GetRaidTargetIndex(u) and (not unitCD[u] or GetTime() - unitCD[u] > 5) then 
-                SetRaidTarget(u,ci[select(2,UnitClass(u))]) 
+            if UnitExists(u) and not GetRaidTargetIndex(u) and (not unitCD[u] or GetTime() - unitCD[u] > 5) then 
+                SetRaidTarget(u,raidIconsByClass[select(2,UnitClass(u))]) 
                 unitCD[u] = GetTime()
             end
         end)
@@ -255,3 +249,45 @@ local function UpdateHarmfulSpell(event, ...)
     end
 end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateHarmfulSpell)
+
+------------------------------------------------------------------------------------------------------------------
+local debugFrame = nil
+local debugFrameTime = 0
+local function debugFrame_OnUpdate()
+        if (debugFrameTime > 0 and debugFrameTime < GetTime() - 1) then
+                local alpha = debugFrame:GetAlpha()
+                if (alpha ~= 0) then debugFrame:SetAlpha(alpha - .02) end
+                if (aplha == 0) then 
+					debugFrame:Hide() 
+					debugFrameTime = 0
+				end
+        end
+end
+-- Debug & Notification Frame
+debugFrame = CreateFrame('Frame')
+debugFrame:ClearAllPoints()
+debugFrame:SetHeight(15)
+debugFrame:SetWidth(200)
+debugFrame:SetScript('OnUpdate', debugFrame_OnUpdate)
+debugFrame:Hide()
+debugFrame.text = debugFrame:CreateFontString(nil, 'BACKGROUND', 'ErrorFont')
+debugFrame.text:SetAllPoints()
+debugFrame:SetPoint('TOPLEFT', 0, 0)
+
+-- Debug messages.
+function debug(message)
+        debugFrame.text:SetText(message)
+        debugFrame:SetAlpha(1)
+        debugFrame:Show()
+        debugFrameTime = GetTime()
+end
+
+local function UpdateMemoryUsage()
+	if not Debug then return end
+	UpdateAddOnMemoryUsage()
+	debugFrame.text:SetText(ceil(GetAddOnMemoryUsage("rhlib2")) .. "Kb")
+    debugFrame:SetAlpha(1)
+    debugFrame:Show()
+    debugFrameTime = GetTime()
+end
+AttachUpdate(UpdateMemoryUsage) 

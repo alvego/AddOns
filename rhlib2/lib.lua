@@ -35,22 +35,26 @@ frame:SetScript("OnEvent", onEvent)
 ------------------------------------------------------------------------------------------------------------------
 -- Список обработчик -> вес/значимость
 local UpdateList = {}
+local function upadteSort(u1,u2) return u1.weight > u2.weight end
 function AttachUpdate(f, w) 
     if nil == f then error("Func can't be nil") end  
     if w == nil then w = 0 end
     tinsert(UpdateList, { func = f, weight = w })
     -- сортируем по важности
-    table.sort(UpdateList, function(u1,u2) return u1.weight > u2.weight end)
+    table.sort(UpdateList, upadteSort)
 end
 
 ------------------------------------------------------------------------------------------------------------------
 -- Выполняем обработчики события OnUpdate, согласно приоритету (return true - выход)
 local LastUpdate = 0
-local UpdateInterval = 0.01
+local UpdateInterval = 0.15
+local function update(upd) return upd.func(elapsed) end
 local function OnUpdate(frame, elapsed)
     LastUpdate = LastUpdate + elapsed 
     if LastUpdate < UpdateInterval then return end -- для снижения нагрузки на проц
     LastUpdate = 0
-    if TryEach(UpdateList, function(update) return update.func(elapsed) end) then return end
+    for _,upd in pairs(UpdateList) do
+		if upd.func(elapsed) then return end
+    end
 end
 frame:SetScript("OnUpdate", OnUpdate)
