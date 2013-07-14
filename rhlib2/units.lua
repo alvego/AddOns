@@ -52,21 +52,18 @@ end
 -- unit filted start end
 
 ------------------------------------------------------------------------------------------------------------------
-local units
+local units = {}
 local realUnits = {}
 function GetUnits()
-	if nil == units then
-		units = {
-			"target", 
-			"focus" 
-		}
-		local members = GetGroupUnits()
-		for i = 1, #members, 1 do 
-			tinsert(units, members[i])
-			tinsert(units, members[i] .."pet")
-		end
-		tinsert(units, "mouseover")
+	wipe(units)
+	tinsert(units, "target")
+	tinsert(units, "focus")
+	local members = GetGroupUnits()
+	for i = 1, #members, 1 do 
+		tinsert(units, members[i])
+		tinsert(units, members[i] .."pet")
 	end
+	tinsert(units, "mouseover")
 	wipe(realUnits)
     for i = 1, #units do 
         local u = units[i]
@@ -89,43 +86,38 @@ function GetGroupUnits()
 	tinsert(groupUnits, "player")
     if not InGroup() then return groupUnits end
     local name = "party"
-    local size = 4
+    local size = MAX_PARTY_MEMBERS
     if InRaid() then
 		name = "raid"
-		size = 40
+		size = MAX_RAID_MEMBERS
     end
     for i = 0, size do 
-		tinsert(units, name..i)
+		tinsert(groupUnits, name..i)
     end
-    return units
+    return groupUnits
 end
 
 ------------------------------------------------------------------------------------------------------------------
-local targets
+local targets = {}
 local realTargets = {}
 function GetTargets()
-	
-	if nil == targets then
-		targets = {
-			"target",
-			"focus"
-		}
-		if IsArena() then
-			for i = 1, 5 do 
-				 tinsert(targets, "arena" .. i)
-			end
+	wipe(targets)
+	tinsert(targets, "target")
+	tinsert(targets, "focus")
+	if IsArena() then
+		for i = 1, 5 do 
+			 tinsert(targets, "arena" .. i)
 		end
-		for i = 1, 4 do 
-			 tinsert(targets, "boss" .. i)
-		end
-		local members = GetGroupUnits()
-		for i = 1, #members do 
-			 tinsert(targets, members[i] .."-target")
-			 tinsert(targets, members[i] .."pet-target")
-		end
-		tinsert(targets, "mouseover")
 	end
-
+	for i = 1, 4 do 
+		 tinsert(targets, "boss" .. i)
+	end
+	local members = GetGroupUnits()
+	for i = 1, #members do 
+		 tinsert(targets, members[i] .."-target")
+		 tinsert(targets, members[i] .."pet-target")
+	end
+	tinsert(targets, "mouseover")
 	wipe(realTargets)
     for i = 1, #targets do 
         local u = targets[i]
@@ -256,9 +248,9 @@ function UnitGetIncomingHeals(target, s)
         target = "player" 
     end
     if not s then 
-        if UnitHealth100(target) < 10 then return 0 end
         s = 4
-        if UnitThreatSituation(target) == 3 then s = 2 end
+        if UnitThreatAlert(target) == 3 then s = 2 end
+        if UnitHealth100(target) < 40 then return 0 end
     end
     return HealComm:GetHealAmount(UnitGUID(target), HealComm.ALL_HEALS, GetTime() + s) or 0
 end
@@ -273,7 +265,7 @@ function UnitLostHP(unit)
     local hp = UnitHP(unit)
     local maxhp = UnitHealthMax(unit)
     local lost = maxhp - hp
-    if UnitThreat(unit) == 3 then lost = lost * 1.2 end
+    if UnitThreatAlert(unit) == 3 then lost = lost * 1.5 end
     return lost
 end
 

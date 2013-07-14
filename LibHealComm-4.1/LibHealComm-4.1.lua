@@ -2803,3 +2803,18 @@ function GetMySpellHeal(spellName, spellRank)
     local _, amount = CalculateHealing(spellName..spellRank, spellName, spellRank)
     return amount
 end
+
+function GetMyHotSpellHeal(spellName, spellRank) 
+	if not spellName then return 0 end
+    if spellRank == nil and spellName ~= nil then
+		local a = spellName
+        local s, l = GetSpellInfo(spellName); 
+        spellRank = tonumber(string.match(l,"%d+"))
+    end    
+    local _, amount = CalculateHotHealing(spellName..spellRank, spellName, spellRank)
+    if type(amount) == 'table' then
+		amount = amount[1]
+    end
+    return amount
+end
+

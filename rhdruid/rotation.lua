@@ -18,13 +18,16 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 
-
+local tranquilityAlertTimer = 0;
 local members = {}
+local membersHP = {}
 local protBuffsList = {"Ледяная глыба", "Божественный щит", "Превращение", "Щит земли", "Частица Света"}
 local dangerousType = {"worldboss", "rareelite", "elite"}
-local function compareMembers(hp1, hp2) return hp1 < hp2 end
+local hotBuffList = {"Омоложение", "Восстановление", "Жизнецвет", "Буйный рост"}
+local function compareMembers(u1, u2) 
+	return membersHP[u1] < membersHP[u2]
+end
 function HealRotation()
-	Notify(UnitGetIncomingHeals("player"))
 	if IsAttack() then
         if HasSpell("Буйный рост") then
             if GetShapeshiftForm() ~= 5 and UseMount("Древо Жизни") then return end
@@ -32,8 +35,9 @@ function HealRotation()
             if GetShapeshiftForm() ~= 0 then RunMacroText("/cancelform") end
         end
     end
-    if not (IsAttack() or InCombatLockdown()) then return end
+
     wipe(members)
+    wipe(membersHP)
     for _,u in pairs(UNITS) do
 		if CanHeal(u) then 
 			 h =  CalculateHP(u)
@@ -56,74 +60,109 @@ function HealRotation()
 				h = h - 2 * status
 				if HasBuff(protBuffsList, 1, u) then h = h + 5 end
 			end
-			members[u] = h
+			tinsert(members, u)
+			membersHP[u] = h
 		end
     end
-	table.sort(members, compareMembers)    
-	for u,h in pairs(members) do
-		
-		
-		if (HasBuff("Природная стремительность")) then
-            if not HasMyBuff("Восстановление", 3, u) and DoSpell("Восстановление", u) then return end
-            if HasMyBuff("Восстановление", 2, u) and DoSpell("Покровительство Природы", u) then return end
-            return 
-        end
-        --[[
-        if HasBuff("Ясность мысли") then 
-			for u,h in pairs(members) do
-				if GetBuffStack("Жизнецвет", u) < 3 then 
-					DoSpell("Жизнецвет", u)
-					return 
-				end
-			end
-        end
-        
-        if (HasSpell("Буйный рост")) then
-            if rCount > 1 and DoSpell("Буйный рост",rUnit) then return end
-            if rCount == 0 and lowhpmembers2 > 1 and DoSpell("Буйный рост",u) then return end
-        end
-       
-        
-        if InCombatLockdown() and PlayerInPlace() and (lowhpmembers > 3 and (100 / #members * lowhpmembers > 35)) and (DoSpell("Дубовая кожа") or HasBuff("Дубовая кожа"))and DoSpell("Спокойствие") then return end
-        if (h < 96 or (h < 100 and UnitThreatAlert(u) == 3)) and not HasMyBuff("Омоложение", 1, u) and DoSpell("Омоложение", u) then return end
-        
-        if InCombatLockdown() then
-            if myHP < 41 and UseHealPotion() then return end
-                        
-            if (h < 35 or ( h < 55 and UnitThreatAlert(u) == 3)) and HasSpell("Природная стремительность") and DoSpell("Природная стремительность") then  return end
+	table.sort(members, compareMembers)  
+	local myHP, myLost = CalculateHP("player"), UnitLostHP("player")
+	local u = members[1]
+	local l = UnitLostHP(u)
 
-            if (h < 45 or ( h < 65 and UnitThreatAlert(u) == 3)) and (HasMyBuff("Омоложение", 1, u) or HasMyBuff("Восстановление", 1, u)) and HasSpell("Быстрое восстановление") and DoSpell("Быстрое восстановление", u) then return end
-                
-            if myHP < 60 then DoSpell("Дубовая кожа") end
-        end
+    if InCombatLockdown() then
+        if myHP < 41 and UseHealPotion() then return end
         
-        if GetBersState() then
-            if ((UnitThreatAlert(u) == 3) or IsOneUnit("focus", u)) and h < 100 then
-                if not (h < 60 and HasMyBuff("Жизнецвет", 0.01, u)) and (not HasMyBuff("Жизнецвет", 2, u) or GetBuffStack("Жизнецвет", u) < 3) and DoSpell("Жизнецвет", u) then return end
-              else
-                if UnitMana100("player") > 50 and h < 80 and h > 50 and (not HasMyBuff("Жизнецвет", 2, u) or GetBuffStack("Жизнецвет", u) < 3) and DoSpell("Жизнецвет", u) then return end
-            end
+        if HasSpell("Кровь земли") and myLost > 3800 and DoSpell("Кровь земли") then return end 
+
+		if HasSpell("Быстрое восстановление") and IsReadySpell("Быстрое восстановление") and (HasMyBuff("Омоложение", 0.5, u) or HasMyBuff("Восстановление", 0.5, u)) then  
+			if l >= GetMySpellHeal("Восстановление") and HasSpell("Быстрое восстановление") and DoSpell("Быстрое восстановление") then return end
         end
 
-        if PlayerInPlace() and (IsAttack() or InCombatLockdown()) then
-            if (h < 60 or ( h < 80 and UnitThreatAlert(u) == 3)) 
-				and HasMyBuff("Благоволение природы") 
-				and not HasMyBuff("Восстановление", 3, u) 
-				and DoSpell("Восстановление", u) then return end
-            if (h < 55 or (h < 75 and UnitThreatAlert(u) == 3)) 
-				and (HasMyBuff("Омоложение", 2, u) or HasMyBuff("Восстановление", 2, u) or HasMyBuff("Жизнецвет", 2, u) or HasMyBuff("Буйный рост", 2, u)) 
-				and DoSpell("Покровительство Природы", u) then return end
-        end
-        ]]
-		break
+        if HasSpell("Природная стремительность") and IsReadySpell("Природная стремительность") then  
+			if l >= GetMySpellHeal("Покровительство Природы") and HasSpell("Природная стремительность") and DoSpell("Природная стремительность") then return end
+        end     
+               
+                    
+            
+        if myHP < 60 then DoSpell("Дубовая кожа") end
     end
     
+    if HasBuff("Ясность мысли") then 
+		if HasBuff("Природная стремительность") then
+			if l >= GetMySpellHeal("Целительное прикосновение") then DoSpell("Целительное прикосновение", u) end
+			return
+		end
+		for _,u in pairs(members) do
+			if GetBuffStack("Жизнецвет", u) < 3 then 
+				DoSpell("Жизнецвет", u)
+				return 
+			end
+		end
+    end
     
+    if HasBuff("Природная стремительность") then
+		if HasMyBuff(hotBuffList, 1.2, u) and DoSpell("Покровительство Природы", u) then return end
+        if not HasMyBuff("Восстановление", 3, u) and DoSpell("Восстановление", u) then return end
+        return 
+    end
     
+    if IsReadySpell("Спокойствие") and InCombatLockdown() then
+		local lowhpmembers, membersCount = 0, 0     
+		local heal = GetMySpellHeal("Спокойствие")  
+		for _, u in pairs(members) do 
+			membersCount = membersCount + 1
+			if UnitLostHP(u) >= heal then lowhpmembers = lowhpmembers + 1 end
+		end
+		if (lowhpmembers > 3 and (100 / membersCount * lowhpmembers > 35)) and (IsReadySpell("Дубовая кожа") or HasBuff("Дубовая кожа")) then
+			if tranquilityAlertTimer == 0 then
+				Notify("Стой на месте! Ща жахнем 'Спокойствие!'")
+				tranquilityAlertTimer = GetTime()
+			end
+			if (GetTime() - tranquilityAlertTimer > 1) and PlayerInPlace() and (DoSpell("Дубовая кожа") or HasBuff("Дубовая кожа")) and DoSpell("Спокойствие") then 
+				tranquilityAlertTimer = 0
+				return 
+			end
+		end
+    end
     
-    --GetMySpellHeal("Покровительство Природы"),
+    if PlayerInPlace() and (IsAttack() or InCombatLockdown()) then
+		if HasMyBuff("Благоволение природы") and not HasMyBuff("Восстановление", 0.01, u) and l >= GetMySpellHeal("Восстановление") and DoSpell("Восстановление", u) then return end
+		if HasMyBuff(hotBuffList, 1.2, u) and l >= GetMySpellHeal("Покровительство Природы") and DoSpell("Покровительство Природы", u) then return end
+		if not HasMyBuff("Восстановление", 0.01, u)	and l >= GetMySpellHeal("Восстановление") and DoSpell("Восстановление", u) then return end
+    end
     
-    --DoSpell("Покровительство Природы")
+    if (HasSpell("Буйный рост") and IsReadySpell("Буйный рост")) then
+		local dUnit, dCount = nil, 0
+		local heal = GetMyHotSpellHeal("Буйный рост")
+		for _,u in pairs(members) do 
+			local c = 0
+			for _,u2 in pairs(members) do 
+				local d = CheckDistance(u, u2)
+				if UnitLostHP(u2) >= heal and d and d < 15 then c = c + 1 end
+			end
+			if dUnit == nil or dCount < c then 
+				dUnit = u
+				dCount = c
+			end
+		end
+        if dCount > 1 then
+			if DoSpell("Буйный рост",dUnit) then return end
+		else
+			if l >= heal and DoSpell("Буйный рост",u) then return end
+		end
+    end
+    
+    if IsReadySpell("Омоложение") and not HasMyBuff("Омоложение", 1, u) then
+		if l >= GetMyHotSpellHeal("Буйный рост") and DoSpell("Омоложение", u) then return end
+    end
+    
+	if IsReadySpell("Жизнецвет") then
+		if (l >= GetMyHotSpellHeal("Жизнецвет") or (UnitThreatAlert(u) == 3 and GetBuffStack("Жизнецвет", u) < 2)) and GetBuffStack("Жизнецвет", u) < 3 and DoSpell("Жизнецвет", u) then return end
+	end
+	
+    
+
+
 end
 
 
