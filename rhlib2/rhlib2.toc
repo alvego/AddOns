@@ -4,6 +4,7 @@
 ## Version: 2.0
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
+## Dependencies: LibHealComm-4.1
 ## SavedVariables: Paused,Debug,HarmfulCastingSpell
 lib.lua
 misc.lua

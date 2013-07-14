@@ -3,7 +3,7 @@
 BINDING_HEADER_DRH = "Druid Rotation Helper"
 BINDING_NAME_DRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 BINDING_NAME_DRH_AUTO_AOE = "Авто AOE"
-print("Druid Rotation Helper loaded")
+print("|cff0055ffRotation Helper|r|cffffe00a > |r|cffff7d0aDruid|r loaded")
 ------------------------------------------------------------------------------------------------------------------
 if CanInterrupt == nil then CanInterrupt = true end
 
