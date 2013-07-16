@@ -2,8 +2,8 @@
 ## Title: |cff0055ffRotation Helper|r|cffffe00a > |r|c00ff00ffLibrary 2|r
 ## Author: Timofeev Alvexey
 ## Version: 2.0
-## DefaultState: Enabled
-## LoadOnDemand: 0
+## DefaultState: Disabled
+## LoadOnDemand: 1
 ## Dependencies: LibHealComm-4.1
 ## SavedVariables: Paused,Debug,HarmfulCastingSpell
 lib.lua

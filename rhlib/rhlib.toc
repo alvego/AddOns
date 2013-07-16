@@ -1,6 +1,7 @@
 ## Author: Timofeev Alvexey
 ## Title:|cff69ccf0 Rotation Helper|r |cffffd200 Library|r
 ## Version: 0.2
+## DefaultState: Disabled
 ## Interface: 30300
 ## SavedVariables: Paused, Debug, HarmfulCastingSpell
 lib.lua

@@ -68,7 +68,7 @@ function HealRotation()
 	local myHP, myLost = CalculateHP("player"), UnitLostHP("player")
 	local u = members[1]
 	local l = UnitLostHP(u)
-
+	
     if InCombatLockdown() then
         if myHP < 41 and UseHealPotion() then return end
         

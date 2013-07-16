@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# WowAddOnStudio Solution File, Format Version 11.00
+Project("{E6E1D386-69D8-4755-9E61-0950293915FC}") = "rhlib2", "rhlib2\rhlib2.wowproj", "{1F3364F6-2003-4260-9F29-3CD3C0A6DE03}"
+EndProject
+Project("{E6E1D386-69D8-4755-9E61-0950293915FC}") = "rhdruid", "rhdruid\rhdruid.wowproj", "{33B2A80A-2CD4-4A59-A8A2-1777F3E3CF4D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1F3364F6-2003-4260-9F29-3CD3C0A6DE03} = {1F3364F6-2003-4260-9F29-3CD3C0A6DE03}
+	EndProjectSection
+EndProject
+Project("{E6E1D386-69D8-4755-9E61-0950293915FC}") = "rhshaman", "rhshaman\rhshaman.wowproj", "{82F7D79B-FCCC-48A2-A22D-E9FD73CFE00D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Default|Any CPU = Default|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1F3364F6-2003-4260-9F29-3CD3C0A6DE03}.Default|Any CPU.ActiveCfg = Default|Any CPU
+		{1F3364F6-2003-4260-9F29-3CD3C0A6DE03}.Default|Any CPU.Build.0 = Default|Any CPU
+		{33B2A80A-2CD4-4A59-A8A2-1777F3E3CF4D}.Default|Any CPU.ActiveCfg = Default|Any CPU
+		{33B2A80A-2CD4-4A59-A8A2-1777F3E3CF4D}.Default|Any CPU.Build.0 = Default|Any CPU
+		{82F7D79B-FCCC-48A2-A22D-E9FD73CFE00D}.Default|Any CPU.ActiveCfg = Default|Any CPU
+		{82F7D79B-FCCC-48A2-A22D-E9FD73CFE00D}.Default|Any CPU.Build.0 = Default|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
