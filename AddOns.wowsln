@@ -9,6 +9,9 @@ Project("{E6E1D386-69D8-4755-9E61-0950293915FC}") = "rhdruid", "rhdruid\rhdruid.
 	EndProjectSection
 EndProject
 Project("{E6E1D386-69D8-4755-9E61-0950293915FC}") = "rhshaman", "rhshaman\rhshaman.wowproj", "{82F7D79B-FCCC-48A2-A22D-E9FD73CFE00D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1F3364F6-2003-4260-9F29-3CD3C0A6DE03} = {1F3364F6-2003-4260-9F29-3CD3C0A6DE03}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
