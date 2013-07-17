@@ -40,7 +40,7 @@ function HealRotation()
     wipe(membersHP)
     for _,u in pairs(UNITS) do
 		if CanHeal(u) then 
-			 h =  CalculateHP(u)
+			 local h =  CalculateHP(u)
 			if IsFriend(u) then 
 				if UnitAffectingCombat(u) and h > 99 then h = h - 1 end
 				h = h  - ((100 - h) * 1.15) 

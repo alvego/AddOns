@@ -244,7 +244,7 @@ end
 local function UpdateHarmfulSpell(event, ...)
     local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
     if event:match("SPELL_DAMAGE") and spellName and agrs12 > 0 then
-        local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellID) 
+        local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfoCached(spellID) 
         if castTime > 0 then HarmfulCastingSpell[name] = true end
     end
 end

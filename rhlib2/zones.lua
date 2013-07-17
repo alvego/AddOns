@@ -224,7 +224,7 @@ local function UpdateZone()
 		ZoneChanged("ZoneText") 
 	end 
 end
---AttachUpdate(UpdateZone)
+AttachUpdate(UpdateZone)
 
 ------------------------------------------------------------------------------------------------------------------
 function GetYardCoords(unit)
@@ -279,7 +279,7 @@ local function UpdateInPlace()
     LastPosX ,LastPosY = GetPlayerMapPosition("player")
     if not InPlace then InPlaceTime = GetTime() end
 end
---AttachUpdate(UpdateInPlace)
+AttachUpdate(UpdateInPlace)
 -- Игрок не двигается (можно кастить)
 InPlaceTime = GetTime()
 function PlayerInPlace()

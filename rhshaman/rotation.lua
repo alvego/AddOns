@@ -1,9 +1,6 @@
 ﻿-- Shaman Rotation Helper by Timofeev Alexey
 print("|cff0055ffRotation Helper|r|cffffe00a > |cff0000ffShaman|r loaded!")
 ------------------------------------------------------------------------------------------------------------------
-local TryResUnit = nil
-local TryResTime = 0
-------------------------------------------------------------------------------------------------------------------
 -- дебафы обязательные к снятию в первую очередь
 DispelRedList = {
     "Озноб",
@@ -70,24 +67,40 @@ StealShieldsRedList = {
     "Совершенство природы"
 }
 ------------------------------------------------------------------------------------------------------------------
+local TryResUnit = nil
+local TryResTime = 0
+
+local peaceBuff = {"Пища", "Питье", "Призрачный волк"}
+local reflectBuff = {"Отражение заклинания", "Рунический покров"}
 -- Общее для всех ротаций
 function Idle()
+	-- слезаем со всего, если решили драться
     if IsAttack() then
         if HasBuff("Призрачный волк") then RunMacroText("/cancelaura Призрачный волк") return end
         if CanExitVehicle() then VehicleExit() return end
         if IsMounted() then Dismount() return end 
     end
     -- дайте поесть спокойно
-    if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or CanExitVehicle() or HasBuff("Призрачный волк")) then return end
+    if not IsAttack() and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
     -- чтоб контроли не сбивать
     if not CanControl("target") then RunMacroText("/stopattack") end
     -- геру под крылья на арене
-    if IsArena() and TryEach(UNITS, function(u) return HasBuff("Гнев карателя", 10, u) end) then DoCommand("hero") end
+	if IsArena() then
+		for _, u in pairs(UNITS) do
+			if IsReadySpell("Жажда крови") and HasBuff("Гнев карателя", 10, u) then
+				DoCommand("hero") 
+				return
+			end
+			-- чтоб не словить сап от роги
+			if IsPvP() and HasClass(TARGETS, "ROGUE") and not InCombatLockdown() and UnitAffectingCombat(u) then
+				if DoSpell("Хождение по воде", u) then return end
+			end
+		end
+	end
     -- Зачем вару отражение???
-    if TryEach(TARGETS, function(t) 
-        return CanAttack(t) and UnitAffectingCombat(t) and HasBuff({"Отражение заклинания", "Рунический покров"}, 1, t) and DoSpell("Пронизывающий ветер", t)
-    end) then return end
-    
+	for _,t in pairs(TARGETS) do
+		if CanAttack(t) and UnitAffectingCombat(t) and HasBuff(reflectBuff, 1, t) and DoSpell("Пронизывающий ветер", t) then return end
+	end
     --------------------------------------------------------------------------------------------------------------
     -- Рес по средней мышке + контрол
     --[[if IsLeftControlKeyDown() and IsMouseButtonDown(4) then
@@ -126,7 +139,7 @@ function Idle()
     -- сбиваем касты
     -- if TryEach(TARGETS, TryInterrupt) then return end
     -- тотемчики может поставить?
-        -- if TryTotems() then return end
+    -- if TryTotems() then return end
     --------------------------------------------------------------------------------------------------------------
     -- Энх
     if IsMDD() then 

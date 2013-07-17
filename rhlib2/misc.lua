@@ -3,7 +3,7 @@
 function SellGray()
     for b=0,4 do                                   
       for s=1, GetContainerNumSlots(b) do          
-        n=GetContainerItemLink(b,s)               
+        local n=GetContainerItemLink(b,s)
         if n and string.find(n, "ff9d9d9d") then                                 
             UseContainerItem(b,s)                   
         end                                        

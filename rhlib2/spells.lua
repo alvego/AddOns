@@ -1,5 +1,16 @@
 ﻿-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
+local spellCache  = setmetatable({}, {__index=function(t,v) local a = {GetSpellInfo(v)} if GetSpellInfo(v) then t[v] = a end return a end})
+function GetSpellInfoCached(a)
+    return unpack(spellCache[a])
+end
+
+local function UpdateSpellChache() 
+	wipe(spellCache)
+end
+AttachUpdate(UpdateSpellChache)
+
+------------------------------------------------------------------------------------------------------------------
 local LagTime = 0
 local sendTime = 0
 local function UpdateLag(event, ...)
@@ -42,7 +53,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function HasSpell(spellName)
-    local spell = GetSpellInfo(spellName)
+    local spell = GetSpellInfoCached(spellName)
     return spell == spellName
 end
 
@@ -108,7 +119,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function SpellCastTime(spell)
-    local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spell)
+    local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfoCached(spell)
     if not name then return 0 end
     return castTime / 1000
 end
@@ -119,7 +130,7 @@ function IsReadySpell(name)
     local usable, nomana = IsUsableSpell(name)
     if not usable then return false end
     local left = GetSpellCooldownLeft(name)
-    local spellName, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(name)
+    local spellName, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfoCached(name)
 --~     local leftGCD = GetSpellCooldownLeft(GetGCDSpellID())
 --~     
 --~     if InGCD() and tContains(GCDSpellList,name) then
@@ -290,7 +301,7 @@ function UseSpell(spellName, target)
     end
     if target == nil and IsHarmfulSpell(spellName) then target = "target" end
     -- Проверяем на наличе спела в спелбуке
-    local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spellName)
+    local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfoCached(spellName)
     if not name or (name ~= spellName)  then
         if Debug then error("Спел [".. spellName .. "] не найден!") end
         return false;

@@ -177,7 +177,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function HasClass(units, classes)
 	for _,u in pairs(units) do
-		if UnitExists(u) and UnitIsPlayer(u) and tContains(classes, GetClass(u)) then return true end
+		if UnitExists(u) and UnitIsPlayer(u) and (type(classes) == 'table' and tContains(classes, GetClass(u)) or classes == GetClass(u)) then return true end
 	end
     return false
 end
