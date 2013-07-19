@@ -156,10 +156,11 @@ function Idle()
 end
 
 -- Актуально при игре в 2 хила, для уменьшения оверхила
+local healCastSpells = {"Малая волна исцеления", "Волна исцеления", "Цепное исцеление"}
 function CheckHealCast(u, h)
     local spell, _, _, _, _, endTime, _, _, notinterrupt = UnitCastingInfo("player")
     if not spell or not endTime then return end
-    if not tContains({"Малая волна исцеления", "Волна исцеления", "Цепное исцеление"}, spell) then return end
+    if not tContains(healCastSpells, spell) then return end
     if not InCombatLockdown() or IsControlKeyDown() then return end
     
     local lastHealCastTarget = GetLastSpellTarget(spell)
@@ -180,19 +181,71 @@ function CheckHealCast(u, h)
 end
 
 local function TryBuff()
-        if not HasBuff("Настой ледяного змея") then
-        local name, _, _, _, _, duration, Expires, _, _, _, spellId = UnitBuff("player", "Настой севера") 
-        return not (name and spellId == (IsMDD() and 67017 or 67016) and Expires - GetTime() >= duration / 2) and UseItem("Настой севера")
-        end
+    if not HasBuff("Настой ледяного змея") then
+		local name, _, _, _, _, duration, Expires, _, _, _, spellId = UnitBuff("player", "Настой севера") 
+		return not (name and spellId == (IsMDD() and 67017 or 67016) and Expires - GetTime() >= duration / 2) and UseItem("Настой севера")
+    end
+end
+
+-- TODO: move to library
+local members = {}
+local membersHP = {}
+local protBuffsList = {"Ледяная глыба", "Божественный щит", "Превращение", "Щит земли", "Частица Света"}
+local dangerousType = {"worldboss", "rareelite", "elite"}
+local function compareMembers(u1, u2) 
+	return membersHP[u1] < membersHP[u2]
+end
+function GetHealingTarget()
+    wipe(members)
+    wipe(membersHP)
+    for _,u in pairs(UNITS) do
+		if CanHeal(u) then 
+			 local h =  CalculateHP(u)
+			if IsFriend(u) then 
+				if UnitAffectingCombat(u) and h > 99 then h = h - 1 end
+				h = h  - ((100 - h) * 1.15) 
+			end
+			if UnitIsPet(u) then
+				if UnitAffectingCombat("player") then 
+					h = h * 1.5
+				end
+			else
+				local status = 0
+				for _,t in pairs(TARGETS) do
+					if tContains(dangerousType, UnitClassification(t)) then 
+						local isTanking, state, scaledPercent, rawPercent, threatValue = UnitDetailedThreatSituation("player", t)
+						if state ~= nil and state > status then status = state end
+					end
+				end
+				h = h - 2 * status
+				if HasBuff(protBuffsList, 1, u) then h = h + 5 end
+			end
+			tinsert(members, u)
+			membersHP[u] = h
+		end
+    end
+	table.sort(members, compareMembers)  
+	return = members[1]
 end
 local shieldChangeTime = 0
 function HealRotation()
-    if IsAltKeyDown() and TrySteal("target") then return end
-    if (IsPvP() and InCombatLockdown()) and TryEach(TARGETS, function(t) return CanAttack(t) 
-        and UnitHealth100(t) < 4 and not HasMyDebuff("шок", 1, t) and DoSpell("Огненный шок", t) end) then return end
+    if IsAltKeyDown() and TrySteal("target") then return end -- TODO: disable for low HP in party
+
+	-- TODO: не нужно тратить гкд, когда надо хилить
+	if (IsPvP() and InCombatLockdown()) then -- TODO: протестировать. Есть ли необходимость все время шокать. Возможно лучше замедлять ледяным шоком
+		for _,t in pairs(TARGETS) do
+			 if CanAttack(t) and UnitHealth100(t) < 4 and not HasMyDebuff("шок", 1, t) and DoSpell("Огненный шок", t) end) then return end
+		end
+	end
+
+   
+
+	-- бафаем пуху.
     if GetInventoryItemID("player",16) and not DetermineTempEnchantFromTooltip(16):match("Жизнь Земли") and DoSpell("Оружие жизни земли") then return end
+	
     if UnitMana100() < 80 and InCombat(3) and UnitHealth100("player") > 60 and not HasBuff(" щит") and DoSpell("Водный щит") then return end
-    
+	
+    -- TODO: нужно упростить 
     if IsAttack() and CanAttack() and not IsAltKeyDown() and not IsLeftShiftKeyDown() and not IsLeftControlKeyDown() then
          if HasMyDebuff("шок", 1, "target") and PlayerInPlace() then
             if DoSpell("Выброс лавы") then return end
@@ -228,7 +281,7 @@ function HealRotation()
     local HealingWaveHeal = GetMySpellHeal("Волна исцеления")
     local LesserHealingWaveHeal = GetMySpellHeal("Малая волна исцеления")
     
-    local members = {}
+    -- после реса или при вылете из боя
     if not IsPvP() and PlayerInPlace() and not InCombatLockdown() then
         if myHP < 100 and (IsReadySpell("Быстрина") or HasMyBuff("Приливные волны",1,u))  then 
             local u = "player"
@@ -237,23 +290,21 @@ function HealRotation()
             return
         end
         local res = false
-        local groupUnits = GetGroupUnits()
-        tinsert(groupUnits, "target")
-        tinsert(groupUnits, "focus")
-        tinsert(groupUnits, "mouseover")
-        for i=1,#groupUnits do
-           if not res and TryRes(groupUnits[i]) then res = true end
+        for i=1,#UNITS do
+           if not res and TryRes(UNITS[i]) then res = true end
         end
         if res then return end
-        
-        for i=1,#groupUnits do
-           if CanRes(groupUnits[i]) then needRes = true end
+        -- если еще кого можно реснуть в бой не входим
+        for i=1,#UNITS do
+           if CanRes(UNITS[i]) then needRes = true end
         end
         if res then return end
     end
     
     if not InCombatLockdown() and TryBuff() then return end
-           
+	
+	-- TODO: use GetHealingTarget()
+    local members = {}     
     for i=1,#UNITS do
         local u = UNITS[i]
         if CanHeal(u) then  

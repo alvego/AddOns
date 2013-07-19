@@ -117,12 +117,6 @@ function GetMyDebuffTime(debuff, target)
 end
 
 ------------------------------------------------------------------------------------------------------------------
--- Устарело
-function FindAura(aura, target)
-    return HasAura(aura, 1, target)
-end
-
-------------------------------------------------------------------------------------------------------------------
 -- Enchants helper
 local function GetUtilityTooltips()
     if ( not RH_Tooltip1 ) then

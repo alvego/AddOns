@@ -26,7 +26,7 @@ ControlList = { -- > 4
 
 ------------------------------------------------------------------------------------------------------------------
 -- Можно законтролить игрока
-local imperviousList = {"Вихрь клинков", "Зверь внутри"}
+local imperviousList = {"Вихрь клинков", "Зверь внутри", "Незыблемость льда"} -- TODO: Незыблемость льда под вопросом
 function CanControl(target)
     if nil == target then target = "target" end 
     return CanMagicAttack(target) and not HasBuff(imperviousList, 0.1, target) 
