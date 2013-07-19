@@ -131,20 +131,20 @@ AttachUpdate(UpdateResCast, 900)
 -- dispel
 if DispelBlackList == nil then DispelBlackList = {} end
 if DispelWhiteList == nil then DispelWhiteList = {} end
+local totemDispelTypes = {"Poison", "Disease"}
 function IsDispelTotemNeed(units)
-    return TryEach(units, function(unit) 
-        local ret = false
+    local ret = false
+    for _,unit in pairs(units) do
         for i = 1, 40 do
-            if not ret then
-                local name, _, _, _, debuffType, duration, expirationTime   = UnitDebuff(unit, i,true) 
-                if name and (expirationTime - GetTime() >= 3 or expirationTime == 0) 
-                    and tContains({"Poison", "Disease"}, debuffType) and tContains(DispelWhiteList, name) then
-                    ret = true 
-                end
+            local name, _, _, _, debuffType, duration, expirationTime   = UnitDebuff(unit, i,true) 
+            if name and (expirationTime - GetTime() >= 3 or expirationTime == 0) 
+                and tContains(totemDispelTypes, debuffType) and tContains(DispelWhiteList, name) then
+                ret = true 
+                break
             end
         end
-        return ret
-    end)
+    end
+    return ret
 end
 
 local dispelSpell = "Очищение духа"
@@ -157,7 +157,7 @@ function TryDispel(unit)
             local name, _, _, _, debuffType, duration, expirationTime   = UnitDebuff(unit, i,true) 
             if name and (expirationTime - GetTime() >= 3 or expirationTime == 0) 
                 and (tContains(DispelWhiteList, name) or tContains(dispelTypes, debuffType) and not tContains(DispelBlackList, name)) then
-                if not (UnitMana100("player") < 50 and HasTotem("Тотем очищения") and tContains({"Poison", "Disease"}, debuffType)) and DoSpell(dispelSpell, unit) then 
+                if not (UnitMana100("player") < 50 and HasTotem("Тотем очищения") and tContains(totemDispelTypes, debuffType)) and DoSpell(dispelSpell, unit) then 
                     ret = true 
                 end
             end
@@ -245,6 +245,7 @@ if InterruptWhiteList == nil then InterruptWhiteList = {} end
 if InterruptBlackList == nil then InterruptBlackList = {} end
 local interruptSpell = "Пронизывающий ветер"
 local interruptedSpell = nil
+local nointerruptBuffs = {"Мастер аур", "Дубовая кожа"}
 function TryInterrupt(target, hp)
     if target == nil then target = "target" end
     if not IsValidTarget(target) then return false end
@@ -269,7 +270,7 @@ function TryInterrupt(target, hp)
     if channel and t < 0.7 then return false end
 
     if (channel or t < 0.8) and not notinterrupt and IsReadySpell(interruptSpell) and InRange(interruptSpell,target) 
-        and not HasBuff({"Мастер аур"}, 0.1, target) and CanMagicAttack(target) then
+        and not HasBuff(nointerruptBuffs, 0.1, target) and CanMagicAttack(target) then
         if canBreak and UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
         if UseSpell(interruptSpell, target) then 
             interruptedSpell = spell 
@@ -329,11 +330,12 @@ AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateInterruptWhiteList)
 ------------------------------------------------------------------------------------------------------------------
 function UpdateAutoFreedom(event, ...)
     local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel = select(1, ...)
+
     if sourceGUID == UnitGUID("player") and (type:match("^SPELL_CAST") and spellId and spellName)
         and err and err:match("Действие невозможно")  
-        and HasDebuff(ControlList, 3.8, "player") 
-        and TryEach(UNITS, function(u) return CanHeal(u) and CalculateHP(u) < 40 end) then 
-        DoCommand("freedom") 
+        and HasDebuff(ControlList, 3.8, "player") then
+            local members, membersHP = GetHealingMembers(UNITS)
+            if membersHP[members[1]] < 50 then  DoCommand("freedom") end
     end
 end
 AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateAutoFreedom)

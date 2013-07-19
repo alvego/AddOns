@@ -3,15 +3,15 @@
 	[
 		{
 			"follow_symlinks": true,
-			"path": "D:\\AddOns\\rhlib2"
+			"path": "rhlib2"
 		},
 		{
 			"follow_symlinks": true,
-			"path": "D:\\AddOns\\rhshaman"
+			"path": "rhshaman"
 		},
 		{
 			"follow_symlinks": true,
-			"path": "D:\\AddOns\\rhdruid"
+			"path": "rhdruid"
 		}
 	]
 }

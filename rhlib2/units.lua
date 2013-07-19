@@ -8,11 +8,12 @@ local dangerousType = {"worldboss", "rareelite", "elite"}
 local function compareMembers(u1, u2) 
     return membersHP[u1] < membersHP[u2]
 end
-function GetHealingMembers()
+function GetHealingMembers(units)
     local myHP = UnitHealth100("player")
     wipe(members)
     wipe(membersHP)
-    for _,u in pairs(UNITS) do
+    if units == nil then units = UNITS end
+    for _,u in pairs(units) do
         if CanHeal(u) then 
              local h =  CalculateHP(u)
             if IsFriend(u) then 
@@ -40,7 +41,7 @@ function GetHealingMembers()
         end
     end
     table.sort(members, compareMembers)  
-    return members
+    return members, membersHP
 end
 ------------------------------------------------------------------------------------------------------------------
 -- friend list

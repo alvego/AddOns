@@ -117,73 +117,45 @@ function GetMyDebuffTime(debuff, target)
 end
 
 ------------------------------------------------------------------------------------------------------------------
--- Enchants helper
-local function GetUtilityTooltips()
-    if ( not RH_Tooltip1 ) then
-        for idxTip = 1,2 do
-            local ttname = "RH_Tooltip"..idxTip
-            local tt = CreateFrame("GameTooltip", ttname)
-            tt:SetOwner(UIParent, "ANCHOR_NONE")
-            tt.left = {}
-            tt.right = {}
-            -- Most of the tooltip lines share the same text widget,
-            -- But we need to query the third one for cooldown info
-            for i = 1, 30 do
-                tt.left[i] = tt:CreateFontString()
-                tt.left[i]:SetFontObject(GameFontNormal)
-                if i < 5 then
-                    tt.right[i] = tt:CreateFontString()
-                    tt.right[i]:SetFontObject(GameFontNormal)
-                    tt:AddFontStrings(tt.left[i], tt.right[i])
-                else
-                    tt:AddFontStrings(tt.left[i], tt.right[4])
-                end
-            end 
-         end
-    end
-    local tt1,tt2 = RH_Tooltip1, RH_Tooltip2
-    
-    tt1:ClearLines()
-    tt2:ClearLines()
-    return tt1,tt2
-end
-
-------------------------------------------------------------------------------------------------------------------
---~ using: TempEnchantName = DetermineTempEnchantFromTooltip(16 or 17)
-local tt1,tt2 = GetUtilityTooltips()
-function DetermineTempEnchantFromTooltip(i_invID)
-    tt1:SetInventoryItem("player", i_invID)
-    local n,h = tt1:GetItem()
-
-    tt2:SetHyperlink(h)
-    
-    -- Look for green lines present in tt1 that are missing from tt2
-    local nLines1, nLines2 = tt1:NumLines(), tt2:NumLines()
-    local i1, i2 = 1,1
-    while ( i1 <= nLines1 ) do
-        local txt1 = tt1.left[i1]
-        if ( txt1:GetTextColor() ~= 0 ) then
-            i1 = i1 + 1
-        elseif ( i2 <= nLines2 ) then
-            local txt2 = tt2.left[i2]
-            if ( txt2:GetTextColor() ~= 0 ) then
-                i2 = i2 + 1
-            elseif (txt1:GetText() == txt2:GetText()) then
-                i1 = i1 + 1
-                i2 = i2 + 1
+-- using: HasTemporaryEnchant(16 or 17)
+local enchantTooltip
+function GetTemporaryEnchant(slot)
+    if enchantTooltip == nil then
+        enchantTooltip = CreateFrame("GameTooltip", "EnchantTooltip")
+        enchantTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+        enchantTooltip.left = {}
+        enchantTooltip.right = {}
+        -- Most of the tooltip lines share the same text widget,
+        -- But we need to query the third one for cooldown info
+        for i = 1, 30 do
+            enchantTooltip.left[i] = enchantTooltip:CreateFontString()
+            enchantTooltip.left[i]:SetFontObject(GameFontNormal)
+            if i < 5 then
+                enchantTooltip.right[i] = enchantTooltip:CreateFontString()
+                enchantTooltip.right[i]:SetFontObject(GameFontNormal)
+                enchantTooltip:AddFontStrings(enchantTooltip.left[i], enchantTooltip.right[i])
             else
-                break
+                enchantTooltip:AddFontStrings(enchantTooltip.left[i], enchantTooltip.right[4])
             end
-        else
-            break
-        end
+        end 
+        enchantTooltip:ClearLines()
     end
-    if ( i1 <= nLines1 ) then
-        local line = tt1.left[i1]:GetText()
-        local paren = line:find("[(]")
-        if ( paren ) then
-            line = line:sub(1,paren-2)
+    enchantTooltip:SetInventoryItem("player", slot)
+    local n,h = enchantTooltip:GetItem()
+
+    local nLines = enchantTooltip:NumLines()
+    local i= 1
+    while ( i <= nLines ) do
+        local txt = enchantTooltip.left[i]
+        
+        if ( txt:GetTextColor() == 0 ) then
+            local line = enchantTooltip.left[i]:GetText()  
+            local paren = line:find("[(]")
+            if ( paren ) then
+                line = line:sub(1,paren-2)
+                return line
+            end
         end
-        return line
-    end    
+        i = i + 1    
+    end
 end

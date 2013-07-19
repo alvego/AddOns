@@ -3,6 +3,22 @@
 
 local TotemAlert = {}
 local PlayerThreatTime
+local fearDebuff = {"Страх", "Вой ужаса", "Устрашающий крик", "Контроль над разумом", "Глубинный ужас", "Ментальный крик"}
+local fearClass = {"WARLOCK", "PRIEST"}
+local diseaseClass = {"DEATHKNIGHT", "WARLOCK", "PRIEST", "ROGUE"}
+local casterClass = {"PRIEST", "SHAMAN", "DRUID", "MAGE", "WARLOCK", "HUNTER", "DEATHKNIGHT"}
+local importantTotems = {"Тотем трепета", "Тотем прилива маны", "Тотем источника маны"}
+-- поставить независимо от наличия тотема данной стихии
+local force = {}
+-- текущий тотем (по стихии)
+local totem, weight = {}, {}
+-- индексы стихий
+local fire, earth, water, air = 1,2,3,4
+local function pushTotem(idx, name, w)
+    if weight[idx] == nil or weight[idx] < w then
+        totem[idx] = name
+    end
+end
 ForceRoot = false
 TotemTime, NeedTotems = GetTime(), false
 function TryTotems(forceTotems, h)
@@ -21,25 +37,15 @@ function TryTotems(forceTotems, h)
     -- в гкд не поствить тотемы
     if InGCD() then return false end
     -------------------------------------------------------------------------------------------------------------
-    -- индексы стихий
-    local fire, earth, water, air = 1,2,3,4
-    -- поставить независимо от наличия тотема данной стихии
-    local force = {}
-    -- текущий тотем (по стихии)
-    local totem = {}
-    -- тотемы по приоритету
-    local earthTotems, fireTotems, waterTotems, airTotems = {}, {}, {}, {}
+    wipe(force)
+    wipe(totem)
+    wipe(weight)
+
     -------------------------------------------------------------------------------------------------------------
     -- earth ----------------------------------------------------------------------------------------------------
     -------------------------------------------------------------------------------------------------------------
-    if HasDebuff({
-        "Страх", 
-        "Вой ужаса", 
-        "Устрашающий крик", 
-        "Контроль над разумом", 
-        "Глубинный ужас", 
-        "Ментальный крик"}, 1,UNITS) or
-        (IsPvP() and HasClass(TARGETS, {"WARLOCK", "PRIEST"})) then 
+    if HasDebuff(fearDebuff, 1,UNITS) or
+        (IsPvP() and HasClass(TARGETS, fearClass)) then 
         
         TotemAlert["Тотем трепета"] = GetTime() 
     end
@@ -50,33 +56,32 @@ function TryTotems(forceTotems, h)
         and not (HasBuff("Каменная кожа") and not HasTotem("Тотем каменной кожи")) then
         local priority = 11
         if IsHeal() then priority = 20 end
-        table.insert(earthTotems, { N = "Тотем каменной кожи", P = priority })
+        pushTotem(earth, "Тотем каменной кожи", priority)
     end
     -------------------------------------------------------------------------------------------------------------
     if not (needTremor or ForceRoot or IsPvP()) 
         and not (HasBuff("Сила земли") and not HasTotem("Тотем силы земли"))
-        and not (HasClass(UNITS, {"DEATHKNIGHT"}) or HasBuff("Зимний горн"))then
+        and not (HasClass(UNITS, "DEATHKNIGHT") or HasBuff("Зимний горн"))then
         local priority = 12
         if IsMDD() then priority = 20 end
-        table.insert(earthTotems, { N = "Тотем силы земли", P = priority })
+        pushTotem(earth, "Тотем силы земли", priority)
     end
     -------------------------------------------------------------------------------------------------------------
     if not HasTotem("Тотем трепета") and not needTremor and ForceRoot then
-        
         force[earth] = true
-        wipe(earthTotems)
+        weight[earth] = nil
         if IsReadySpell("Тотем оков земли") then 
-            table.insert(earthTotems, { N = "Тотем оков земли", P = 90 })
+            pushTotem(earth, "Тотем оков земли", 90)
         end
     end
     -------------------------------------------------------------------------------------------------------------
     
     if needTremor or IsPvP() then
-        wipe(earthTotems)
+        weight[earth] = nil
         force[earth] = false
         if not HasTotem("Тотем трепета") and IsReadySpell("Тотем трепета") then
             if needTremor then force[earth] = true end
-            table.insert(earthTotems, { N = "Тотем трепета", P = 80 })
+            pushTotem(earth, "Тотем трепета", 80)
         end
     end
     -------------------------------------------------------------------------------------------------------------
@@ -90,18 +95,10 @@ function TryTotems(forceTotems, h)
         and not HasTotem("Тотем каменного когтя")
         and ((PlayerThreatTime and GetTime() - PlayerThreatTime > 3) 
             or (InCombatLockdown() and UnitHealth100("player") < 85)) then
-        table.insert(earthTotems, { N = "Тотем каменного когтя", P = 100 })
+        pushTotem(earth, "Тотем каменного когтя", 100)
         force[earth] = true
     end
-    -------------------------------------------------------------------------------------------------------------
-    -- sort earth totems by priority
-    -------------------------------------------------------------------------------------------------------------
-    if #earthTotems > 0 then
-        table.sort(earthTotems, function(x,y) return x.P > y.P end)
-        totem[earth] = earthTotems[1].N
-    else
-        totem[earth] = nil
-    end
+    
     -------------------------------------------------------------------------------------------------------------
     -- fire -----------------------------------------------------------------------------------------------------
     -------------------------------------------------------------------------------------------------------------
@@ -111,8 +108,7 @@ function TryTotems(forceTotems, h)
         if IsHeal() then 
             priority = 20 
         end
-        
-        table.insert(fireTotems, { N = "Тотем языка пламени", P = priority })
+        pushTotem(fire, "Тотем языка пламени", priority)
     end
     -------------------------------------------------------------------------------------------------------------
     if not IsPvP() and IsValidTarget("target") and IsReadySpell("Опаляющий тотем")  then
@@ -121,8 +117,7 @@ function TryTotems(forceTotems, h)
         if not InGroup() then 
             priority = 25 
         end
-        
-        table.insert(fireTotems, { N = "Опаляющий тотем", P = priority })
+        pushTotem(fire, "Опаляющий тотем", priority)
     end
     -------------------------------------------------------------------------------------------------------------
     if IsAOE() then
@@ -132,34 +127,24 @@ function TryTotems(forceTotems, h)
             priority = 100
             force[fire] = true
         end
-        
-        table.insert(fireTotems, { N = "Тотем магмы", P = priority })
-    end
-    -------------------------------------------------------------------------------------------------------------
-    -- sort air totems by priority
-    -------------------------------------------------------------------------------------------------------------
-    if #fireTotems > 0 then
-        table.sort(fireTotems, function(x,y) return x.P > y.P end)
-        totem[fire] = fireTotems[1].N
-    else
-        totem[fire] = nil
+        pushTotem(fire, "Тотем магмы", priority)
     end
     -------------------------------------------------------------------------------------------------------------
     --water -----------------------------------------------------------------------------------------------------
     -------------------------------------------------------------------------------------------------------------
     if not IsReadySpell("Тотем исцеляющего потока") and not InRaid() then
-        table.insert(waterTotems, { N = "Тотем исцеляющего потока", P = 15 })
+        pushTotem(water, "Тотем исцеляющего потока", 15)
     end
     -------------------------------------------------------------------------------------------------------------
     if IsReadySpell("Тотем очищения") then
         local priority = 9
         if not HasTotem("Тотем очищения") 
-            and (IsPvP() and HasClass(TARGETS, {"DEATHKNIGHT", "WARLOCK", "PRIEST", "ROGUE"}))
+            and (IsPvP() and HasClass(TARGETS, diseaseClass))
             or (not HasTotem("Тотем очищения") and IsDispelTotemNeed(UNITS)) then 
             priority = 90
             force[water] = true
         end
-        table.insert(waterTotems, { N = "Тотем очищения", P = priority })
+        pushTotem(water, "Тотем очищения", priority)
     end
     -------------------------------------------------------------------------------------------------------------
     if not HasBuff("Источник маны") and not HasBuff("Групповая охота") then
@@ -168,77 +153,60 @@ function TryTotems(forceTotems, h)
             priority = 50 
             force[water] = true 
         end
-        table.insert(waterTotems, { N = "Тотем источника маны", P = priority })
+        pushTotem(water, "Тотем источника маны", priority)
     end
     -------------------------------------------------------------------------------------------------------------
     if HasTotem("Тотем прилива маны") then
         force[water] = false
-        wipe(waterTotems)
+        weight[water] = nil
         Notify("Тотем прилива маны!!!")
     end
     
     if PlayerInPlace() and not HasTotem("Тотем прилива маны") and HasSpell("Тотем прилива маны") 
         and IsReadySpell("Тотем прилива маны") and UnitMana100("player") < 70 then
-        table.insert(waterTotems, { N = "Тотем прилива маны", P = 100 })
+        pushTotem(water, "Тотем прилива маны", 100)
         force[water] = true
     end
-    -------------------------------------------------------------------------------------------------------------
-    -- sort water totems by priority
-    -------------------------------------------------------------------------------------------------------------
-    if #waterTotems > 0 then
-        table.sort(waterTotems, function(x,y) return x.P > y.P end)
-        totem[water] = waterTotems[1].N
-    else
-        totem[water] = nil
-    end
+    
     -------------------------------------------------------------------------------------------------------------
     --air -------------------------------------------------------------------------------------------------------
     -------------------------------------------------------------------------------------------------------------
     if not (HasBuff("Тотем неистовства ветра") and not HasTotem("Тотем неистовства ветра")) and not HasBuff("Цепкие ледяные когти") then
         local priority = 10
         if IsMDD() then priority = 20 end
-        table.insert(airTotems, { N = "Тотем неистовства ветра", P = priority })
+        pushTotem(air, "Тотем неистовства ветра", priority)
     end
     -------------------------------------------------------------------------------------------------------------
     if not (HasBuff("Тотем гнева воздуха") and not HasTotem("Тотем гнева воздуха")) then
         local priority = 15
-        table.insert(airTotems, { N = "Тотем гнева воздуха", P = priority })
+        pushTotem(air, "Тотем гнева воздуха", priority)
     end
     -------------------------------------------------------------------------------------------------------------
-    if IsPvP() and HasClass(TARGETS, {
-        "PRIEST", 
-        "SHAMAN", 
-        "DRUID", 
-        "MAGE", 
-        "WARLOCK", 
-        "HUNTER", 
-        "DEATHKNIGHT" }) then 
+    if IsPvP() and HasClass(TARGETS, casterClass) then 
         
-        wipe(airTotems) 
+        weight[air] = nil
         force[air] = false 
         
         if IsReadySpell("Тотем заземления") then
-            table.insert(airTotems, { N = "Тотем заземления", P = 20 })
+            pushTotem(air, "Тотем заземления", 20)
             force[air] = true 
         end
     end
-    -------------------------------------------------------------------------------------------------------------
-    -- sort air totems by priority
-    -------------------------------------------------------------------------------------------------------------
-    if #airTotems > 0 then
-        table.sort(airTotems, function(x,y) return x.P > y.P end)
-        totem[air] = airTotems[1].N
-    else
-        totem[air] = nil
-    end
+    
     -------------------------------------------------------------------------------------------------------------
     -- checks ---------------------------------------------------------------------------------------------------
     -------------------------------------------------------------------------------------------------------------
     -- нужно поставить какой-то тотем, несмотря но то что NeedTotems = false (Экстренная ситуация)
-    local forcedNow = TryEach(force, function(value) return value end) 
-                        and not NeedTotems 
-                        and InCombatLockdown()
-    
+
+    local forcedNow = false
+    if not NeedTotems and InCombatLockdown() then
+        for i = 1, 4 do 
+            if force[i] then 
+                forcedNow = true 
+                break
+            end
+        end
+    end
     
     if forcedNow then 
         -- оставляем только экстренные тотемы
@@ -269,7 +237,7 @@ function TryTotems(forceTotems, h)
     if UnitMana100("player") < 40 then 
         -- нужно только самое необходимое
          for i = 1, 4 do 
-            if totem[i] and not tContains({"Тотем трепета", "Тотем прилива маны", "Тотем источника маны"}, totem[i]) then totem[i] = nil end
+            if totem[i] and not tContains(importantTotems, totem[i]) then totem[i] = nil end
         end
     end
     -------------------------------------------------------------------------------------------------------------
