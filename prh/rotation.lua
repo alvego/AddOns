@@ -124,9 +124,9 @@ function Retribution()
     if IsShiftKeyDown() == 1 and DoSpell("Освящение") then return end
     if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
     if CanMagicAttack(target) then
-        -- if UseEquippedItem("Чешуйчатые рукавицы разгневанного гладиатора")then return end
+        if UseEquippedItem("Чешуйчатые рукавицы разгневанного гладиатора")then return end
         if HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end   
-        if DoSpell(IsAltKeyDown() and "Правосудие справедливости" or (UnitMana100("player") < 60 and "Правосудие мудрости" or "Правосудие света"), target) then return end
+        if DoSpell(IsAltKeyDown() and "Правосудие справедливости" or "Правосудие мудрости", target) then return end
     end
     if CanAttack(tagret) and UnitMana100("player") > 20 and not InMelee(target) and HasDebuff(rootDispelList, 1, "player") and TryDispel("player") then return end
     if InMelee(target) and DoSpell("Божественная буря") then return end
@@ -142,8 +142,8 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function TryBuffs()
         if HasSpell("Удар воина Света") then
-        if not InCombatLockdown() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
-            -- if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
+        -- if not InCombatLockdown() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
+            if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
             if not HasBuff("Печать") and DoSpell("Печать праведности") then return end
             if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
                 if not HasBuff("Боевой крик")
@@ -187,7 +187,7 @@ function TryHealing()
                 return 
             end
             if h < 20 and DoSpell("Возложение рук",u) then return end
-            if h < 70 and HasBuff("Искусство войны") and (not IsFinishHim("target") and not IsReadySpell("Экзорцизм") or h < 40 ) and DoSpell("Вспышка Света",u) then return end
+            if h < 100 and HasBuff("Искусство войны") and (not IsFinishHim("target") and not IsReadySpell("Экзорцизм") or h < 70 ) and DoSpell("Вспышка Света",u) then return end
         end
     end
     return false
@@ -276,7 +276,7 @@ function TryProtect()
             if UseEquippedItem("Проржавевший костяной ключ") then return true end
         end
         
-        if HasSpell("Удар воина Света") and (UnitHealth100() < 50) and DoSpell("Священная жертва") then return end
+        -- if HasSpell("Удар воина Света") and (UnitHealth100() < 50) and DoSpell("Священная жертва") then return end
         
         if GetTime() - tryShieldTime > 5 then 
         
