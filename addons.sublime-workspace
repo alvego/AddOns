@@ -1,0 +1,302 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"Un",
+				"UnitHealth100"
+			],
+			[
+				"unit",
+				"units"
+			],
+			[
+				"re",
+				"return"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "rhshaman/rotation.lua",
+			"settings":
+			{
+				"buffer_size": 31552,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "rhlib2/units.lua",
+			"settings":
+			{
+				"buffer_size": 12411,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "rhdruid/rotation.lua",
+			"settings":
+			{
+				"buffer_size": 5322,
+				"line_ending": "Windows"
+			}
+		}
+	],
+	"build_system": "",
+	"command_palette":
+	{
+		"height": 58.0,
+		"selected_items":
+		[
+			[
+				"Pack",
+				"Preferences: Browse Packages"
+			]
+		],
+		"width": 392.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"file_history":
+	[
+		"/D/AddOns/rhlib2/units.lua",
+		"/D/AddOns/rhlib2/binds.lua",
+		"/D/AddOns/rhlib2/spells.lua",
+		"/D/AddOns/rhshaman/commands.lua",
+		"/D/AddOns/rhshaman/totems.lua",
+		"/D/AddOns/rhdruid/commands.lua",
+		"/D/AddOns/rhlib2/runes.lua",
+		"/D/AddOns/rhlib2/rhlib2.wowproj",
+		"/D/AddOns/rhlib2/rhlib2.toc",
+		"/D/AddOns/rhlib2/misc.lua",
+		"/D/AddOns/rhlib2/data.lua",
+		"/D/AddOns/rhlib2/commands.lua",
+		"/D/AddOns/rhlib2/Bindings.xml",
+		"/D/AddOns/rhlib2/auras.lua",
+		"/D/AddOns/rhshaman/rotation.lua",
+		"/D/AddOns/addons.sublime-project",
+		"/D/AddOns/rhshaman/rhshaman.toc"
+	],
+	"find":
+	{
+		"height": 34.0
+	},
+	"find_in_files":
+	{
+		"height": 90.0,
+		"where_history":
+		[
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": true,
+		"find_history":
+		[
+			"GetLagTime",
+			" = nil",
+			"= nil",
+			"GetSpellInfoCached",
+			"units",
+			"TryResUnit"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"GetSpellInfo",
+			""
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 2,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "rhshaman/rotation.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 31552,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								10644,
+								10644
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3150.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "rhlib2/units.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 12411,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								808,
+								808
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "rhdruid/rotation.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5322,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1346,
+								1346
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Lua/Lua.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 450.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 26.0
+	},
+	"input":
+	{
+		"height": 0.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"project": "addons.sublime-project",
+	"replace":
+	{
+		"height": 48.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 157.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}

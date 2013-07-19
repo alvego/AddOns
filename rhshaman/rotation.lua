@@ -67,9 +67,8 @@ StealShieldsRedList = {
     "Совершенство природы"
 }
 ------------------------------------------------------------------------------------------------------------------
-local TryResUnit = nil
+local TryResUnit
 local TryResTime = 0
-
 local peaceBuff = {"Пища", "Питье", "Призрачный волк"}
 local reflectBuff = {"Отражение заклинания", "Рунический покров"}
 -- Общее для всех ротаций
@@ -187,46 +186,6 @@ local function TryBuff()
     end
 end
 
--- TODO: move to library
-local members = {}
-local membersHP = {}
-local protBuffsList = {"Ледяная глыба", "Божественный щит", "Превращение", "Щит земли", "Частица Света"}
-local dangerousType = {"worldboss", "rareelite", "elite"}
-local function compareMembers(u1, u2) 
-	return membersHP[u1] < membersHP[u2]
-end
-function GetHealingTarget()
-    wipe(members)
-    wipe(membersHP)
-    for _,u in pairs(UNITS) do
-		if CanHeal(u) then 
-			 local h =  CalculateHP(u)
-			if IsFriend(u) then 
-				if UnitAffectingCombat(u) and h > 99 then h = h - 1 end
-				h = h  - ((100 - h) * 1.15) 
-			end
-			if UnitIsPet(u) then
-				if UnitAffectingCombat("player") then 
-					h = h * 1.5
-				end
-			else
-				local status = 0
-				for _,t in pairs(TARGETS) do
-					if tContains(dangerousType, UnitClassification(t)) then 
-						local isTanking, state, scaledPercent, rawPercent, threatValue = UnitDetailedThreatSituation("player", t)
-						if state ~= nil and state > status then status = state end
-					end
-				end
-				h = h - 2 * status
-				if HasBuff(protBuffsList, 1, u) then h = h + 5 end
-			end
-			tinsert(members, u)
-			membersHP[u] = h
-		end
-    end
-	table.sort(members, compareMembers)  
-	return = members[1]
-end
 local shieldChangeTime = 0
 function HealRotation()
     if IsAltKeyDown() and TrySteal("target") then return end -- TODO: disable for low HP in party
@@ -266,8 +225,8 @@ function HealRotation()
     local myHP = CalculateHP("player")
 
     if InCombatLockdown() then
-        if (myHP < 30) and HasSpell("Кровь земли") and DoSpell("Кровь земли", "player") then return end
         if (myHP < 40) and HasSpell("Дар наару") and DoSpell("Дар наару", "player") then return end
+        if (myHP < 50) and HasSpell("Кровь земли") and DoSpell("Кровь земли", "player") then return end
         if myHP < 60 and UseEquippedItem("Проржавевший костяной ключ") then return end
         if not IsArena() then
             if myHP < 40 and UseHealPotion() then return end
@@ -303,8 +262,9 @@ function HealRotation()
     
     if not InCombatLockdown() and TryBuff() then return end
 	
-	-- TODO: use GetHealingTarget()
-    local members = {}     
+	
+    local members = GetHealingMembers()  
+     --- Stoped here  
     for i=1,#UNITS do
         local u = UNITS[i]
         if CanHeal(u) then  

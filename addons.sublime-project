@@ -1,0 +1,17 @@
+{
+	"folders":
+	[
+		{
+			"follow_symlinks": true,
+			"path": "D:\\AddOns\\rhlib2"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "D:\\AddOns\\rhshaman"
+		},
+		{
+			"follow_symlinks": true,
+			"path": "D:\\AddOns\\rhdruid"
+		}
+	]
+}

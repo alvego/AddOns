@@ -67,7 +67,7 @@ SetCommand("hex",
     end
 )
 ------------------------------------------------------------------------------------------------------------------
-local freedomItem = nil
+local freedomItem
 local freedomSpell = "Каждый за себя"
 SetCommand("freedom", 
     function() 

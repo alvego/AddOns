@@ -1,5 +1,48 @@
 ﻿-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
+-- Возвращает список членов группы отсортированных по приоритету исцеления
+local members = {}
+local membersHP = {}
+local protBuffsList = {"Ледяная глыба", "Божественный щит", "Превращение", "Щит земли", "Частица Света"}
+local dangerousType = {"worldboss", "rareelite", "elite"}
+local function compareMembers(u1, u2) 
+    return membersHP[u1] < membersHP[u2]
+end
+function GetHealingMembers()
+    local myHP = UnitHealth100("player")
+    wipe(members)
+    wipe(membersHP)
+    for _,u in pairs(UNITS) do
+        if CanHeal(u) then 
+             local h =  CalculateHP(u)
+            if IsFriend(u) then 
+                if UnitAffectingCombat(u) and h > 99 then h = h - 1 end
+                h = h  - ((100 - h) * 1.15) 
+            end
+            if UnitIsPet(u) then
+                if UnitAffectingCombat("player") then 
+                    h = h * 1.5
+                end
+            else
+                local status = 0
+                for _,t in pairs(TARGETS) do
+                    if tContains(dangerousType, UnitClassification(t)) then 
+                        local isTanking, state, scaledPercent, rawPercent, threatValue = UnitDetailedThreatSituation("player", t)
+                        if state ~= nil and state > status then status = state end
+                    end
+                end
+                h = h - 2 * status
+                if HasBuff(protBuffsList, 1, u) then h = h + 5 end
+                if not IsArena() and myHP < 50 and not IsOneUnit("player", u) and not (UnitThreat(u) == 3) then h = h + 30 end
+            end
+            tinsert(members, u)
+            membersHP[u] = h
+        end
+    end
+    table.sort(members, compareMembers)  
+    return members
+end
+------------------------------------------------------------------------------------------------------------------
 -- friend list
 function IsFriend(unit)
     if IsOneUnit(unit, "player") then return true end

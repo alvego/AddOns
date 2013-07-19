@@ -1,17 +1,7 @@
 ﻿-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
-local spellCache  = setmetatable({}, {__index=function(t,v) local a = {GetSpellInfo(v)} if GetSpellInfo(v) then t[v] = a end return a end})
-function GetSpellInfoCached(a)
-    return unpack(spellCache[a])
-end
-
-local function UpdateSpellChache() 
-	wipe(spellCache)
-end
-AttachUpdate(UpdateSpellChache)
-
-------------------------------------------------------------------------------------------------------------------
-local LagTime = 0
+-- Время сетевой задержки 
+local lagTime = 0
 local sendTime = 0
 local function UpdateLag(event, ...)
     local unit, spell = select(1,...)
@@ -21,16 +11,12 @@ local function UpdateLag(event, ...)
         end
         if event == "UNIT_SPELLCAST_START" then
             if not sendTime then return end
-            LagTime = GetTime() - sendTime
+            lagTime = GetTime() - sendTime
         end
     end
 end
 AttachEvent('UNIT_SPELLCAST_START', UpdateLag)
 AttachEvent('UNIT_SPELLCAST_SENT', UpdateLag)
--- Время сетевой задержки 
-function GetLagTime()
-    return LagTime
-end
 
 ------------------------------------------------------------------------------------------------------------------
 function IsPlayerCasting()
@@ -39,7 +25,7 @@ function IsPlayerCasting()
         spell, rank, displayName, icon, startTime, endTime = UnitChannelInfo("player")
     end
     if not spell or not endTime then return false end
-    local res = ((endTime/1000 - GetTime()) < GetLagTime())
+    local res = ((endTime/1000 - GetTime()) < lagTime)
     if res then return false end
     return true
 end
@@ -53,7 +39,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function HasSpell(spellName)
-    local spell = GetSpellInfoCached(spellName)
+    local spell = GetSpellInfo(spellName)
     return spell == spellName
 end
 
@@ -119,7 +105,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function SpellCastTime(spell)
-    local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfoCached(spell)
+    local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spell)
     if not name then return 0 end
     return castTime / 1000
 end
@@ -130,7 +116,7 @@ function IsReadySpell(name)
     local usable, nomana = IsUsableSpell(name)
     if not usable then return false end
     local left = GetSpellCooldownLeft(name)
-    local spellName, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfoCached(name)
+    local spellName, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(name)
 --~     local leftGCD = GetSpellCooldownLeft(GetGCDSpellID())
 --~     
 --~     if InGCD() and tContains(GCDSpellList,name) then
@@ -301,7 +287,7 @@ function UseSpell(spellName, target)
     end
     if target == nil and IsHarmfulSpell(spellName) then target = "target" end
     -- Проверяем на наличе спела в спелбуке
-    local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfoCached(spellName)
+    local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spellName)
     if not name or (name ~= spellName)  then
         if Debug then error("Спел [".. spellName .. "] не найден!") end
         return false;

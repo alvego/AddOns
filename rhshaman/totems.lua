@@ -2,7 +2,7 @@
 ------------------------------------------------------------------------------------------------------------------
 
 local TotemAlert = {}
-local PlayerThreatTime = nil
+local PlayerThreatTime
 ForceRoot = false
 TotemTime, NeedTotems = GetTime(), false
 function TryTotems(forceTotems, h)

@@ -19,10 +19,6 @@ end
 ------------------------------------------------------------------------------------------------------------------
 
 local tranquilityAlertTimer = 0;
-local members = {}
-local membersHP = {}
-local protBuffsList = {"Ледяная глыба", "Божественный щит", "Превращение", "Щит земли", "Частица Света"}
-local dangerousType = {"worldboss", "rareelite", "elite"}
 local hotBuffList = {"Омоложение", "Восстановление", "Жизнецвет", "Буйный рост"}
 local function compareMembers(u1, u2) 
 	return membersHP[u1] < membersHP[u2]
@@ -36,35 +32,7 @@ function HealRotation()
         end
     end
 
-    wipe(members)
-    wipe(membersHP)
-    for _,u in pairs(UNITS) do
-		if CanHeal(u) then 
-			 local h =  CalculateHP(u)
-			if IsFriend(u) then 
-				if UnitAffectingCombat(u) and h > 99 then h = h - 1 end
-				h = h  - ((100 - h) * 1.15) 
-			end
-			if UnitIsPet(u) then
-				if UnitAffectingCombat("player") then 
-					h = h * 1.5
-				end
-			else
-				local status = 0
-				for _,t in pairs(TARGETS) do
-					if tContains(dangerousType, UnitClassification(t)) then 
-						local isTanking, state, scaledPercent, rawPercent, threatValue = UnitDetailedThreatSituation("player", t)
-						if state ~= nil and state > status then status = state end
-					end
-				end
-				h = h - 2 * status
-				if HasBuff(protBuffsList, 1, u) then h = h + 5 end
-			end
-			tinsert(members, u)
-			membersHP[u] = h
-		end
-    end
-	table.sort(members, compareMembers)  
+    local members = GetHealingMembers()
 	local myHP, myLost = CalculateHP("player"), UnitLostHP("player")
 	local u = members[1]
 	local l = UnitLostHP(u)

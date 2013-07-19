@@ -44,7 +44,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 -- Update Debug Frame
-local notifyFrame = nil
+local notifyFrame
 local notifyFrameTime = 0
 local function notifyFrame_OnUpdate()
         if (notifyFrameTime > 0 and notifyFrameTime < GetTime() - 5) then

@@ -41,10 +41,10 @@ end
 -- Вызывает функцию Idle если таковая имеется, с заданным рекомендованным интервалом UpdateInterval, 
 -- при включенной Авто-ротации
 local iTargets = {"target", "mouseover"}
-TARGETS = {}
+TARGETS = iTargets
 ITARGETS = iTargets
 UNITS = {"player"}
-IUNITS = {} -- Important Units
+IUNITS = UNITS -- Important Units
 local StartTime = GetTime()
 
 local function getUnitWeight(u)
@@ -140,8 +140,8 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateCombatLogTimer)
 
 ------------------------------------------------------------------------------------------------------------------
 -- Мониторим, когда начался и когда закончился бой
-local startCombatTime = nil
-local endCombatTime = nil     
+local startCombatTime
+local endCombatTime     
 local function UpdateCombatTimers()
     if InCombatLockdown() then
         if not startCombatTime then 
@@ -168,8 +168,8 @@ function NotInCombat(t)
 end
 ------------------------------------------------------------------------------------------------------------------
 -- Запоминаем атакующие нас цели (TODO: need REVIEW)
-local NextTarget = nil
-local NextGUID = nil
+local NextTarget
+local NextGUID
 
 function NextIsTarget(target)
     if not target then target = "target" end
@@ -198,7 +198,7 @@ AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateNextTarget)
 
 ------------------------------------------------------------------------------------------------------------------
 -- Лайфхак, чтоб не разбиться об воду при падении с высоты (защита от ДК с повышенным чувством юмора)
-local FallingTime = nil
+local FallingTime
 local function UpdateFallingFix()
     if IsFalling() then
         if FallingTime == nil then FallingTime = GetTime() end
@@ -244,14 +244,14 @@ end
 local function UpdateHarmfulSpell(event, ...)
     local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
     if event:match("SPELL_DAMAGE") and spellName and agrs12 > 0 then
-        local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfoCached(spellID) 
+        local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellID) 
         if castTime > 0 then HarmfulCastingSpell[name] = true end
     end
 end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateHarmfulSpell)
 
 ------------------------------------------------------------------------------------------------------------------
-local debugFrame = nil
+local debugFrame
 local debugFrameTime = 0
 local function debugFrame_OnUpdate()
         if (debugFrameTime > 0 and debugFrameTime < GetTime() - 1) then
