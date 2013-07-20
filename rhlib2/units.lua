@@ -41,6 +41,9 @@ function GetHealingMembers(units)
         end
     end
     table.sort(members, compareMembers)  
+    for _,u in pairs(members) do
+        if UnitHealth100(u) == 100 then membersHP[u] = 100 end
+    end
     return members, membersHP
 end
 ------------------------------------------------------------------------------------------------------------------

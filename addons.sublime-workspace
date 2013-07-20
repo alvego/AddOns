@@ -4,6 +4,14 @@
 		"selected_items":
 		[
 			[
+				"i",
+				"IUNITS"
+			],
+			[
+				"fo",
+				"forbearanceSpells"
+			],
+			[
 				"the",
 				"then"
 			],
@@ -20,10 +28,6 @@
 				"tempTooltip"
 			],
 			[
-				"fo",
-				"forp	for k,v in pairs()"
-			],
-			[
 				"ret",
 				"return"
 			],
@@ -34,10 +38,6 @@
 			[
 				"w",
 				"water"
-			],
-			[
-				"i",
-				"importantTotems"
 			],
 			[
 				"de",
@@ -104,6 +104,49 @@
 			}
 		},
 		{
+			"file": "addons.sublime-project",
+			"settings":
+			{
+				"buffer_size": 255,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "rhpaladin/binds.lua",
+			"settings":
+			{
+				"buffer_size": 4308,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "rhpaladin/Bindings.xml",
+			"settings":
+			{
+				"buffer_size": 242,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "rhpaladin/commands.lua",
+			"settings":
+			{
+				"buffer_size": 5437,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"contents": "-- Paladin Rotation Helper by Timofeev Alexey\n------------------------------------------------------------------------------------------------------------------\nlocal holyShieldTime  =  0\nlocal steathClass = {\"ROGUE\", \"DRUID\"}\nfunction Idle()\n    if IsAttack() then \n        if CanExitVehicle() then VehicleExit() return end\n        if IsMounted() then Dismount() return end \n    end\n    if not IsAttack() and (HasBuff(\"Пища\") or HasBuff(\"Питье\") or IsMounted() or  CanExitVehicle()) then return end\n    if IsMouseButtonDown(3) and TryTaunt(\"mouseover\") then return end\n\n    for _,t in pairs(TARGETS) do\n        if UnitIsPlayer(t) and tContains(steathClass, GetClass(t)) and not InRange(\"Покаяние\", t) and not HasDebuff(\"Длань возмездия\", 1, t) and DoSpell(\"Длань возмездия\", t) then return end\n    end\n    \n    if (IsAttack() or InCombatLockdown()) then\n        if CanInterrupt then\n            for _,t in pairs(TARGETS) do\n                if TryInterrupt(t) then return end\n            end \n        end\n                \n        if AutoAGGRO and InGroup() and InCombat(1) then\n            for _,target in pairs(TARGETS) do\n                if function(target) return IsValidTarget(target) and UnitAffectingCombat(target) and TryTaunt(target) then return end\n            end\n        end\n        \n        -- Священная жертва\n        if InCombatLockdown() and HasSpell(\"Щит мстителя\") and InGroup() and CalculateHP(\"player\") > 70 then\n            local lowhpmembers = 0\n            for _,target in pairs(UNITS) do if CalculateHP(target) <= 50 then lowhpmembers = lowhpmembers + 1 end end\n            if lowhpmembers > 2 and DoSpell(\"Священная жертва\") then return end\n        end\n        \n        if TryHealing() then return end\n        if TryProtect() then return end\n        if TryBuffs() then return end\n        TryTarget()\n        \n        if (IsControlKeyDown() == 1) and IsValidTarget(\"target\") and DoSpell(\"Гнев карателя\") then return end\n        \n        if HasSpell(\"Щит мстителя\") then\n            Tank() \n        else \n            Retribution()\n        end\n    end\nend\n\n------------------------------------------------------------------------------------------------------------------\nfunction Tank()\n    local target = \"target\"\n    -- пытаемся сдиспелить с себя каку не чаще чем раз в 2 сек\n    if IsSpellNotUsed(\"Очищение\" , 2) and TryDispel(\"player\") then return end\n    if not IsAttack() and not CanAttack(target) then return end\n    if not (UnitAffectingCombat(target) or IsAttack()) then return end\n    if DoSpell(\"Щит мстителя\", target) then return end\n    if IsAOE() then\n        if UnitMana100(\"player\") > 50 and InMelee(target) and DoSpell(\"Освящение\", target) then return end\n        if (UnitCreatureType(target) == \"Нежить\") and UnitMana100(\"player\") > 60 and InMelee(target) and DoSpell(\"Гнев небес\", target) then return end\n    end\n    if UnitHealth100(target) < 20 and DoSpell(\"Молот гнева\", target) then return end\n    if DoSpell(\"Молот праведника\", target) then return end\n    if UnitMana100(\"player\") > 55 and DoSpell(\"Правосудие света\", target) then return end\n    if UnitMana100(\"player\") <= 55 and DoSpell(\"Правосудие мудрости\", target) then return end\n    if DoSpell(\"Щит праведности\", target) then return end\nend\n\n------------------------------------------------------------------------------------------------------------------\nlocal redDispelList = { \n    \"Превращение\", \n    \"Глубокая заморозка\", \n    \"Огненный шок\", \n    \"Покаяние\", \n    \"Молот правосудия\",\n    \"Замедление\",\n    \"Эффект ледяной ловушки\",\n    \"Эффект замораживающей стрелы\",\n    \"Удушение\",\n    \"Антимагия - немота\",\n    \"Безмолвие\",\n    \"Волшебный поток\",\n    \"Вой ужаса\",\n    \"Ментальный крик\",\n    \"Успокаивающий поцелуй\"\n}\n\nlocal rootDispelList = {\n    \"Ледяной шок\", \n    \"Оковы земли\", \n    \"Заморозка\",\n    \"Удар грома\",\n    \"Ледяная стрела\", \n    \"Ночной кошмар\",\n    \"Ледяные оковы\",\n    \"Обморожение\",\n    \"Кольцо льда\",\n    \"Стрела ледяного огня\",\n    \"Холод\",\n    \"Окоченение\",\n    \"Конус холода\",\n    \"Разрушенная преграда\",\n    \"Замедление\",\n    \"Удержание\",\n    \"Гнев деревьев\",\n    \"Обездвиживающее поле\",\n    \"Леденящий взгляд\",\n    \"Хватка земли\"\n}\n\nlocal function IsFinishHim(target) return CanAttack(target) and UnitHealth100(target) < 35 end \nlocal totems = { \"Тотем оков земли\", \"Тотем прилива маны\" }\nfunction Retribution()\n    local target = \"target\"\n    if not IsFinishHim(target) and UnitMana100(\"player\") > 10 and IsReadySpell(\"Очищение\") and TryEach(IUNITS,\n        function(u) return CanHeal(u) and HasDebuff(redDispelList, 2, u) and TryDispel(u) end\n    ) then return end\n    if UnitHealth100(\"player\") < 50 and UseItem(\"Камень здоровья из Скверны\") then return end\n    if UnitMana100(\"player\") < 20 and not HasBuff(\"Печать мудрости\") and DoSpell(\"Печать мудрости\") then return end\n    if UnitMana100(\"player\") > 70 then RunMacroText(\"/cancelaura Печать мудрости\") end\n    if TryEach(TARGETS, function(t)\n        return CanAttack(t) and IsPvP() and (UnitCreatureType(t) == \"Нежить\" or UnitCreatureType(t) == \"Демон\") \n        and not HasDebuff(\"Изгнание зла\", 0.1, t) and DoSpell(\"Изгнание зла\",t) end\n    ) then return end\n    if TryEach(TARGETS, function(t)\n        return CanAttack(t) and tContains(totems, UnitName(t)) and DoSpell(\"Длань возмездия\",t) end\n    ) then return end\n    if not IsAttack() and not CanAttack(target) then return end\n    if not (UnitAffectingCombat(target) or IsAttack()) then return end\n    if InMelee(target) and HasBuff(\"Гнев карателя\") and UseEquippedItem(\"Знак превосходства\")then return end\n    if IsShiftKeyDown() == 1 and DoSpell(\"Освящение\") then return end\n    if UnitHealth100(target) < 20 and DoSpell(\"Молот гнева\", target) then return end\n    if CanMagicAttack(target) then\n        if UseEquippedItem(\"Чешуйчатые рукавицы разгневанного гладиатора\")then return end\n        if HasBuff(\"Искусство войны\") and DoSpell(\"Экзорцизм\", target) then return end   \n        if DoSpell(IsAltKeyDown() and \"Правосудие справедливости\" or \"Правосудие мудрости\", target) then return end\n    end\n    if CanAttack(tagret) and UnitMana100(\"player\") > 20 and not InMelee(target) and HasDebuff(rootDispelList, 1, \"player\") and TryDispel(\"player\") then return end\n    if InMelee(target) and DoSpell(\"Божественная буря\") then return end\n    if DoSpell(\"Удар воина Света\", target) then return end\n    if IsEquippedItem(\"Обломок треснувших ворот Цитадели\") and DoSpell(\"Щит праведности\", target) then return end\n    if (UnitCreatureType(target) == \"Нежить\") and UnitMana100(\"player\") > 40 and InMelee(target) and DoSpell(\"Гнев небес\") then return end    \n    if UnitMana100(\"player\") < 50 and DoSpell(\"Святая клятва\") then return end\n    if (IsPvP() or (UnitThreat(\"player\") == 3 and UnitHealth100(\"player\") < 95)) and (GetTime() - holyShieldTime > 10) then\n        local hasShield = false\n        for _,u in pairs(UNITS) do\n            if HasMyBuff(\"Священный щит\", 0.1, u) then \n                hasShield = true\n                break\n            end\n        end\n       if not hasShield and DoSpell(\"Священный щит\",\"player\") then holyShieldTime = GetTime() return end \n    end\n       \n    if not IsFinishHim(target) and UnitMana100(\"player\") > 40 and IsReadySpell(\"Очищение\") then\n        for _,u in pairs(IUNITS) do\n            if TryDispel(u)) then return end\n        end\n    end\nend\n\n------------------------------------------------------------------------------------------------------------------\nfunction TryBuffs()\n        if HasSpell(\"Удар воина Света\") then\n        -- if not InCombatLockdown() and not HasBuff(\"Праведное неистовство\") and DoSpell(\"Праведное неистовство\") then return end\n            if HasBuff(\"Праведное неистовство\") and RunMacroText(\"/cancelaura Праведное неистовство\") then return end\n            if not HasBuff(\"Печать\") and DoSpell(\"Печать праведности\") then return end\n            if not InCombatLockdown() and not HasMyBuff(\"благословение королей\") and not HasMyBuff(\"благословение могущества\") then\n                if not HasBuff(\"Боевой крик\")\n                    and not HasBuff(\"благословение могущества\") and DoSpell(\"Великое благословение могущества\",\"player\") then return end\n                if ((HasBuff(\"благословение могущества\") and not HasMyBuff(\"благословение могущества\")) or HasBuff(\"Боевой крик\")) \n                    and not HasBuff(\"благословение королей\") and DoSpell(\"Великое благословение королей\",\"player\") then return end\n            end\n        else\n            if not FindAura(\"Благословение\") and DoSpell(\"Великое благословение неприкосновенности\",\"player\") then return end\n            if not HasBuff(\"Праведное неистовство\") and DoSpell(\"Праведное неистовство\") then return end\n            if HasSpell(\"Печать мщения\") and not HasBuff(\"Печать мщения\") and DoSpell(\"Печать мщения\") then return end\n            if HasSpell(\"Печать порчи\") and not HasBuff(\"Печать порчи\") and DoSpell(\"Печать порчи\") then return end\n            if not HasBuff(\"Священный щит\") and DoSpell(\"Священный щит\",\"player\") then return end\n            if not HasBuff(\"Святая клятва\") and DoSpell(\"Святая клятва\") then return end\n            if not HasBuff(\"Щит небес\",0.8) and DoSpell(\"Щит небес\") then return end\n            return false\n        end \nend\n\n------------------------------------------------------------------------------------------------------------------\nfunction TryHealing()\n    if not IsArena() and InCombatLockdown() then\n        if CalculateHP(\"player\") < 35 and UseHealPotion() then return true end\n        if UnitMana100() < 10 and UseItem(\"Рунический флакон с зельем маны\") then return true end\n    end\n    if InCombatLockdown() or IsArena() then\n        local members, membersHP = GetHeal--111111111\n        for i=1,#IUNITS do\n            local u = IUNITS[i]\n            if CanHeal(u) then table.insert(members, { Unit = u, HP = CalculateHP(u), Lost = UnitLostHP(u) } ) end\n        end\n        table.sort(members, function(x,y) return x.HP < y.HP end)\n        local unitWithShield = nil\n        for i=1,#UNITS do \n            if HasMyBuff(\"Священный щит\",1,UNITS[i]) then unitWithShield = UNITS[i] end \n        end \n        if #members > 0 then \n            local u, h, l = members[1].Unit, members[1].HP, members[1].Lost\n            if ((not unitWithShield and h < 80) or (not HasBuff(\"Священный щит\",1,u) and h < 40 and (GetTime() - holyShieldTime > 3))) and DoSpell(\"Священный щит\",u) then\n                holyShieldTime = GetTime() \n                return \n            end\n            if h < 20 and DoSpell(\"Возложение рук\",u) then return end\n            if h < 100 and HasBuff(\"Искусство войны\") and (not IsFinishHim(\"target\") and not IsReadySpell(\"Экзорцизм\") or h < 70 ) and DoSpell(\"Вспышка Света\",u) then return end\n        end\n    end\n    return false\nend\n\n------------------------------------------------------------------------------------------------------------------\nfunction ActualDistance(target)\n    if target == nil then target = \"target\" end\n    return (CheckInteractDistance(target, 3) == 1)\nend\n\nfunction TryTarget()\n    if not IsValidTarget(\"target\") then\n        local found = false\n        local members = GetGroupUnits()\n        for _,member in pairs(members) do \n            target = member .. \"-target\"\n            if not found and IsValidTarget(target) and UnitCanAttack(\"player\", target) and ActualDistance(target) and (not IsPvP() or UnitIsPlayer(target))  then \n                found = true \n                RunMacroText(\"/startattack \" .. target) \n            end\n        end\n\n        if not ActualDistance(\"target\") or not UnitCanAttack(\"player\", \"target\") or (IsPvP() and not UnitIsPlayer(\"target\")) then\n            RunMacroText(\"/cleartarget\")\n        end\n\n    end\n\n    if  not IsValidTarget(\"target\") then\n        if GetNextTarget() ~= nil then\n            RunMacroText(\"/startattack \"..GetNextTarget())\n            if not ActualDistance(\"target\") or not NextIsTarget() or not UnitCanAttack(\"player\", \"target\") or (IsPvP() and not UnitIsPlayer(\"target\")) then\n                RunMacroText(\"/cleartarget\")\n            end\n            ClearNextTarget()\n        end\n    end\n\n    if not IsValidTarget(\"target\") then\n        if IsPvP() then\n            RunMacroText(\"/targetenemyplayer [nodead]\")\n        else\n            RunMacroText(\"/targetenemy [nodead]\")\n        end\n        if not IsAttack() and not ActualDistance(\"target\") or not UnitCanAttack(\"player\", \"target\") or (IsPvP() and not UnitIsPlayer(\"target\")) then\n            RunMacroText(\"/cleartarget\")\n        end\n    end\n\n    if not IsValidTarget(\"target\") or (IsAttack() and  not UnitCanAttack(\"player\", \"target\")) then\n        RunMacroText(\"/cleartarget\")\n    end\n    \n    if not IsValidTarget(\"focus\") then\n        RunMacroText(\"/clearfocus\")\n    end\n    TryEach(TARGETS, function(t)\n        if IsValidTarget(t) and (UnitCreatureType(t) == \"Нежить\" or UnitCreatureType(t) == \"Демон\") and IsOneUnit(\"focus\",t) then\n            RunMacroText(\"/focus \" .. t)\n            return true\n        end\n        return false\n    end)\n    \n    \n    if IsArena() and IsValidTarget(\"target\") and (not UnitExists(\"focus\") or IsOneUnit(\"target\", \"focus\")) then\n        if IsOneUnit(\"target\",\"arena1\") then RunMacroText(\"/focus arena2\") end\n        if IsOneUnit(\"target\",\"arena2\") then RunMacroText(\"/focus arena1\") end\n    end\n    \n    if IsAttack() or InCombatLockdown() then RunMacroText(\"/startattack\")  end\nend\n\n------------------------------------------------------------------------------------------------------------------\nlocal tryShieldTime = 0\nfunction TryProtect()\n    if InCombatLockdown() then\n        if (UnitHealth100() < 90 and not (HasBuff(\"Крепнущая броня\"))) then\n            if UseEquippedItem(\"Клятва Эйтригга\") then return true end\n        end\n        \n        if HasSpell(\"Щит мстителя\") and UnitHealth100() < 80 and DoSpell(\"Святая клятва\") then return end\n        \n        if (UnitHealth100() < 50 and not (HasBuff(\"Затвердевшая кожа\"))) then\n            if UseEquippedItem(\"Проржавевший костяной ключ\") then return true end\n        end\n        \n        -- if HasSpell(\"Удар воина Света\") and (UnitHealth100() < 50) and DoSpell(\"Священная жертва\") then return end\n        \n        if GetTime() - tryShieldTime > 5 then \n        \n            if HasSpell(\"Удар воина Света\") and (UnitHealth100() < 20) then \n                if DoSpell(\"Божественный щит\") then \n                    tryShieldTime = GetTime()\n                    return true \n                end\n                if IsReadySpell(\"Божественный щит\") then return false end\n            end\n            \n            if not IsPvP() and (UnitHealth100() < 15) and DoSpell(\"Божественная защита\") then \n                tryShieldTime = GetTime()\n                return true \n            end   \n        end\n    end\n    return false\nend\n\n------------------------------------------------------------------------------------------------------------------\nlocal InterruptTime = 0\nfunction TryInterrupt(target)\n    if (GetTime() - InterruptTime < 1) then return false end \n    \n    if target == nil then target = \"target\" end\n    \n    if not IsValidTarget(target) then return false end\n\n    local spell, _, _, _, _, endTime, _, _, notinterrupt = UnitCastingInfo(target)\n        \n    if not spell then \n        spell, _, _, _, _, endTime, _, nointerrupt = UnitChannelInfo(target)\n    end\n    \n    if not spell then return false end\n    \n    if IsPvP() and not (IsFinishHim(target) and InInterruptRedList(spell)) then return false end\n\n    local time = endTime/1000 - GetTime()\n    if time < 0.1 or time > 1.8 then \n        return false \n    end\n    m = \" -> \" .. spell .. \" (\"..target..\")\"\n    \n    if not notinterrupt then \n        if HasSpell(\"Удар воина Света\") and CanControl(target) and DoSpell(\"Покаяние\", target) then \n            echo(\"Покаяние\"..m)\n            InterruptTime = GetTime()\n            return true \n        end\n        if CanControl(target) and not HasBuff(\"Незыблемость льда\", 0.1 , target) and DoSpell(\"Молот правосудия\", target) then \n            echo(\"Молот правосудия\"..m)\n            InterruptTime = GetTime()\n            return true \n        end\n    end\n    \n    return false    \nend\n\n------------------------------------------------------------------------------------------------------------------\nlocal TauntTime = 0\nfunction TryTaunt(target)\n if (GetTime() - TauntTime < 1.5) then return false end\n if not CanAttack(target) then return false end\n if UnitIsPlayer(target) then return false end\n \n local tt = UnitName(target .. \"-target\")\n if not UnitExists(tt) then return false end\n \n if IsOneUnit(\"player\", tt) then return false end\n -- Снимаем только с игроков, причем только с тех, которые не в черном списке\n if not TryEach(GetGroupUnits(), function(u)\n    return (not IsOneUnit(\"player\", u) and not IsIgnored(u) and UnitThreat(u,target) == 3) \n    end) then return false end\n \n if DoSpell(\"Длань возмездия\", target) then \n     TauntTime = GetTime()\n     -- chat(\"Длань возмездия на \" .. UnitName(target))\n     return true  \n end\n\n if not IsReadySpell(\"Длань возмездия\") and IsInteractUnit(tt) and DoSpell(\"Праведная защита\", tt) then \n     TauntTime = GetTime()\n     -- chat(\"Праведная защита на \" .. UnitName(tt))\n     return true  \n end\n return false\nend",
+			"file": "rhpaladin/rotation.lua",
+			"file_size": 19861,
+			"file_write_time": 130188000302273651,
+			"settings":
+			{
+				"buffer_size": 17254,
+				"line_ending": "Windows"
+			}
+		},
+		{
 			"file": "rhshaman/binds.lua",
 			"settings":
 			{
@@ -163,15 +206,47 @@
 	"build_system": "",
 	"command_palette":
 	{
-		"height": 58.0,
+		"height": 392.0,
 		"selected_items":
 		[
+			[
+				"ip",
+				"Package Control: Install Package"
+			],
+			[
+				"rp",
+				"Package Control: Remove Package"
+			],
+			[
+				"Package Control: ",
+				"Package Control: Install Package"
+			],
+			[
+				"inst",
+				"Package Control: Install Package"
+			],
+			[
+				"pc up",
+				"Package Control: Upgrade Package"
+			],
+			[
+				"pc",
+				"Package Control: Add Repository"
+			],
+			[
+				"Package Control: lp",
+				"Package Control: List Packages"
+			],
+			[
+				"",
+				"Preferences: Browse Packages"
+			],
 			[
 				"Pack",
 				"Preferences: Browse Packages"
 			]
 		],
-		"width": 392.0
+		"width": 400.0
 	},
 	"console":
 	{
@@ -191,6 +266,8 @@
 	},
 	"file_history":
 	[
+		"/D/Dropbox/SublimeText/Data/Packages/Default/Preferences.sublime-settings",
+		"/C/Games/World of Warcraft/Interface/AddOns/rhpaladin/prh.toc",
 		"/C/Games/World of Warcraft/Interface/AddOns/rhdruid/rotation.lua",
 		"/C/Games/World of Warcraft/Interface/AddOns/rhlib2/units.lua",
 		"/C/Games/World of Warcraft/Interface/AddOns/addons.sublime-project",
@@ -267,7 +344,7 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 5,
 			"sheets":
 			[
 				{
@@ -301,6 +378,148 @@
 				},
 				{
 					"buffer": 1,
+					"file": "addons.sublime-project",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 255,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								217,
+								217
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/JavaScript/JSON.tmLanguage",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "rhpaladin/binds.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4308,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								4133,
+								4133
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1140.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "rhpaladin/Bindings.xml",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 242,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/XML/XML.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "rhpaladin/commands.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5437,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								178,
+								178
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "rhpaladin/rotation.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 17254,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								9239,
+								9239
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 3192.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
 					"file": "rhshaman/binds.lua",
 					"semi_transient": false,
 					"settings":
@@ -329,7 +548,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 2,
+					"buffer": 7,
 					"file": "rhlib2/units.lua",
 					"semi_transient": false,
 					"settings":
@@ -358,7 +577,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 3,
+					"buffer": 8,
 					"file": "rhlib2/misc.lua",
 					"semi_transient": false,
 					"settings":
@@ -387,7 +606,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 4,
+					"buffer": 9,
 					"file": "rhshaman/commands.lua",
 					"semi_transient": false,
 					"settings":
@@ -416,7 +635,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 5,
+					"buffer": 10,
 					"file": "rhshaman/totems.lua",
 					"semi_transient": false,
 					"settings":
@@ -445,7 +664,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 6,
+					"buffer": 11,
 					"file": "rhlib2/auras.lua",
 					"semi_transient": false,
 					"settings":
@@ -474,7 +693,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 7,
+					"buffer": 12,
 					"file": "rhlib2/data.lua",
 					"semi_transient": false,
 					"settings":
@@ -511,7 +730,7 @@
 	},
 	"input":
 	{
-		"height": 0.0
+		"height": 35.0
 	},
 	"layout":
 	{
