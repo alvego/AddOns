@@ -301,7 +301,7 @@ function UseSpell(spellName, target)
      -- проверяем, что не кастится другой спел
      for s,_ in pairs(InCast) do
 		if not IsBusy and not tContains(inCastSpells, s) and IsSpellInUse(s) then
-            if dump or true then print("Уже прожали " .. s .. ", ждем окончания, пока не можем больше прожать", spellName) end
+            if dump then print("Уже прожали " .. s .. ", ждем окончания, пока не можем больше прожать", spellName) end
             IsBusy = true
         end
      end

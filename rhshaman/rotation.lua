@@ -301,7 +301,8 @@ function HealRotation()
         end
 
         for j=1,#members do
-            local ju, jh = members[j], membersHP[j]
+            local ju = members[j]
+            local jh = membersHP[ju]
             local d = CheckDistance(u, ju)
             if not IsOneUnit("player", ju) and not IsOneUnit("player", u) and d and d < 10 then --12.5 then
                 if jh < 100 then
