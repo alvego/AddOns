@@ -180,7 +180,7 @@ function TryBuffs()
                     and not HasBuff("благословение королей") and DoSpell("Великое благословение королей","player") then return end
             end
         else
-            if not FindAura("Благословение") and DoSpell("Великое благословение неприкосновенности","player") then return end
+            if not HasBuff("Благословение") and DoSpell("Великое благословение неприкосновенности","player") then return end
             if not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
             if HasSpell("Печать мщения") and not HasBuff("Печать мщения") and DoSpell("Печать мщения") then return end
             if HasSpell("Печать порчи") and not HasBuff("Печать порчи") and DoSpell("Печать порчи") then return end
