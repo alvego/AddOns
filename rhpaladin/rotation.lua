@@ -115,7 +115,7 @@ local totems = { "Тотем оков земли", "Тотем прилива м
 function Retribution()
     local target = "target"
 
-    if not IsFinishHim(target) and UnitMana100("player") > 10 and IsReadySpell("Очищение") then
+    if not IsFinishHim(target) and UnitMana100("player") > 10 and IsReadySpell("Очищение") and IsSpellNotUsed("Очищение", 5) then
         for _,u in pairs(IUNITS) do
             if CanHeal(u) and HasDebuff(redDispelList, 2, u) and TryDispel(u) then return end
         end
@@ -124,14 +124,16 @@ function Retribution()
     if UnitHealth100("player") < 50 and UseItem("Камень здоровья из Скверны") then return end
     if UnitMana100("player") < 20 and not HasBuff("Печать мудрости") and DoSpell("Печать мудрости") then return end
     if UnitMana100("player") > 70 then RunMacroText("/cancelaura Печать мудрости") end
-    if IsPvP then
+    if IsPvP() then
         for _,t in pairs(TARGETS) do
             if CanAttack(t) and (UnitCreatureType(t) == "Нежить" or UnitCreatureType(t) == "Демон") 
                 and not HasDebuff("Изгнание зла", 0.1, t) and DoSpell("Изгнание зла",t) then return end
         end
     end
-    for _,t in pairs(TARGETS) do
-        if CanAttack(t) and tContains(totems, UnitName(t)) and DoSpell("Длань возмездия",t) then return end
+    if IsReadySpell("Длань возмездия") then
+        for _,t in pairs(TARGETS) do
+            if CanAttack(t) and tContains(totems, UnitName(t)) and DoSpell("Длань возмездия",t) then return end
+        end
     end
     if not IsAttack() and not CanAttack(target) then return end
     if not (UnitAffectingCombat(target) or IsAttack()) then return end
@@ -198,11 +200,11 @@ function TryHealing()
         if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
     end
     if InCombatLockdown() or IsArena() then
-        local members, membersHP = GetHealingMembers(IUNITS)
-        local unitWithShield = nil
+        local unitWithShield
         for i=1,#UNITS do 
             if HasMyBuff("Священный щит",1,UNITS[i]) then unitWithShield = UNITS[i] end 
         end 
+        local members, membersHP = GetHealingMembers(IUNITS)
         local u = members[1]
         local h = membersHP[u]
         if ((not unitWithShield and h < 80) or (not HasBuff("Священный щит",1,u) and h < 40 and (GetTime() - holyShieldTime > 3))) and DoSpell("Священный щит",u) then
