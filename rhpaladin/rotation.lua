@@ -111,7 +111,7 @@ local rootDispelList = {
 }
 
 local function IsFinishHim(target) return CanAttack(target) and UnitHealth100(target) < 35 end 
-local totems = { "Тотем оков земли", "Тотем прилива маны" }
+local totems = { "Тотем оков земли", "Тотем прилива маны", "Тотем заземления" }
 function Retribution()
     local target = "target"
 
