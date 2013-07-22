@@ -141,7 +141,7 @@ function Retribution()
     if IsShiftKeyDown() == 1 and DoSpell("Освящение") then return end
     if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
     if CanMagicAttack(target) then
-        if UseEquippedItem("Чешуйчатые рукавицы разгневанного гладиатора")then return end
+        if UseSlot(10)then return end
         if HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end   
         if DoSpell(IsAltKeyDown() and "Правосудие справедливости" or "Правосудие мудрости", target) then return end
     end
