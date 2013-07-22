@@ -4,6 +4,10 @@
 		"selected_items":
 		[
 			[
+				"I",
+				"Idle"
+			],
+			[
 				"mem",
 				"membersHP"
 			],
@@ -64,10 +68,6 @@
 				"nointerruptBuffs"
 			],
 			[
-				"I",
-				"IUNITS"
-			],
-			[
 				"Get",
 				"GetHealingMembers"
 			],
@@ -104,10 +104,10 @@
 	"buffers":
 	[
 		{
-			"file": "rhpaladin/rotation.lua",
+			"file": "rhlib2/lib.lua",
 			"settings":
 			{
-				"buffer_size": 17088,
+				"buffer_size": 2317,
 				"line_ending": "Windows"
 			}
 		},
@@ -115,7 +115,31 @@
 			"file": "rhshaman/rotation.lua",
 			"settings":
 			{
-				"buffer_size": 30337,
+				"buffer_size": 30305,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "rhshaman/commands.lua",
+			"settings":
+			{
+				"buffer_size": 5135,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "rhlib2/binds.lua",
+			"settings":
+			{
+				"buffer_size": 10625,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "rhlib2/auras.lua",
+			"settings":
+			{
+				"buffer_size": 6655,
 				"line_ending": "Windows"
 			}
 		}
@@ -183,10 +207,12 @@
 	},
 	"file_history":
 	[
-		"/C/Games/World of Warcraft/Interface/AddOns/rhlib2/units.lua",
-		"/C/Games/World of Warcraft/Interface/AddOns/rhshaman/rotation.lua",
-		"/C/Games/World of Warcraft/Interface/AddOns/rhlib2/data.lua",
 		"/C/Games/World of Warcraft/Interface/AddOns/rhpaladin/binds.lua",
+		"/C/Games/World of Warcraft/Interface/AddOns/rhpaladin/rotation.lua",
+		"/C/Games/World of Warcraft/Interface/AddOns/rhpaladin/Bindings.xml",
+		"/C/Games/World of Warcraft/Interface/AddOns/rhshaman/rotation.lua",
+		"/C/Games/World of Warcraft/Interface/AddOns/rhlib2/units.lua",
+		"/C/Games/World of Warcraft/Interface/AddOns/rhlib2/data.lua",
 		"/C/Games/World of Warcraft/Interface/AddOns/rhlib2/spells.lua",
 		"/C/Games/World of Warcraft/Interface/AddOns/rhshaman/binds.lua",
 		"/C/Games/World of Warcraft/Interface/AddOns/rhlib2/misc.lua",
@@ -194,7 +220,6 @@
 		"/C/Games/World of Warcraft/Interface/AddOns/rhshaman/totems.lua",
 		"/C/Games/World of Warcraft/Interface/AddOns/rhlib2/auras.lua",
 		"/C/Games/World of Warcraft/Interface/AddOns/rhpaladin/commands.lua",
-		"/C/Games/World of Warcraft/Interface/AddOns/rhpaladin/Bindings.xml",
 		"/C/Games/World of Warcraft/Interface/AddOns/addons.sublime-project",
 		"/D/Dropbox/SublimeText/Data/Packages/Default/Preferences.sublime-settings",
 		"/C/Games/World of Warcraft/Interface/AddOns/rhpaladin/prh.toc",
@@ -237,6 +262,10 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"Жаж",
+			"GetFunctionCPUUsage",
+			"debug",
+			"SetCVar",
 			"вспышка с",
 			"{",
 			"function()",
@@ -279,24 +308,24 @@
 	"groups":
 	[
 		{
-			"selected": 0,
+			"selected": 1,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "rhpaladin/rotation.lua",
+					"file": "rhlib2/lib.lua",
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 17088,
+						"buffer_size": 2317,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								9767,
-								9767
+								2316,
+								2316
 							]
 						],
 						"settings":
@@ -306,7 +335,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 4047.0,
+						"translation.y": 456.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -317,15 +346,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 30337,
+						"buffer_size": 30305,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								23915,
-								23873
+								2750,
+								2750
 							]
 						],
 						"settings":
@@ -335,7 +364,94 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 9613.0,
+						"translation.y": 3056.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "rhshaman/commands.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 5135,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								296,
+								296
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1596.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "rhlib2/binds.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 10625,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								3307,
+								3307
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2024.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "rhlib2/auras.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6655,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5227,
+								5241
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 2015.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"

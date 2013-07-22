@@ -86,7 +86,7 @@ function Idle()
     -- геру под крылья на арене
 	if IsArena() then
 		for _, u in pairs(UNITS) do
-			if IsReadySpell("Жажда крови") and HasBuff("Гнев карателя", 10, u) then
+			if HasBuff("Гнев карателя", 10, u) then
 				DoCommand("hero") 
 				return
 			end

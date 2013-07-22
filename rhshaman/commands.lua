@@ -1,8 +1,10 @@
 ﻿-- Shaman Rotation Helper by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
+local heroSpell = HasSpell("Героизм") and "Героизм" or "Жажда крови"
 SetCommand("hero", 
-    function() return DoSpell("Жажда крови") end, 
-    function() return not InGCD() and not IsReadySpell("Жажда крови") end
+
+    function() return DoSpell(heroSpell) end, 
+    function() return not InGCD() and not IsReadySpell(heroSpell) end
 )
 
 ------------------------------------------------------------------------------------------------------------------
