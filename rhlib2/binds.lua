@@ -29,10 +29,10 @@ if Debug == nil then Debug = false end
 function DebugToggle()
     Debug = not Debug
     if Debug then
-         SetCVar("scriptErrors", 1)
+        SetCVar("scriptErrors", 1)
         echo("Режим отладки: ON",true)
     else
-         SetCVar("scriptErrors", 0)
+        SetCVar("scriptErrors", 0)
         echo("Режим отладки: OFF",true)
     end 
 end
@@ -46,7 +46,6 @@ ITARGETS = iTargets
 UNITS = {"player"}
 IUNITS = UNITS -- Important Units
 local StartTime = GetTime()
-
 local function getUnitWeight(u)
     local w = 0
     if IsFriend(u) then w = 2 end
@@ -267,12 +266,12 @@ end
 debugFrame = CreateFrame('Frame')
 debugFrame:ClearAllPoints()
 debugFrame:SetHeight(15)
-debugFrame:SetWidth(200)
+debugFrame:SetWidth(800)
 debugFrame:SetScript('OnUpdate', debugFrame_OnUpdate)
 debugFrame:Hide()
-debugFrame.text = debugFrame:CreateFontString(nil, 'BACKGROUND', 'ErrorFont')
+debugFrame.text = debugFrame:CreateFontString(nil, 'BACKGROUND', 'GameFontNormalLeft')
 debugFrame.text:SetAllPoints()
-debugFrame:SetPoint('TOPLEFT', 0, 0)
+debugFrame:SetPoint('TOPLEFT', 70, 0)
 
 -- Debug messages.
 function debug(message)
@@ -285,6 +284,8 @@ end
 local function UpdateMemoryUsage()
 	if not Debug then return end
 	UpdateAddOnMemoryUsage()
-	debug(ceil(GetAddOnMemoryUsage("rhlib2")) .. "Kb")
+    UpdateAddOnCPUUsage()
+    local mem  = GetAddOnMemoryUsage("rhlib2")
+    debug(format('Mem: %.1fKB', mem))
 end
 AttachUpdate(UpdateMemoryUsage) 

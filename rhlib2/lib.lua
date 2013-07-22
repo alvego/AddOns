@@ -3,7 +3,7 @@
 -- protected lock test
 RunMacroText("/cleartarget")
 -- Инициализация скрытого фрейма для обработки событий
-local frame=CreateFrame("Frame",nil,UIParent)
+local frame=CreateFrame("Frame","RHLIB2FRAME",UIParent)
 
 ------------------------------------------------------------------------------------------------------------------
 -- Список событие -> обработчики
@@ -47,7 +47,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 -- Выполняем обработчики события OnUpdate, согласно приоритету (return true - выход)
 local LastUpdate = 0
-local UpdateInterval = 0.15
+local UpdateInterval = 0.05
 local function update(upd) return upd.func(elapsed) end
 local function OnUpdate(frame, elapsed)
     LastUpdate = LastUpdate + elapsed 
