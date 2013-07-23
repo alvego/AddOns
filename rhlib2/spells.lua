@@ -344,9 +344,6 @@ function UseSpell(spellName, target)
         end
         -- пробуем скастовать
         if dump then print("Жмем", cast .. "!" .. spellName) end
-        -- Типа неистово прожимаем (экспериментально)
-        RunMacroText(cast .. "!" .. spellName)
-        RunMacroText(cast .. "!" .. spellName)
         RunMacroText(cast .. "!" .. spellName)
         -- если нужно выбрать область - кидаем на текущий mouseover
         if SpellIsTargeting() then CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() end 

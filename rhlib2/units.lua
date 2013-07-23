@@ -10,6 +10,9 @@ local function compareMembers(u1, u2)
 end
 function GetHealingMembers(units)
     local myHP = UnitHealth100("player")
+    if #members > 0 and UpdateInterval == 0 then
+        return members, membersHP
+    end
     wipe(members)
     wipe(membersHP)
     if units == nil then units = UNITS end

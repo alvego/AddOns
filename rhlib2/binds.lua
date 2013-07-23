@@ -79,21 +79,22 @@ local function UpdateIdle()
     
     if UnitIsDeadOrGhost("player") or UnitIsCharmed("player") 
         or not UnitPlayerControlled("player") then return end
+    if UpdateInterval > 0 then    
+        -- Update units
+        UNITS = GetUnits()
+        table.sort(UNITS, compareUnits)
         
-    -- Update units
-    UNITS = GetUnits()
-    table.sort(UNITS, compareUnits)
-    
-    -- Update targets
-    TARGETS = GetTargets()
-    table.sort(TARGETS, compareTargets)
-    wipe(IUNITS)
-    for _,u in pairs(UNITS) do
-		if IsArena() or IsFriend(u) then 
-			tinsert(IUNITS, u)
-		end
-	end
-    ITARGETS = IsArena() and iTargets or TARGETS
+        -- Update targets
+        TARGETS = GetTargets()
+        table.sort(TARGETS, compareTargets)
+        wipe(IUNITS)
+        for _,u in pairs(UNITS) do
+    		if IsArena() or IsFriend(u) then 
+    			tinsert(IUNITS, u)
+    		end
+    	end
+        ITARGETS = IsArena() and iTargets or TARGETS
+    end
     if Idle then Idle() end
 end
 AttachUpdate(UpdateIdle, -1000)

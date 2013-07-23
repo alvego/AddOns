@@ -47,7 +47,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 -- Выполняем обработчики события OnUpdate, согласно приоритету (return true - выход)
 local LastUpdate = 0
-local UpdateTime = 0
+UpdateInterval = 0
 local function update(upd) return upd.func() end
 local function OnUpdate(frame, elapsed)
     LastUpdate = LastUpdate + elapsed 
@@ -59,15 +59,16 @@ local function OnUpdate(frame, elapsed)
                 LastUpdate = 100
                 return
             end
-            UpdateTime = 0.25
+            UpdateInterval = 0.25
         else
             --no gcd
-            UpdateTime = 0.01
+            UpdateInterval = 0
         end 
     else
-        UpdateTime = 0.5
+        UpdateInterval = 0.5
     end
-    if not IsAttack() and LastUpdate < UpdateTime then return end -- для снижения нагрузки на проц
+    if IsAttack() then UpdateInterval = 0 end
+    if LastUpdate < UpdateInterval then return end -- для снижения нагрузки на проц
     LastUpdate = 0
     for _,upd in pairs(UpdateList) do
 		if upd.func(elapsed) then return end
