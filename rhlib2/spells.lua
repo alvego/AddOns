@@ -1,9 +1,17 @@
 ﻿-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
 -- Время сетевой задержки 
-local lagTime = 0
+LagTime = 0
+local lastUpdate = 0
+local function UpdateLagTime()
+    if GetTime() - lastUpdate < 30 then return end
+    lastUpdate = GetTime() 
+    LagTime = tonumber(select(3, GetNetStats()) / 1000)  * 1.5
+
+end
+AttachUpdate(UpdateLagTime)
 local sendTime = 0
-local function UpdateLag(event, ...)
+local function CastLagTime(event, ...)
     local unit, spell = select(1,...)
     if spell and unit == "player" then
         if event == "UNIT_SPELLCAST_SENT" then
@@ -11,12 +19,12 @@ local function UpdateLag(event, ...)
         end
         if event == "UNIT_SPELLCAST_START" then
             if not sendTime then return end
-            lagTime = GetTime() - sendTime
+            LagTime = GetTime() - sendTime
         end
     end
 end
-AttachEvent('UNIT_SPELLCAST_START', UpdateLag)
-AttachEvent('UNIT_SPELLCAST_SENT', UpdateLag)
+AttachEvent('UNIT_SPELLCAST_START', CastLagTime)
+AttachEvent('UNIT_SPELLCAST_SENT', CastLagTime)
 
 ------------------------------------------------------------------------------------------------------------------
 function IsPlayerCasting()
@@ -25,7 +33,7 @@ function IsPlayerCasting()
         spell, rank, displayName, icon, startTime, endTime = UnitChannelInfo("player")
     end
     if not spell or not endTime then return false end
-    local res = ((endTime/1000 - GetTime()) < lagTime)
+    local res = ((endTime/1000 - GetTime()) < LagTime)
     if res then return false end
     return true
 end
@@ -83,8 +91,8 @@ local GCDSpells = {
 GCDSpellID = GCDSpells[GetClass()]
 
 function InGCD()
-    local start = GetSpellCooldown(GCDSpellID);
-    return (start and (start>lagTime));
+    local left = GetSpellCooldownLeft(GCDSpellID)
+    return (left > LagTime)
 end
 ------------------------------------------------------------------------------------------------------------------
 -- Interact range - 40 yards
@@ -129,8 +137,8 @@ function IsReadySpell(name)
     local usable, nomana = IsUsableSpell(name)
     if not usable then return false end
     local left = GetSpellCooldownLeft(name)
+    if left > LagTime then return false end
     local spellName, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(name)
-    if left > lagTime then return false end
     if cost and cost > 0 and not(UnitPower("player", powerType) >= cost) then return false end
     return true
 end

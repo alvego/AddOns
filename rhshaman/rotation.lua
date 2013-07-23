@@ -85,7 +85,7 @@ function Idle()
     if not CanControl("target") then RunMacroText("/stopattack") end
     -- геру под крылья на арене
 	if IsArena() then
-		for _, u in pairs(UNITS) do
+		for _, u in pairs(IUNITS) do
 			if HasBuff("Гнев карателя", 10, u) then
 				DoCommand("hero") 
 				return

@@ -47,16 +47,27 @@ end
 ------------------------------------------------------------------------------------------------------------------
 -- Выполняем обработчики события OnUpdate, согласно приоритету (return true - выход)
 local LastUpdate = 0
-local function update(upd) return upd.func(elapsed) end
+local UpdateTime = 0
+local function update(upd) return upd.func() end
 local function OnUpdate(frame, elapsed)
     LastUpdate = LastUpdate + elapsed 
-    local start, duration = GetSpellCooldown(GCDSpellID);
-    --ждем конца GCD чтоб запустить ротацию с нуля
-    if start and (start>0) and duration - (GetTime() - start) < 0.25 then
-        LastUpdate = 100
-        return
-    end 
-    if not IsAttack() and LastUpdate < (InCombatLockdown() and 0.5 or 1) then return end -- для снижения нагрузки на проц
+    if InCombatLockdown() then
+        local start, duration = GetSpellCooldown(GCDSpellID);
+            --ждем конца GCD чтоб запустить ротацию с нуля
+        if start and (start>0) and duration - (GetTime() - start) < 0.25 then
+            if duration - (GetTime() - start) < 0.25 then
+                LastUpdate = 100
+                return
+            end
+            UpdateTime = 0.25
+        else
+            --no gcd
+            UpdateTime = 0.01
+        end 
+    else
+        UpdateTime = 0.5
+    end
+    if not IsAttack() and LastUpdate < UpdateTime then return end -- для снижения нагрузки на проц
     LastUpdate = 0
     for _,upd in pairs(UpdateList) do
 		if upd.func(elapsed) then return end

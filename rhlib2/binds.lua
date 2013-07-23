@@ -269,7 +269,7 @@ debugFrame:SetHeight(15)
 debugFrame:SetWidth(800)
 debugFrame:SetScript('OnUpdate', debugFrame_OnUpdate)
 debugFrame:Hide()
-debugFrame.text = debugFrame:CreateFontString(nil, 'BACKGROUND', 'GameFontNormalLeft')
+debugFrame.text = debugFrame:CreateFontString(nil, 'BACKGROUND', 'GameFontNormalSmallLeft')
 debugFrame.text:SetAllPoints()
 debugFrame:SetPoint('TOPLEFT', 70, 0)
 
@@ -286,6 +286,7 @@ local function UpdateMemoryUsage()
 	UpdateAddOnMemoryUsage()
     UpdateAddOnCPUUsage()
     local mem  = GetAddOnMemoryUsage("rhlib2")
-    debug(format('Mem: %.1fKB', mem))
+    local fps = GetFramerate();
+    debug(format('MEM: %.1fKB, LAG: %ims, FPS: %i', mem, LagTime * 1000, fps))
 end
 AttachUpdate(UpdateMemoryUsage) 
