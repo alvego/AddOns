@@ -484,8 +484,9 @@ function MDDRotation()
     
     if not IsAttack() and not CanAttack("target") then return end
     if not (UnitAffectingCombat("target") or IsAttack()) then return end
-    
-    if IsAttack() then RunMacroText("/startattack") end
+    if not IsValidTarget("target") then return end
+    RunMacroText("/startattack")
+
     if (UnitHealth100("player") < 35) and DoSpell("Дух дикого волка") then return end
     if CanMagicAttack("target") and not ActualDistance() and IsAttack() then
         if UnitAffectingCombat("target") then
@@ -534,10 +535,6 @@ function RDDRotation()
     
     if not IsAttack() and not CanAttack() then return end
     if not (UnitAffectingCombat("target") or IsAttack()) then return end
-    
-    if not UnitAffectingCombat("target") then
-        
-    end
     if not IsValidTarget("target") then return end
     RunMacroText("/startattack")
     if IsSpellNotUsed("Развеивание магии", 5) and UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") and CanMagicAttack("target") then

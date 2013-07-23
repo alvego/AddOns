@@ -31,17 +31,40 @@ function IsPlayerCasting()
 end
 
 ------------------------------------------------------------------------------------------------------------------
+local spellToIdList = {}
 function GetSpellId(name, rank)
-    local link = GetSpellLink(name,rank)
-    if not link then return nil end
-    return 0 + link:match("spell:%d+"):match("%d+")
+    spellGUID = name
+    if rank then
+        spellGUID = name .. rank
+    end
+    local result = spellToIdList[spellGUID]
+    if nil == result then
+        local link = GetSpellLink(name,rank)
+        if not link then 
+            result = 0 
+        else
+            result = 0 + link:match("spell:%d+"):match("%d+")
+        end
+        spellToIdList[spellGUID] = result
+    end
+    return result
 end
 
 ------------------------------------------------------------------------------------------------------------------
+local hasSpellList = {}
 function HasSpell(spellName)
-    local spell = GetSpellInfo(spellName)
-    return spell == spellName
+    local result = hasSpellList[spellName]
+    if nil == result then
+        local spell = GetSpellInfo(spellName)
+        result = (spell == spellName)
+        hasSpellList[spellName] = result
+    end
+    return result
 end
+local function UpdateHasSpell()
+    wipe(hasSpellList)
+end
+AttachEvent("ACTIVE_TALENT_GROUP_CHANGED", UpdateHasSpell)
 
 ------------------------------------------------------------------------------------------------------------------
 -- Use these spells to detect GCD
@@ -57,13 +80,11 @@ local GCDSpells = {
     HUNTER = 1978,       -- Serpent Sting I (only from level 4)
     DEATHKNIGHT = 45902, -- Blood Strike I
 }
-local function getGCDSpellID()
-    return GCDSpells[GetClass()]
-end
+GCDSpellID = GCDSpells[GetClass()]
 
 function InGCD()
-    local gcdStart = GetSpellCooldown(getGCDSpellID());
-    return (gcdStart and (gcdStart>0));
+    local start = GetSpellCooldown(GCDSpellID);
+    return (start and (start>0));
 end
 ------------------------------------------------------------------------------------------------------------------
 -- Interact range - 40 yards
@@ -73,16 +94,13 @@ local interactSpells = {
     SHAMAN = "Волна исцеления",
     PRIEST = "Малое исцеление"
 }
-local function getInteractRangeSpell()
-     return interactSpells[GetClass()]
-end
+InteractRangeSpell = interactSpells[GetClass()]
 
 function InInteractRange(unit)
     -- need test and review
     if (unit == nil) then unit = "target" end
     if not IsInteractUnit(unit) then return false end
-    local spell = getInteractRangeSpell()
-    if spell then return IsSpellInRange(spell,unit) == 1 end
+    if spell then return IsSpellInRange(InteractRangeSpell,unit) == 1 end
     if IsArena() then return true end
     return InDistance("player", unit, 40)
 end
@@ -93,14 +111,10 @@ local meleeSpells = {
     PALADIN = "Щит праведности",
     SHAMAN = "Удар бури"
 }
-local function getMeleeSpell()
-    -- Use these spells to melee
-    return meleeSpells[GetClass()]
-end
-
+MeleeSpell = meleeSpells[GetClass()]
 function InMelee(target)
     if (target == nil) then target = "target" end
-    return (IsSpellInRange(getMeleeSpell(),target) == 1)
+    return (IsSpellInRange(MeleeSpell,target) == 1)
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -117,18 +131,7 @@ function IsReadySpell(name)
     if not usable then return false end
     local left = GetSpellCooldownLeft(name)
     local spellName, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(name)
---~     local leftGCD = GetSpellCooldownLeft(GetGCDSpellID())
---~     
---~     if InGCD() and tContains(GCDSpellList,name) then
---~         return false
---~     end
---~     
---~     if InGCD() and (left == leftGCD) then
---~         if not tContains(GCDSpellList,name) then 
---~             tinsert(GCDSpellList, name)
---~         end
---~     end
-    
+   
     if left > 0 then return false end
     
     if cost and cost > 0 and not(UnitPower("player", powerType) >= cost) then return false end
@@ -142,10 +145,6 @@ function GetSpellCooldownLeft(name)
     if enabled ~= 1 then return 1 end
     if not start then return 0 end
     if start == 0 then return 0 end
---~     if duration < 1 then 
---~         print(name, duration)
---~         duration = 1.4 
---~     end
     local left = start + duration - GetTime()
     return left
 end

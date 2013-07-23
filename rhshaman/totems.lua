@@ -93,8 +93,8 @@ function TryTotems(forceTotems, h)
     
     if h > 30 and IsReadySpell("Тотем каменного когтя") 
         and not HasTotem("Тотем каменного когтя")
-        and ((PlayerThreatTime and GetTime() - PlayerThreatTime > 3) 
-            or (InCombatLockdown() and UnitHealth100("player") < 85)) then
+        and (IsPvP() or (PlayerThreatTime and GetTime() - PlayerThreatTime > 3))
+            and (InCombatLockdown() and UnitHealth100("player") < 98) then
         pushTotem(earth, "Тотем каменного когтя", 100)
         force[earth] = true
     end
