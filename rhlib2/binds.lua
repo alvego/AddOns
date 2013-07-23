@@ -282,12 +282,14 @@ function debug(message)
         debugFrameTime = GetTime()
 end
 
-local function UpdateMemoryUsage()
-	if not Debug then return end
+local updateDebugStatsTime = 0
+local function UpdateDebugStats()
+	if not Debug or GetTime() - updateDebugStatsTime < 1 then return end
+    updateDebugStatsTime = GetTime()
 	UpdateAddOnMemoryUsage()
     UpdateAddOnCPUUsage()
     local mem  = GetAddOnMemoryUsage("rhlib2")
     local fps = GetFramerate();
     debug(format('MEM: %.1fKB, LAG: %ims, FPS: %i', mem, LagTime * 1000, fps))
 end
-AttachUpdate(UpdateMemoryUsage) 
+AttachUpdate(UpdateDebugStats) 

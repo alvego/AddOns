@@ -539,11 +539,7 @@ function MDDRotation()
     if HasTotem(1) and DoSpell("Кольцо огня") then return end
     
     if DoSpell("Вскипание лавы", "target") then return end
-    if  UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") and CanMagicAttack("target") then
-        if HasBuff(StealShieldsRedList, 2, "target") and TrySteal("target") then return end
-        if HasBuff(StealRedList, 2, "target") and TrySteal("target") then return end
-        if UnitHealth100("target") < 100 and HasBuff(StealHotRedList, 2, "target") and TrySteal("target") then return end
-    end
+    if UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") and CanMagicAttack("target") and TrySteal("target") then return end
 end
 
 function RDDRotation()
