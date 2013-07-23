@@ -60,7 +60,7 @@ end
 notifyFrame = CreateFrame('Frame')
 notifyFrame:ClearAllPoints()
 notifyFrame:SetHeight(300)
-notifyFrame:SetWidth(300)
+notifyFrame:SetWidth(800)
 notifyFrame:SetScript('OnUpdate', notifyFrame_OnUpdate)
 notifyFrame:Hide()
 notifyFrame.text = notifyFrame:CreateFontString(nil, 'BACKGROUND', 'PVPInfoTextFont')

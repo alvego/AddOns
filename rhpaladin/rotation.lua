@@ -151,9 +151,9 @@ function Retribution()
     if IsEquippedItem("Обломок треснувших ворот Цитадели") and DoSpell("Щит праведности", target) then return end
     if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    
     if UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
-    if (IsPvP() or (UnitThreat("player") == 3 and UnitHealth100("player") < 95)) and (GetTime() - holyShieldTime > 10) then
+    if IsSpellNotUsed("Священный щит", 3) and (IsPvP() or (UnitThreat("player") == 3 and UnitHealth100("player") < 95)) and (GetTime() - holyShieldTime > 10) then
         local hasShield = false
-        for _,u in pairs(UNITS) do
+        for _,u in pairs(IUNITS) do
             if HasMyBuff("Священный щит", 0.1, u) then 
                 hasShield = true
                 break
@@ -162,7 +162,7 @@ function Retribution()
        if not hasShield and DoSpell("Священный щит","player") then holyShieldTime = GetTime() return end 
     end
        
-    if not IsFinishHim(target) and UnitMana100("player") > 40 and IsReadySpell("Очищение") then
+    if IsSpellNotUsed("Очищение", 3) and  not IsFinishHim(target) and UnitMana100("player") > 40 and IsReadySpell("Очищение") then
         for _,u in pairs(IUNITS) do
             if TryDispel(u) then return end
         end
@@ -200,16 +200,18 @@ function TryHealing()
         if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
     end
     if InCombatLockdown() or IsArena() then
-        local unitWithShield
-        for i=1,#UNITS do 
-            if HasMyBuff("Священный щит",1,UNITS[i]) then unitWithShield = UNITS[i] end 
-        end 
         local members, membersHP = GetHealingMembers(IUNITS)
         local u = members[1]
         local h = membersHP[u]
-        if ((not unitWithShield and h < 80) or (not HasBuff("Священный щит",1,u) and h < 40 and (GetTime() - holyShieldTime > 3))) and DoSpell("Священный щит",u) then
-            holyShieldTime = GetTime() 
-            return 
+        if IsSpellNotUsed("Священный щит", 3) then
+            local unitWithShield
+            for i=1,#IUNITS do 
+                if HasMyBuff("Священный щит",1,IUNITS[i]) then unitWithShield = IUNITS[i] end 
+            end 
+            if ((not unitWithShield and h < 80) or (not HasBuff("Священный щит",1,u) and h < 40 and (GetTime() - holyShieldTime > 3))) and DoSpell("Священный щит",u) then
+                holyShieldTime = GetTime() 
+                return 
+            end
         end
         if h < 20 and DoSpell("Возложение рук",u) then return end
         if h < 100 and HasBuff("Искусство войны") and (not IsFinishHim("target") and not IsReadySpell("Экзорцизм") or h < 70 ) and DoSpell("Вспышка Света",u) then return end

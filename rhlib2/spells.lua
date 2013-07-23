@@ -84,7 +84,7 @@ GCDSpellID = GCDSpells[GetClass()]
 
 function InGCD()
     local start = GetSpellCooldown(GCDSpellID);
-    return (start and (start>0));
+    return (start and (start>lagTime));
 end
 ------------------------------------------------------------------------------------------------------------------
 -- Interact range - 40 yards
@@ -125,17 +125,13 @@ function SpellCastTime(spell)
 end
 
 ------------------------------------------------------------------------------------------------------------------
---~ local GCDSpellList = {}
 function IsReadySpell(name)
     local usable, nomana = IsUsableSpell(name)
     if not usable then return false end
     local left = GetSpellCooldownLeft(name)
     local spellName, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(name)
-   
-    if left > 0 then return false end
-    
+    if left > lagTime then return false end
     if cost and cost > 0 and not(UnitPower("player", powerType) >= cost) then return false end
-    
     return true
 end
 
@@ -321,7 +317,7 @@ function UseSpell(spellName, target)
         return false
     end  
     -- Проверяем что все готово
-    if IsReadySpell(spellName) then
+    if IsReadySpell(spellName, not InGCD()) then
         -- собираем команду
         local cast = "/cast "
         -- с учетом цели
@@ -340,6 +336,9 @@ function UseSpell(spellName, target)
         end
         -- пробуем скастовать
         if dump then print("Жмем", cast .. "!" .. spellName) end
+        -- Типа неистово прожимаем (экспериментально)
+        RunMacroText(cast .. "!" .. spellName)
+        RunMacroText(cast .. "!" .. spellName)
         RunMacroText(cast .. "!" .. spellName)
         -- если нужно выбрать область - кидаем на текущий mouseover
         if SpellIsTargeting() then CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() end 

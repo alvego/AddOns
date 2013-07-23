@@ -1,6 +1,7 @@
 ﻿-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
 function IsReadySlot(slot)
+    if not HasAction(slot) then return false end 
     local itemID = GetInventoryItemID("player",slot)
     if not itemID or (IsItemInRange(itemID, "target") == 0) then return false end
     if not IsReadyItem(itemID) then return false end

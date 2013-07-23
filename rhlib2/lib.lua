@@ -56,7 +56,7 @@ local function OnUpdate(frame, elapsed)
         LastUpdate = 100
         return
     end 
-    if LastUpdate < (InCombatLockdown() and 0.15 or 1) then return end -- для снижения нагрузки на проц
+    if not IsAttack() and LastUpdate < (InCombatLockdown() and 0.5 or 1) then return end -- для снижения нагрузки на проц
     LastUpdate = 0
     for _,upd in pairs(UpdateList) do
 		if upd.func(elapsed) then return end
