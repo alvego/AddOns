@@ -133,14 +133,14 @@ function Retribution()
     if UnitMana100("player") < 20 and not HasBuff("Печать мудрости") and DoSpell("Печать мудрости") then return end
     if UnitMana100("player") > 70 then RunMacroText("/cancelaura Печать мудрости") end
     if IsPvP() and IsReadySpell("Изгнание зла") then
-        for i = 1, #TARGETS) do
+        for i = 1, #TARGETS do
             local t = TARGETS[i]
             if CanAttack(t) and (UnitCreatureType(t) == "Нежить" or UnitCreatureType(t) == "Демон") 
                 and not HasDebuff("Изгнание зла", 0.1, t) and DoSpell("Изгнание зла",t) then return end
         end
     end
     if IsReadySpell("Длань возмездия") then
-        for i = 1, #TARGETS) do
+        for i = 1, #TARGETS do
             local t = TARGETS[i]
             if CanAttack(t) and tContains(totems, UnitName(t)) and DoSpell("Длань возмездия",t) then return end
         end
