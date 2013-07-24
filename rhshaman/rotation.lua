@@ -203,7 +203,7 @@ local stealTargets = {}
 local function compareStealTargets(t1, t2) return UnitHealth100(t1) < UnitHealth100(t2) end
 local rootDebuffs = {"Оковы земли", "Ледяной шок"}
 function HealRotation()
-    local members, membersHP = GetHealingMembers()
+    local members, membersHP = GetHealingMembers(UNITS)
     local myHP, myLost = CalculateHP("player"), UnitLostHP("player")
     local u = members[1]
     local h = membersHP[u]
@@ -617,64 +617,77 @@ end
 
 function TryTarget(useFocus)
     if useFocus == nil then useFocus = true end
-    if not IsValidTarget("target") then
-        local found = false
-        local members = GetGroupUnits()
-        for i = 1, #members do
-            local target = members[i] .. "-target"
-            if not found and IsValidTarget(target) and UnitCanAttack("player", target) and ActualDistance(target) and (not IsPvP() or UnitIsPlayer(target))  then 
-                found = true 
-                RunMacroText("/startattack " .. target) 
-            end
-        end
-
-        if not ActualDistance("target") or not UnitCanAttack("player", "target") or (IsPvP() and not UnitIsPlayer("target")) then
-            RunMacroText("/cleartarget")
-        end
-
-    end
-
-    if  not IsValidTarget("target") then
-        if GetNextTarget() ~= nil then
-            RunMacroText("/startattack "..GetNextTarget())
-            if not ActualDistance("target") or not NextIsTarget() or not UnitCanAttack("player", "target") or (IsPvP() and not UnitIsPlayer("target")) then
-                RunMacroText("/cleartarget")
-            end
-            ClearNextTarget()
-        end
-    end
-
-    if not IsValidTarget("target") then
-        if IsPvP() then
-            RunMacroText("/targetenemyplayer [nodead]")
-        else
-            RunMacroText("/targetenemy [nodead]")
-        end
-        if not IsAttack() and not ActualDistance("target") or not UnitCanAttack("player", "target") or (IsPvP() and not UnitIsPlayer("target")) then
-            RunMacroText("/cleartarget")
-        end
-    end
-
-    if not IsValidTarget("target") or (IsAttack() and  not UnitCanAttack("player", "target")) then
-        RunMacroText("/cleartarget")
-    end
-   
     if not IsArena() then
+        -- помощь в группе
+        if not IsValidTarget("target") and InGroup() then
+            -- если что-то не то есть в цели
+            if UnitExists("target") then RunMacroText("/cleartarget") end
+            for i = 1, #TARGET do
+                local t = TARGET[i]
+                if UnitAffectingCombat(t) and ActualDistance(t) and (not IsPvP() or UnitIsPlayer(t))  then 
+                    RunMacroText("/startattack " .. target) 
+                    break
+                end
+            end
+        end
+        -- нас кто-то бьет
+        if not IsValidTarget("target") then
+            -- если что-то не то есть в цели
+            if UnitExists("target") then RunMacroText("/cleartarget") end
+
+            if GetNextTarget() ~= nil then
+                -- возможно выбрали хрен знает кого, хрен знает где
+                RunMacroText("/startattack "..GetNextTarget())
+
+                if not ActualDistance("target") -- далековато
+                    or not NextIsTarget()  -- не та цель, что надеялись
+                    or not IsValidTarget("target") -- вообще не цель
+                    or (IsPvP() and not UnitIsPlayer("target")) then -- не игрок в пвп
+                    if UnitExists("target") then RunMacroText("/cleartarget") end
+                end
+                ClearNextTarget()
+            end
+        end
+
+        -- пытаемся выбрать ну хоть что нибудь
+        if not IsValidTarget("target") then
+            -- если что-то не то есть в цели
+            if UnitExists("target") then RunMacroText("/cleartarget") end
+
+            if IsPvP() then
+                RunMacroText("/targetenemyplayer [nodead]")
+            else
+                RunMacroText("/targetenemy [nodead]")
+            end
+            if not IsAttack() and -- если в авторежиме
+                not ActualDistance("target")  -- далековато
+                or not IsValidTarget("target")  -- вообще не цель
+                or (IsPvP() and not UnitIsPlayer("target")) then -- не игрок в пвп
+                if UnitExists("target") then RunMacroText("/cleartarget") end
+            end
+        end
+  
+    
         if useFocus and not IsValidTarget("focus") then
-            local found = false
+            if UnitExists("focus") then RunMacroText("/clearfocus") end
             for i = 1, #TARGETS do
-                local target = TARGETS[i]
-                if not found and IsValidTarget(target) and UnitCanAttack("player", target) and ActualDistance(target) and not IsOneUnit("target", target) then 
-                    found = true 
-                    RunMacroText("/focus " .. target) 
+                local t = TARGETS[i]
+                if UnitAffectingCombat(t) and IsValidTarget(t) and ActualDistance(t) and not IsOneUnit("target", t) then 
+                    RunMacroText("/focus " .. t) 
+                    break
                 end
             end
         end
 
         if useFocus and not IsValidTarget("focus") or IsOneUnit("target", "focus") or not ActualDistance("focus") then
-            RunMacroText("/clearfocus")
+            if UnitExists("focus") then RunMacroText("/clearfocus") end
         end
     else
+        if not IsValidTarget("target") and (IsAttack() or InCombatLockdown()) then 
+            if UnitExists("target") then RunMacroText("/cleartarget") end
+            RunMacroText("/targetenemyplayer [nodead]")
+            RunMacroText("/startattack")  
+        end
         if IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
             if IsOneUnit("target","arena1") then RunMacroText("/focus arena2") end
             if IsOneUnit("target","arena2") then RunMacroText("/focus arena1") end
@@ -691,7 +704,7 @@ function TryProtect()
             if UnitMana100("player") < 10 and UseItem("Рунический флакон с зельем маны") then return true end
             if UnitMana100("player") < 30 and UseItem("Бездонный флакон с зельем маны") then return true end
         end
-        local members, membersHP = GetHealingMembers(IUNITS)
+        local members, membersHP = GetHealingMembers(IsArena() and IUNITS or nil)
         local u = members[1] 
         local h = membersHP[u]
         if CanInterrupt and h > 60 and UnitMana100("player") > 30 and IsReadySpell("Очищение духа") then

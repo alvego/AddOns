@@ -15,7 +15,11 @@ function GetHealingMembers(units)
     end
     wipe(members)
     wipe(membersHP)
-    if units == nil then units = UNITS end
+    if units == nil then 
+        tinsert(members, "player")
+        membersHP[u] = CalculateHP("player")
+        return members, membersHP
+    end
     for i = 1, #units do
         local u = units[i]
         if CanHeal(u) then 
@@ -214,7 +218,6 @@ function IsInteractUnit(t)
     if IsIgnored(t) then return false end
     if IsValidTarget(t) then return false end
     if UnitIsDeadOrGhost(t) then return false end
-    if UnitIsCharmed(t) then return false end
     if UnitIsCharmed(t) then return false end
     return not UnitIsEnemy("player",t)
 end

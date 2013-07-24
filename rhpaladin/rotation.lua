@@ -211,7 +211,7 @@ function TryHealing()
         if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
     end
     if InCombatLockdown() or IsArena() then
-        local members, membersHP = GetHealingMembers(IUNITS)
+        local members, membersHP = GetHealingMembers(IsArena() and IUNITS or nil)
         local u = members[1]
         local h = membersHP[u]
         if IsSpellNotUsed("Священный щит", 3) then
@@ -237,70 +237,88 @@ function ActualDistance(target)
 end
 
 function TryTarget()
-    if not IsValidTarget("target") then
-        local found = false
-        local members = GetGroupUnits()
-        for i = 1, #members do
-            local target = members[i] .. "-target"
-            if not found and IsValidTarget(target) and UnitCanAttack("player", target) and ActualDistance(target) and (not IsPvP() or UnitIsPlayer(target))  then 
-                found = true 
-                RunMacroText("/startattack " .. target) 
-            end
-        end
-
-        if not ActualDistance("target") or not UnitCanAttack("player", "target") or (IsPvP() and not UnitIsPlayer("target")) then
-            RunMacroText("/cleartarget")
-        end
-
-    end
-
-    if  not IsValidTarget("target") then
-        if GetNextTarget() ~= nil then
-            RunMacroText("/startattack "..GetNextTarget())
-            if not ActualDistance("target") or not NextIsTarget() or not UnitCanAttack("player", "target") or (IsPvP() and not UnitIsPlayer("target")) then
-                RunMacroText("/cleartarget")
-            end
-            ClearNextTarget()
-        end
-    end
-
-    if not IsValidTarget("target") then
-        if IsPvP() then
-            RunMacroText("/targetenemyplayer [nodead]")
-        else
-            RunMacroText("/targetenemy [nodead]")
-        end
-        if not IsAttack() and not ActualDistance("target") or not UnitCanAttack("player", "target") or (IsPvP() and not UnitIsPlayer("target")) then
-            RunMacroText("/cleartarget")
-        end
-    end
-
-    if UnitExists("target") and not IsValidTarget("target") or (IsAttack() and  not UnitCanAttack("player", "target")) then
-        RunMacroText("/cleartarget")
-    end
-    
-    if UnitExists("focus") and not IsValidTarget("focus") then
-        RunMacroText("/clearfocus")
-    end
-    if not UnitExists("focus") then
-        for i = 1, #TARGETS do
-            local t = TARGETS[i]
-            if IsValidTarget(t) and not IsOneUnit("focus",t) then
-                local creatureType = UnitCreatureType(t)
-                if (creatureType == "Нежить" or creatureType == "Демон")  then
-                    RunMacroText("/focus " .. t)
-                    return
+    if not IsArena() then
+        -- помощь в группе
+        if not IsValidTarget("target") and InGroup() then
+            -- если что-то не то есть в цели
+            if UnitExists("target") then RunMacroText("/cleartarget") end
+            for i = 1, #TARGET do
+                local t = TARGET[i]
+                if UnitAffectingCombat(t) and ActualDistance(t) and (not IsPvP() or UnitIsPlayer(t))  then 
+                    RunMacroText("/startattack " .. target) 
+                    break
                 end
             end
         end
+        -- нас кто-то бьет
+        if not IsValidTarget("target") then
+            -- если что-то не то есть в цели
+            if UnitExists("target") then RunMacroText("/cleartarget") end
+
+            if GetNextTarget() ~= nil then
+                -- возможно выбрали хрен знает кого, хрен знает где
+                RunMacroText("/startattack "..GetNextTarget())
+
+                if not ActualDistance("target") -- далековато
+                    or not NextIsTarget()  -- не та цель, что надеялись
+                    or not IsValidTarget("target") -- вообще не цель
+                    or (IsPvP() and not UnitIsPlayer("target")) then -- не игрок в пвп
+                    if UnitExists("target") then RunMacroText("/cleartarget") end
+                end
+                ClearNextTarget()
+            end
+        end
+
+        -- пытаемся выбрать ну хоть что нибудь
+        if not IsValidTarget("target") then
+            -- если что-то не то есть в цели
+            if UnitExists("target") then RunMacroText("/cleartarget") end
+
+            if IsPvP() then
+                RunMacroText("/targetenemyplayer [nodead]")
+            else
+                RunMacroText("/targetenemy [nodead]")
+            end
+            if not IsAttack() and -- если в авторежиме
+                not ActualDistance("target")  -- далековато
+                or not IsValidTarget("target")  -- вообще не цель
+                or (IsPvP() and not UnitIsPlayer("target")) then -- не игрок в пвп
+                if UnitExists("target") then RunMacroText("/cleartarget") end
+            end
+        end
+  
+        if IsPvP() and not IsValidTarget("focus") then
+            if UnitExists("focus") then RunMacroText("/clearfocus") end
+            for i = 1, #TARGETS do
+                local t = TARGETS[i]
+               if IsValidTarget(t) and not IsOneUnit("focus",t) then
+                    local creatureType = UnitCreatureType(t)
+                    if (creatureType == "Нежить" or creatureType == "Демон")  then
+                        RunMacroText("/focus " .. t)
+                        return
+                    end
+                end
+            end
+        end
+
+        if not IsValidTarget("focus") or IsOneUnit("target", "focus") or not ActualDistance("focus") then
+            if UnitExists("focus") then RunMacroText("/clearfocus") end
+        end
+
+    else
+        if not IsValidTarget("target") and (IsAttack() or InCombatLockdown()) then 
+            if UnitExists("target") then RunMacroText("/cleartarget") end
+            RunMacroText("/targetenemyplayer [nodead]")
+            RunMacroText("/startattack")  
+        end
+
+        if IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
+            if IsOneUnit("target","arena1") then RunMacroText("/focus arena2") end
+            if IsOneUnit("target","arena2") then RunMacroText("/focus arena1") end
+        end
     end
-    if IsArena() and IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
-        if IsOneUnit("target","arena1") then RunMacroText("/focus arena2") end
-        if IsOneUnit("target","arena2") then RunMacroText("/focus arena1") end
-    end
-    
-    if IsAttack() or InCombatLockdown() then RunMacroText("/startattack")  end
 end
+
 
 ------------------------------------------------------------------------------------------------------------------
 local tryShieldTime = 0

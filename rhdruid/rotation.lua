@@ -32,7 +32,7 @@ function HealRotation()
         end
     end
 
-    local members = GetHealingMembers()
+    local members = GetHealingMembers(UNITS)
 	local myHP, myLost = CalculateHP("player"), UnitLostHP("player")
 	local u = members[1]
 	local l = UnitLostHP(u)

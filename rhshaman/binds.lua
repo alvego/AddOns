@@ -335,7 +335,7 @@ function UpdateAutoFreedom(event, ...)
     if sourceGUID == UnitGUID("player") and (type:match("^SPELL_CAST") and spellId and spellName)
         and err and err:match("Действие невозможно")  
         and HasDebuff(ControlList, 3.8, "player") then
-            local members, membersHP = GetHealingMembers(UNITS)
+            local members, membersHP = GetHealingMembers(IsArena() and IUNITS or nil)
             if membersHP[members[1]] < 50 then  DoCommand("freedom") end
     end
 end

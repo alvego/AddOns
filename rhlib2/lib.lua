@@ -57,13 +57,13 @@ local function OnUpdate(frame, elapsed)
                 LastUpdate = 100
                 return
             end
-            UpdateInterval = 0.25
+            UpdateInterval = 0.3
         else
             --no gcd
             UpdateInterval = 0
         end 
     else
-        UpdateInterval = 0.5
+        UpdateInterval = 0.7
     end
     if IsAttack() and (Paused or not UnitExists("target") or UnitIsDeadOrGhost("target"))  then 
         UpdateInterval = 0 
