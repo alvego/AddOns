@@ -104,35 +104,36 @@ function Idle()
 	end
     --------------------------------------------------------------------------------------------------------------
     -- Рес по средней мышке + контрол
-    if IsLeftControlKeyDown() and IsMouseButtonDown(4) then
-        if CanRes("mouseover") then
-            TryResUnit = "mouseover"
-            local groupUnits = GetGroupUnits()
-            for i = 1, #groupUnits do
-                local u = groupUnits[i]
-                if IsOneUnit(u, TryResUnit) then 
-                    TryResUnit = u 
-                    break
+    if not IsPvP() then
+        if IsLeftControlKeyDown() and IsMouseButtonDown(4) then
+            if CanRes("mouseover") then
+                TryResUnit = "mouseover"
+                local groupUnits = GetGroupUnits()
+                for i = 1, #groupUnits do
+                    local u = groupUnits[i]
+                    if IsOneUnit(u, TryResUnit) then 
+                        TryResUnit = u 
+                        break
+                    end
                 end
+                TryResTime = GetTime()
+                Notify("Пробуем воскресить " ..UnitName(TryResUnit) .. "("..TryResUnit..")")
+            else
+                local name = UnitName("mouseover")
+                if name and UnitIsPlayer("mouseover") then print("Не могу реснуть", name) end
             end
-            TryResTime = GetTime()
-            Notify("Пробуем воскресить " ..UnitName(TryResUnit) .. "("..TryResUnit..")")
-        else
-            local name = UnitName("mouseover")
-            if name and UnitIsPlayer("mouseover") then print("Не могу реснуть", name) end
         end
+        --------------------------------------------------------------------------------------------------------------
+        -- не судьба реснуть...
+        if TryResUnit and (not CanRes(TryResUnit) or (CanRes(TryResUnit) and (GetTime() - TryResTime) > 60) or not PlayerInPlace())  then
+            if UnitName(TryResUnit) and not CanHeal(TryResUnit) then Notify("Не удалось воскресить " .. UnitName(TryResUnit)) end
+            TryResUnit = nil
+            TryResTime = 0
+        end
+        --------------------------------------------------------------------------------------------------------------
+        -- пробуем реснуть
+        if TryResUnit and CanRes(TryResUnit) and TryRes(TryResUnit) then return end
     end
-    --------------------------------------------------------------------------------------------------------------
-    -- не судьба реснуть...
-    if TryResUnit and (not CanRes(TryResUnit) or (CanRes(TryResUnit) and (GetTime() - TryResTime) > 60) or not PlayerInPlace())  then
-        if UnitName(TryResUnit) and not CanHeal(TryResUnit) then Notify("Не удалось воскресить " .. UnitName(TryResUnit)) end
-        TryResUnit = nil
-        TryResTime = 0
-    end
-    --------------------------------------------------------------------------------------------------------------
-    -- пробуем реснуть
-    if TryResUnit and CanRes(TryResUnit) and TryRes(TryResUnit) then return end
-    
     --------------------------------------------------------------------------------------------------------------
     -- Хил ротация
     if IsHeal() then 
@@ -624,7 +625,7 @@ function TryTarget(useFocus)
             if UnitExists("target") then RunMacroText("/cleartarget") end
             for i = 1, #TARGET do
                 local t = TARGET[i]
-                if UnitAffectingCombat(t) and ActualDistance(t) and (not IsPvP() or UnitIsPlayer(t))  then 
+                if t and UnitAffectingCombat(t) and ActualDistance(t) and (not IsPvP() or UnitIsPlayer(t))  then 
                     RunMacroText("/startattack " .. target) 
                     break
                 end

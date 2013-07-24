@@ -17,7 +17,7 @@ function GetHealingMembers(units)
     wipe(membersHP)
     if units == nil then 
         tinsert(members, "player")
-        membersHP[u] = CalculateHP("player")
+        membersHP["player"] = CalculateHP("player")
         return members, membersHP
     end
     for i = 1, #units do
