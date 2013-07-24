@@ -8,36 +8,32 @@ local function HasAura(aura, last, target, method, my)
     if target == nil then target = "player" end
     if last == nil then last = 0.1 end
     local result = false
-    if (type(target) == 'table') then 
-		for _,t in pairs(target) do 
-			result = HasAura(aura, last, t, method, my)
+    if type(target) == 'table' and #target > 0 then 
+        for i = 1, #target do 
+			result = HasAura(aura, last, target[i], method, my)
 			if result then break end
 		end
 		return result
     end
     
     if not UnitExists(target) then return false end
-    if (type(aura) == 'table') then
-		for _,a in pairs(aura) do 
-			result = HasAura(a, last, target, method, my)
+    if (type(aura) == 'table' and #aura > 0) then
+		for i = 1, #aura do 
+			result = HasAura(aura[i], last, target, method, my)
 			if result then break end
 		end
 		return result
     end
-    
-    local i = 0
-    local name, _, _, _, debuffType, _, Expires, unitCaster  = method(target, i)
-    while (i <= 40) and not result do
-        if ((name and sContains(name, aura)) or (debuffType and sContains(debuffType, aura)))
+    for i = 1, 40 do
+        local name, _, _, _, debuffType, _, Expires, unitCaster  = method(target, i)
+        if not name then break end
+        if (sContains(name, aura) or (debuffType and sContains(debuffType, aura)))
             and (Expires - GetTime() >= last or Expires == 0) 
             and (not my or unitCaster == "player") then
             result = true
-        end
-        i = i + 1
-        if not result then
-            name, _, _, _, debuffType, _, Expires, unitCaster  = method(target, i)
-        end
-    end
+            break
+        end 
+    end 
     return result
 end
 
@@ -97,23 +93,22 @@ end
 function GetMyDebuffTime(debuff, target)
     if debuff == nil then return false end
     if target == nil then target = "target" end
-    local i = 1
-    local name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId  = UnitDebuff(target, i)
-    local result = false
-        while (i <= 40) and not result do
-        if name and strlower(name):match(strlower(debuff)) and (unitCaster == "player")then 
-            result = true
-        end
-        i = i + 1
-        if not result then
-            name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId  = UnitDebuff(target, i)
+    local result = 0
+    for i = 1, 40 do
+        local name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId  = UnitDebuff(target, i)
+        if not name then break end
+        if name and sContains(name, debuff) and (unitCaster == "player")then 
+            if expirationTime == 0 then 
+                -- постоянный
+                result = 10 
+                break
+            end
+            result =  expirationTime - GetTime()
+            if result < 0 then result = 0 end
+            break
         end
     end
-    if not result then return 0 end
-    if expirationTime == 0 then return 10 end
-    local left =  expirationTime - GetTime()
-    if left < 0 then left = 0 end
-    return left
+    return result
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -144,18 +139,16 @@ function GetTemporaryEnchant(slot)
     local n,h = enchantTooltip:GetItem()
 
     local nLines = enchantTooltip:NumLines()
-    local i= 1
-    while ( i <= nLines ) do
+
+    for i = 1, nLines do
         local txt = enchantTooltip.left[i]
-        
         if ( txt:GetTextColor() == 0 ) then
-            local line = enchantTooltip.left[i]:GetText()  
+            local line = txt:GetText()  
             local paren = line:find("[(]")
             if ( paren ) then
                 line = line:sub(1,paren-2)
                 return line
             end
         end
-        i = i + 1    
     end
 end

@@ -55,7 +55,8 @@ end
 local function compareUnits(u1,u2) return getUnitWeight(u1) < getUnitWeight(w2) end
 local function getTargetWeight(t)
     local w = 0
-    for _,u in pairs(UNITS) do
+    for i = 1, #UNITS do
+        local u = UNITS[i]
         if IsOneUnit(u .. "-target", t) then w = max(w, IsFriend(u) and 2 or 1) end
     end
     if IsOneUnit("focus", t) then w = 3 end
@@ -88,8 +89,9 @@ local function UpdateIdle()
         TARGETS = GetTargets()
         table.sort(TARGETS, compareTargets)
         wipe(IUNITS)
-        for _,u in pairs(UNITS) do
-    		if IsArena() or IsFriend(u) then 
+        for i = 0, #UNITS do
+            local u = UNITS[i]
+        	if IsArena() or IsFriend(u) then 
     			tinsert(IUNITS, u)
     		end
     	end
@@ -106,12 +108,13 @@ local raidIconsByClass = {WARRIOR=8,DEATHKNIGHT=7,PALADIN=3,PRIEST=5,SHAMAN=6,DR
 local function UpdateArenaRaidIcons(event, ...)
     if IsArena() then
         local members = GetGroupUnits()
-        table.foreach(members, function(_, u) 
+        for i=1, #members do
+            local u = members[i]
             if UnitExists(u) and not GetRaidTargetIndex(u) and (not unitCD[u] or GetTime() - unitCD[u] > 5) then 
                 SetRaidTarget(u,raidIconsByClass[select(2,UnitClass(u))]) 
                 unitCD[u] = GetTime()
             end
-        end)
+        end
 	end
 end
 AttachEvent("GROUP_ROSTER_UPDATE", UpdateArenaRaidIcons)

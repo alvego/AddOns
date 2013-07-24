@@ -85,7 +85,8 @@ function Idle()
     if not CanControl("target") then RunMacroText("/stopattack") end
     -- геру под крылья на арене
 	if IsArena() then
-		for _, u in pairs(IUNITS) do
+		for i = 1, #IUNITS do
+            local u = IUNITS[i]
 			if HasBuff("Гнев карателя", 10, u) then
 				DoCommand("hero") 
 				return
@@ -97,7 +98,8 @@ function Idle()
 		end
 	end
     -- Зачем вару отражение???
-	for _,t in pairs(TARGETS) do
+	for i = 1, #TARGETS do
+        local t = TARGETS[i]
 		if CanAttack(t) and UnitAffectingCombat(t) and HasBuff(reflectBuff, 1, t) and DoSpell("Пронизывающий ветер", t) then return end
 	end
     --------------------------------------------------------------------------------------------------------------
@@ -105,7 +107,9 @@ function Idle()
     if IsLeftControlKeyDown() and IsMouseButtonDown(4) then
         if CanRes("mouseover") then
             TryResUnit = "mouseover"
-            for _,u in pairs(GetGroupUnits()) do
+            local groupUnits = GetGroupUnits()
+            for i = 1, #groupUnits do
+                local u = groupUnits[i]
                 if IsOneUnit(u, TryResUnit) then 
                     TryResUnit = u 
                     break
@@ -142,8 +146,8 @@ function Idle()
     -- Выбор цели
     if IsAttack() or InCombatLockdown() then TryTarget() end
     -- сбиваем касты
-    for _,t in pairs(TARGETS) do
-        TryInterrupt(t)
+    for i = 1, #TARGETS do
+        TryInterrupt(TARGETS[i])
     end
     -- тотемчики может поставить?
     if TryTotems() then return end
@@ -211,7 +215,8 @@ function HealRotation()
         
         -- TODO: протестировать. Есть ли необходимость все время шокать. Возможно лучше замедлять ледяным шоком
     	if IsPvP() and InCombatLockdown() then 
-    		for _,t in pairs(TARGETS) do
+    		for i = 1, #TARGETS do
+                local t = TARGETS[i]
     			if CanAttack(t) and UnitHealth100(t) < 4 and not HasMyDebuff("шок", 1, t) and DoSpell("Огненный шок", t) then return end
     		end
     	end
@@ -320,8 +325,8 @@ function HealRotation()
         
    end 
 
-    for _,t in pairs(TARGETS) do
-        if TryInterrupt(t, h) then return end
+    for i = 1, #TARGETS do
+        if TryInterrupt(TARGETS[i], h) then return end
     end
     -- тотемчики может поставить?
     if TryTotems(nil, h) then return end
@@ -329,7 +334,8 @@ function HealRotation()
     if  h > 50 then
         
         if CanInterrupt and UnitMana100("player") > 30 and IsReadySpell("Очищение духа") then
-            for _,u in pairs(IUNITS) do
+            for i = 1, #IUNITS do
+                local u = IUNITS[i]
                 if HasDebuff(DispelRedList, 2, u) and TryDispel(u) then return end
             end
         end
@@ -337,7 +343,8 @@ function HealRotation()
         if UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") then
             -- получаем приоритетные цели (например цель дд в тиме, сортируем их по хп)
             wipe(stealTargets)
-            for _,u in pairs(IUNITS) do
+            for i = 1, #IUNITS do
+                local u = IUNITS[i]
                 local t = u .. "-target"
                 if (IsArena() or IsFriend(u)) and IsValidTarget(t) and CanMagicAttack(t) then
                     tinsert(stealTargets, t)
@@ -345,19 +352,23 @@ function HealRotation()
             end
             table.sort(stealTargets, compareStealTargets)            
             -- снимем щиты с целей дд
-            for _,t in pairs(stealTargets) do
+            for i = 1, #stealTargets do
+                local t = stealTargets[i]
                 if HasBuff(StealShieldsRedList, 2, t) and TrySteal(t) then return  end
             end
             -- снимаем хоты, с целей дд, если есть смысл (не фул хп)
-            for _,t in pairs(stealTargets) do
+            for i = 1, #stealTargets do
+                local t = stealTargets[i]
                 if  UnitHealth100(t) < 95 and HasBuff(StealHotRedList, 2, t) and TrySteal(t) then return  end
             end
             -- обрабатываем по стандартной схеме всех (снимаем бурст бафы)
-            for _,t in pairs(ITARGETS) do
+            for i = 1, #ITARGETS do
+                local t = ITARGETS[i]
                 if  UnitHealth100(t) < 100 and HasBuff(StealRedList, 2, t) and TrySteal(t) then return  end
             end
             -- зачем противнику хоты? (если фул хп то в хотах нет осбого смысла)
-            for _,t in pairs(ITARGETS) do
+            for i = 1, #ITARGETS do
+                local t = ITARGETS[i]
                 if  UnitHealth100(t) < 95 and HasBuff(StealHotRedList, 2, t) and TrySteal(t) then return  end
             end
         end
@@ -453,19 +464,20 @@ function HealRotation()
     
     if (h > 60 and UnitMana100("player") > 50) then
         if CanInterrupt and IsSpellNotUsed("Очищение духа", 5)  then
-            for _,u in pairs(IUNITS) do
-                if TryDispel(u) then return  end
+            for i = 1, #IUNITS do
+                if TryDispel(IUNITS[i]) then return  end
             end
         end
         if IsSpellNotUsed("Развеивание магии", 5)  then
-            for _,t in pairs(ITARGETS) do
-                if TrySteal(t) then return  end
+            for i = 1, #ITARGETS do
+                if TrySteal(ITARGETS[i]) then return  end
             end
         end
     end
 
     if not IsAttack() and h > 50 and IsPvP() then
-        for _,t in pairs(ITARGETS) do
+        for i = 1, #ITARGETS do
+            local t = ITARGETS[i]
             if CanControl(t) and UnitIsPlayer(t) and not HasDebuff(rootDebuffs, 0,1, t) and DoSpell("Ледяной шок", t) then return  end
         end
     end
@@ -608,8 +620,8 @@ function TryTarget(useFocus)
     if not IsValidTarget("target") then
         local found = false
         local members = GetGroupUnits()
-        for _,member in pairs(members) do 
-            target = member .. "-target"
+        for i = 1, #members do
+            local target = members[i] .. "-target"
             if not found and IsValidTarget(target) and UnitCanAttack("player", target) and ActualDistance(target) and (not IsPvP() or UnitIsPlayer(target))  then 
                 found = true 
                 RunMacroText("/startattack " .. target) 
@@ -650,7 +662,8 @@ function TryTarget(useFocus)
     if not IsArena() then
         if useFocus and not IsValidTarget("focus") then
             local found = false
-            for _,target in pairs(TARGETS) do 
+            for i = 1, #TARGETS do
+                local target = TARGETS[i]
                 if not found and IsValidTarget(target) and UnitCanAttack("player", target) and ActualDistance(target) and not IsOneUnit("target", target) then 
                     found = true 
                     RunMacroText("/focus " .. target) 
@@ -682,7 +695,8 @@ function TryProtect()
         local u = members[1] 
         local h = membersHP[u]
         if CanInterrupt and h > 60 and UnitMana100("player") > 30 and IsReadySpell("Очищение духа") then
-            for _,u in pairs(IUNITS) do
+            for  i = 1, #IUNITS do
+                local u = IUNITS[i]
                 if HasDebuff(DispelRedList, 2, u) and TryDispel(u) then return end
             end
         end

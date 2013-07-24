@@ -83,8 +83,8 @@ local potions = {
 	"Бездонный флакон с лечебным зельем",
 }
 function UseHealPotion()
-    for _,p in pairs(potions) do 
-		if UseItem(p) then return true end
+    for i = 1, #potions do 
+		if UseItem(potions[i]) then return true end
 	end
     return false
 end

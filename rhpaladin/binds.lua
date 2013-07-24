@@ -38,11 +38,6 @@ function IsAOE()
         and not IsOneUnit("target", "focus") 
         and UnitAffectingCombat("focus") 
         and UnitAffectingCombat("target") then return true end
-    --[[if IsValidTarget("target") and InMelee("target") then
-        for _,t in pairs(TARGETS) do
-            if IsValidTarget(t) and InMelee(t) and not IsOneUnit("target", t) then return true end
-        end
-    end]]
     return false
 end
 

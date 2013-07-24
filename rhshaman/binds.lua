@@ -134,7 +134,8 @@ if DispelWhiteList == nil then DispelWhiteList = {} end
 local totemDispelTypes = {"Poison", "Disease"}
 function IsDispelTotemNeed(units)
     local ret = false
-    for _,unit in pairs(units) do
+    for j = 1, #units do
+        local unit = units[j]
         for i = 1, 40 do
             local name, _, _, _, debuffType, duration, expirationTime   = UnitDebuff(unit, i,true) 
             if name and (expirationTime - GetTime() >= 3 or expirationTime == 0) 

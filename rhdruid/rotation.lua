@@ -60,7 +60,8 @@ function HealRotation()
 			if l >= GetMySpellHeal("Целительное прикосновение") then DoSpell("Целительное прикосновение", u) end
 			return
 		end
-		for _,u in pairs(members) do
+		for i = 1, #members do
+			local u = members[i]
 			if GetBuffStack("Жизнецвет", u) < 3 then 
 				DoSpell("Жизнецвет", u)
 				return 
@@ -75,11 +76,10 @@ function HealRotation()
     end
     
     if IsReadySpell("Спокойствие") and InCombatLockdown() then
-		local lowhpmembers, membersCount = 0, 0     
+		local lowhpmembers, membersCount = 0, #members     
 		local heal = GetMySpellHeal("Спокойствие")  
-		for _, u in pairs(members) do 
-			membersCount = membersCount + 1
-			if UnitLostHP(u) >= heal then lowhpmembers = lowhpmembers + 1 end
+		for i = 1, #members do
+			if UnitLostHP(members[i]) >= heal then lowhpmembers = lowhpmembers + 1 end
 		end
 		if (lowhpmembers > 3 and (100 / membersCount * lowhpmembers > 35)) and (IsReadySpell("Дубовая кожа") or HasBuff("Дубовая кожа")) then
 			if tranquilityAlertTimer == 0 then
@@ -102,9 +102,12 @@ function HealRotation()
     if (HasSpell("Буйный рост") and IsReadySpell("Буйный рост")) then
 		local dUnit, dCount = nil, 0
 		local heal = GetMyHotSpellHeal("Буйный рост")
-		for _,u in pairs(members) do 
+
+		for i = 1, #members do 
+			local u = members[i]
 			local c = 0
-			for _,u2 in pairs(members) do 
+			for j = 1, #members do 
+				local u2 = members[j]
 				local d = CheckDistance(u, u2)
 				if UnitLostHP(u2) >= heal and d and d < 15 then c = c + 1 end
 			end

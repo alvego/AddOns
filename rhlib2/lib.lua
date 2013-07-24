@@ -25,8 +25,8 @@ end
 local function onEvent(self, event, ...)
     if EventList[event] ~= nil then
         local funcList = EventList[event]
-        for _,func in pairs(funcList) do 
-            func(event, ...)
+        for i = 1, #funcList do
+            funcList[i](event, ...)
         end
     end
 end
@@ -70,14 +70,15 @@ local function OnUpdate(frame, elapsed)
     end
     if LastUpdate < UpdateInterval then return end -- для снижения нагрузки на проц
     LastUpdate = 0
-    for _,upd in pairs(UpdateList) do
+    for i = 1, #UpdateList do
+        local upd = UpdateList[i]
         if UpdateInterval == 0 then
+            -- выполняем только самое важное
             if upd.weight < 0 then 
-                --print(1111, GetTime(), upd.weight, UpdateInterval) 
                 upd.func() 
             end
         else
-            --print(2222, GetTime(), upd.weight, UpdateInterval) 
+            -- выполняем все что есть
             upd.func()
         end
     end

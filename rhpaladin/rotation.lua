@@ -10,27 +10,34 @@ function Idle()
     if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or  CanExitVehicle()) then return end
     if IsMouseButtonDown(3) and TryTaunt("mouseover") then return end
 
-    for _,t in pairs(TARGETS) do
-        if UnitIsPlayer(t) and tContains(steathClass, GetClass(t)) and not InRange("Покаяние", t) and not HasDebuff("Длань возмездия", 1, t) and DoSpell("Длань возмездия", t) then return end
+    if IsReadySpell("Длань возмездия") then
+        for i = 1, #TARGETS do
+            local t = TARGETS[i]
+            if UnitIsPlayer(t) and tContains(steathClass, GetClass(t)) and not InRange("Покаяние", t) and not HasDebuff("Длань возмездия", 1, t) and DoSpell("Длань возмездия", t) then return end
+        end
     end
     
     if (IsAttack() or InCombatLockdown()) then
         if CanInterrupt then
-            for _,t in pairs(TARGETS) do
+            for i = 1, #TARGETS do
+                local t = TARGETS[i]
                 if TryInterrupt(t) then return end
             end 
         end
                 
         if AutoAGGRO and InGroup() and InCombat(1) then
-            for _,target in pairs(TARGETS) do
-                if IsValidTarget(target) and UnitAffectingCombat(target) and TryTaunt(target) then return end
+            for i = 1, #TARGETS do
+                local t = TARGETS[i]
+                if UnitAffectingCombat(t) and TryTaunt(t) then return end
             end
         end
         
         -- Священная жертва
         if InCombatLockdown() and HasSpell("Щит мстителя") and InGroup() and CalculateHP("player") > 70 then
             local lowhpmembers = 0
-            for _,target in pairs(UNITS) do if CalculateHP(target) <= 50 then lowhpmembers = lowhpmembers + 1 end end
+            for i = 1, #UNITS do 
+                if CalculateHP(UNITS[i]) <= 50 then lowhpmembers = lowhpmembers + 1 end
+            end
             if lowhpmembers > 2 and DoSpell("Священная жертва") then return end
         end
         
@@ -116,7 +123,8 @@ function Retribution()
     local target = "target"
 
     if not IsFinishHim(target) and UnitMana100("player") > 10 and IsReadySpell("Очищение") and IsSpellNotUsed("Очищение", 5) then
-        for _,u in pairs(IUNITS) do
+        for i = 1, #IUNITS do
+            local u = IUNITS[i]
             if CanHeal(u) and HasDebuff(redDispelList, 2, u) and TryDispel(u) then return end
         end
     end
@@ -124,14 +132,16 @@ function Retribution()
     if UnitHealth100("player") < 50 and UseItem("Камень здоровья из Скверны") then return end
     if UnitMana100("player") < 20 and not HasBuff("Печать мудрости") and DoSpell("Печать мудрости") then return end
     if UnitMana100("player") > 70 then RunMacroText("/cancelaura Печать мудрости") end
-    if IsPvP() then
-        for _,t in pairs(TARGETS) do
+    if IsPvP() and IsReadySpell("Изгнание зла") then
+        for i = 1, #TARGETS) do
+            local t = TARGETS[i]
             if CanAttack(t) and (UnitCreatureType(t) == "Нежить" or UnitCreatureType(t) == "Демон") 
                 and not HasDebuff("Изгнание зла", 0.1, t) and DoSpell("Изгнание зла",t) then return end
         end
     end
     if IsReadySpell("Длань возмездия") then
-        for _,t in pairs(TARGETS) do
+        for i = 1, #TARGETS) do
+            local t = TARGETS[i]
             if CanAttack(t) and tContains(totems, UnitName(t)) and DoSpell("Длань возмездия",t) then return end
         end
     end
@@ -141,7 +151,7 @@ function Retribution()
     if IsShiftKeyDown() == 1 and DoSpell("Освящение") then return end
     if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
     if CanMagicAttack(target) then
-        if UseSlot(10)then return end
+        if UseSlot(10) then return end
         if HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end   
         if DoSpell(IsAltKeyDown() and "Правосудие справедливости" or "Правосудие мудрости", target) then return end
     end
@@ -151,20 +161,21 @@ function Retribution()
     if IsEquippedItem("Обломок треснувших ворот Цитадели") and DoSpell("Щит праведности", target) then return end
     if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    
     if UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
-    if IsSpellNotUsed("Священный щит", 3) and (IsPvP() or (UnitThreat("player") == 3 and UnitHealth100("player") < 95)) and (GetTime() - holyShieldTime > 10) then
+    if IsReadySpell("Священный щит") and IsSpellNotUsed("Священный щит", 3) and (IsPvP() or (UnitThreat("player") == 3 and UnitHealth100("player") < 95)) and (GetTime() - holyShieldTime > 10) then
         local hasShield = false
-        for _,u in pairs(IUNITS) do
+        for i = 1, #IUNITS do
+            local u = IUNITS[i]
             if HasMyBuff("Священный щит", 0.1, u) then 
                 hasShield = true
                 break
             end
         end
-       if not hasShield and DoSpell("Священный щит","player") then holyShieldTime = GetTime() return end 
+       if not hasShield and DoSpell("Священный щит", "player") then holyShieldTime = GetTime() return end 
     end
        
-    if IsSpellNotUsed("Очищение", 3) and  not IsFinishHim(target) and UnitMana100("player") > 40 and IsReadySpell("Очищение") then
-        for _,u in pairs(IUNITS) do
-            if TryDispel(u) then return end
+    if IsReadySpell("Очищение") and IsSpellNotUsed("Очищение", 3) and not IsFinishHim(target) and UnitMana100("player") > 40 then
+         for i = 1, #IUNITS do
+            if TryDispel(IUNITS[i]) then return end
         end
     end
 end
@@ -229,8 +240,8 @@ function TryTarget()
     if not IsValidTarget("target") then
         local found = false
         local members = GetGroupUnits()
-        for _,member in pairs(members) do 
-            target = member .. "-target"
+        for i = 1, #members do
+            local target = members[i] .. "-target"
             if not found and IsValidTarget(target) and UnitCanAttack("player", target) and ActualDistance(target) and (not IsPvP() or UnitIsPlayer(target))  then 
                 found = true 
                 RunMacroText("/startattack " .. target) 
@@ -272,7 +283,8 @@ function TryTarget()
         RunMacroText("/clearfocus")
     end
 
-    for _,t in pairs(TARGETS) do
+    for i = 1, #TARGETS do
+        local t = TARGETS[i]
         if IsValidTarget(t) and (UnitCreatureType(t) == "Нежить" or UnitCreatureType(t) == "Демон") and not IsOneUnit("focus",t) then
             RunMacroText("/focus " .. t)
             return
@@ -376,8 +388,9 @@ function TryTaunt(target)
  if IsOneUnit("player", tt) then return false end
  -- Снимаем только с игроков, причем только с тех, которые не в черном списке
  local status = false
- for _,u in pairs(UNITS) do
-    if not IsOneUnit("player", u) and not IsIgnored(u) and UnitThreat(u,target) == 3 then 
+ for i = 1, #UNITS do
+    local u = UNITS[i]
+    if not IsOneUnit("player", u) and UnitThreat(u,target) == 3 then 
         status = true 
         break
     end

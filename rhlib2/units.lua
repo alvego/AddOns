@@ -16,7 +16,8 @@ function GetHealingMembers(units)
     wipe(members)
     wipe(membersHP)
     if units == nil then units = UNITS end
-    for _,u in pairs(units) do
+    for i = 1, #units do
+        local u = units[i]
         if CanHeal(u) then 
              local h =  CalculateHP(u)
             if IsFriend(u) then 
@@ -29,7 +30,8 @@ function GetHealingMembers(units)
                 end
             else
                 local status = 0
-                for _,t in pairs(TARGETS) do
+                for j = 1, #TARGETS do
+                    local t = TARGETS[j]
                     if tContains(dangerousType, UnitClassification(t)) then 
                         local isTanking, state, scaledPercent, rawPercent, threatValue = UnitDetailedThreatSituation("player", t)
                         if state ~= nil and state > status then status = state end
@@ -44,23 +46,31 @@ function GetHealingMembers(units)
         end
     end
     table.sort(members, compareMembers)  
-    for _,u in pairs(members) do
+    for i = 1, #members do
+        local u = members[i]
         if UnitHealth100(u) == 100 then membersHP[u] = 100 end
     end
     return members, membersHP
 end
 ------------------------------------------------------------------------------------------------------------------
 -- friend list
+local friendList = {}
+local function friendListUpdate()
+    wipe(friendList)
+    local numberOfFriends = GetNumFriends()
+    for i = 1, numberOfFriends do
+        local name = GetFriendInfo(i);
+        if name then 
+            friendList[name] = true
+        end
+    end
+end
+AttachEvent("FRIENDLIST_UPDATE", friendListUpdate)
+
 function IsFriend(unit)
     if IsOneUnit(unit, "player") then return true end
-    if not IsInteractUnit(unit) or not UnitIsPlayer(unit) then return false end
-    local numberOfFriends, onlineFriends = GetNumFriends()
-    local unitName, isFriend = UnitName(unit), false
-    for friendIndex = 1, numberOfFriends do
-        local name, level, class, area, connected, status, note = GetFriendInfo(friendIndex);
-        if name and name == unitName then isFriend = true end
-    end
-    return isFriend
+    if not UnitIsPlayer(unit) or not IsInteractUnit(unit) then return false end
+    return friendList[UnitName(unit)]
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -118,8 +128,8 @@ function GetUnits()
     for i = 1, #units do 
         local u = units[i]
         local exists = false
-        for _,t in pairs(realUnits) do 
-			exists = IsOneUnit(t, u)
+        for j = 1, #realUnits do 
+			exists = IsOneUnit(realUnits[j], u)
 			if exists then break end 
 		end
         if not exists and InInteractRange(u) then 
@@ -173,9 +183,8 @@ function GetTargets()
         local u = targets[i]
         
         local exists = false
-        
-        for _,t in pairs(realTargets) do 
-			exists = IsOneUnit(t, u) 
+        for j = 1, #realTargets do 
+ 			exists = IsOneUnit(realTargets[j], u) 
 			if exists then break end 
 		end
         
@@ -191,8 +200,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function IsValidTarget(target)
     if target == nil then target = "target" end
-    local n = UnitName(target)
-    if n == nil then return false end
+    if not UnitExists(target) then return false end
     if IsIgnored(target) then return false end
     if UnitIsDeadOrGhost(target) then return false end
     if UnitIsEnemy("player",target) and UnitCanAttack("player", target) then return true end 
@@ -202,15 +210,13 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function IsInteractUnit(t)
+    if not UnitExists(t) then return false end
+    if IsIgnored(t) then return false end
     if IsValidTarget(t) then return false end
-    if UnitExists(t) 
-        and not IsIgnored(t) 
-        and not UnitIsCharmed(t)
-        and not UnitIsDeadOrGhost(t) 
-        and not UnitIsEnemy("player",t)
-        and UnitIsConnected(t)
-    then return true end 
-    return false
+    if UnitIsDeadOrGhost(t) then return false end
+    if UnitIsCharmed(t) then return false end
+    if UnitIsCharmed(t) then return false end
+    return not UnitIsEnemy("player",t)
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -226,7 +232,8 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function HasClass(units, classes)
-	for _,u in pairs(units) do
+	for i = 1, #units do
+        local u = units[i]
 		if UnitExists(u) and UnitIsPlayer(u) and (type(classes) == 'table' and tContains(classes, GetClass(u)) or classes == GetClass(u)) then return true end
 	end
     return false
