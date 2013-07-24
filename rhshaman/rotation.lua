@@ -334,7 +334,7 @@ function HealRotation()
     
     if  h > 50 then
         
-        if CanInterrupt and UnitMana100("player") > 30 and IsReadySpell("Очищение духа") then
+        if (CanInterrupt or IsPvP()) and UnitMana100("player") > 30 and IsReadySpell("Очищение духа") then
             for i = 1, #IUNITS do
                 local u = IUNITS[i]
                 if HasDebuff(DispelRedList, 2, u) and TryDispel(u) then return end
@@ -464,7 +464,7 @@ function HealRotation()
     end
     
     if (h > 60 and UnitMana100("player") > 50) then
-        if CanInterrupt and IsSpellNotUsed("Очищение духа", 5)  then
+        if (CanInterrupt or IsPvP()) and IsSpellNotUsed("Очищение духа", 5)  then
             for i = 1, #IUNITS do
                 if TryDispel(IUNITS[i]) then return  end
             end
@@ -708,7 +708,7 @@ function TryProtect()
         local members, membersHP = GetHealingMembers(IsArena() and IUNITS or nil)
         local u = members[1] 
         local h = membersHP[u]
-        if CanInterrupt and h > 60 and UnitMana100("player") > 30 and IsReadySpell("Очищение духа") then
+        if (CanInterrupt or IsPvP()) and h > 60 and UnitMana100("player") > 30 and IsReadySpell("Очищение духа") then
             for  i = 1, #IUNITS do
                 local u = IUNITS[i]
                 if HasDebuff(DispelRedList, 2, u) and TryDispel(u) then return end

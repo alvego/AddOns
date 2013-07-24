@@ -14,18 +14,16 @@ function UseSlot(slot)
     if IsPlayerCasting() then return false end
     if not IsReadySlot(slot) then return false end
     RunMacroText("/use " .. slot) 
-    return true
+    return not IsReadySlot(slot)
 end
 
 ------------------------------------------------------------------------------------------------------------------
 function GetItemCooldownLeft(name)
-    local start, duration = GetItemCooldown(name);
+    local start, duration, enabled = GetItemCooldown(name);
+    if enabled ~= 1 then return 1 end
     if not start then return 0 end
-    if not duration or duration < 1.45 then duration = 1.45  end
+    if start == 0 then return 0 end
     local left = start + duration - GetTime()
-    if left < 0.01 then 
-        return 0
-    end
     return left
 end
 
@@ -44,7 +42,8 @@ function IsReadyItem(name)
    local usable = IsUsableItem(name) 
    if not usable then return true end
    local left = GetItemCooldownLeft(name)
-   return (left < 0.01)
+   if left > LagTime then return false end
+   return true
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -52,17 +51,12 @@ function UseItem(itemName)
     if SpellIsTargeting() then CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() end  
     if IsPlayerCasting() then return false end
     if not IsEquippedItem(itemName) and not IsUsableItem(itemName) then return false end
-    local start, try, count, state = GetTime(), 0, IsEquippedItem(itemName) and 1 or 3, IsReadyItem(itemName)
+    if not IsReadyItem(itemName) then return false end
     if Debug then
         print(itemName)
     end
-    while state do
-        RunMacroText("/use " .. itemName)
-        try = try + 1
-        state = IsReadyItem(itemName) and GetTime() - start < 1 and try < count
-    end
-    local start, duration = GetItemCooldown(itemName)
-    return start > 0 and (GetTime() - start < 0.01)
+    RunMacroText("/use " .. itemName)
+    return not IsReadyItem(itemName)
 end
 
 ------------------------------------------------------------------------------------------------------------------
