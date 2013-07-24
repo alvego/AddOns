@@ -4,6 +4,22 @@
 		"selected_items":
 		[
 			[
+				"UnitDe",
+				"UnitIsDeadOrGhost"
+			],
+			[
+				"Unit",
+				"UnitExists"
+			],
+			[
+				"pr",
+				"print"
+			],
+			[
+				"P",
+				"Paused"
+			],
+			[
 				"mem",
 				"members"
 			],
@@ -179,7 +195,7 @@
 			"file": "rhlib2/binds.lua",
 			"settings":
 			{
-				"buffer_size": 10793,
+				"buffer_size": 10902,
 				"line_ending": "Windows"
 			}
 		},
@@ -195,7 +211,7 @@
 			"file": "rhlib2/lib.lua",
 			"settings":
 			{
-				"buffer_size": 2865,
+				"buffer_size": 3036,
 				"line_ending": "Windows"
 			}
 		},
@@ -211,7 +227,7 @@
 			"file": "rhshaman/rotation.lua",
 			"settings":
 			{
-				"buffer_size": 30447,
+				"buffer_size": 30173,
 				"line_ending": "Windows"
 			}
 		},
@@ -220,6 +236,14 @@
 			"settings":
 			{
 				"buffer_size": 13154,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "rhpaladin/binds.lua",
+			"settings":
+			{
+				"buffer_size": 4587,
 				"line_ending": "Windows"
 			}
 		},
@@ -361,6 +385,7 @@
 		"case_sensitive": false,
 		"find_history":
 		[
+			"900",
 			"UpdateTime",
 			"UNITS",
 			"UNITSI",
@@ -419,7 +444,7 @@
 	"groups":
 	[
 		{
-			"selected": 4,
+			"selected": 8,
 			"sheets":
 			[
 				{
@@ -435,8 +460,8 @@
 						"selection":
 						[
 							[
-								13153,
-								13153
+								3283,
+								3210
 							]
 						],
 						"settings":
@@ -446,7 +471,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 6265.0,
+						"translation.y": 1197.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -486,15 +511,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 10793,
+						"buffer_size": 10902,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2985,
-								2985
+								10601,
+								10601
 							]
 						],
 						"settings":
@@ -504,7 +529,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 4694.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -522,8 +547,8 @@
 						"selection":
 						[
 							[
-								680,
-								680
+								6645,
+								6659
 							]
 						],
 						"settings":
@@ -533,7 +558,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 57.0,
+						"translation.y": 3078.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -544,15 +569,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 2865,
+						"buffer_size": 3036,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								2258,
-								2258
+								2254,
+								2254
 							]
 						],
 						"settings":
@@ -562,7 +587,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 570.0,
+						"translation.y": 741.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -602,15 +627,15 @@
 					"semi_transient": false,
 					"settings":
 					{
-						"buffer_size": 30447,
+						"buffer_size": 30173,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								26704,
-								26709
+								21209,
+								21170
 							]
 						],
 						"settings":
@@ -620,7 +645,7 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 11549.0,
+						"translation.y": 9326.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -638,8 +663,8 @@
 						"selection":
 						[
 							[
-								9320,
-								9332
+								1119,
+								1291
 							]
 						],
 						"settings":
@@ -649,13 +674,42 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 1653.0,
+						"translation.y": 399.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 8,
+					"file": "rhpaladin/binds.lua",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 4587,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1342,
+								1342
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Lua/Lua.tmLanguage",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 114.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 9,
 					"file": "rhlib2/items.lua",
 					"semi_transient": false,
 					"settings":
@@ -684,7 +738,7 @@
 					"type": "text"
 				},
 				{
-					"buffer": 9,
+					"buffer": 10,
 					"file": "rhshaman/totems.lua",
 					"semi_transient": false,
 					"settings":

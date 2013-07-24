@@ -256,7 +256,7 @@ local debugFrameTime = 0
 local function debugFrame_OnUpdate()
         if (debugFrameTime > 0 and debugFrameTime < GetTime() - 1) then
                 local alpha = debugFrame:GetAlpha()
-                if (alpha ~= 0) then debugFrame:SetAlpha(alpha - .02) end
+                if (alpha ~= 0) then debugFrame:SetAlpha(alpha - .005) end
                 if (aplha == 0) then 
 					debugFrame:Hide() 
 					debugFrameTime = 0
@@ -284,7 +284,7 @@ end
 
 local updateDebugStatsTime = 0
 local function UpdateDebugStats()
-	if not Debug or GetTime() - updateDebugStatsTime < 1 then return end
+	if not Debug or GetTime() - updateDebugStatsTime < 0.5 then return end
     updateDebugStatsTime = GetTime()
 	UpdateAddOnMemoryUsage()
     UpdateAddOnCPUUsage()

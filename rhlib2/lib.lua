@@ -48,14 +48,12 @@ end
 -- Выполняем обработчики события OnUpdate, согласно приоритету (return true - выход)
 local LastUpdate = 0
 UpdateInterval = 0
-local function update(upd) return upd.func() end
 local function OnUpdate(frame, elapsed)
     LastUpdate = LastUpdate + elapsed 
     if InCombatLockdown() then
-        local start, duration = GetSpellCooldown(GCDSpellID);
-            --ждем конца GCD чтоб запустить ротацию с нуля
-        if start and (start>0) and duration - (GetTime() - start) < 0.25 then
-            if duration - (GetTime() - start) < 0.25 then
+        local left = GetSpellCooldownLeft(GCDSpellID)
+        if left > LagTime then
+            if (left - LagTime) < 0.25 then
                 LastUpdate = 100
                 return
             end
@@ -67,11 +65,21 @@ local function OnUpdate(frame, elapsed)
     else
         UpdateInterval = 0.5
     end
-    if IsAttack() then UpdateInterval = 0 end
+    if IsAttack() and (Paused or not UnitExists("target") or UnitIsDeadOrGhost("target"))  then 
+        UpdateInterval = 0 
+    end
     if LastUpdate < UpdateInterval then return end -- для снижения нагрузки на проц
     LastUpdate = 0
     for _,upd in pairs(UpdateList) do
-		if upd.func(elapsed) then return end
+        if UpdateInterval == 0 then
+            if upd.weight < 0 then 
+                --print(1111, GetTime(), upd.weight, UpdateInterval) 
+                upd.func() 
+            end
+        else
+            --print(2222, GetTime(), upd.weight, UpdateInterval) 
+            upd.func()
+        end
     end
 end
 frame:SetScript("OnUpdate", OnUpdate)
