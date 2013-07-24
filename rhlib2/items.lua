@@ -53,11 +53,11 @@ function UseItem(itemName)
     if IsPlayerCasting() then return false end
     if not IsEquippedItem(itemName) and not IsUsableItem(itemName) then return false end
     local start, try, count, state = GetTime(), 0, IsEquippedItem(itemName) and 1 or 3, IsReadyItem(itemName)
+    if Debug then
+        print(itemName)
+    end
     while state do
         RunMacroText("/use " .. itemName)
-        if Debug then
-            print(itemName)
-        end
         try = try + 1
         state = IsReadyItem(itemName) and GetTime() - start < 1 and try < count
     end

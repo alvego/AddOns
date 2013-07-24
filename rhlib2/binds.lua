@@ -52,20 +52,19 @@ local function getUnitWeight(u)
     if IsOneUnit(u, "player") then w = 3 end
     return w
 end
-local function compareUnits(u1,u2) return getUnitWeight(u1) < getUnitWeight(w2) end
+local unitWeights = {}
+local friendTargets = {}
+local function compareUnits(u1,u2) return unitWeights[u1] < unitWeights[u2] end
 local function getTargetWeight(t)
-    local w = 0
-    for i = 1, #UNITS do
-        local u = UNITS[i]
-        if IsOneUnit(u .. "-target", t) then w = max(w, IsFriend(u) and 2 or 1) end
-    end
+    local w = friendTargets[UnitGUID(t)] or 0
     if IsOneUnit("focus", t) then w = 3 end
     if IsOneUnit("target", t) then w = 4 end
     if IsOneUnit("mouseover", t) then w = 5 end
     w = w + (1 - UnitHealth100(t) / 100) 
     return w
 end
-function compareTargets(t1,t2) return getTargetWeight(t1) < getTargetWeight(t2) end
+local targetWeights = {}
+local function compareTargets(t1,t2) return targetWeights[t1] < targetWeights[t2] end
 local function UpdateIdle()
     if (IsAttack() and Paused) then
         echo("Авто ротация: ON",true)
@@ -83,10 +82,28 @@ local function UpdateIdle()
     if UpdateInterval > 0 then    
         -- Update units
         UNITS = GetUnits()
+        wipe(unitWeights)
+        wipe(friendTargets)
+        for i=1,#UNITS do
+            local u = UNITS[i]
+            unitWeights[u] = getUnitWeight(u)
+
+            local guid = UnitGUID(u .. "-target")
+            if guid then
+                local w = friendTargets[guid] or 1
+                if w < 2 and IsFriend(u) then w = 2 end
+                friendTargets[guid] = w
+            end
+        end
         table.sort(UNITS, compareUnits)
         
         -- Update targets
         TARGETS = GetTargets()
+        wipe(targetWeights)
+        for i=1,#TARGETS do
+            local t = TARGETS[i]
+            targetWeights[t] = getTargetWeight(t)
+        end
         table.sort(TARGETS, compareTargets)
         wipe(IUNITS)
         for i = 0, #UNITS do
