@@ -132,17 +132,17 @@ function Retribution()
     if UnitHealth100("player") < 50 and UseItem("Камень здоровья из Скверны") then return end
     if UnitMana100("player") < 20 and not HasBuff("Печать мудрости") and DoSpell("Печать мудрости") then return end
     if UnitMana100("player") > 70 then RunMacroText("/cancelaura Печать мудрости") end
-    if IsPvP() and IsReadySpell("Изгнание зла") then
+    if IsPvP() and IsReadySpell("Изгнание зла") and IsSpellNotUsed("Изгнание зла", 5) then
         for i = 1, #TARGETS do
             local t = TARGETS[i]
             if CanAttack(t) and (UnitCreatureType(t) == "Нежить" or UnitCreatureType(t) == "Демон") 
                 and not HasDebuff("Изгнание зла", 0.1, t) and DoSpell("Изгнание зла",t) then return end
         end
     end
-    if IsReadySpell("Длань возмездия") then
+    if IsReadySpell("Длань возмездия") and IsSpellNotUsed("Длань возмездия", 2) then
         for i = 1, #TARGETS do
             local t = TARGETS[i]
-            if CanAttack(t) and tContains(totems, UnitName(t)) and DoSpell("Длань возмездия",t) then return end
+            if tContains(totems, UnitName(t)) and DoSpell("Длань возмездия",t) then return end
         end
     end
     if not IsAttack() and not CanAttack(target) then return end
@@ -275,22 +275,25 @@ function TryTarget()
         end
     end
 
-    if not IsValidTarget("target") or (IsAttack() and  not UnitCanAttack("player", "target")) then
+    if UnitExists("target") and not IsValidTarget("target") or (IsAttack() and  not UnitCanAttack("player", "target")) then
         RunMacroText("/cleartarget")
     end
     
-    if not IsValidTarget("focus") then
+    if UnitExists("focus") and not IsValidTarget("focus") then
         RunMacroText("/clearfocus")
     end
-
-    for i = 1, #TARGETS do
-        local t = TARGETS[i]
-        if IsValidTarget(t) and (UnitCreatureType(t) == "Нежить" or UnitCreatureType(t) == "Демон") and not IsOneUnit("focus",t) then
-            RunMacroText("/focus " .. t)
-            return
+    if not UnitExists("focus") then
+        for i = 1, #TARGETS do
+            local t = TARGETS[i]
+            if IsValidTarget(t) and not IsOneUnit("focus",t) then
+                local creatureType = UnitCreatureType(t)
+                if (creatureType == "Нежить" or creatureType == "Демон")  then
+                    RunMacroText("/focus " .. t)
+                    return
+                end
+            end
         end
     end
-       
     if IsArena() and IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
         if IsOneUnit("target","arena1") then RunMacroText("/focus arena2") end
         if IsOneUnit("target","arena2") then RunMacroText("/focus arena1") end
