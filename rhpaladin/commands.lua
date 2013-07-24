@@ -74,8 +74,8 @@ SetCommand("fstun",
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("sv", 
-   function() return DoSpell("Длань защиты","Pippo") end, 
-   function() return not InForbearance("Pippo") and not InGCD() and not IsReadySpell("Длань защиты") end
+   function() return DoSpell("Длань защиты","Ириха") end, 
+   function() return not InForbearance("Ириха") and not InGCD() and not IsReadySpell("Длань защиты") end
 )
 
 ------------------------------------------------------------------------------------------------------------------
@@ -105,7 +105,7 @@ SetCommand("dd",
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("cl", 
    function() end, 
-   function() return not InGCD() and DoSpell("Очищение","Pippo") end
+   function() return not InGCD() and DoSpell("Очищение","Ириха") end
 )
 
 ------------------------------------------------------------------------------------------------------------------
