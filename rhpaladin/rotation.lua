@@ -244,7 +244,7 @@ function TryTarget()
             if UnitExists("target") then RunMacroText("/cleartarget") end
             for i = 1, #TARGET do
                 local t = TARGET[i]
-                if UnitAffectingCombat(t) and ActualDistance(t) and (not IsPvP() or UnitIsPlayer(t))  then 
+                if t and UnitAffectingCombat(t) and ActualDistance(t) and (not IsPvP() or UnitIsPlayer(t))  then 
                     RunMacroText("/startattack " .. target) 
                     break
                 end
