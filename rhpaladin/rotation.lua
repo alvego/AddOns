@@ -225,7 +225,7 @@ function TryHealing()
             end
         end
         if h < 20 and DoSpell("Возложение рук",u) then return end
-        if h < 100 and HasBuff("Искусство войны") and (not IsFinishHim("target") and not IsReadySpell("Экзорцизм") or h < 70 ) and DoSpell("Вспышка Света",u) then return end
+        if h < 85 and HasBuff("Искусство войны") and (not IsFinishHim("target") and not IsReadySpell("Экзорцизм") or h < 70 ) and DoSpell("Вспышка Света",u) then return end
     end
     return false
 end
