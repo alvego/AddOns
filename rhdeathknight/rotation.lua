@@ -1,43 +1,39 @@
 ﻿-- DK Rotation Helper by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
+local peaceBuff = {"Пища", "Питье"}
+local stanceBuff = {"Власть крови", "Власть льда", "Власть нечестивости"}
 function Idle()
     if IsAttack() then 
         if CanExitVehicle() then VehicleExit() return end
         if IsMounted() then Dismount() return end 
+    else
+        if IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) then return end
     end
-    if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted()) then return end
     
-    if IsNeedTaunt() and TryTaunt("mouseover") then return end
-    
-    if (IsAttack() or InCombatLockdown()) then
-        if TryEach(TARGETS, TryInterrupt) then return end
-        
-        if HasRunes(100) and not (HasBuff("Власть крови") or HasBuff("Власть льда") or HasBuff("Власть нечестивости")) 
-            and DoSpell("Власть крови") then return end
-        
-        if HasClass(TARGETS, {"PALADIN", "PRIEST"}) and HasBuff("Перерождение") then RunMacroText("/cancelaura Перерождение") end
-        if TryEach(TARGETS, function(t) 
-            return UnitIsPlayer(t) and tContains({"ROGUE", "DRUID"}, GetClass(t)) and not InRange("Ледяные оковы", t) and not HasDebuff("Темная власть", 1, t) and DoSpell("Темная власть", t) 
-        end) then return end
-        if TryEach(TARGETS, function(t) 
-            return UnitIsPlayer(t) and not InRange("Ледяные оковы", t) and not HasDebuff("Темная власть", 1, t) and DoSpell("Темная власть", t) 
-        end) then return end
-        
-        if DeathGripState and HasBuff("Власть льда") and InGroup() and InCombat(3) 
-            and TryEach(TARGETS, function(target) return IsValidTarget(target) and UnitAffectingCombat(target) and TryTaunt(target) end) then return end
-            
-        if not HasSpell("Удар Плети") and TryPestilence() then return end
-        if TryHealing() then return end
-        if TryProtect() then return end
-        if TryBuffs() then return end
-        TryTarget()
+    if not (IsAttack() or InCombatLockdown()) then return end
 
-        -- if HasSpell("Удар в сердце") then Blood() 
-            if HasSpell("Удар Плети") then Anh() else
-                Frost() 
-            -- end
+    if CanInterrupt then
+        for i=1,#TARGETS do
+            TryInterrupt(TARGETS[i])
         end
     end
+        
+    if HasRunes(001) and not HasBuff(stanceBuff) and DoSpell("Власть нечестивости") then return end
+    
+    if IsPvP() and InCombatLockdown() then 
+        for i = 1, #TARGETS do
+            local t = TARGETS[i]
+            if UnitIsPlayer(t) and tContains({"ROGUE", "DRUID"}, GetClass(t)) and not InRange("Ледяные оковы", t) and not HasDebuff("Темная власть", 3, t) and DoSpell("Темная власть", t) then return end            
+        end
+    end
+        
+    if TryPestilence() then return end
+    if TryHealing() then return end
+    if TryProtect() then return end
+    if TryBuffs() then return end
+    TryTarget()
+    Anh()
+
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -88,108 +84,11 @@ function Anh()
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function Frost()
-        if not (IsValidTarget("target") and (UnitAffectingCombat("target") and CanAttack("target") or IsAttack()))  then return end
-        RunMacroText("/startattack")
-        RunMacroText("/petattack")
-        
-        -- if CanAOE and HasBuff("Морозная дымка") and DoSpell("Воющий ветер") then return end
-        
-        if NoRunes() then DoSpell("Усиление рунического оружия") end
-        if not HasRunes(100, false) and  min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2)) > 4 then DoSpell("Кровоотвод") end
-
-        if not HasMyDebuff("Озноб", 1, "target") and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
-        if not HasMyDebuff("Кровавая чума", 1, "target") and HasRunes(001) and DoSpell("Удар чумы") then return end
-        
-        DoSpell("Рунический удар")
-        if DoSpell("Ледяной удар") then return end
-        if (not InMelee() and DoSpell("Лик смерти")) then return end
-        
-        if not Dotes() and not(IsAOE() or IsAttack()) then return end
-        
-        if Dotes() and InMelee() then
-            DoSpell("Кровавое неистовство")
-            if not InGCD() and HasRunes(011) and DoSpell("Несокрушимая броня") then 
-                if DoSpell("Удар чумы") then end
-            end
-        end 
-
-        if IsAOE() then
-            if HasRunes(011) and DoSpell("Воющий ветер") then return end
-            if HasRunes(100) and DoSpell("Вскипание крови") then return end
-        end
-
-        if not IsAOE() and Dotes() then
-            if IsPvP() and UnitHealth100("player") < 85 then
-                if HasRunes(011) and DoSpell("Удар смерти") then return end 
-            else
-                if HasRunes(011) and DoSpell("Уничтожение") then return end 
-            end
-            if HasRunes(100) and DoSpell("Кровавый удар") then return end
-        end
-        if HasBuff("Морозная дымка") and DoSpell("Воющий ветер") then return end
-        if NoRunes() and UnitMana("player") < 90 and DoSpell("Зимний горн") then return end
-        
-end
-
-------------------------------------------------------------------------------------------------------------------
-function Blood()
-        if not (IsValidTarget("target") and (UnitAffectingCombat("target") and CanAttack("target") or IsAttack()))  then return end
-        RunMacroText("/startattack")
-        RunMacroText("/petattack")
-        
-       
-        if NoRunes() then DoSpell("Усиление рунического оружия") end
-        if not HasRunes(100, false) and  min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2)) > 4 then DoSpell("Кровоотвод") end
-        
-        if Dotes() and InMelee() then
-            DoSpell("Кровавое неистовство")
-        end 
-      
-        if IsAOE() then
-            if HasRunes(100) and DoSpell("Вскипание крови") then return end
-        end
-        
-        if not HasMyDebuff("Озноб") and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
-        if not HasMyDebuff("Кровавая чума") and HasRunes(001) and DoSpell("Удар чумы") then return end
-        
-        DoSpell("Рунический удар")
-        if (not InMelee(target) or UnitMana("player") > 65 ) and DoSpell("Лик смерти", target) then return end
-
-        
-        if not IsAOE() and Dotes(target) then
-            if HasRunes(011) and DoSpell("Удар смерти", target) then return end 
-            if HasRunes(100) and DoSpell("Удар в сердце", target) then return end
-        end
-
-        if NoRunes() and UnitMana("player") < 90 and DoSpell("Зимний горн") then return end
-        
-end
-
-------------------------------------------------------------------------------------------------------------------
 function TryBuffs()
+    -- Если моб даже не элитка, то смысл бафаться?
     if CanAttack("target") and UnitHealth("target") < 19000 then return false end
     if HasSpell("Удар Плети") and not InCombatLockdown() and not HasBuff("Костяной щит") and HasRunes(001) and DoSpell("Костяной щит") then return end
     if not HasBuff("Зимний горн") and DoSpell("Зимний горн") then return true end
-    if not (HasBuff("Настой") or HasBuff("Эликсир")) then 
-        if (BersState and IsUsableItem("Настой бесконечной ярости")) then
-            if UseItem("Настой бесконечной ярости") then return true end
-        else
-            if UseItem("Настой севера") then return true end
-        end
-    end
-    if BersState then
-        if not (HasBuff("Сила") or HasBuff("Выносливость")) then
-            if not HasBuff("Власть льда") then
-                if UseItem("Свиток силы VIII", "player") then return true end
-                if UseItem("Свиток силы VII", "player") then return true end
-            else
-                if UseItem("Свиток выносливости VIII", "player") then return true end
-                if UseItem("Свиток выносливости VII", "player") then return true end
-            end
-        end
-        if not HasBuff("Стойкость") and not HasBuff("Молитва стойкости") and UseItem("Рунический свиток стойкости") then return true end
-    end
     return false
 end
 
@@ -197,7 +96,6 @@ end
 function TryHealing()
     local h = CalculateHP("player")
     if InCombatLockdown() then
-        if TryDeathPact() then return true end
         if h < 20 and not IsArena() and UseHealPotion() then return true end
         if h < 40 and DoSpell("Кровь земли") then return true end
         if h < 50 and HasRunes(100) and HasSpell("Захват рун") and DoSpell("Захват рун") then return true end
@@ -205,101 +103,81 @@ function TryHealing()
     if h < 50 and (InMelee() and (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) and HasRunes(011) and DoSpell("Удар смерти")) then return true end
     return false
 end
-
 ------------------------------------------------------------------------------------------------------------------
-function TryTarget()
-
-    if not IsValidTarget("target") then
-        TryEach(GetGroupUnits(), function(member)
-            target = member .. "-target"
-            if IsValidTarget(target) and UnitCanAttack("player", target) and (CheckInteractDistance(target, 2) == 1)  then 
+function ActualDistance(target)
+    if target == nil then target = "target" end
+    return (CheckInteractDistance(target, 3) == 1)
+end
+------------------------------------------------------------------------------------------------------------------
+function TryTarget(useFocus)
+    -- помощь в группе
+    if not IsValidTarget("target") and InGroup() then
+        -- если что-то не то есть в цели
+        if UnitExists("target") then RunMacroText("/cleartarget") end
+        for i = 1, #TARGET do
+            local t = TARGET[i]
+            if t and (UnitAffectingCombat(t) or IsPvP()) and ActualDistance(t) and (not IsPvP() or UnitIsPlayer(t))  then 
                 RunMacroText("/startattack " .. target) 
-                return true
+                break
             end
-            return false
-        end)
-
-        if not (CheckInteractDistance("target", 2) == 1) or not UnitCanAttack("player", "target") then
-            RunMacroText("/cleartarget")
         end
     end
-
-    if  not IsValidTarget("target") then
-        if GetNextTarget() ~= nil then
-            RunMacroText("/startattack "..GetNextTarget())
-            if not (CheckInteractDistance("target", 2) == 1) or not NextIsTarget() or not UnitCanAttack("player", "target") then
-                RunMacroText("/cleartarget")
-            end
-            ClearNextTarget()
-        end
-    end
-
+    -- пытаемся выбрать ну хоть что нибудь
     if not IsValidTarget("target") then
-        RunMacroText("/targetenemy [nodead]")
-        
-        if not IsAttack() and not (CheckInteractDistance("target", 2) == 1) or not UnitCanAttack("player", "target") then
-            RunMacroText("/cleartarget")
+        -- если что-то не то есть в цели
+        if UnitExists("target") then RunMacroText("/cleartarget") end
+
+        if IsPvP() then
+            RunMacroText("/targetenemyplayer [nodead]")
+        else
+            RunMacroText("/targetenemy [nodead]")
+        end
+        if not IsAttack()  -- если в авторежиме
+            and (
+            not IsValidTarget("target")  -- вообще не цель
+            or not ActualDistance("target")  -- далековато
+            or (not IsPvP() and not UnitAffectingCombat(t))
+            or (IsPvP() and not UnitIsPlayer("target")) -- не игрок в пвп
+            )  then 
+            if UnitExists("target") then RunMacroText("/cleartarget") end
         end
     end
 
-    if not IsValidTarget("target") or (IsAttack() and  not UnitCanAttack("player", "target")) then
-        RunMacroText("/cleartarget")
-    end
-   
-    if not IsValidTarget("focus") then
-        TryEach(TARGETS, function(target) 
-            if IsValidTarget(target) and UnitCanAttack("player", target) and (CheckInteractDistance(target, 2) == 1) and not IsOneUnit("target", target) then 
-                RunMacroText("/focus " .. target) 
-                return true
+    if useFocus ~= false then 
+        if not IsValidTarget("focus") then
+            if UnitExists("focus") then RunMacroText("/clearfocus") end
+            for i = 1, #TARGETS do
+                local t = TARGETS[i]
+                if UnitAffectingCombat(t) and ActualDistance(t) and not IsOneUnit("target", t) then 
+                    RunMacroText("/focus " .. t) 
+                    break
+                end
             end
-            return false
-        end)
+        end
+        
+        if not IsValidTarget("focus") or IsOneUnit("target", "focus") or not ActualDistance("focus") then
+            if UnitExists("focus") then RunMacroText("/clearfocus") end
+        end
     end
 
-    if not IsValidTarget("focus") or IsOneUnit("target", "focus") or not (CheckInteractDistance("focus", 2) == 1) then
-        RunMacroText("/clearfocus")
+    if not IsArena() then
+        if IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
+            if IsOneUnit("target","arena1") then RunMacroText("/focus arena2") end
+            if IsOneUnit("target","arena2") then RunMacroText("/focus arena1") end
+        end
     end
 end
 
+
 ------------------------------------------------------------------------------------------------------------------
 function TryProtect()
-    if InCombatLockdown() then
-        if (UnitThreat("player") == 3) and (UnitHealth100() < 70 
-            and not (HasBuff("Незыблемость льда") or HasBuff("Повышенная стойкость") or HasBuff("Тактика защиты") or HasBuff("Кровь вампира"))) then
-            if DoSpell("Незыблемость льда") then return true end
-            if UseEquippedItem("Гниющий палец Ика") then return true end
-            if UseEquippedItem("Символ неукротимости") then return true end
-            if HasSpell("Кровь вампира") and DoSpell("Кровь вампира") then return true end
-        end
-
+    if not IsPvP() and InCombatLockdown() then
         if (UnitHealth100() < 50) then
             if DoSpell("Антимагический панцирь") then return true end
             if DoSpell("Незыблемость льда") then return true end
         end
     end
-    
     return false;
-end
-
-------------------------------------------------------------------------------------------------------------------
-local TauntTime = 0
-function TryTaunt(target)
-    if not CanAttack(target) then return false end
-    if UnitThreat("player",target) == 3 then return false end
-    if (GetTime() - TauntTime < 1.5) then return false end
-    local tt = UnitName(target .. "-target")
-    if not IsNeedTaunt() and (UnitIsPlayer(target) or not UnitExists(tt) or IsOneUnit("player", tt)) then return false end
-    if DoSpell("Темная власть", target) then 
-        TauntTime = GetTime()
-            --chat("Темная власть на " .. target)
-        return true  
-    end
-    if DoSpell("Хватка смерти", target) then 
-        TauntTime = GetTime()
-            --chat("Хватка смерти на " .. target)
-        return true  
-    end
-    return false
 end
 
 ------------------------------------------------------------------------------------------------------------------

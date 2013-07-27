@@ -186,37 +186,7 @@ function NotInCombat(t)
     if not t then t = 0 end
     return not InCombatLockdown() and endCombatTime and GetTime() - endCombatTime > t
 end
-------------------------------------------------------------------------------------------------------------------
--- Запоминаем атакующие нас цели (TODO: need REVIEW)
-local NextTarget
-local NextGUID
 
-function NextIsTarget(target)
-    if not target then target = "target" end
-    return (UnitGUID(target) == NextGUID)
-end
-
-function ClearNextTarget()
-    NextTarget = nil
-    NextGUID = nil
-end
-
-function GetNextTarget()
-    return NextTarget
-end
-
-local function UpdateNextTarget(event, ...)
-    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err = select(1, ...)
-    if not(destName ~= GetUnitName("player")) and sourceName ~= nil and not UnitCanCooperate("player",sourceName) then 
-        if not Paused then 
-            NextTarget = sourceName
-            NextGUID = sourceGUID
-        end
-    end
-end
-AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateNextTarget)
-
-------------------------------------------------------------------------------------------------------------------
 -- Лайфхак, чтоб не разбиться об воду при падении с высоты (защита от ДК с повышенным чувством юмора)
 local FallingTime
 local function UpdateFallingFix()

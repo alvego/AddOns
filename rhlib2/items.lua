@@ -47,7 +47,7 @@ function IsReadyItem(name)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function UseItem(itemName)
+function UseItem(itemName, count)
     if SpellIsTargeting() then CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() end  
     if IsPlayerCasting() then return false end
     if not IsEquippedItem(itemName) and not IsUsableItem(itemName) then return false end
@@ -55,7 +55,10 @@ function UseItem(itemName)
     if Debug then
         print(itemName)
     end
-    RunMacroText("/use " .. itemName)
+    if not count then count = 1 end
+    for i = 1, count do
+        RunMacroText("/use " .. itemName)
+    end
     return not IsReadyItem(itemName)
 end
 
@@ -78,7 +81,7 @@ local potions = {
 }
 function UseHealPotion()
     for i = 1, #potions do 
-		if UseItem(potions[i]) then return true end
+		if UseItem(potions[i], 3) then return true end
 	end
     return false
 end
