@@ -1,9 +1,9 @@
 ﻿-- Death Knight Rotation Helper by Timofeev Alexey
 print("|cff0055ffRotation Helper|r|cffffe00a > |cff800000Death Knight|r loaded.")
 -- Binding
-BINDING_HEADER_RHPDEATHKNIGHT = "Death Knight Rotation Helper"
-BINDING_NAME_RHPDEATHKNIGHT_AOE = "Вкл/Выкл AOE в ротации"
-BINDING_NAME_RHPDEATHKNIGHT_INTERRUPT = "Вкл/Выкл сбивание кастов"
+BINDING_HEADER_RHDEATHKNIGHT = "Death Knight Rotation Helper"
+BINDING_NAME_RHDEATHKNIGHT_AOE = "Вкл/Выкл AOE в ротации"
+BINDING_NAME_RHDEATHKNIGHT_INTERRUPT = "Вкл/Выкл сбивание кастов"
 ------------------------------------------------------------------------------------------------------------------
 if CanAOE == nil then CanAOE = true end
 
