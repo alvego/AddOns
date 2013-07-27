@@ -1,0 +1,8 @@
+<Bindings>
+  <Binding name="RHPDEATHKNIGHT_AOE" description="Use AOE" header="RHPDEATHKNIGHT">
+    AOEToggle();
+  </Binding>
+  <Binding name="RHPDEATHKNIGHT_INTERRUPT" description="Use cust interrupt" header="RHPDEATHKNIGHT">
+    InterruptToggle();
+  </Binding>
+</Bindings>
