@@ -265,7 +265,7 @@ function TryTarget()
             and (
             not IsValidTarget("target")  -- вообще не цель
             or not ActualDistance("target")  -- далековато
-            or (not IsPvP() and not UnitAffectingCombat(t))
+            or (not IsPvP() and not UnitAffectingCombat("target")) -- моб не в бою
             or (IsPvP() and not UnitIsPlayer("target")) -- не игрок в пвп
             )  then 
             if UnitExists("target") then RunMacroText("/cleartarget") end

@@ -139,7 +139,7 @@ function IsReadySpell(name)
     local left = GetSpellCooldownLeft(name)
     if left > LagTime then return false end
     local spellName, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(name)
-    if cost and cost > 0 and not(UnitPower("player", powerType) >= cost) then return false end
+    if cost and cost > 0 and not(powerType == -2 and UnitHealth("player") > cost*2 or UnitPower("player", powerType) >= cost) then return false end
     return true
 end
 
@@ -276,7 +276,7 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateTargetPosition)
 local badSpellTarget = {}
 local inCastSpells = {"Трепка", "Рунический удар", "Удар героя", "Рассекающий удар", "Гиперскоростное ускорение", "Нарукавная зажигательная ракетница"} -- TODO: Нужно уточнить и дополнить.
 function UseSpell(spellName, target)
-    local dump = false --spellName == "Божественная буря"
+    local dump = false --spellName == "Кровоотвод"
     --if spellName == "Священный щит" then error("Щит") end
     -- Не мешаем выбрать область для спела (нажат вручную)
     if SpellIsTargeting() then 
