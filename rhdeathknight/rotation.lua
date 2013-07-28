@@ -26,8 +26,6 @@ function Idle()
             if UnitIsPlayer(t) and tContains(steathClass, GetClass(t)) and not InRange("Ледяные оковы", t) and not HasDebuff("Темная власть", 1, t) and DoSpell("Темная власть", t) then return end
         end
     end
-        
-    
     if TryHealing() then return end
     if TryProtect() then return end
     if TryBuffs() then return end
@@ -36,16 +34,8 @@ function Idle()
     if not HasSpell("Цапнуть") and DoSpell("Воскрешение мертвых") then return end
     if UnitExists("pet") and UnitHealth100("pet") < 70 and DoSpell("Лик смерти", "pet") then return end
     if not (IsValidTarget("target") and (UnitAffectingCombat("target") and CanAttack("target") or IsAttack()))  then return end
-    -- чтоб контроли не сбивать
-    if not CanControl("target") then 
-        RunMacroText("/stopattack") 
-        RunMacroText("/petfollow")
-    else
-        RunMacroText("/startattack")
-        RunMacroText("/petattack")    
-    end
-    
-    
+    RunMacroText("/startattack")
+    RunMacroText("/petattack")    
     -- ресаем все.
     if NoRunes() and DoSpell("Усиление рунического оружия") then return end
     -- ресаем руну крови
@@ -56,34 +46,20 @@ function Idle()
     if canMagic then
         if not HasMyDebuff("Кровавая чума", 1, "target") and HasRunes(001) and DoSpell("Удар чумы") then end
         if not HasMyDebuff("Озноб", 1, "target") and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
-    else
-        DoSpell("Рунический удар")
+         if Dotes() and InMelee() and UseEquippedItem("Карманные часы Феззика") then return end
     end
-
-    if not CanMagicAttack("target") then DoSpell("Рунический удар") end
     -- if DoSpell("Призыв горгульи") then return end
     -- if not Dotes() and not(IsAOE() or IsAttack()) then return end
-    if Dotes() and InMelee() and UseEquipedItem("Карманные часы Феззика") then return end
-    
     if IsAltKeyDown() == 1 and HasRunes(100) and DoSpell("Мор") then return end
-    if HasRunes(100, true) and DoSpell("Кровавый удар") then return end
-    -- print(3)
-    if UnitMana("player") > 100 and DoSpell("Лик смерти") then return end
-    -- print(4)
-    if IsAOE() then
-        if HasRunes(100) and DoSpell("Вскипание крови") then return end
-    end
-    -- print(5)
-    if not IsAOE() and Dotes() then
-        if IsPvP() and UnitHealth100("player") < 85 then
-            if HasRunes(011) and DoSpell("Удар смерти") then return end 
-        else
-            if HasMyDebuff("Озноб") and HasMyDebuff("Кровавая чума") and HasRunes(011) and DoSpell("Удар Плети") then return end 
-        end
-    end
-    if canMagic and DoSpell("Лик смерти") then return end
-    if DoSpell("Зимний горн") then return end
+    if HasRunes(100, true) and not HasBuff("Отчаянье") and DoSpell("Кровавый удар") then return end
+    if (IsAttack() or UnitMana("player") >= 110) and DoSpell(canMagic and "Лик смерти" or "Рунический удар") then return end
+    if IsAOE() and HasRunes(100) and DoSpell("Вскипание крови") then return end
+    if Dotes() and HasRunes(011, IsAOE()) and DoSpell(UnitHealth100("player") < 85 and "Удар смерти" or "Удар Плети") then return end 
     if HasSpell("Костяной щит") and HasRunes(001) and not HasBuff("Костяной щит") and DoSpell("Костяной щит") then return end
+    if HasRunes(100, true) and DoSpell("Кровавый удар") then return end
+    if (IsAttack() or UnitMana("player") >= 80) and DoSpell(canMagic and "Лик смерти" or "Рунический удар") then return end
+    if DoSpell("Зимний горн") then return end
+
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -100,8 +76,8 @@ function TryHealing()
     local h = CalculateHP("player")
     if InCombatLockdown() then
         if h < 20 and not IsArena() and UseHealPotion() then return true end
-        if h < 40 and DoSpell("Кровь земли") then return true end
-        if h < 50 and HasRunes(100) and HasSpell("Захват рун") and DoSpell("Захват рун") then return true end
+        --if h < 40 and DoSpell("Кровь земли") then return true end
+        --if h < 50 and HasRunes(100) and HasSpell("Захват рун") and DoSpell("Захват рун") then return true end
     end
     if h < 50 and (InMelee() and (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) and HasRunes(011) and DoSpell("Удар смерти")) then return true end
     return false

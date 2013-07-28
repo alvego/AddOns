@@ -59,21 +59,10 @@ function GetSpellId(name, rank)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-local hasSpellList = {}
 function HasSpell(spellName)
-    local result = hasSpellList[spellName]
-    if nil == result then
-        local spell = GetSpellInfo(spellName)
-        result = (spell == spellName)
-        hasSpellList[spellName] = result
-    end
-    return result
+    local spell = GetSpellInfo(spellName)
+    return (spell == spellName)
 end
-local function UpdateHasSpell()
-    wipe(hasSpellList)
-end
-AttachEvent("ACTIVE_TALENT_GROUP_CHANGED", UpdateHasSpell)
-
 ------------------------------------------------------------------------------------------------------------------
 -- Use these spells to detect GCD
 local GCDSpells = {
