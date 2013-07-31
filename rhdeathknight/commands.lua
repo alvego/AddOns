@@ -12,10 +12,10 @@ SetCommand("freedom",
     end, 
     function() 
         if IsPlayerCasting() then return true end
-        if HasSpell(freedomSpell) and (not InGCD() and not IsReadySpell(freedomSpell)) then return true end
         if freedomItem == nil then
            freedomItem = (UnitFactionGroup("player") == "Horde" and "Медальон Орды" or "Медальон Альянса")
         end
+        if HasSpell(freedomSpell) and (not InGCD() and not IsReadySpell(freedomSpell)) then return true else return false end
         return not IsEquippedItem(freedomItem) or (not InGCD() and not IsReadyItem(freedomItem)) 
     end
 )
@@ -43,8 +43,8 @@ local stopTarget = false
 SetCommand("stop", 
     function() 
         if InGCD() and IsPlayerCasting() then return end
-        if HasDebuff("Ледяные оковы",1,"target") then return end
-        if (Runes(2) > 0 and UseSpell("Ледяные оковы", "target")) then 
+        if HasDebuff("Ледяные оковы",6,"target") then return end
+        if Runes(2) > 0 and UseSpell("Ледяные оковы", "target") then 
             stopTarget = true
             return 
         end

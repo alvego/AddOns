@@ -37,7 +37,8 @@ end
 ------------------------------------------------------------------------------------------------------------------
 
 local nointerruptBuffs = {"Мастер аур", "Дубовая кожа"}
-local sheepSpell = {"Превращение", "Сглаз"}
+local lichSpells = {"Превращение", "Сглаз", "Соблазн", "Страх", "Вой ужаса", "Контроль над разумом"}
+local conrLichSpells = {"Изгнание зла", "Сковывание нежити"}
 function TryInterrupt(target)
     if target == nil then target = "target" end
     if not IsValidTarget(target) then return false end
@@ -50,7 +51,9 @@ function TryInterrupt(target)
     end
     
     if not spell then return false end
-    
+
+    if tContains(conrLichSpells, spell) then RunMacroText("/cancelaura Перерождение") end
+
     if IsPvP() and not InInterruptRedList(spell) then return false end
     local t = endTime/1000 - GetTime()
 
@@ -72,33 +75,71 @@ function TryInterrupt(target)
         end
     end
     
+
+    if HasSpell("Отгрызть") and IsReadySpell("Отгрызть") and CanAttack(target) and (channel or t < 0.8) then 
+        if IsReadySpell("Прыжок") and InRange("Прыжок", target) then UseSpell("Прыжок", target) end
+        RunMacroText("/cast [@" ..target.."] Прыжок")
+        RunMacroText("/cast [@" ..target.."] Отгрызть")
+        if not IsReadySpell("Отгрызть") then
+            echo("Отгрызть"..m)
+            interruptTime = GetTime()
+            return false 
+        end
+    end
+
     if CanAttack(target) and (channel or t < 0.8) and UnitIsPlayer(target) and DoSpell("Хватка смерти", target) then 
         echo("Хватка смерти"..m)
         interruptTime = GetTime()
         return true 
     end
 
-    if GetUnitName("player") == GetUnitName(target .. "-target") and DoSpell("Антимагический панцирь") then 
+    if IsPvP() and IsHarmfulSpell(spell) and IsOneUnit("player", target .. "-target") and DoSpell("Антимагический панцирь") then 
         echo("Антимагический панцирь"..m)
         interruptTime = GetTime() + 5
         return true 
     end
     
-    if HasSpell("Перерождение") and tContains(sheepSpell, spell) and DoSpell("Перерождение") then 
+    if HasSpell("Перерождение") and IsOneUnit("player",target .. "-target") and tContains(lichSpells, spell) and DoSpell("Перерождение") then 
         echo("Перерождение"..m)
         interruptTime = GetTime() + 2
         return true 
     end
 end
 ------------------------------------------------------------------------------------------------------------------
-function UpdateAutoFreedom(event, ...)
-    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err, dispel = select(1, ...)
-    if sourceGUID == UnitGUID("player") and (type:match("^SPELL_CAST") and spellId and spellName)
-        and err and err:match("Действие невозможно")  
-        and (HasDebuff(ControlList, 3.8, "player") or not IsPvP()) then DoCommand("freedom") end
-end
-AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateAutoFreedom)
+local lichList = {
+"Сон",
+"Соблазн",
+"Страх", 
+"Вой ужаса", 
+"Устрашающий крик", 
+"Контроль над разумом", 
+"Глубинный ужас", 
+"Ментальный крик"
+}
 
+local freedomTime = 0
+function UpdateAutoFreedom(event, ...)
+    if HasDebuff(lichList, 2, "player") then 
+        if HasSpell("Перерождение") and IsReadySpell("Перерождение") then
+            print("lich")
+            DoCommand("lich") 
+        else
+            if not HasBuff("Перерождение") then  
+                print("lich->freedom")
+                DoCommand("freedom") 
+            end
+        end
+        freedomTime = GetTime()
+        return
+    end 
+    if HasDebuff(ControlList, 2, "player") then 
+        print("freedom")
+        DoCommand("freedom") 
+        freedomTime = GetTime()
+        return
+    end 
+end
+AttachUpdate(UpdateAutoFreedom, -1)
 ------------------------------------------------------------------------------------------------------------------
 function DoSpell(spellName, target, runes)
     return UseSpell(spellName, target)
