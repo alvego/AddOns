@@ -175,7 +175,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function TryProtect()
-    if not IsPvP() and InCombatLockdown() then
+    if InCombatLockdown() then
         if (UnitHealth100() < 50) then
             if DoSpell("Антимагический панцирь") then return true end
             if DoSpell("Незыблемость льда") then return true end
