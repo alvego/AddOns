@@ -66,6 +66,9 @@ function Idle()
 end
 
 function Pet()
+    if IsAttack() and IsReadySpell("Прыжок") and IsValidTarget("pet-target") then
+        RunMacroText("/cast [@pet-target] Прыжок")
+    end
     if not HasSpell("Цапнуть") then return end
     if IsReadySpell("Сжаться") and UnitHealth100("pet") < 50 then
         for i = 1, #TARGETS do
