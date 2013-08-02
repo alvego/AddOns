@@ -55,13 +55,13 @@ function Idle()
     -- if not Dotes() and not(IsAOE() or IsAttack()) then return end
     if IsAltKeyDown() == 1 and HasRunes(100) and DoSpell("Мор") then return end
     if HasRunes(100, true) and not HasBuff("Отчаянье") and DoSpell("Кровавый удар") then return end
-    if (IsAttack() or UnitMana("player") >= 100) and DoSpell(canMagic and "Лик смерти" or "Рунический удар") then return end
+    if (IsAttack() or UnitMana("player") >= 110) and DoSpell(canMagic and "Лик смерти" or "Рунический удар") then return end
     if IsAOE() and HasRunes(100) and DoSpell("Вскипание крови") then return end
     if Dotes() and HasRunes(011, IsAOE()) and DoSpell(UnitHealth100("player") < 85 and "Удар смерти" or "Удар Плети") then return end 
     if HasSpell("Костяной щит") and HasRunes(001) and not HasBuff("Костяной щит") and DoSpell("Костяной щит") then return end
     if HasRunes(100, true) and DoSpell("Кровавый удар") then return end
     if not InMelee() and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
-    if (IsAttack() or UnitMana("player") >= 80) and DoSpell(canMagic and "Лик смерти" or "Рунический удар") then return end
+    if (IsAttack() or UnitMana("player") >= 100) and DoSpell(canMagic and "Лик смерти" or "Рунический удар") then return end
     if DoSpell("Зимний горн") then return end
 end
 
