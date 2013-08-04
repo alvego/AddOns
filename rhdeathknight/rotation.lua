@@ -20,7 +20,7 @@ function Idle()
             TryInterrupt(TARGETS[i])
         end
     end
-    if IsPvP() and HasBuff() and HasClass(TARGETS, {"PALADIN", "PRIEST"}) and HasBuff("Перерождение") and not HasBuff("Перерождение", 6) then RunMacroText("/cancelaura Перерождение") end    
+    if IsPvP() and HasBuff() and HasClass(TARGETS, {"PALADIN", "PRIEST"}) and HasBuff("Перерождение") and not HasBuff("Перерождение", 7) then RunMacroText("/cancelaura Перерождение") end    
     if HasRunes(001) and not HasBuff(stanceBuff) and DoSpell("Власть нечестивости") then return end
 
     if IsPvP() and IsReadySpell("Темная власть") then
@@ -50,12 +50,12 @@ function Idle()
     
     if not HasMyDebuff("Кровавая чума", 1, "target") and HasRunes(001) and DoSpell("Удар чумы") then end
     if not HasMyDebuff("Озноб", 1, "target") and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
-    if Dotes() and InMelee() and UseEquippedItem("Карманные часы Феззика") then return end
+    if Dotes() and InMelee() and UseEquippedItem("Знак превосходства") then return end
     if IsControlKeyDown() == 1 and not GetCurrentKeyBoardFocus() and DoSpell("Призыв горгульи") then return end
-    -- if not Dotes() and not(IsAOE() or IsAttack()) then return end
+    if IsAltKeyDown() and not Dotes() and not(IsAOE() or IsAttack()) then return end
     if IsAltKeyDown() == 1 and HasRunes(100) and DoSpell("Мор") then return end
     if HasRunes(100, true) and not HasBuff("Отчаянье") and DoSpell("Кровавый удар") then return end
-    if (IsAttack() or UnitMana("player") >= 110) and DoSpell(canMagic and "Лик смерти" or "Рунический удар") then return end
+    if (IsAttack() or UnitMana("player") >= 80) and DoSpell(canMagic and "Лик смерти" or "Рунический удар") then return end
     if IsAOE() and HasRunes(100) and DoSpell("Вскипание крови") then return end
     if Dotes() and HasRunes(011, IsAOE()) and DoSpell(UnitHealth100("player") < 85 and "Удар смерти" or "Удар Плети") then return end 
     if HasSpell("Костяной щит") and HasRunes(001) and not HasBuff("Костяной щит") and DoSpell("Костяной щит") then return end
