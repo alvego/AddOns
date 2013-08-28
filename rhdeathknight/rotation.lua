@@ -46,6 +46,15 @@ function Idle()
     if not HasRunes(100) and  min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2)) > 4 and DoSpell("Кровоотвод") then return end
     -- Пытаемся мором продлить болезни
     if TryPestilence() then return end
+
+    if IsNeedTaunt() and TryTaunt("mouseover") then return end
+    if not IsPvP() and HasBuff("Власть льда") and InGroup() and InCombat(3) and (IsReadySpell("Темная власть") or IsReadySpell("Хватка смерти")) then
+        for i = 1, #TARGETS do
+            local t = TARGETS[i]
+            if UnitAffectingCombat(t) and TryTaunt(t) then return end
+        end
+    end
+
     local canMagic = CanMagicAttack("target")
     
     if not HasMyDebuff("Кровавая чума", 1, "target") and HasRunes(001) and DoSpell("Удар чумы") then end
@@ -55,16 +64,38 @@ function Idle()
     if IsAltKeyDown() and not Dotes() and not(IsAOE() or IsAttack()) then return end
     if IsAltKeyDown() == 1 and HasRunes(100) and DoSpell("Мор") then return end
     if HasRunes(100, true) and not HasBuff("Отчаянье") and DoSpell("Кровавый удар") then return end
-    if (IsAttack() or UnitMana("player") >= 80) and DoSpell(canMagic and "Лик смерти" or "Рунический удар") then return end
+    if (IsAttack() or UnitMana("player") >= 75) and DoSpell(canMagic and "Лик смерти" or "Рунический удар") then return end
     if IsAOE() and HasRunes(100) and DoSpell("Вскипание крови") then return end
     if Dotes() and HasRunes(011, IsAOE()) and DoSpell(UnitHealth100("player") < 85 and "Удар смерти" or "Удар Плети") then return end 
     if HasSpell("Костяной щит") and HasRunes(001) and not HasBuff("Костяной щит") and DoSpell("Костяной щит") then return end
     if HasRunes(100, true) and DoSpell("Кровавый удар") then return end
     if not InMelee() and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
-    if (IsAttack() or UnitMana("player") >= 100) and DoSpell(canMagic and "Лик смерти" or "Рунический удар") then return end
+    if (IsAttack() or UnitMana("player") >= 95) and DoSpell(canMagic and "Лик смерти" or "Рунический удар") then return end
     if DoSpell("Зимний горн") then return end
 end
 
+------------------------------------------------------------------------------------------------------------------
+local TauntTime = 0
+function TryTaunt(target)
+    if not CanAttack(target) then return false end
+    if UnitThreat("player",target) == 3 then return false end
+    if (GetTime() - TauntTime < 1.5) then return false end
+    local tt = UnitName(target .. "-target")
+    if not IsNeedTaunt() and (UnitIsPlayer(target) or not UnitExists(tt) or IsOneUnit("player", tt)) then return false end
+    if DoSpell("Темная власть", target) then 
+        TauntTime = GetTime()
+            chat("Темная власть на " .. target)
+        return true  
+    end
+    if DoSpell("Хватка смерти", target) then 
+        TauntTime = GetTime()
+            chat("Хватка смерти на " .. target)
+        return true  
+    end
+    return false
+end
+
+------------------------------------------------------------------------------------------------------------------
 function Pet()
     if IsAttack() and IsReadySpell("Прыжок") and IsValidTarget("pet-target") then
         RunMacroText("/cast [@pet-target] Прыжок")
@@ -287,3 +318,5 @@ function HasRunes(runes, strong, time)
     if r + g + b - a <= 0 then return true end
     return false;
 end
+
+------------------------------------------------------------------------------------------------------------------

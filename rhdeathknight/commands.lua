@@ -43,7 +43,7 @@ local stopTarget = false
 SetCommand("stop", 
     function() 
         if InGCD() and IsPlayerCasting() then return end
-        if HasDebuff("Ледяные оковы",6,"target") then return end
+        if HasDebuff("Ледяные оковы",7,"target") then return end
         if Runes(2) > 0 and UseSpell("Ледяные оковы", "target") then 
             stopTarget = true
             return 

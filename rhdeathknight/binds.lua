@@ -35,6 +35,11 @@ function InterruptToggle()
 end
 
 ------------------------------------------------------------------------------------------------------------------
+function IsNeedTaunt()
+    return  IsMouseButtonDown(5) == 1
+end
+
+------------------------------------------------------------------------------------------------------------------
 
 local nointerruptBuffs = {"Мастер аур", "Дубовая кожа"}
 local lichSpells = {"Превращение", "Сглаз", "Соблазн", "Страх", "Вой ужаса", "Контроль над разумом"}
@@ -117,8 +122,14 @@ local lichList = {
 "Ментальный крик"
 }
 
+    
+ExceptionControlList = { -- > 4
+"Ошеломление", -- 20s
+}
+
 local freedomTime = 0
 function UpdateAutoFreedom(event, ...)
+    if GetTime() - freedomTime < 1.5 then return end
     if HasDebuff(lichList, 2, "player") then 
         if HasSpell("Перерождение") and IsReadySpell("Перерождение") then
             print("lich")
@@ -132,7 +143,7 @@ function UpdateAutoFreedom(event, ...)
         freedomTime = GetTime()
         return
     end 
-    if HasDebuff(ControlList, 2, "player") then 
+    if HasDebuff(ControlList, 2, "player") and (not HasDebuff(ExceptionControlList) or IsAttack()) then 
         print("freedom")
         DoCommand("freedom") 
         freedomTime = GetTime()
