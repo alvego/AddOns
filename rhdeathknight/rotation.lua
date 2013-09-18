@@ -70,19 +70,18 @@ function Idle()
     -- гарга по контролу
     if UnitHealth100("target") > 20 and IsControlKeyDown() == 1 and not GetCurrentKeyBoardFocus() and DoSpell("Призыв горгульи") then return end
     -- Если нет болезней и не аое, дальше не идем
-    if IsAltKeyDown() and not Dotes() and not(IsAOE() or IsAttack()) then return end
+    if not Dotes() and not(IsAOE() or IsAttack()) then return end
     --Если есть свободная руна крови (не смерти) сливаем сразу, чтою откадешилась до мора
     --if HasRunes(100, true) and not HasBuff("Отчаянье") and DoSpell("Кровавый удар") then return end
     -- если есть прок руника. (под вопросом)
-    if (IsAttack() or UnitMana("player") >= 40) and DoSpell("Рунический удар") then return end
-
-    if (IsAttack() or UnitMana("player") >= 75) and DoSpell(canMagic and "Лик смерти" or "Рунический удар") then return end
+    if (IsAttack() or UnitMana("player") >= 60) and DoSpell("Рунический удар") then return end
+    if canMagic and (IsAttack() or UnitMana("player") >= 80) and DoSpell("Лик смерти") then return end
     if IsAOE() and HasRunes(100) and DoSpell("Вскипание крови") then return end
     if Dotes() and HasRunes(011, IsAOE()) and DoSpell(UnitHealth100("player") < 85 and "Удар смерти" or "Удар Плети") then return end 
     if HasSpell("Костяной щит") and HasRunes(001) and not HasBuff("Костяной щит") and DoSpell("Костяной щит") then return end
     if HasRunes(100, true) and DoSpell("Кровавый удар") then return end
     if not InMelee() and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
-    if (IsAttack() or UnitMana("player") >= 95) and DoSpell(canMagic and "Лик смерти" or "Рунический удар") then return end
+    if canMagic and (IsAttack() or UnitMana("player") >= 100) and DoSpell("Лик смерти") then return end
     if DoSpell("Зимний горн") then return end
 end
 
@@ -138,7 +137,7 @@ end
 function TryHealing()
     local h = CalculateHP("player")
     if h < 40 and UnitMana("player") >= 40 and HasSpell("Цапнуть") and UseSpell("Смертельный союз") then return end
-    if HasBuff("Перерождение") and UnitHealth100("player") < 85 and DoSpell("Лик смерти", "player") then return end
+    if HasBuff("Перерождение") and UnitHealth100("player") < 100 and DoSpell("Лик смерти", "player") then return end
     if InCombatLockdown() then
         if h < 20 and not IsArena() and UseHealPotion() then return true end
         if HasSpell("Кровь земли") and h < 40 and DoSpell("Кровь земли") then return true end
@@ -147,8 +146,8 @@ function TryHealing()
             return DoSpell("Лик смерти", "player") 
         end
     end
-    if h < 50 and (InMelee() and (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) and HasRunes(011) and DoSpell("Удар смерти")) then return true end
-    if UnitExists("pet") and UnitHealth100("pet") < 70 and DoSpell("Лик смерти", "pet") then return end
+    if h < 65 and (InMelee() and (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) and HasRunes(011) and DoSpell("Удар смерти")) then return true end
+    if UnitExists("pet") and UnitHealth100("pet") < 40 and DoSpell("Лик смерти", "pet") then return end
     return false
 end
 ------------------------------------------------------------------------------------------------------------------
@@ -183,7 +182,7 @@ function TryTarget(useFocus)
         if not IsAttack()  -- если в авторежиме
             and (
             not IsValidTarget("target")  -- вообще не цель
-            or not ActualDistance("target")  -- далековато
+            or (not IsArena() and not ActualDistance("target"))  -- далековато
             or (not IsPvP() and not UnitAffectingCombat("target")) -- моб не в бою
             or (IsPvP() and not UnitIsPlayer("target")) -- не игрок в пвп
             )  then 
@@ -203,12 +202,12 @@ function TryTarget(useFocus)
             end
         end
         
-        if not IsValidTarget("focus") or IsOneUnit("target", "focus") or not ActualDistance("focus") then
+        if not IsValidTarget("focus") or IsOneUnit("target", "focus") or (not IsArena() and not ActualDistance("focus")) then
             if UnitExists("focus") then RunMacroText("/clearfocus") end
         end
     end
 
-    if not IsArena() then
+    if IsArena() then
         if IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
             if IsOneUnit("target","arena1") then RunMacroText("/focus arena2") end
             if IsOneUnit("target","arena2") then RunMacroText("/focus arena1") end
@@ -221,8 +220,8 @@ end
 function TryProtect()
     if InCombatLockdown() then
         if (UnitHealth100() < 50) then
-            if DoSpell("Антимагический панцирь") then return true end
             if DoSpell("Незыблемость льда") then return true end
+            if DoSpell("Антимагический панцирь") then return true end
         end
     end
     return false;
@@ -248,16 +247,23 @@ function TryPestilence()
         return true
     end
 
-    if not IsValidTarget("focus") then return false end
-    if not HasRunes(100) then return false end
 
-    if InMelee("focus") and Dotes(0.2, "focus") and not Dotes(1) then 
+    if not HasRunes(100) then return false end
+    if InMelee() and Dotes() and IsAltKeyDown() then 
+        DoSpell("Мор") 
+        return true
+    end
+
+
+    if not IsValidTarget("focus") then return false end
+    
+    if InMelee("focus") and Dotes(0.2, "focus") and not Dotes(2) then 
         DoSpell("Мор", "focus")  
         return true
     end
 
     if HasRunes(100) and InMelee() and (CheckInteractDistance("focus", 2) == 1) 
-        and not Dotes(1, "focus") and Dotes() then 
+        and not Dotes(2, "focus") and Dotes() then 
          DoSpell("Мор")
         return true 
     end
