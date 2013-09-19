@@ -40,7 +40,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 -- Вызывает функцию Idle если таковая имеется, с заданным рекомендованным интервалом UpdateInterval, 
 -- при включенной Авто-ротации
-local iTargets = {"target", "mouseover"}
+local iTargets = {"target", "focus", "mouseover"}
 TARGETS = iTargets
 ITARGETS = iTargets
 UNITS = {"player"}
@@ -215,6 +215,22 @@ function UpdateSapped(event, ...)
 	end
 end
 AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateSapped)
+------------------------------------------------------------------------------------------------------------------
+-- Alert опасных спелов
+local checkedTargets = {"target", "focus", "arena1", "arena2", "mouseover"}
+function UpdateSpellAlert(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err = select(1, ...)
+    if InAlertList(spellName) then
+        for i=1,#checkedTargets do
+            local t = checkedTargets[i]
+            if IsValidTarget(t) and UnitGUID(t) == sourceGUID then
+                Notify("|cffff0000" .. spellName .. " ("..(sourceName or "unknown")..")|r")
+                break
+            end
+        end
+    end
+end
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateSpellAlert)
 ------------------------------------------------------------------------------------------------------------------
 -- Автоматическая продажа хлама и починка
 local function SellGrayAndRepair()

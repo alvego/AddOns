@@ -152,6 +152,47 @@ function UpdateAutoFreedom(event, ...)
 end
 AttachUpdate(UpdateAutoFreedom, -1)
 ------------------------------------------------------------------------------------------------------------------
+local physicDamage = {
+    "Вихрь клинков", 
+    "Гнев карателя",
+}
+local magicDamage = {
+    "Стылая кровь",
+    "Гнев карателя",
+}
+local checkedTargets = {"target", "focus", "arena1", "arena2", "mouseover"}
+local defPhys = 0
+local defMagic = 0;
+function UpdateDefense()
+    if GetTime() - defPhys < 5 then 
+        DoSpell("Незыблемость льда")
+        if Runes(2) > 0 and not HasBuff("Власть льда") then DoSpell("Власть льда") end
+    end
+    if GetTime() - defMagic < 5 then 
+        if not not HasBuff("Зона антимагии") then DoSpell("Антимагический панцирь") end
+
+        if HasSpell("Зона антимагии") and (IsSpellInUse("Антимагический панцирь") and not HasBuff("Антимагический панцирь")) then
+            DoSpell("Зона антимагии")
+        end
+    end
+end
+AttachUpdate(UpdateDefense, -1)
+
+function CheckDefense(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err = select(1, ...)
+    
+    for i=1,#checkedTargets do
+        local t = checkedTargets[i]
+        if IsValidTarget(t) and UnitGUID(t) == sourceGUID and (IsOneUnit("player", t .. "-target") or InMelee(t)) then
+            if tContains(physicDamage, spellName) then defPhys = GetTime() end
+            if tContains(magicDamage, spellName) then defMagic = GetTime() end
+            break
+        end
+    end
+
+end
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", CheckDefense)
+------------------------------------------------------------------------------------------------------------------
 function DoSpell(spellName, target, runes)
     return UseSpell(spellName, target)
 end

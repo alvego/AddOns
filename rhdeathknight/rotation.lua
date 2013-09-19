@@ -4,7 +4,11 @@ local peaceBuff = {"Пища", "Питье"}
 local stanceBuff = {"Власть крови", "Власть льда", "Власть нечестивости"}
 local steathClass = {"ROGUE", "DRUID"}
 local UndeadFearClass = {"PALADIN", "PRIEST"}
-
+local burstBuff = { 
+    "Гнев карателя", 
+    "Стылая кровь",
+    "Гнев карателя"
+}
 function Idle()
 
     if IsAOE() and HasSpell("Взрыв трупа") and IsReadySpell("Взрыв трупа") and UnitIsDead("mouseover") and UnitMana("player") >= 40 then 
@@ -23,7 +27,7 @@ function Idle()
     end
     if IsPvP() and HasBuff() and HasClass(TARGETS, UndeadFearClass) and HasBuff("Перерождение") and not HasBuff("Перерождение", 8) then RunMacroText("/cancelaura Перерождение") end    
     
-    if HasRunes(001) and not HasBuff(stanceBuff) and DoSpell("Власть нечестивости") then return end
+    if HasRunes(001) and (not HasBuff(stanceBuff) or (IsAttack() and not HasBuff("Власть нечестивости") and UnitHealth100("player") > 80) ) and DoSpell("Власть нечестивости") then return end
 
     if IsPvP() and IsReadySpell("Темная власть") then
         for i = 1, #TARGETS do
@@ -50,7 +54,7 @@ function Idle()
     if not HasRunes(100, true) and  min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2)) > 4 and DoSpell("Кровоотвод") then return end
     -- Пытаемся мором продлить болезни
     if TryPestilence() then return end
-
+    if UnitMana("player") <= 30 and DoSpell("Зимний горн") then return end
     if IsNeedTaunt() and TryTaunt("mouseover") then return end
     if not IsPvP() and HasBuff("Власть льда") and InGroup() and InCombat(3) and (IsReadySpell("Темная власть") or IsReadySpell("Хватка смерти")) then
         for i = 1, #TARGETS do
@@ -58,7 +62,12 @@ function Idle()
             if UnitAffectingCombat(t) and TryTaunt(t) then return end
         end
     end
-
+    if IsPvP() and HasRunes(100) and IsReadySpell("Удушение") then
+        for i = 1, #ITARGETS do
+            local t = ITARGETS[i]
+            if HasBuff(burstBuff, 4, t) and DoSpell("Удушение", t) then return end
+        end
+    end
     local canMagic = CanMagicAttack("target")
     if canMagic and IsPvP() and not InMelee() and not HasDebuff("Ледяные оковы",7,"target") and HasRunes(010) and UseSpell("Ледяные оковы", "target") then return end
     -- накладываем болезни
@@ -219,7 +228,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function TryProtect()
     if InCombatLockdown() then
-        if (UnitHealth100() < 50) then
+        if (UnitHealth100() < (IsPvP() and 30 or 50)) then
             if DoSpell("Незыблемость льда") then return true end
             if DoSpell("Антимагический панцирь") then return true end
         end
