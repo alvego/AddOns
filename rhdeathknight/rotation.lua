@@ -27,7 +27,7 @@ function Idle()
     end
     if IsPvP() and HasBuff() and HasClass(TARGETS, UndeadFearClass) and HasBuff("Перерождение") and not HasBuff("Перерождение", 8) then RunMacroText("/cancelaura Перерождение") end    
     
-    if HasRunes(001) and (not HasBuff(stanceBuff) or (IsAttack() and not HasBuff("Власть нечестивости") and UnitHealth100("player") > 80) ) and DoSpell("Власть нечестивости") then return end
+    if HasRunes(001) and (not HasBuff(stanceBuff) or (IsPvP() and IsAttack() and not HasBuff("Власть нечестивости") and UnitHealth100("player") > 80) ) and DoSpell("Власть нечестивости") then return end
 
     if IsPvP() and IsReadySpell("Темная власть") then
         for i = 1, #TARGETS do
@@ -116,9 +116,17 @@ function TryTaunt(target)
 end
 
 ------------------------------------------------------------------------------------------------------------------
+local totems = { "Тотем оков земли", "Тотем прилива маны", "Тотем заземления" }
 function Pet()
     if not HasSpell("Цапнуть") then return end
-    RunMacroText("/petattack")   -- подумать над фокусом
+
+    if UnitExists("mouseover") and tContains(totems, UnitName("mouseover")) then
+        RunMacroText("/petattack mouseover")
+    end
+    if not IsValidTarget("pet-target") or IsAttack() then
+        RunMacroText("/petattack target")
+    end
+    --RunMacroText("/petattack")   -- подумать над фокусом
     if IsReadySpell("Сжаться") and UnitHealth100("pet") < 50 then
         for i = 1, #TARGETS do
             local t = TARGETS[i]

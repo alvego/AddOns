@@ -159,6 +159,7 @@ local physicDamage = {
 local magicDamage = {
     "Стылая кровь",
     "Гнев карателя",
+    "Призыв горгульи"
 }
 local checkedTargets = {"target", "focus", "arena1", "arena2", "mouseover"}
 local defPhys = 0
