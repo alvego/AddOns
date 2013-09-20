@@ -27,7 +27,7 @@ function Idle()
     end
     if IsPvP() and HasBuff() and HasClass(TARGETS, UndeadFearClass) and HasBuff("Перерождение") and not HasBuff("Перерождение", 8) then RunMacroText("/cancelaura Перерождение") end    
     
-    if HasRunes(001) and (not HasBuff(stanceBuff) or (IsPvP() and IsAttack() and not HasBuff("Власть нечестивости") and UnitHealth100("player") > 80) ) and DoSpell("Власть нечестивости") then return end
+    if HasRunes(100) and (not HasBuff(stanceBuff) or (IsPvP() and IsAttack() and not HasBuff("Власть крови") and UnitHealth100("player") > 80) ) and DoSpell("Власть крови") then return end
 
     if IsPvP() and IsReadySpell("Темная власть") then
         for i = 1, #TARGETS do
@@ -87,6 +87,7 @@ function Idle()
     if (IsAttack() or UnitMana("player") >= 60) and DoSpell("Рунический удар") then return end
     if canMagic and (IsAttack() or UnitMana("player") >= 80) and DoSpell("Лик смерти") then return end
     if IsAOE() and HasRunes(100) and DoSpell("Вскипание крови") then return end
+    if not HasBuff("Отчаяние") and HasRunes(100, true) then DoSpell("Кровавый удар") end
     if Dotes() and HasRunes(011, IsAOE()) and DoSpell(UnitHealth100("player") < 85 and "Удар смерти" or "Удар Плети") then return end 
     if HasRunes(100, true) and DoSpell("Кровавый удар") then return end
     if not InMelee() and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
