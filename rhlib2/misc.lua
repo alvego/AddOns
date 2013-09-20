@@ -65,7 +65,7 @@ notifyFrame:SetScript('OnUpdate', notifyFrame_OnUpdate)
 notifyFrame:Hide()
 notifyFrame.text = notifyFrame:CreateFontString(nil, 'BACKGROUND', 'PVPInfoTextFont')
 notifyFrame.text:SetAllPoints()
-notifyFrame:SetPoint('CENTER', 100, 200)
+notifyFrame:SetPoint('CENTER', 0, -100)
 
 -- Debug messages.
 function Notify(message)
