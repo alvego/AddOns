@@ -55,6 +55,7 @@ function Idle()
     -- Пытаемся мором продлить болезни
     if TryPestilence() then return end
     if UnitMana("player") <= 30 and DoSpell("Зимний горн") then return end
+    if HasSpell("Костяной щит") and HasRunes(001) and not HasBuff("Костяной щит") and DoSpell("Костяной щит") then return end
     if IsNeedTaunt() and TryTaunt("mouseover") then return end
     if not IsPvP() and HasBuff("Власть льда") and InGroup() and InCombat(3) and (IsReadySpell("Темная власть") or IsReadySpell("Хватка смерти")) then
         for i = 1, #TARGETS do
@@ -87,7 +88,6 @@ function Idle()
     if canMagic and (IsAttack() or UnitMana("player") >= 80) and DoSpell("Лик смерти") then return end
     if IsAOE() and HasRunes(100) and DoSpell("Вскипание крови") then return end
     if Dotes() and HasRunes(011, IsAOE()) and DoSpell(UnitHealth100("player") < 85 and "Удар смерти" or "Удар Плети") then return end 
-    if HasSpell("Костяной щит") and HasRunes(001) and not HasBuff("Костяной щит") and DoSpell("Костяной щит") then return end
     if HasRunes(100, true) and DoSpell("Кровавый удар") then return end
     if not InMelee() and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
     if canMagic and (IsAttack() or UnitMana("player") >= 100) and DoSpell("Лик смерти") then return end
@@ -239,6 +239,13 @@ function TryProtect()
         if (UnitHealth100() < (IsPvP() and 30 or 50)) then
             if DoSpell("Незыблемость льда") then return true end
             if DoSpell("Антимагический панцирь") then return true end
+        end
+        if IsPvP() 
+            and UnitHealth100("player") < 55 
+            and Runes(2) > 0 
+            and not HasBuff("Власть льда") 
+            and DoSpell("Власть льда") then 
+            return true 
         end
     end
     return false;
