@@ -32,11 +32,6 @@ SetCommand("lich",
         return not HasSpell("Перерождение") or  HasBuff("Перерождение", 1, "player") or not IsSpellNotUsed("Перерождение", 1) 
     end
 )
-------------------------------------------------------------------------------------------------------------------
-SetCommand("dg", 
-   function() return DoSpell("Хватка смерти") end, 
-   function() return not InGCD() and not IsReadySpell("Хватка смерти") end
-)
 
 ------------------------------------------------------------------------------------------------------------------
 local stopTarget = false
@@ -53,6 +48,27 @@ SetCommand("stop",
         if not CanAttack("target") then return true end
         if stopTarget then
             stopTarget = false
+            return true
+        end
+        return false  
+    end
+)
+
+------------------------------------------------------------------------------------------------------------------
+local stopFocus = false
+SetCommand("stopFocus", 
+    function() 
+        if InGCD() and IsPlayerCasting() then return end
+        if HasDebuff("Ледяные оковы",7,"focus") then return end
+        if Runes(2) > 0 and UseSpell("Ледяные оковы", "focus") then 
+            stopFocus = true
+            return 
+        end
+    end, 
+    function() 
+        if not CanAttack("focus") then return true end
+        if stopFocus then
+            stopFocus = false
             return true
         end
         return false  

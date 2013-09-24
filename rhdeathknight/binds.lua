@@ -66,7 +66,14 @@ function TryInterrupt(target)
     if channel and t < 0.7 then return false end
 
     m = " -> " .. spell .. " ("..target..")"
-    
+
+    if not IsArena() and CanAttack(target) and (channel or t < 1.8) and IsOneUnit(target, "mouseover") 
+        and (GetUnitName("player") == GetUnitName(target .. "-target") or  UnitClassification(target) == "worldboss") and UseSlot(6) then 
+        echo("Наременная граната"..m)
+        interruptTime = GetTime()+2
+        return true 
+    end
+
     if not notinterrupt and not HasBuff(nointerruptBuffs, 0.1, target) and CanMagicAttack(target) then 
         if (channel or t < 0.8) and InMelee(target) and DoSpell("Заморозка разума", target) then 
             echo("Заморозка разума"..m)

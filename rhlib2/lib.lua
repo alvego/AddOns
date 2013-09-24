@@ -65,11 +65,12 @@ local function OnUpdate(frame, elapsed)
     else
         UpdateInterval = 0.7
     end
-    if IsAttack() and (Paused or not UnitExists("target") or UnitIsDeadOrGhost("target"))  then 
+    if IsAttack() then 
         UpdateInterval = 0 
     end
     if LastUpdate < UpdateInterval then return end -- для снижения нагрузки на проц
     LastUpdate = 0
+    
     for i = 1, #UpdateList do
         local upd = UpdateList[i]
         if UpdateInterval == 0 then

@@ -11,9 +11,6 @@ local burstBuff = {
 }
 function Idle()
 
-    if IsAOE() and HasSpell("Взрыв трупа") and IsReadySpell("Взрыв трупа") and UnitIsDead("mouseover") and UnitMana("player") >= 40 then 
-        RunMacroText("/cast [@mouseover] Взрыв трупа")
-    end  
     if IsAttack() then 
         if CanExitVehicle() then VehicleExit() return end
         if IsMounted() then Dismount() return end 
@@ -70,6 +67,7 @@ function Idle()
         end
     end
     local canMagic = CanMagicAttack("target")
+    if canMagic and UseSlot(10) then return end
     if canMagic and IsPvP() and not InMelee() and not HasDebuff("Ледяные оковы",7,"target") and HasRunes(010) and UseSpell("Ледяные оковы", "target") then return end
     -- накладываем болезни
     if not HasMyDebuff("Кровавая чума", 1, "target") and HasRunes(001) and DoSpell("Удар чумы") then return end
@@ -78,7 +76,7 @@ function Idle()
     if Dotes() and InMelee() and UseEquippedItem("Знак превосходства") then return end
     if HasSpell("Кровавое неистовство") and Dotes() and InMelee() and UseSpell("Кровавое неистовство") then return end
     -- гарга по контролу
-    if UnitHealth100("target") > 20 and IsControlKeyDown() == 1 and not GetCurrentKeyBoardFocus() and DoSpell("Призыв горгульи") then return end
+    if IsControlKeyDown() == 1 and not GetCurrentKeyBoardFocus() and DoSpell("Призыв горгульи") then return end
     -- Если нет болезней и не аое, дальше не идем
     if not Dotes() and not(IsAOE() or IsAttack()) then return end
     --Если есть свободная руна крови (не смерти) сливаем сразу, чтою откадешилась до мора
@@ -121,11 +119,11 @@ local totems = { "Тотем оков земли", "Тотем прилива м
 function Pet()
     if not HasSpell("Цапнуть") then return end
 
-    if UnitExists("mouseover") and tContains(totems, UnitName("mouseover")) then
+    if UnitExists("mouseover") and tContains(totems, UnitName("mouseover"))  then
         RunMacroText("/petattack mouseover")
     end
     if not IsValidTarget("pet-target") or IsAttack() then
-        RunMacroText("/petattack target")
+        RunMacroText("/petattack " .. ((IsValidTarget("focus") and IsAltKeyDown() == 1) and "[@focus]" or "[@target]"))
     end
     --RunMacroText("/petattack")   -- подумать над фокусом
     if IsReadySpell("Сжаться") and UnitHealth100("pet") < 50 then
@@ -182,7 +180,7 @@ function TryTarget(useFocus)
         for i = 1, #TARGET do
             local t = TARGET[i]
             if t and (UnitAffectingCombat(t) or IsPvP()) and ActualDistance(t) and (not IsPvP() or UnitIsPlayer(t))  then 
-                RunMacroText("/startattack " .. target) 
+                RunMacroText("/startattack [@" .. target .. "]") 
                 break
             end
         end
