@@ -265,7 +265,8 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateTargetPosition)
 local badSpellTarget = {}
 local inCastSpells = {"Трепка", "Рунический удар", "Удар героя", "Рассекающий удар", "Гиперскоростное ускорение", "Нарукавная зажигательная ракетница"} -- TODO: Нужно уточнить и дополнить.
 function UseSpell(spellName, target)
-    local dump = false --spellName == "Кровоотвод"
+    local dump = false --spellName == "Длань защиты"
+    if dump then print("Пытаемся прожать", spellName, "на", target) end
     --if spellName == "Священный щит" then error("Щит") end
     -- Не мешаем выбрать область для спела (нажат вручную)
     if SpellIsTargeting() then 

@@ -74,8 +74,13 @@ SetCommand("fstun",
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("sv", 
-   function() return DoSpell("Длань защиты","Ириха") end, 
-   function() return not InForbearance("Ириха") and not InGCD() and not IsReadySpell("Длань защиты") end
+   function() 
+      print("Боб на Ириху!")
+      --RunMacroText("/target Ириха")
+      RunMacroText("/cast [@Ириха] Длань защиты")
+      --RunMacroText("/targetlasttarget")
+   end, 
+   function() return HasBuff("Длань защиты", 1, "Ириха") end
 )
 
 ------------------------------------------------------------------------------------------------------------------

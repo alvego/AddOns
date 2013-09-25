@@ -2,6 +2,7 @@
 ------------------------------------------------------------------------------------------------------------------
 local holyShieldTime  =  0
 local steathClass = {"ROGUE", "DRUID"}
+local reflectBuff = {"Отражение заклинания", "Эффект тотема заземления", "Рунический покров"}
 function Idle()
     if IsAttack() then 
         if CanExitVehicle() then VehicleExit() return end
@@ -11,9 +12,10 @@ function Idle()
     if IsMouseButtonDown(3) and TryTaunt("mouseover") then return end
 
     if IsReadySpell("Длань возмездия") then
-        for i = 1, #TARGETS do
-            local t = TARGETS[i]
-            if UnitIsPlayer(t) and tContains(steathClass, GetClass(t)) and not InRange("Покаяние", t) and not HasDebuff("Длань возмездия", 1, t) and DoSpell("Длань возмездия", t) then return end
+        for i = 1, #ITARGETS do
+            local t = ITARGETS[i]
+            if UnitIsPlayer(t) and ((tContains(steathClass, GetClass(t)) and not InRange("Покаяние", t)) or HasBuff(reflectBuff, 1, t)) 
+                 and not HasDebuff("Длань возмездия", 1, t) and DoSpell("Длань возмездия", t) then return end
         end
     end
     
@@ -128,7 +130,7 @@ function Retribution()
             if CanHeal(u) and HasDebuff(redDispelList, 2, u) and TryDispel(u) then return end
         end
     end
-
+RunMacroText("/startattack")
     if UnitHealth100("player") < 50 and UseItem("Камень здоровья из Скверны") then return end
     if UnitMana100("player") < 20 and not HasBuff("Печать мудрости") and DoSpell("Печать мудрости") then return end
     if UnitMana100("player") > 70 then RunMacroText("/cancelaura Печать мудрости") end
@@ -272,7 +274,7 @@ function TryTarget()
         end
     end
 
-    if not IsArena() then
+    if IsArena() then
         if IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
             if IsOneUnit("target","arena1") then RunMacroText("/focus arena2") end
             if IsOneUnit("target","arena2") then RunMacroText("/focus arena1") end
