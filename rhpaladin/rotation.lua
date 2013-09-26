@@ -160,7 +160,7 @@ RunMacroText("/startattack")
     if CanAttack(tagret) and UnitMana100("player") > 20 and not InMelee(target) and HasDebuff(rootDispelList, 1, "player") and TryDispel("player") then return end
     if InMelee(target) and DoSpell("Божественная буря") then return end
     if DoSpell("Удар воина Света", target) then return end
-    if IsEquippedItem("Обломок треснувших ворот Цитадели") and DoSpell("Щит праведности", target) then return end
+    if IsEquippedItem("Защитник хладных душ") and DoSpell("Щит праведности", target) then return end
     if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    
     if UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
     if IsReadySpell("Священный щит") and IsSpellNotUsed("Священный щит", 3) and (IsPvP() or (UnitThreat("player") == 3 and UnitHealth100("player") < 95)) and (GetTime() - holyShieldTime > 10) then
@@ -227,6 +227,7 @@ function TryHealing()
             end
         end
         if h < 20 and DoSpell("Возложение рук",u) then return end
+        if IsEquippedItem("Защитник хладных душ") and h < 95 and HasBuff("Искусство войны") and not IsFinishHim("target") and DoSpell("Вспышка Света",u) then return end
         if h < 85 and HasBuff("Искусство войны") and (not IsFinishHim("target") and not IsReadySpell("Экзорцизм") or h < 70 ) and DoSpell("Вспышка Света",u) then return end
     end
     return false
