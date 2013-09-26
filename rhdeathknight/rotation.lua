@@ -3,6 +3,7 @@
 local peaceBuff = {"Пища", "Питье"}
 local stanceBuff = {"Власть крови", "Власть льда", "Власть нечестивости"}
 local steathClass = {"ROGUE", "DRUID"}
+local reflectBuff = {"Отражение заклинания", "Эффект тотема заземления", "Рунический покров"}
 local UndeadFearClass = {"PALADIN", "PRIEST"}
 local burstBuff = { 
     "Гнев карателя", 
@@ -27,9 +28,9 @@ function Idle()
     if HasRunes(100) and (not HasBuff(stanceBuff) or (IsPvP() and IsAttack() and not HasBuff("Власть крови") and UnitHealth100("player") > 80) ) and DoSpell("Власть крови") then return end
 
     if IsPvP() and IsReadySpell("Темная власть") then
-        for i = 1, #TARGETS do
-            local t = TARGETS[i]
-            if UnitIsPlayer(t) and tContains(steathClass, GetClass(t)) and not InRange("Ледяные оковы", t) and not HasDebuff("Темная власть", 1, t) and DoSpell("Темная власть", t) then return end
+        for i = 1, #ITARGETS do
+            local t = ITARGETS[i]
+            if UnitIsPlayer(t) and ((tContains(steathClass, GetClass(t)) and not InRange("Ледяные оковы", t)) or HasBuff(reflectBuff, 1, t)) and not HasDebuff("Темная власть", 1, t) and DoSpell("Темная власть", t) then return end
         end
     end
     if TryHealing() then return end
