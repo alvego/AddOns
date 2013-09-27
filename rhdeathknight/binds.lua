@@ -87,7 +87,7 @@ function TryInterrupt(target)
         RunMacroText("/cast [@" ..target.."] Отгрызть")
         if not IsReadySpell("Отгрызть") then
             echo("Отгрызть"..m)
-            interruptTime = GetTime()
+            interruptTime = GetTime()+2
             return false 
         end
     end
@@ -99,7 +99,7 @@ function TryInterrupt(target)
     end
 
     if not IsArena() and CanAttack(target) and (channel or t < 1.8) and t > 0.5 and IsOneUnit(target, "mouseover") 
-        and (IsOneUnit("player" , target .. "-target") or  UnitClassification(target) == "worldboss") and UseSlot(6) then 
+        and (UnitIsPlayer(target) or UnitClassification(target) == "worldboss") and UseSlot(6) then 
         echo("Наременная граната"..m)
         interruptTime = GetTime()+2
         return true 
