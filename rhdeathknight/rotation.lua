@@ -11,7 +11,7 @@ local burstBuff = {
     "Гнев карателя"
 }
 function Idle()
-
+    
     if IsAttack() then 
         if CanExitVehicle() then VehicleExit() return end
         if IsMounted() then Dismount() return end 
@@ -23,7 +23,21 @@ function Idle()
             TryInterrupt(TARGETS[i])
         end
     end
-    if IsPvP() and HasBuff() and HasClass(TARGETS, UndeadFearClass) and HasBuff("Перерождение") and not HasBuff("Перерождение", 8) then RunMacroText("/cancelaura Перерождение") end    
+    if not IsArena() and InParty() and IsReadySpell("Воскрешение союзника") then
+        local units = GetGroupUnits()
+        for i=1,#units do
+            local u = units[i]
+            if UnitExists(u) and UnitIsPlayer(u) 
+                and not UnitIsAFK(u) and not UnitIsFeignDeath(u) 
+                and not UnitIsEnemy("player",u) and UnitIsDead(u) 
+                and not UnitIsGhost(u) and UnitIsConnected(u) 
+                and IsVisible(u) and InRange("Воскрешение союзника", u) then 
+                UseSpell("Воскрешение союзника", u) 
+                break 
+            end
+        end
+    end
+    if IsPvP() and HasClass(TARGETS, UndeadFearClass) and not HasBuff("Антимагический панцирь") and HasBuff("Перерождение") and not HasBuff("Перерождение", 8) then RunMacroText("/cancelaura Перерождение") end    
     
     if HasRunes(100) and (not HasBuff(stanceBuff) or (IsPvP() and IsAttack() and not HasBuff("Власть крови") and UnitHealth100("player") > 80) ) and DoSpell("Власть крови") then return end
 
@@ -52,7 +66,7 @@ function Idle()
     if not HasRunes(100, true) and  min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2)) > 4 and DoSpell("Кровоотвод") then return end
     -- Пытаемся мором продлить болезни
     if TryPestilence() then return end
-    if UnitMana("player") <= 30 and DoSpell("Зимний горн") then return end
+    if UnitMana("player") <= 70 and DoSpell("Зимний горн") then return end
     if HasSpell("Костяной щит") and HasRunes(001) and not HasBuff("Костяной щит") and DoSpell("Костяной щит") then return end
     if IsNeedTaunt() and TryTaunt("mouseover") then return end
     if not IsPvP() and HasBuff("Власть льда") and InGroup() and InCombat(3) and (IsReadySpell("Темная власть") or IsReadySpell("Хватка смерти")) then
@@ -159,7 +173,7 @@ function TryHealing()
         if h < 20 and not IsArena() and UseHealPotion() then return true end
         if HasSpell("Кровь земли") and h < 40 and DoSpell("Кровь земли") then return true end
         --if h < 50 and HasRunes(100) and HasSpell("Захват рун") and DoSpell("Захват рун") then return true end
-        if HasSpell("Перерождение") and IsReadySpell("Перерождение") and h < 50 and UnitMana("player") >= 40 and DoSpell("Перерождение") then 
+        if (not IsPvP() or not HasClass(TARGETS, UndeadFearClass) or HasBuff("Антимагический панцирь")) and HasSpell("Перерождение") and IsReadySpell("Перерождение") and h < 60 and UnitMana("player") >= 40 and DoSpell("Перерождение") then 
             return DoSpell("Лик смерти", "player") 
         end
     end

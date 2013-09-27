@@ -67,13 +67,6 @@ function TryInterrupt(target)
 
     m = " -> " .. spell .. " ("..target..")"
 
-    if not IsArena() and CanAttack(target) and (channel or t < 1.8) and IsOneUnit(target, "mouseover") 
-        and (GetUnitName("player") == GetUnitName(target .. "-target") or  UnitClassification(target) == "worldboss") and UseSlot(6) then 
-        echo("Наременная граната"..m)
-        interruptTime = GetTime()+2
-        return true 
-    end
-
     if not notinterrupt and not HasBuff(nointerruptBuffs, 0.1, target) and CanMagicAttack(target) then 
         if (channel or t < 0.8) and InMelee(target) and DoSpell("Заморозка разума", target) then 
             echo("Заморозка разума"..m)
@@ -102,6 +95,13 @@ function TryInterrupt(target)
     if CanAttack(target) and (channel or t < 0.8) and UnitIsPlayer(target) and DoSpell("Хватка смерти", target) then 
         echo("Хватка смерти"..m)
         interruptTime = GetTime()
+        return true 
+    end
+
+    if not IsArena() and CanAttack(target) and (channel or t < 1.8) and t > 0.5 and IsOneUnit(target, "mouseover") 
+        and (IsOneUnit("player" , target .. "-target") or  UnitClassification(target) == "worldboss") and UseSlot(6) then 
+        echo("Наременная граната"..m)
+        interruptTime = GetTime()+2
         return true 
     end
 
@@ -194,6 +194,7 @@ function CheckDefense(event, ...)
         if IsValidTarget(t) and UnitGUID(t) == sourceGUID and (IsOneUnit("player", t .. "-target") or InMelee(t)) then
             if tContains(physicDamage, spellName) then defPhys = GetTime() end
             if tContains(magicDamage, spellName) then defMagic = GetTime() end
+            if "Вихрь клинков" == spellName and HasSpell("Сжаться") then RunMacroText("/cast Сжаться") end
             break
         end
     end
