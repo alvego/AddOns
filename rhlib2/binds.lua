@@ -224,7 +224,7 @@ function UpdateSpellAlert(event, ...)
         for i=1,#checkedTargets do
             local t = checkedTargets[i]
             if IsValidTarget(t) and UnitGUID(t) == sourceGUID then
-                Notify("|cffff7d0a" .. spellName .. " ("..(sourceName or "unknown")..")|r")
+                Notify("|cffff7d0a" .. spellName .. " ("..(sourceName or "unknown")..")|r " .. type)
                 break
             end
         end

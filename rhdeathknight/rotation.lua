@@ -58,12 +58,11 @@ function Idle()
     
     RunMacroText("/startattack")
     
-
     Pet()
     -- ресаем все.
     if NoRunes() and DoSpell("Усиление рунического оружия") then return end
     -- ресаем руну крови
-    if not HasRunes(100, true) and  min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2)) > 4 and DoSpell("Кровоотвод") then return end
+    if not HasRunes(100, true) and  (min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2)) > 4) and DoSpell("Кровоотвод") then return end
     -- Пытаемся мором продлить болезни
     if TryPestilence() then return end
     if UnitMana("player") <= 70 and DoSpell("Зимний горн") then return end
@@ -87,13 +86,13 @@ function Idle()
     -- накладываем болезни
     if not HasMyDebuff("Кровавая чума", 1, "target") and HasRunes(001) and DoSpell("Удар чумы") then return end
     if not HasMyDebuff("Озноб", 1, "target") and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
+     -- Если нет болезней и не аое, дальше не идем
+    if not IsAttack() and not IsPvP() and not Dotes() then return end
     -- Если условия благоприятные, прожимаем бруст абилки
     if Dotes() and InMelee() and UseEquippedItem("Знак превосходства") then return end
     if HasSpell("Кровавое неистовство") and Dotes() and InMelee() and UseSpell("Кровавое неистовство") then return end
     -- гарга по контролу
     if IsControlKeyDown() == 1 and not GetCurrentKeyBoardFocus() and DoSpell("Призыв горгульи") then return end
-    -- Если нет болезней и не аое, дальше не идем
-    if not Dotes() and not(IsAOE() or IsAttack()) then return end
     --Если есть свободная руна крови (не смерти) сливаем сразу, чтою откадешилась до мора
     --if HasRunes(100, true) and not HasBuff("Отчаянье") and DoSpell("Кровавый удар") then return end
     -- если есть прок руника. (под вопросом)
@@ -177,7 +176,7 @@ function TryHealing()
             return DoSpell("Лик смерти", "player") 
         end
     end
-    if h < 65 and (InMelee() and (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) and HasRunes(011) and DoSpell("Удар смерти")) then return true end
+    if h < (IsAOE() and 90 or 65) and (InMelee() and (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) and HasRunes(011) and DoSpell("Удар смерти")) then return true end
     if UnitExists("pet") and UnitHealth100("pet") < 40 and DoSpell("Лик смерти", "pet") then return end
     return false
 end
@@ -256,7 +255,7 @@ function TryProtect()
         end
         if IsPvP() 
             and UnitHealth100("player") < 55 
-            and Runes(2) > 0 
+            and HasRunes(010) 
             and not HasBuff("Власть льда") 
             and DoSpell("Власть льда") then 
             return true 
@@ -287,7 +286,7 @@ function TryPestilence()
 
 
     if not HasRunes(100) then return false end
-    if InMelee() and Dotes() and IsAltKeyDown() then 
+    if InMelee() and IsAltKeyDown() and (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) then 
         DoSpell("Мор") 
         return true
     end

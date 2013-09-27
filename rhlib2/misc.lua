@@ -1,12 +1,22 @@
 ﻿-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
+--UIParentLoadAddOn("Blizzard_DebugTools");
+--DevTools_Dump(n)
 function SellGray()
     for b=0,4 do                                   
       for s=1, GetContainerNumSlots(b) do          
         local n=GetContainerItemLink(b,s)
-        if n and string.find(n, "ff9d9d9d") then                                 
-            UseContainerItem(b,s)                   
-        end                                        
+        if n then
+            if string.find(n, "ff9d9d9d") then                                 
+              UseContainerItem(b,s)                   
+            else
+              local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(n)
+              if itemRarity == 2 and (itemType == "Оружие" or itemType == "Доспехи") then
+                  UseContainerItem(b,s)
+              end
+            end
+        end
+                                               
       end                                          
     end                                            
 end
