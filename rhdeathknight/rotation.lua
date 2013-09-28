@@ -18,7 +18,10 @@ function Idle()
     else
         if IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) or (not InCombatLockdown() and IsPlayerCasting()) then return end
         if TryBuffs() then return end
-        if not InCombatLockdown() then return end
+        if not InCombatLockdown() then 
+            if UnitExists("pet") and UnitMana("player") >= 40 and UnitHealth100("pet") < 100 and DoSpell("Лик смерти", "pet") then return end
+            return 
+        end
     end
     if CanInterrupt then
         for i=1,#TARGETS do
@@ -47,6 +50,16 @@ function Idle()
         for i = 1, #ITARGETS do
             local t = ITARGETS[i]
             if UnitIsPlayer(t) and ((tContains(steathClass, GetClass(t)) and not InRange("Ледяные оковы", t)) or HasBuff(reflectBuff, 1, t)) and not HasDebuff("Темная власть", 1, t) and DoSpell("Темная власть", t) then return end
+        end
+    end
+    
+    if InParty() and HasSpell("Прыжок") and IsPvP() and IsReadySpell("Прыжок") then
+        for i = 1, #IUNITS do
+            local u = IUNITS[i]
+            if UnitIsPlayer(u) and HasDebuff("Дезориентирующий выстрел", 1, u) then
+                RunMacroText("/cast [@" ..u.."] Прыжок")
+                break
+            end
         end
     end
     if TryHealing() then return end
@@ -86,7 +99,7 @@ function Idle()
     if not HasMyDebuff("Кровавая чума", 1, "target") and HasRunes(001) and DoSpell("Удар чумы") then return end
     if not HasMyDebuff("Озноб", 1, "target") and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
      -- Если нет болезней и не аое, дальше не идем
-    if not IsAttack() and not IsPvP() and not Dotes() then        
+    if not IsAttack() and not IsPvP() and not Dotes() and IsControlKeyDown() ~= 1 then        
         return 
     end
     -- Если условия благоприятные, прожимаем бруст абилки
@@ -180,7 +193,7 @@ function TryHealing()
         end
     end
     if h < (IsAOE() and 90 or 65) and (InMelee() and (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) and HasRunes(011) and DoSpell("Удар смерти")) then return true end
-    if UnitExists("pet") and UnitHealth100("pet") < 40 and DoSpell("Лик смерти", "pet") then return end
+    if UnitExists("pet")  and UnitMana("player") >= 40 and UnitHealth100("pet") < 40 and DoSpell("Лик смерти", "pet") then return end
     return false
 end
 ------------------------------------------------------------------------------------------------------------------

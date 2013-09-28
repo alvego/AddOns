@@ -82,7 +82,6 @@ function TryInterrupt(target)
     
 
     if HasSpell("Отгрызть") and IsReadySpell("Отгрызть") and CanAttack(target) and (channel or t < 0.8) then 
-        if IsReadySpell("Прыжок") and InRange("Прыжок", target) then UseSpell("Прыжок", target) end
         RunMacroText("/cast [@" ..target.."] Прыжок")
         RunMacroText("/cast [@" ..target.."] Отгрызть")
         if not IsReadySpell("Отгрызть") then
