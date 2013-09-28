@@ -16,7 +16,9 @@ function Idle()
         if CanExitVehicle() then VehicleExit() return end
         if IsMounted() then Dismount() return end 
     else
-        if not InCombatLockdown() or IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) then return end
+        if IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) or (not InCombatLockdown() and IsPlayerCasting()) then return end
+        if TryBuffs() then return end
+        if not InCombatLockdown() then return end
     end
     if CanInterrupt then
         for i=1,#TARGETS do
@@ -49,10 +51,7 @@ function Idle()
     end
     if TryHealing() then return end
     if TryProtect() then return end
-    if TryBuffs() then return end
     TryTarget()
-    -- призыв пета
-    if not HasSpell("Цапнуть") and DoSpell("Воскрешение мертвых") then return end
 
     if not (IsValidTarget("target") and (UnitAffectingCombat("target") and CanAttack("target") or IsAttack()))  then return end
     
@@ -87,7 +86,9 @@ function Idle()
     if not HasMyDebuff("Кровавая чума", 1, "target") and HasRunes(001) and DoSpell("Удар чумы") then return end
     if not HasMyDebuff("Озноб", 1, "target") and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
      -- Если нет болезней и не аое, дальше не идем
-    if not IsAttack() and not IsPvP() and not Dotes() then return end
+    if not IsAttack() and not IsPvP() and not Dotes() then        
+        return 
+    end
     -- Если условия благоприятные, прожимаем бруст абилки
     if Dotes() and InMelee() and UseEquippedItem("Знак превосходства") then return end
     if HasSpell("Кровавое неистовство") and Dotes() and InMelee() and UseSpell("Кровавое неистовство") then return end
@@ -157,9 +158,11 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function TryBuffs()
     -- Если моб даже не элитка, то смысл бафаться?
-    if CanAttack("target") and UnitHealth("target") < 19000 then return false end
-    if HasSpell("Костяной щит") and not InCombatLockdown() and not HasBuff("Костяной щит") and HasRunes(001) and DoSpell("Костяной щит") then return end
+    --if CanAttack("target") and UnitHealth("target") < 19000 then return false end
+    if HasSpell("Костяной щит") and not InCombatLockdown() and not HasBuff("Костяной щит") and HasRunes(001) and DoSpell("Костяной щит") then return true end
     if not HasBuff("Зимний горн") and DoSpell("Зимний горн") then return true end
+    -- призыв пета
+    if not HasSpell("Цапнуть") and DoSpell("Воскрешение мертвых") then return true end
     return false
 end
 
@@ -286,14 +289,14 @@ function TryPestilence()
 
 
     if not HasRunes(100) then return false end
+
     if InMelee() and IsAltKeyDown() and (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) then 
         DoSpell("Мор") 
         return true
     end
 
-
     if not IsValidTarget("focus") then return false end
-    
+  
     if InMelee("focus") and Dotes(0.2, "focus") and not Dotes(2) then 
         DoSpell("Мор", "focus")  
         return true
