@@ -34,20 +34,20 @@ SetCommand("lich",
 )
 
 ------------------------------------------------------------------------------------------------------------------
-local stopTarget = false
+local stopTarget = 0
 SetCommand("stop", 
     function() 
         if InGCD() and IsPlayerCasting() then return end
         if HasDebuff("Ледяные оковы",7,"target") then return end
         if Runes(2) > 0 and UseSpell("Ледяные оковы", "target") then 
-            stopTarget = true
+            stopTarget = GetTime()
             return 
         end
     end, 
     function() 
         if not CanAttack("target") then return true end
-        if stopTarget then
-            stopTarget = false
+        if GetTime() - stopTarget < 0.1 then
+            stopTarget = 0
             return true
         end
         return false  

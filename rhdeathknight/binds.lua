@@ -79,40 +79,39 @@ function TryInterrupt(target)
             return true 
         end
     end
-    
 
-    if HasSpell("Отгрызть") and IsReadySpell("Отгрызть") and CanAttack(target) and (channel or t < 0.8) then 
-        RunMacroText("/cast [@" ..target.."] Прыжок")
-        RunMacroText("/cast [@" ..target.."] Отгрызть")
-        if not IsReadySpell("Отгрызть") then
-            echo("Отгрызть"..m)
-            interruptTime = GetTime()+2
-            return false 
-        end
-    end
-
-    if CanAttack(target) and (channel or t < 0.8) and UnitIsPlayer(target) and DoSpell("Хватка смерти", target) then 
+    if CanAttack(target) and (channel or t < 0.8) and (UnitIsPlayer(target) or not InParty()) and DoSpell("Хватка смерти", target) then 
         echo("Хватка смерти"..m)
-        interruptTime = GetTime()
+        interruptTime = GetTime() + 1
         return true 
     end
 
     if not IsArena() and CanAttack(target) and (channel or t < 1.8) and t > 0.5 and IsOneUnit(target, "mouseover") 
         and (UnitIsPlayer(target) or UnitClassification(target) == "worldboss") and UseSlot(6) then 
         echo("Наременная граната"..m)
-        interruptTime = GetTime()+2
-        return true 
-    end
-
-    if IsPvP() and IsHarmfulSpell(spell) and IsOneUnit("player", target .. "-target") and DoSpell("Антимагический панцирь") then 
-        echo("Антимагический панцирь"..m)
-        interruptTime = GetTime() + 5
+        interruptTime = GetTime() + 2
         return true 
     end
     
     if HasSpell("Перерождение") and IsOneUnit("player",target .. "-target") and tContains(lichSpells, spell) and DoSpell("Перерождение") then 
         echo("Перерождение"..m)
         interruptTime = GetTime() + 2
+        return true 
+    end
+
+    if HasSpell("Отгрызть") and IsReadySpell("Отгрызть") and CanAttack(target) and (channel or t < 0.8) then 
+        RunMacroText("/cast [@" ..target.."] Прыжок")
+        RunMacroText("/cast [@" ..target.."] Отгрызть")
+        if not IsReadySpell("Отгрызть") then
+            echo("Отгрызть"..m)
+            interruptTime = GetTime() + 2
+            return false 
+        end
+    end
+
+    if IsPvP() and IsHarmfulSpell(spell) and IsOneUnit("player", target .. "-target") and DoSpell("Антимагический панцирь") then 
+        echo("Антимагический панцирь"..m)
+        interruptTime = GetTime() + 5
         return true 
     end
 end

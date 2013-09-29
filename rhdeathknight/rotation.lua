@@ -93,8 +93,10 @@ function Idle()
         end
     end
     local canMagic = CanMagicAttack("target")
+    if canMagic and IsPvP() and InMelee() and HasRunes(011) and not HasDebuff("Осквернение") and DoSpell("Удар Плети") then return end
     if canMagic and UseSlot(10) then return end
     if canMagic and IsPvP() and not InMelee() and not HasDebuff("Ледяные оковы",7,"target") and HasRunes(010) and UseSpell("Ледяные оковы", "target") then return end
+
     -- накладываем болезни
     if not HasMyDebuff("Кровавая чума", 1, "target") and HasRunes(001) and DoSpell("Удар чумы") then return end
     if not HasMyDebuff("Озноб", 1, "target") and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
