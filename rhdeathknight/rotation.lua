@@ -23,6 +23,8 @@ function Idle()
             return 
         end
     end
+    -- гарга по контролу
+    if IsControlKeyDown() == 1 and not GetCurrentKeyBoardFocus() and DoSpell("Призыв горгульи") then return end
     if CanInterrupt then
         for i=1,#TARGETS do
             TryInterrupt(TARGETS[i])
@@ -107,8 +109,6 @@ function Idle()
     -- Если условия благоприятные, прожимаем бруст абилки
     if Dotes() and InMelee() and UseEquippedItem("Знак превосходства") then return end
     if HasSpell("Кровавое неистовство") and Dotes() and InMelee() and UseSpell("Кровавое неистовство") then return end
-    -- гарга по контролу
-    if IsControlKeyDown() == 1 and not GetCurrentKeyBoardFocus() and DoSpell("Призыв горгульи") then return end
     --Если есть свободная руна крови (не смерти) сливаем сразу, чтою откадешилась до мора
     --if HasRunes(100, true) and not HasBuff("Отчаянье") and DoSpell("Кровавый удар") then return end
     -- если есть прок руника. (под вопросом)
