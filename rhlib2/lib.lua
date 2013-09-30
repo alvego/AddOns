@@ -57,16 +57,16 @@ local function OnUpdate(frame, elapsed)
                 LastUpdate = 100
                 return
             end
-            UpdateInterval = 0.3
+            UpdateInterval = 0.7
         else
             --no gcd
-            UpdateInterval = 0
+            UpdateInterval = 0.2
         end 
     else
-        UpdateInterval = 0.7
+        UpdateInterval = 1.5
     end
     if IsAttack() then 
-        UpdateInterval = 0 
+        UpdateInterval = 0.5
     end
     if LastUpdate < UpdateInterval then return end -- для снижения нагрузки на проц
     LastUpdate = 0
