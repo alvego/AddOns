@@ -77,7 +77,7 @@ SetCommand("sv",
    function() 
       print("Боб на Ириху!")
       --RunMacroText("/target Ириха")
-      RunMacroText("/cast [@Ириха] Длань защиты")
+      RunMacroText("/cast [@Омниссия] Длань защиты")
       --RunMacroText("/targetlasttarget")
    end, 
    function() return HasBuff("Длань защиты", 1, "Ириха") end
@@ -85,8 +85,12 @@ SetCommand("sv",
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("svs", 
-   function() return DoSpell("Длань защиты","Pippo") end, 
-   function() return not InForbearance("Pippo") and not InGCD() and not IsReadySpell("Длань защиты") end
+   function()
+      RunMacroText("/targetexact вороная горгулья")
+      DoSpell("Изгнание зла","target")
+      RunMacroText("/targetlasttarget")
+   end, 
+   function() return not  IsReadySpell("Изгнание зла") end
 )
 
 ------------------------------------------------------------------------------------------------------------------
