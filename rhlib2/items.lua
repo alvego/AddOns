@@ -13,10 +13,11 @@ function UseSlot(slot)
     if IsPlayerCasting() then return false end
     if not IsReadySlot(slot) then return false end
     RunMacroText("/use " .. slot) 
-    if SpellIsTargeting() then 
+    if SpellIsTargeting() then
+        SpellTargetUnit("target")
         CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() 
         TurnOrActionStart()  TurnOrActionStop()
-    end 
+    end
     return not IsReadySlot(slot)
 end
 
@@ -61,6 +62,12 @@ function UseItem(itemName, count)
     if not count then count = 1 end
     for i = 1, count do
         RunMacroText("/use " .. itemName)
+        if SpellIsTargeting() then
+            SpellTargetUnit("target")
+            CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() 
+            TurnOrActionStart()  TurnOrActionStop()
+            break 
+        end
     end
     return not IsReadyItem(itemName)
 end
@@ -85,7 +92,7 @@ local potions = {
 }
 function UseHealPotion()
     for i = 1, #potions do 
-		if UseItem(potions[i], 3) then return true end
+		if UseItem(potions[i], 5) then return true end
 	end
     return false
 end

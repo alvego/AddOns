@@ -70,6 +70,9 @@ function Idle()
     if not (IsValidTarget("target") and (UnitAffectingCombat("target") and CanAttack("target") or IsAttack()))  then return end
     
     RunMacroText("/startattack")
+
+
+    if not IsArena() and IsAOE() and UseItem("Саронитовая бомба") then return end
     
     Pet()
     -- ресаем все.

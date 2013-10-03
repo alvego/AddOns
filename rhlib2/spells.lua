@@ -336,10 +336,11 @@ function UseSpell(spellName, target)
         if dump then print("Жмем", cast .. "!" .. spellName) end
         RunMacroText(cast .. "!" .. spellName)
         -- если нужно выбрать область - кидаем на текущий mouseover
-        if SpellIsTargeting() then 
+        if SpellIsTargeting() then
+            SpellTargetUnit(target)
             CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() 
             TurnOrActionStart()  TurnOrActionStop()
-        end 
+        end
         -- данные о кастах
         local castInfo = getCastInfo(spellName)
         -- проверка на успешное начало кд
