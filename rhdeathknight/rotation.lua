@@ -11,7 +11,6 @@ local burstBuff = {
     "Гнев карателя"
 }
 function Idle()
-    
     if IsAttack() then 
         if CanExitVehicle() then VehicleExit() return end
         if IsMounted() then Dismount() return end 
@@ -79,7 +78,7 @@ function Idle()
     if not HasRunes(100, true) and  (min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2)) > 4) and DoSpell("Кровоотвод") then return end
     -- Пытаемся мором продлить болезни
     if TryPestilence() then return end
-    if UnitMana("player") <= 70 and DoSpell("Зимний горн") then return end
+    
     if HasSpell("Костяной щит") and HasRunes(001) and not HasBuff("Костяной щит") and DoSpell("Костяной щит") then return end
     if IsNeedTaunt() and TryTaunt("mouseover") then return end
     if not IsPvP() and HasBuff("Власть льда") and InGroup() and InCombat(3) and (IsReadySpell("Темная власть") or IsReadySpell("Хватка смерти")) then
@@ -94,16 +93,23 @@ function Idle()
             if HasBuff(burstBuff, 4, t) and DoSpell("Удушение", t) then return end
         end
     end
-    local canMagic = CanMagicAttack("target")
-    if canMagic and IsPvP() and InMelee() and HasRunes(011) and not HasDebuff("Осквернение") and DoSpell("Удар Плети") then return end
-    if canMagic and UseSlot(10) then return end
-    if canMagic and IsPvP() and not InMelee() and not HasDebuff("Ледяные оковы",7,"target") and HasRunes(010) and UseSpell("Ледяные оковы", "target") then return end
+    if UseSlot(10) then return end
+    
 
+    if IsPvP() and InMelee() and not HasDebuff("Осквернение") then
+        if Dotes() and HasRunes(011) and DoSpell(UnitHealth100("player") < 85 and "Удар смерти" or "Удар Плети") then return end
+        if HasRunes(001) and DoSpell("Удар чумы") then return end
+    end
+
+    local canMagic = CanMagicAttack("target")
+    if canMagic and IsPvP() and not InMelee() and not HasDebuff("Ледяные оковы",6,"target") and HasRunes(010) and UseSpell("Ледяные оковы", "target") then return end
     -- накладываем болезни
     if not HasMyDebuff("Кровавая чума", 1, "target") and HasRunes(001) and DoSpell("Удар чумы") then return end
-    if not HasMyDebuff("Озноб", 1, "target") and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
-     -- Если нет болезней и не аое, дальше не идем
-    if not IsAttack() and not IsPvP() and not Dotes() and IsControlKeyDown() ~= 1 then        
+    if not HasMyDebuff("Озноб", 1, "target") and HasRunes(010) and DoSpell(IsPvP() and "Ледяные оковы" or "Ледяное прикосновение") then return end
+
+    if UnitMana("player") <= 70 and DoSpell("Зимний горн") then return end
+    -- Если нет болезней и не аое, дальше не идем
+    if IsShiftKeyDown() ~= 1 and not IsAttack() and not IsPvP() and not Dotes() then        
         return 
     end
     -- Если условия благоприятные, прожимаем бруст абилки
@@ -347,7 +353,7 @@ function IsPestilenceTime(target)
         end
     end
     if (dotes > 0.01 and r < 1 and _r > 0 and dotes < 6) then 
-         chat("Мор -> "..target.." Dotes("..floor(dotes)..")") 
+         --chat("Мор -> "..target.." Dotes("..floor(dotes)..")") 
         return true
     end
     return false

@@ -10,10 +10,13 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function UseSlot(slot)
-    if SpellIsTargeting() then CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() end  
     if IsPlayerCasting() then return false end
     if not IsReadySlot(slot) then return false end
     RunMacroText("/use " .. slot) 
+    if SpellIsTargeting() then 
+        CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() 
+        TurnOrActionStart()  TurnOrActionStop()
+    end 
     return not IsReadySlot(slot)
 end
 

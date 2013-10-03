@@ -7,13 +7,8 @@ function SellGray()
       for s=1, GetContainerNumSlots(b) do          
         local n=GetContainerItemLink(b,s)
         if n then
-            if string.find(n, "ff9d9d9d") then                                 
+            if string.find(n, "ff9d9d9d") or (IsTrash and IsTrash(n)) then                                 
               UseContainerItem(b,s)                   
-            else
-              local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(n)
-              if itemRarity == 2 and (itemType == "Оружие" or itemType == "Доспехи") then
-                  UseContainerItem(b,s)
-              end
             end
         end
                                                

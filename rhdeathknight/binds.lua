@@ -36,7 +36,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function IsNeedTaunt()
-    return  IsMouseButtonDown(5) == 1
+    return  IsMouseButtonDown(3) == 1
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -79,6 +79,13 @@ function TryInterrupt(target)
             return true 
         end
     end
+    
+    if not IsArena() and CanAttack(target) and (channel or t < 1.8) and t > 0.5 and (IsOneUnit(target, "mouseover") or InMelee(target))
+        and (UnitIsPlayer(target) or UnitClassification(target) == "worldboss") and UseSlot(6) then 
+        echo("Наременная граната"..m)
+        interruptTime = GetTime() + 2
+        return true 
+    end
 
     if CanAttack(target) and (channel or t < 0.8) and (UnitIsPlayer(target) or not InParty()) and DoSpell("Хватка смерти", target) then 
         echo("Хватка смерти"..m)
@@ -86,13 +93,6 @@ function TryInterrupt(target)
         return true 
     end
 
-    if not IsArena() and CanAttack(target) and (channel or t < 1.8) and t > 0.5 and IsOneUnit(target, "mouseover") 
-        and (UnitIsPlayer(target) or UnitClassification(target) == "worldboss") and UseSlot(6) then 
-        echo("Наременная граната"..m)
-        interruptTime = GetTime() + 2
-        return true 
-    end
-    
     if HasSpell("Перерождение") and IsOneUnit("player",target .. "-target") and tContains(lichSpells, spell) and DoSpell("Перерождение") then 
         echo("Перерождение"..m)
         interruptTime = GetTime() + 2
@@ -114,6 +114,7 @@ function TryInterrupt(target)
         interruptTime = GetTime() + 5
         return true 
     end
+
 end
 ------------------------------------------------------------------------------------------------------------------
 local lichList = {
@@ -202,4 +203,35 @@ AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", CheckDefense)
 ------------------------------------------------------------------------------------------------------------------
 function DoSpell(spellName, target, runes)
     return UseSpell(spellName, target)
+end
+------------------------------------------------------------------------------------------------------------------
+if TrashList == nil then TrashList = {} end
+function IsTrash(n) --n - itemlink
+    for i=1, #TrashList do
+        if string.find(n, TrashList[i]) then 
+            return true
+        end
+    end
+    local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(n)
+    if itemRarity == 2 and (itemType == "Оружие" or itemType == "Доспехи") then
+      return true
+    end
+    return false
+end
+
+
+function trashToggle()
+    local itemName, ItemLink = GameTooltip:GetItem()
+    if nil == itemName then return end
+    if tContains(TrashList, itemName) then 
+        for i=1, #TrashList do
+            if TrashList[i] ==  itemName then 
+                tremove(TrashList, i)
+                chat("C " .. itemName .. " пометка хлам снята.")
+            end
+        end            
+    else
+        chat(itemName .. " помечен как хлам.")
+        tinsert(TrashList, itemName)
+    end
 end
