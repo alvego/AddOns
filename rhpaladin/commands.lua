@@ -77,7 +77,7 @@ SetCommand("sv",
    function() 
       print("Боб на Ириху!")
       --RunMacroText("/target Ириха")
-      RunMacroText("/cast [@Омниссия] Длань защиты")
+      RunMacroText("/cast [@Lensy] Длань защиты")
       --RunMacroText("/targetlasttarget")
    end, 
    function() return HasBuff("Длань защиты", 1, "Ириха") end
