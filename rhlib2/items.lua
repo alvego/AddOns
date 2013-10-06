@@ -14,9 +14,9 @@ function UseSlot(slot)
     if not IsReadySlot(slot) then return false end
     RunMacroText("/use " .. slot) 
     if SpellIsTargeting() then
-        SpellTargetUnit("target")
+        --SpellTargetUnit("target")
         CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() 
-        TurnOrActionStart()  TurnOrActionStop()
+        --TurnOrActionStart()  TurnOrActionStop()
     end
     return not IsReadySlot(slot)
 end
@@ -63,9 +63,9 @@ function UseItem(itemName, count)
     for i = 1, count do
         RunMacroText("/use " .. itemName)
         if SpellIsTargeting() then
-            SpellTargetUnit("target")
+            --SpellTargetUnit("target")
             CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() 
-            TurnOrActionStart()  TurnOrActionStop()
+            --TurnOrActionStart()  TurnOrActionStop()
             break 
         end
     end

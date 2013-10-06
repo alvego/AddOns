@@ -47,27 +47,10 @@ end
 ------------------------------------------------------------------------------------------------------------------
 -- Выполняем обработчики события OnUpdate, согласно приоритету (return true - выход)
 local LastUpdate = 0
-UpdateInterval = 0
+UpdateInterval = 0.15
 local function OnUpdate(frame, elapsed)
     LastUpdate = LastUpdate + elapsed 
-    if InCombatLockdown() then
-        local left = GetSpellCooldownLeft(GCDSpellID)
-        if left > LagTime then
-            if (left - LagTime) < 0.25 then
-                LastUpdate = 100
-                return
-            end
-            UpdateInterval = 0.7
-        else
-            --no gcd
-            UpdateInterval = 0.2
-        end 
-    else
-        UpdateInterval = 1.5
-    end
-    if IsAttack() then 
-        UpdateInterval = 0.5
-    end
+
     if LastUpdate < UpdateInterval then return end -- для снижения нагрузки на проц
     LastUpdate = 0
     

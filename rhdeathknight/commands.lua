@@ -100,7 +100,7 @@ SetCommand("mount",
     end, 
     function() 
 
-        if GetTime() - tryMount < 0.01 or (InCombatLockdown() or IsMounted() or CanExitVehicle()) then
+        if tryMount > 0 and GetTime() - tryMount > 0.01 or (InCombatLockdown() or IsMounted() or CanExitVehicle()) then
             tryMount = 0    
             return  true
         end

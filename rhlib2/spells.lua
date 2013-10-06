@@ -337,9 +337,9 @@ function UseSpell(spellName, target)
         RunMacroText(cast .. "!" .. spellName)
         -- если нужно выбрать область - кидаем на текущий mouseover
         if SpellIsTargeting() then
-            SpellTargetUnit(target)
+            --SpellTargetUnit(target)
             CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() 
-            TurnOrActionStart()  TurnOrActionStop()
+            --TurnOrActionStart()  TurnOrActionStop()
         end
         -- данные о кастах
         local castInfo = getCastInfo(spellName)

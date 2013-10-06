@@ -10,7 +10,16 @@ local burstBuff = {
     "Стылая кровь",
     "Гнев карателя"
 }
+
+
+local advansedTime = 0
+
 function Idle()
+    local advansedMod = IsAttack()
+    if GetTime() - advansedTime > 1 then
+        advansedTime = GetTime()
+        advansedMod = true
+    end
     if IsAttack() then 
         if CanExitVehicle() then VehicleExit() return end
         if IsMounted() then Dismount() return end 
@@ -22,14 +31,15 @@ function Idle()
             return 
         end
     end
+    if IsAttack() and not IsArena() and IsAOE() and IsValidTarget("mouseover") and UseItem("Саронитовая бомба") then return end
     -- гарга по контролу
-    if IsControlKeyDown() == 1 and not GetCurrentKeyBoardFocus() and DoSpell("Призыв горгульи") then return end
+    if IsBers() and UnitMana("player") >= 60 and DoSpell("Призыв горгульи") then return end
     if CanInterrupt then
         for i=1,#TARGETS do
             TryInterrupt(TARGETS[i])
         end
     end
-    if not IsArena() and InParty() and IsReadySpell("Воскрешение союзника") then
+    if advansedMod and not IsArena() and InParty() and IsReadySpell("Воскрешение союзника") then
         local units = GetGroupUnits()
         for i=1,#units do
             local u = units[i]
@@ -45,16 +55,16 @@ function Idle()
     end
     if IsPvP() and HasClass(TARGETS, UndeadFearClass) and not HasBuff("Антимагический панцирь") and HasBuff("Перерождение") and not HasBuff("Перерождение", 8) then RunMacroText("/cancelaura Перерождение") end    
     
-    if HasRunes(100) and (not HasBuff(stanceBuff) or (IsPvP() and IsAttack() and not HasBuff("Власть крови") and UnitHealth100("player") > 80) ) and DoSpell("Власть крови") then return end
+    if HasRunes(100) and (not HasBuff(stanceBuff) or (IsPvP() and IsBers() and not HasBuff("Власть крови") and UnitHealth100("player") > 80) ) and DoSpell("Власть крови") then return end
 
-    if IsPvP() and IsReadySpell("Темная власть") then
+    if advansedMod and IsPvP() and IsReadySpell("Темная власть") then
         for i = 1, #ITARGETS do
             local t = ITARGETS[i]
             if UnitIsPlayer(t) and ((tContains(steathClass, GetClass(t)) and not InRange("Ледяные оковы", t)) or HasBuff(reflectBuff, 1, t)) and not HasDebuff("Темная власть", 1, t) and DoSpell("Темная власть", t) then return end
         end
     end
     
-    if InParty() and HasSpell("Прыжок") and IsPvP() and IsReadySpell("Прыжок") then
+    if advansedMod and InParty() and HasSpell("Прыжок") and IsPvP() and IsReadySpell("Прыжок") then
         for i = 1, #IUNITS do
             local u = IUNITS[i]
             if UnitIsPlayer(u) and HasDebuff("Дезориентирующий выстрел", 1, u) then
@@ -63,6 +73,7 @@ function Idle()
             end
         end
     end
+
     if TryHealing() then return end
     if TryProtect() then return end
     TryTarget()
@@ -71,9 +82,6 @@ function Idle()
     
     RunMacroText("/startattack")
 
-
-    if not IsArena() and IsAOE() and UseItem("Саронитовая бомба") then return end
-    
     Pet()
     -- ресаем все.
     if NoRunes() and DoSpell("Усиление рунического оружия") then return end
@@ -84,13 +92,13 @@ function Idle()
     
     if HasSpell("Костяной щит") and HasRunes(001) and not HasBuff("Костяной щит") and DoSpell("Костяной щит") then return end
     if IsNeedTaunt() and TryTaunt("mouseover") then return end
-    if not IsPvP() and HasBuff("Власть льда") and InGroup() and InCombat(3) and (IsReadySpell("Темная власть") or IsReadySpell("Хватка смерти")) then
+    if advansedMod and not IsPvP() and HasBuff("Власть льда") and InGroup() and InCombat(3) and (IsReadySpell("Темная власть") or IsReadySpell("Хватка смерти")) then
         for i = 1, #TARGETS do
             local t = TARGETS[i]
             if UnitAffectingCombat(t) and TryTaunt(t) then return end
         end
     end
-    if IsPvP() and HasRunes(100) and IsReadySpell("Удушение") then
+    if advansedMod and IsPvP() and HasRunes(100) and IsReadySpell("Удушение") then
         for i = 1, #ITARGETS do
             local t = ITARGETS[i]
             if HasBuff(burstBuff, 4, t) and DoSpell("Удушение", t) then return end
@@ -99,37 +107,44 @@ function Idle()
     if UseSlot(10) then return end
     
 
-    if IsPvP() and InMelee() and not HasDebuff("Осквернение") then
-        if Dotes() and HasRunes(011) and DoSpell(UnitHealth100("player") < 85 and "Удар смерти" or "Удар Плети") then return end
-        if HasRunes(001) and DoSpell("Удар чумы") then return end
-    end
+    -- if IsPvP() and InMelee() and not HasDebuff("Осквернение") then
+    --     if Dotes() and HasRunes(011) and DoSpell(UnitHealth100("player") < 85 and "Удар смерти" or "Удар Плети") then return end
+    --     if HasRunes(001) and DoSpell("Удар чумы") then return end
+    -- end
 
     local canMagic = CanMagicAttack("target")
+    local hasFocus = IsValidTarget("focus")
+    local canMagicFocus = hasFocus and CanMagicAttack("focus")
+
     if canMagic and IsPvP() and not InMelee() and not HasDebuff("Ледяные оковы",6,"target") and HasRunes(010) and UseSpell("Ледяные оковы", "target") then return end
+
     -- накладываем болезни
     if not HasMyDebuff("Кровавая чума", 1, "target") and HasRunes(001) and DoSpell("Удар чумы") then return end
     if not HasMyDebuff("Озноб", 1, "target") and HasRunes(010) and DoSpell(IsPvP() and "Ледяные оковы" or "Ледяное прикосновение") then return end
 
-    if UnitMana("player") <= 70 and DoSpell("Зимний горн") then return end
     -- Если нет болезней и не аое, дальше не идем
-    if IsShiftKeyDown() ~= 1 and not IsAttack() and not IsPvP() and not Dotes() then        
-        return 
-    end
-    -- Если условия благоприятные, прожимаем бруст абилки
-    if Dotes() and InMelee() and UseEquippedItem("Знак превосходства") then return end
-    if HasSpell("Кровавое неистовство") and Dotes() and InMelee() and UseSpell("Кровавое неистовство") then return end
-    --Если есть свободная руна крови (не смерти) сливаем сразу, чтою откадешилась до мора
-    --if HasRunes(100, true) and not HasBuff("Отчаянье") and DoSpell("Кровавый удар") then return end
-    -- если есть прок руника. (под вопросом)
-    if (IsAttack() or UnitMana("player") >= 60) and DoSpell("Рунический удар") then return end
-    if canMagic and (IsAttack() or UnitMana("player") >= 80) and DoSpell("Лик смерти") then return end
+    if not (Dotes() or (hasFocus  and  Dotes(1,"focus"))) and not IsPvP() and IsShiftKeyDown() ~= 1 and not IsAttack() then return end
+    
+    if (IsAttack() or UnitMana("player") >= 60) and (DoSpell("Рунический удар") or (hasFocus and DoSpell("Рунический удар", "focus"))) then return end
+
+    if (IsAttack() or UnitMana("player") >= 80) and ((canMagic and DoSpell("Лик смерти")) or (canMagicFocus and DoSpell("Лик смерти", "focus"))) then return end
+
     if IsAOE() and HasRunes(100) and DoSpell("Вскипание крови") then return end
-    if not HasBuff("Отчаяние") and HasRunes(100, true) then DoSpell("Кровавый удар") end
-    if Dotes() and HasRunes(011, IsAOE()) and DoSpell(UnitHealth100("player") < 85 and "Удар смерти" or "Удар Плети") then return end 
-    if HasRunes(100, true) and DoSpell("Кровавый удар") then return end
+    if HasRunes(011, IsAOE()) then
+        local spellName = UnitHealth100("player") < 85 and "Удар смерти" or "Удар Плети"
+        if Dotes() and DoSpell(spellName) then return end 
+        if hasFocus and Dotes(1, "focus") and DoSpell(spellName, "focus") then return end 
+    end
+
+    if HasRunes(100, true) and (DoSpell("Кровавый удар") or (hasFocus and DoSpell("Кровавый удар", "focus"))) then return end
+
     if not InMelee() and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
-    if canMagic and (IsAttack() or UnitMana("player") >= 100) and DoSpell("Лик смерти") then return end
+    if UnitMana("player") >= 100 and ((canMagic and DoSpell("Лик смерти")) or (canMagicFocus and DoSpell("Лик смерти", "focus")))  then return end
     if DoSpell("Зимний горн") then return end
+    if hasFocus then
+        if not HasMyDebuff("Кровавая чума", 1, "focus") and HasRunes(001) and DoSpell("Удар чумы", "focus") then return end
+        if not HasMyDebuff("Озноб", 1, "focus") and HasRunes(010) and DoSpell(IsPvP() and "Ледяные оковы" or "Ледяное прикосновение", "focus") then return end
+    end
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -196,15 +211,18 @@ function TryHealing()
     if h < 40 and UnitMana("player") >= 40 and HasSpell("Цапнуть") and UseSpell("Смертельный союз") then return end
     if HasBuff("Перерождение") and UnitHealth100("player") < 100 and DoSpell("Лик смерти", "player") then return end
     if InCombatLockdown() then
-        if h < 20 and not IsArena() and UseHealPotion() then return true end
-        if HasSpell("Кровь земли") and h < 40 and DoSpell("Кровь земли") then return true end
+        if h < 30 and not IsArena() and UseHealPotion() then return true end
+        --if HasSpell("Кровь земли") and h < 40 and DoSpell("Кровь земли") then return true end
         --if h < 50 and HasRunes(100) and HasSpell("Захват рун") and DoSpell("Захват рун") then return true end
         if (not IsPvP() or not HasClass(TARGETS, UndeadFearClass) or HasBuff("Антимагический панцирь")) and HasSpell("Перерождение") and IsReadySpell("Перерождение") and h < 60 and UnitMana("player") >= 40 and DoSpell("Перерождение") then 
             return DoSpell("Лик смерти", "player") 
         end
     end
-    if h < (IsAOE() and 90 or 65) and (InMelee() and (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) and HasRunes(011) and DoSpell("Удар смерти")) then return true end
-    if UnitExists("pet")  and UnitMana("player") >= 40 and UnitHealth100("pet") < 40 and DoSpell("Лик смерти", "pet") then return end
+    if h < (IsAOE() and 90 or 65) and HasRunes(011) then
+        if InMelee() and (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) and DoSpell("Удар смерти") then return true end
+        if InMelee("focus") and (HasMyDebuff("Озноб", 1, "focus") or HasMyDebuff("Кровавая чума", 1, "focus")) and DoSpell("Удар смерти", "focus") then return true end
+    end
+    --if UnitExists("pet")  and UnitMana("player") >= 110 and UnitHealth100("pet") < 40 and DoSpell("Лик смерти", "pet") then return end
     return false
 end
 ------------------------------------------------------------------------------------------------------------------
@@ -281,7 +299,7 @@ function TryProtect()
             if DoSpell("Антимагический панцирь") then return true end
         end
         if IsPvP() 
-            and UnitHealth100("player") < 55 
+            and (UnitHealth100("player") < 55 or IsDeff())
             and HasRunes(010) 
             and not HasBuff("Власть льда") 
             and DoSpell("Власть льда") then 
