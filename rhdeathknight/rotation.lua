@@ -25,7 +25,7 @@ function Idle()
         if IsMounted() then Dismount() return end 
     else
         if IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) or (not InCombatLockdown() and IsPlayerCasting()) then return end
-        if TryBuffs() then return end
+        
         if not InCombatLockdown() then 
             if UnitExists("pet") and UnitMana("player") >= 40 and UnitHealth100("pet") < 100 and DoSpell("Лик смерти", "pet") then return end
             return 
@@ -55,7 +55,11 @@ function Idle()
     end
     if IsPvP() and HasClass(TARGETS, UndeadFearClass) and not HasBuff("Антимагический панцирь") and HasBuff("Перерождение") and not HasBuff("Перерождение", 8) then RunMacroText("/cancelaura Перерождение") end    
     
-    if HasRunes(100) and (not HasBuff(stanceBuff) or (IsPvP() and IsBers() and not HasBuff("Власть крови") and UnitHealth100("player") > 80) ) and DoSpell("Власть крови") then return end
+    if HasRunes(100) and not HasBuff(stanceBuff) and DoSpell("Власть крови") then return end
+    if IsBers() and UnitHealth100("player") > 80 then
+        if EquipItem("Темная Скорбь") then return true end
+        if (IsPvP() or not InCombatLockdown()) and HasRunes(100) and not HasBuff("Власть крови") and DoSpell("Власть крови") then return end
+    end
 
     if advansedMod and IsPvP() and IsReadySpell("Темная власть") then
         for i = 1, #ITARGETS do
@@ -76,6 +80,7 @@ function Idle()
 
     if TryHealing() then return end
     if TryProtect() then return end
+    if TryBuffs() then return end
     TryTarget()
 
     if not (IsValidTarget("target") and (UnitAffectingCombat("target") and CanAttack("target") or IsAttack()))  then return end
@@ -201,7 +206,7 @@ function TryBuffs()
     if HasSpell("Костяной щит") and not InCombatLockdown() and not HasBuff("Костяной щит") and HasRunes(001) and DoSpell("Костяной щит") then return true end
     if not HasBuff("Зимний горн") and DoSpell("Зимний горн") then return true end
     -- призыв пета
-    if not HasSpell("Цапнуть") and DoSpell("Воскрешение мертвых") then return true end
+    if not HasSpell("Цапнуть") and not InGCD() and DoSpell("Воскрешение мертвых") then return true end
     return false
 end
 
@@ -298,13 +303,11 @@ function TryProtect()
             if DoSpell("Незыблемость льда") then return true end
             if DoSpell("Антимагический панцирь") then return true end
         end
-        if IsPvP() 
-            and (UnitHealth100("player") < 55 or IsDeff())
-            and HasRunes(010) 
-            and not HasBuff("Власть льда") 
-            and DoSpell("Власть льда") then 
-            return true 
-        end
+        
+    end
+    if (IsAttack() or InCombatLockdown()) and (IsDeff() or UnitHealth100("player") < 60) then
+        if EquipItem("Большой меч разгневанного гладиатора") then return true end
+        if (IsPvP() or not InCombatLockdown()) and HasRunes(010) and not HasBuff("Власть льда") and DoSpell("Власть льда") then  return true end
     end
     return false;
 end

@@ -41,12 +41,12 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function IsBers()
-    return  IsControlKeyDown() == 1 and not GetCurrentKeyBoardFocus()
+    return  (IsControlKeyDown() == 1 and not GetCurrentKeyBoardFocus())
 end
 
 ------------------------------------------------------------------------------------------------------------------
 function IsDeff()
-    return  IsAltKeyDown() == 1 and not GetCurrentKeyBoardFocus()
+    return  (IsAltKeyDown() == 1 and not GetCurrentKeyBoardFocus())
 end
 
 ------------------------------------------------------------------------------------------------------------------

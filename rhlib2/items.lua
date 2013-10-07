@@ -51,6 +51,15 @@ function IsReadyItem(name)
 end
 
 ------------------------------------------------------------------------------------------------------------------
+function EquipItem(itemName)
+    if IsEquippedItem(itemName) then return false end
+    if Debug then
+        print(itemName)
+    end
+    RunMacroText("/equip  " .. itemName) 
+    return  IsEquippedItem(itemName)
+end
+------------------------------------------------------------------------------------------------------------------
 function UseItem(itemName, count)
     if SpellIsTargeting() then CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() end  
     if IsPlayerCasting() then return false end
