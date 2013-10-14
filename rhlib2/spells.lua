@@ -106,7 +106,8 @@ local meleeSpells = {
     DRUID = "Цапнуть",        
     DEATHKNIGHT = "Удар чумы", 
     PALADIN = "Щит праведности",
-    SHAMAN = "Удар бури"
+    SHAMAN = "Удар бури",
+    WARRIOR = "Кровопускание"
 }
 MeleeSpell = meleeSpells[GetClass()]
 function InMelee(target)
