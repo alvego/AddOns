@@ -32,22 +32,44 @@ SetCommand("lich",
         return not HasSpell("Перерождение") or  HasBuff("Перерождение", 1, "player") or not IsSpellNotUsed("Перерождение", 1) 
     end
 )
-
 ------------------------------------------------------------------------------------------------------------------
-local stopTarget = 0
+local stopTime = 0
 SetCommand("stop", 
-    function() 
+    function(target) 
+        if target == nil then target = "target" end
         if InGCD() and IsPlayerCasting() then return end
-        if HasDebuff("Ледяные оковы",7,"target") then return end
-        if Runes(2) > 0 and UseSpell("Ледяные оковы", "target") then 
-            stopTarget = GetTime()
+        if HasDebuff("Ледяные оковы",7,target) then return end
+        if Runes(2) > 0 and UseSpell("Ледяные оковы", target) then 
+            stopTime = GetTime()
             return 
         end
     end, 
-    function() 
-        if not CanAttack("target") then return true end
-        if GetTime() - stopTarget < 0.1 then
-            stopTarget = 0
+    function(target) 
+        if target == nil then target = "target" end
+        if not CanAttack(target) then return true end
+        if GetTime() - stopTime < 0.1 then
+            stopTime = 0
+            return true
+        end
+        return false  
+    end
+)
+------------------------------------------------------------------------------------------------------------------
+-- Death Grip
+local dgTime = 0
+SetCommand("dg", 
+    function(target) 
+        if target == nil then target = "target" end
+        if Runes(2) > 0 and UseSpell("Хватка смерти", target) then 
+            dgTime = GetTime()
+            return 
+        end
+    end, 
+    function(target) 
+        if target == nil then target = "target" end
+        if not CanMagicAttack(target) then return true end
+        if GetTime() - dgTime < 0.1 then
+            dgTime = 0
             return true
         end
         return false  
@@ -55,25 +77,30 @@ SetCommand("stop",
 )
 
 ------------------------------------------------------------------------------------------------------------------
-local stopFocus = false
-SetCommand("stopFocus", 
-    function() 
-        if InGCD() and IsPlayerCasting() then return end
-        if HasDebuff("Ледяные оковы",7,"focus") then return end
-        if Runes(2) > 0 and UseSpell("Ледяные оковы", "focus") then 
-            stopFocus = true
+local stunTime = 0
+SetCommand("stun", 
+    function(target) 
+        if not IsReadySpell("Отгрызть") then return end
+        if target == nil then target = "target" end
+        RunMacroText("/petattack "..target)
+        RunMacroText("/cast [@"..target.."] Отгрызть")
+        RunMacroText("/cast [@"..target.."] Прыжок")
+        if not IsReadySpell("Отгрызть") then 
+            stunTime = GetTime()
             return 
         end
     end, 
-    function() 
-        if not CanAttack("focus") then return true end
-        if stopFocus then
-            stopFocus = false
+    function(target) 
+        if target == nil then target = "target" end
+        if not HasSpell("Отгрызть") or not IsReadySpell("Отгрызть") or not CanAttack(target) or not CanControl(target) then return true end
+        if GetTime() - stunTime < 0.1 then
+            stunTime = 0
             return true
         end
         return false  
     end
 )
+
 ------------------------------------------------------------------------------------------------------------------
 local tryMount = 0
 SetCommand("mount", 
@@ -88,9 +115,9 @@ SetCommand("mount",
             return
         end
         if InGCD() or IsPlayerCasting() or InCombatLockdown() or not IsOutdoors() or not PlayerInPlace() then return end
-        local mount = IsShiftKeyDown() and "Большой кодо Хмельного фестиваля" or "Стремительный баран Хмельного фестиваля"
+        local mount = IsShiftKeyDown() and "Большой кодо Хмельного фестиваля" or "Конь смерти Акеруса"
         if IsFlyableArea() and not IsLeftControlKeyDown() then 
-            mount = IsShiftKeyDown() and "Синий дракон" or "Бронзовый дракон"
+            mount = IsShiftKeyDown() and "Бронзовый дракон" or "Стемительный сиреневый грифон"
         end
         if IsAltKeyDown() then mount = "Тундровый мамонт путешественника" end
         if UseMount(mount) then 

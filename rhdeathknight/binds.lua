@@ -35,17 +35,17 @@ function InterruptToggle()
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function IsNeedTaunt()
+function IsMouse3()
     return  IsMouseButtonDown(3) == 1
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function IsBers()
+function IsCtr()
     return  (IsControlKeyDown() == 1 and not GetCurrentKeyBoardFocus())
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function IsDeff()
+function IsAlt()
     return  (IsAltKeyDown() == 1 and not GetCurrentKeyBoardFocus())
 end
 
