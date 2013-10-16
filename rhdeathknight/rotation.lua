@@ -31,8 +31,7 @@ function Idle()
             return 
         end
     end
-    -- призыв пета
-    if advansedMod and not HasSpell("Цапнуть") and not InGCD() and DoSpell("Воскрешение мертвых") then return true end
+   
     
     --if IsAttack() and not IsArena() and IsAOE() and IsValidTarget("mouseover") and UseItem("Саронитовая бомба") then return end
     -- гарга по контролу
@@ -43,10 +42,18 @@ function Idle()
             TryInterrupt(TARGETS[i])
         end
     end
+    
+    if TryHealing() then return end
+    
+    if TryProtect() then return end
+
+    if IsCtr() and UnitMana("player") >= 60 and DoSpell("Призыв горгульи") then return end
 
     if advansedMod then
+         -- призыв пета
+        if not HasSpell("Цапнуть") and not InGCD() and DoSpell("Воскрешение мертвых") then return true end
 
-        if IsCtr() and UnitMana("player") >= 60 and DoSpell("Призыв горгульи") then return end
+        
 
         if not IsArena() and InParty() and IsReadySpell("Воскрешение союзника") then
             local units = GetGroupUnits()
@@ -89,8 +96,7 @@ function Idle()
         end
 
     
-        if TryHealing() then return end
-        if TryProtect() then return end
+        
         if TryBuffs() then return end
     end    
     TryTarget()
@@ -155,7 +161,7 @@ function Idle()
     if HasRunes(100, true) and (DoSpell("Кровавый удар") or (hasFocus and DoSpell("Кровавый удар", "focus"))) then return end
 
     if not InMelee() and HasRunes(010) and DoSpell("Ледяное прикосновение") then return end
-    if not IsCtr() and UnitMana("player") >= 100 and ((canMagic and DoSpell("Лик смерти")) or (canMagicFocus and DoSpell("Лик смерти", "focus")))  then return end
+    if UnitMana("player") >= 100 and ((canMagic and DoSpell("Лик смерти")) or (canMagicFocus and DoSpell("Лик смерти", "focus")))  then return end
     if DoSpell("Зимний горн") then return end
     if hasFocus then
         if not HasMyDebuff("Кровавая чума", 1, "focus") and HasRunes(001) and DoSpell("Удар чумы", "focus") then return end
