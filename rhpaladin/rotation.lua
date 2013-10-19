@@ -3,7 +3,18 @@
 local holyShieldTime  =  0
 local steathClass = {"ROGUE", "DRUID"}
 local reflectBuff = {"Отражение заклинания", "Эффект тотема заземления", "Рунический покров"}
+
+local advansedTime = 0
+local advansedMod = false
+
 function Idle()
+
+    advansedMod = IsAttack()
+    if GetTime() - advansedTime > 1 then
+        advansedTime = GetTime()
+        advansedMod = true
+    end
+
     if IsAttack() then 
         if CanExitVehicle() then VehicleExit() return end
         if IsMounted() then Dismount() return end 
@@ -11,7 +22,7 @@ function Idle()
     if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or  CanExitVehicle()) then return end
     if IsMouseButtonDown(3) and TryTaunt("mouseover") then return end
 
-    if IsReadySpell("Длань возмездия") then
+    if advansedMod and IsReadySpell("Длань возмездия") then
         for i = 1, #ITARGETS do
             local t = ITARGETS[i]
             if UnitIsPlayer(t) and ((tContains(steathClass, GetClass(t)) and not InRange("Покаяние", t)) or HasBuff(reflectBuff, 1, t)) 
@@ -27,7 +38,7 @@ function Idle()
             end 
         end
                 
-        if AutoAGGRO and InGroup() and InCombat(1) then
+        if advansedMod and AutoAGGRO and InGroup() and InCombat(1) then
             for i = 1, #TARGETS do
                 local t = TARGETS[i]
                 if UnitAffectingCombat(t) and TryTaunt(t) then return end
@@ -35,7 +46,7 @@ function Idle()
         end
         
         -- Священная жертва
-        if InCombatLockdown() and HasSpell("Щит мстителя") and InGroup() and CalculateHP("player") > 70 then
+        if advansedMod and InCombatLockdown() and HasSpell("Щит мстителя") and InGroup() and CalculateHP("player") > 70 then
             local lowhpmembers = 0
             for i = 1, #UNITS do 
                 if CalculateHP(UNITS[i]) <= 50 then lowhpmembers = lowhpmembers + 1 end
@@ -124,7 +135,7 @@ local totems = { "Тотем оков земли", "Тотем прилива м
 function Retribution()
     local target = "target"
 
-    if not IsFinishHim(target) and UnitMana100("player") > 10 and IsReadySpell("Очищение") and IsSpellNotUsed("Очищение", 5) then
+    if advansedMod and not IsFinishHim(target) and UnitMana100("player") > 10 and IsReadySpell("Очищение") and IsSpellNotUsed("Очищение", 5) then
         for i = 1, #IUNITS do
             local u = IUNITS[i]
             if CanHeal(u) and HasDebuff(redDispelList, 2, u) and TryDispel(u) then return end
@@ -134,14 +145,14 @@ RunMacroText("/startattack")
     if UnitHealth100("player") < 50 and UseItem("Камень здоровья из Скверны") then return end
     if UnitMana100("player") < 20 and not HasBuff("Печать мудрости") and DoSpell("Печать мудрости") then return end
     if UnitMana100("player") > 70 then RunMacroText("/cancelaura Печать мудрости") end
-    if IsPvP() and IsReadySpell("Изгнание зла") and IsSpellNotUsed("Изгнание зла", 5) then
+    if advansedMod and IsPvP() and IsReadySpell("Изгнание зла") and IsSpellNotUsed("Изгнание зла", 5) then
         for i = 1, #TARGETS do
             local t = TARGETS[i]
             if CanAttack(t) and (UnitCreatureType(t) == "Нежить" or UnitCreatureType(t) == "Демон") 
                 and not HasDebuff("Изгнание зла", 0.1, t) and DoSpell("Изгнание зла",t) then return end
         end
     end
-    if IsReadySpell("Длань возмездия") and IsSpellNotUsed("Длань возмездия", 2) then
+    if advansedMod and IsReadySpell("Длань возмездия") and IsSpellNotUsed("Длань возмездия", 2) then
         for i = 1, #TARGETS do
             local t = TARGETS[i]
             if tContains(totems, UnitName(t)) and DoSpell("Длань возмездия",t) then return end
@@ -176,7 +187,7 @@ RunMacroText("/startattack")
        if not hasShield and DoSpell("Священный щит", "player") then holyShieldTime = GetTime() return end 
     end]]
        
-    if IsReadySpell("Очищение") and IsSpellNotUsed("Очищение", 3) and not IsFinishHim(target) and UnitMana100("player") > 40 then
+    if advansedMod and IsReadySpell("Очищение") and IsSpellNotUsed("Очищение", 3) and not IsFinishHim(target) and UnitMana100("player") > 40 then
          for i = 1, #IUNITS do
             if TryDispel(IUNITS[i]) then return end
         end
@@ -213,7 +224,7 @@ function TryHealing()
         if CalculateHP("player") < 35 and UseHealPotion() then return true end
         if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
     end
-    if InCombatLockdown() or IsArena() then
+    if advansedMod and InCombatLockdown() or IsArena() then
         local members, membersHP = GetHealingMembers(IsArena() and IUNITS or nil)
         local u = members[1]
         local h = membersHP[u]
