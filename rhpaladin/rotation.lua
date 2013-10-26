@@ -187,7 +187,7 @@ RunMacroText("/startattack")
        if not hasShield and DoSpell("Священный щит", "player") then holyShieldTime = GetTime() return end 
     end]]
        
-    if advansedMod and IsReadySpell("Очищение") and IsSpellNotUsed("Очищение", 3) and not IsFinishHim(target) and UnitMana100("player") > 40 then
+    if not InMelee(target) and advansedMod and IsReadySpell("Очищение") and IsSpellNotUsed("Очищение", 3) and not IsFinishHim(target) and UnitMana100("player") > 40 then
          for i = 1, #IUNITS do
             if TryDispel(IUNITS[i]) then return end
         end
@@ -240,7 +240,7 @@ function TryHealing()
         end
         if not UnitIsPet(u) and h < 20 and DoSpell("Возложение рук",u) then return end
         if not UnitIsPet(u) and IsEquippedItem("Защитник хладных душ") and h < 95 and HasBuff("Искусство войны") and not IsFinishHim("target") and DoSpell("Вспышка Света",u) then return end
-        if not UnitIsPet(u) and h < 85 and HasBuff("Искусство войны") and (not IsFinishHim("target") and not IsReadySpell("Экзорцизм") or h < 70 ) and DoSpell("Вспышка Света",u) then return end
+        if not UnitIsPet(u) and h < 80 and HasBuff("Искусство войны") and not IsFinishHim("target") and DoSpell("Вспышка Света",u) then return end
     end
     return false
 end
