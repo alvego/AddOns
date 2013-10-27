@@ -55,7 +55,7 @@ function Idle()
 
         
 
-        if not IsArena() and InParty() and IsReadySpell("Воскрешение союзника") then
+        --[[if not IsArena() and InParty() and IsReadySpell("Воскрешение союзника") then
             local units = GetGroupUnits()
             for i=1,#units do
                 local u = units[i]
@@ -68,7 +68,7 @@ function Idle()
                     break 
                 end
             end
-        end
+        end]]
 
         if IsPvP() and HasClass(TARGETS, UndeadFearClass) and not HasBuff("Антимагический панцирь") and HasBuff("Перерождение") and not HasBuff("Перерождение", 8) then RunMacroText("/cancelaura Перерождение") end    
         
@@ -126,7 +126,7 @@ function Idle()
             if HasBuff(burstBuff, 4, t) and DoSpell("Удушение", t) then return end
         end
     end
-    if canMagic and UseSlot(10) then return end
+   
     
 
     -- if IsPvP() and InMelee() and not HasDebuff("Осквернение") then
@@ -135,9 +135,9 @@ function Idle()
     -- end
 
     local canMagic = CanMagicAttack("target")
+     if canMagic and UseSlot(10) then return end
     local hasFocus = IsValidTarget("focus")
     local canMagicFocus = hasFocus and CanMagicAttack("focus")
-
     if canMagic and IsPvP() and not InMelee() and not HasDebuff("Ледяные оковы",6,"target") and HasRunes(010) and UseSpell("Ледяные оковы", "target") then return end
 
     -- накладываем болезни

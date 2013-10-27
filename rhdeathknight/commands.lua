@@ -115,10 +115,11 @@ SetCommand("mount",
             return
         end
         if InGCD() or IsPlayerCasting() or InCombatLockdown() or not IsOutdoors() or not PlayerInPlace() then return end
-        local mount = IsShiftKeyDown() and "Большой кодо Хмельного фестиваля" or "Конь смерти Акеруса"
+        --[[local mount = IsShiftKeyDown() and "Большой кодо Хмельного фестиваля" or "Конь смерти Акеруса"
         if IsFlyableArea() and not IsLeftControlKeyDown() then 
-            mount = IsShiftKeyDown() and "Бронзовый дракон" or "Стремительный сиреневый грифон"
-        end
+            mount = IsShiftKeyDown() and "Бронзовый дракон" or "Крылатый скакун Черного Клинка"
+        end]]
+        local mount = "Скакун Всадника без головы"
         if IsAltKeyDown() then mount = "Тундровый мамонт путешественника" end
         if UseMount(mount) then 
             tryMount = GetTime() 
