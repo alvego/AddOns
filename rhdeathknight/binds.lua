@@ -141,6 +141,7 @@ local lichList = {
     
 ExceptionControlList = { -- > 4
 "Ошеломление", -- 20s
+"Покаяние", 
 }
 
 local freedomTime = 0
@@ -159,7 +160,8 @@ function UpdateAutoFreedom(event, ...)
         freedomTime = GetTime()
         return
     end 
-    if HasDebuff(ControlList, 2, "player") and (not HasDebuff(ExceptionControlList) or IsAttack()) then 
+    if HasDebuff(ExceptionControlList, 0.1, "player") and not IsAttack() then return end
+    if HasDebuff(ControlList, 2, "player") then 
         print("freedom")
         DoCommand("freedom") 
         freedomTime = GetTime()
