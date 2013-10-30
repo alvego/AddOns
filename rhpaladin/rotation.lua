@@ -174,7 +174,6 @@ RunMacroText("/startattack")
     if IsEquippedItem("Защитник хладных душ") and DoSpell("Щит праведности", target) then return end
     if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    
     if UnitHealth100("player") > 80 and UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
-    print(1)
     -- if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
     --[[if IsReadySpell("Священный щит") and IsSpellNotUsed("Священный щит", 3) and (IsPvP() or (UnitThreat("player") == 3 and UnitHealth100("player") < 95)) and (GetTime() - holyShieldTime > 10) then
         local hasShield = false
@@ -225,7 +224,6 @@ function TryHealing()
         if CalculateHP("player") < 35 and UseHealPotion() then return true end
         if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
     end
-    if InCombatLockdown() or IsArena() then
         local members, membersHP = GetHealingMembers(IsArena() and IUNITS or nil)
         local u = members[1]
         local h = membersHP[u]
@@ -236,14 +234,12 @@ function TryHealing()
             end 
             if not UnitIsPet(u) and ((not unitWithShield and h < 80) or (not HasBuff("Священный щит",1,u) and h < 40 and (GetTime() - holyShieldTime > 3))) and DoSpell("Священный щит",u) then
                 holyShieldTime = GetTime() 
-                return 
+                return true
             end
         end
-        print(2)
         if not UnitIsPet(u) and h < 20 and DoSpell("Возложение рук",u) then return end
-        if not UnitIsPet(u) and IsEquippedItem("Защитник хладных душ") and h < 100 and HasBuff("Искусство войны") and not IsFinishHim("target") and DoSpell("Вспышка Света",u) then return end
-        if not UnitIsPet(u) and h < 95 and HasBuff("Искусство войны") and not IsFinishHim("target") and DoSpell("Вспышка Света",u) then return end
-    end
+        if not UnitIsPet(u) and IsEquippedItem("Защитник хладных душ") and h < 100 and HasBuff("Искусство войны") and not IsFinishHim("target") and DoSpell("Вспышка Света",u) then return true end
+        if not UnitIsPet(u) and h < 95 and HasBuff("Искусство войны") and DoSpell("Вспышка Света",u) then return true end
     return false
 end
 
