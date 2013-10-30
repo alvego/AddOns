@@ -165,7 +165,7 @@ RunMacroText("/startattack")
     if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
     if CanMagicAttack(target) then
         if UseSlot(10) then return end
-        if HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end   
+        if UnitHealth100("player") > 90 and HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end   
         if DoSpell(IsAltKeyDown() and "Правосудие справедливости" or "Правосудие мудрости", target) then return end
     end
     if CanAttack(tagret) and UnitMana100("player") > 20 and not InMelee(target) and HasDebuff(rootDispelList, 1, "player") and TryDispel("player") then return end
@@ -173,7 +173,8 @@ RunMacroText("/startattack")
     if DoSpell("Удар воина Света", target) then return end
     if IsEquippedItem("Защитник хладных душ") and DoSpell("Щит праведности", target) then return end
     if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    
-    if UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
+    if UnitHealth100("player") > 80 and UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
+    print(1)
     -- if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
     --[[if IsReadySpell("Священный щит") and IsSpellNotUsed("Священный щит", 3) and (IsPvP() or (UnitThreat("player") == 3 and UnitHealth100("player") < 95)) and (GetTime() - holyShieldTime > 10) then
         local hasShield = false
@@ -224,7 +225,7 @@ function TryHealing()
         if CalculateHP("player") < 35 and UseHealPotion() then return true end
         if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
     end
-    if advansedMod and InCombatLockdown() or IsArena() then
+    if InCombatLockdown() or IsArena() then
         local members, membersHP = GetHealingMembers(IsArena() and IUNITS or nil)
         local u = members[1]
         local h = membersHP[u]
@@ -238,9 +239,10 @@ function TryHealing()
                 return 
             end
         end
+        print(2)
         if not UnitIsPet(u) and h < 20 and DoSpell("Возложение рук",u) then return end
-        if not UnitIsPet(u) and IsEquippedItem("Защитник хладных душ") and h < 95 and HasBuff("Искусство войны") and not IsFinishHim("target") and DoSpell("Вспышка Света",u) then return end
-        if not UnitIsPet(u) and h < 80 and HasBuff("Искусство войны") and not IsFinishHim("target") and DoSpell("Вспышка Света",u) then return end
+        if not UnitIsPet(u) and IsEquippedItem("Защитник хладных душ") and h < 100 and HasBuff("Искусство войны") and not IsFinishHim("target") and DoSpell("Вспышка Света",u) then return end
+        if not UnitIsPet(u) and h < 95 and HasBuff("Искусство войны") and not IsFinishHim("target") and DoSpell("Вспышка Света",u) then return end
     end
     return false
 end
@@ -315,7 +317,7 @@ function TryProtect()
         if GetTime() - tryShieldTime > 5 then 
         
             if HasSpell("Удар воина Света") and (UnitHealth100() < 20) then 
-                if DoSpell("Божественный щит") then 
+                if RunMacroText("/cast Божественный щит") then 
                     tryShieldTime = GetTime()
                     return true 
                 end
