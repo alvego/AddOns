@@ -60,14 +60,14 @@ local dgTime = 0
 SetCommand("dg", 
     function(target) 
         if target == nil then target = "target" end
-        if Runes(2) > 0 and UseSpell("Хватка смерти", target) then 
+        if UseSpell("Хватка смерти", target) then 
             dgTime = GetTime()
             return 
         end
     end, 
     function(target) 
         if target == nil then target = "target" end
-        if not CanMagicAttack(target) then return true end
+        if not CanMagicAttack(target) or not IsReadySpell("Хватка смерти") then return true end
         if GetTime() - dgTime < 0.1 then
             dgTime = 0
             return true
@@ -137,4 +137,69 @@ SetCommand("mount",
     end
 )
 
+------------------------------------------------------------------------------------------------------------------
+
+local explodeTime = 0
+SetCommand("explode", 
+    function() 
+        if IsPlayerCasting() and UnitMana("player") < 40 or not HasSpell("Отгрызть") or not HasSpell("Взрыв трупа") then return end
+        RunMacroText("/cast [@pettarget] Прыжок")
+        RunMacroText("/cast [@pet] Взрыв трупа")
+        if IsPlayerCasting() then 
+            explodeTime = GetTime()
+            return 
+        end
+    end, 
+    function() 
+        if UnitMana("player") < 35 or not HasSpell("Отгрызть") or not HasSpell("Взрыв трупа") or not CanAttack(target) then return true end
+        if GetTime() - explodeTime < 0.1 then
+            explodeTime = 0
+            return true
+        end
+        return false  
+    end
+)
+
+------------------------------------------------------------------------------------------------------------------
+local silenceTime = 0
+SetCommand("silence", 
+    function(target) 
+        if target == nil then target = "target" end
+        if Runes(1) > 0 and UseSpell("Удушение", target) then 
+            silenceTime = GetTime()
+            return 
+        end
+    end, 
+    function(target) 
+        if target == nil then target = "target" end
+        if not CanMagicAttack(target) or HasBuff("Мастер аур", 0.1, target) then return true end
+        if GetTime() - silenceTime < 0.1 then
+            silenceTime = 0
+            return true
+        end
+        return false  
+    end
+)
+
+------------------------------------------------------------------------------------------------------------------
+
+local armyTime = 0
+SetCommand("army", 
+    function() 
+        if IsPlayerCasting() or not HasRunes(111) or not IsReadySpell("Войско мертвых") then return end
+        RunMacroText("/cast Войско мертвых")
+        if IsPlayerCasting() then 
+            armyTime = GetTime()
+            return 
+        end
+    end, 
+    function() 
+        if IsArena() or IsPlayerCasting() or not IsReadySpell("Войско мертвых") then return end
+        if GetTime() - armyTime < 0.1 then
+            armyTime = 0
+            return true
+        end
+        return false  
+    end
+)
 ------------------------------------------------------------------------------------------------------------------
