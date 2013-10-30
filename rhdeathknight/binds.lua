@@ -219,12 +219,8 @@ end
 ------------------------------------------------------------------------------------------------------------------
 if TrashList == nil then TrashList = {} end
 function IsTrash(n) --n - itemlink
-    for i=1, #TrashList do
-        if string.find(n, TrashList[i]) then 
-            return true
-        end
-    end
     local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(n)
+    if tContains(TrashList, itemName) then return true end
     if itemRarity == 2 and (itemType == "Оружие" or itemType == "Доспехи") then
       return true
     end
