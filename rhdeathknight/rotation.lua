@@ -21,17 +21,18 @@ function Idle()
         advansedMod = true
     end
     if IsAttack() then 
+        if HasBuff("Парашют") then RunMacroText("/cancelaura Парашют") return end
         if CanExitVehicle() then VehicleExit() return end
         if IsMounted() then Dismount() return end 
+
     else
         if IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) or (not InCombatLockdown() and IsPlayerCasting()) then return end
         
-        if not InCombatLockdown() then 
-            if UnitExists("pet") and UnitMana("player") >= 40 and UnitHealth100("pet") < 100 and DoSpell("Лик смерти", "pet") then return end
+        if advansedMod and not InCombatLockdown() then 
+            if UnitExists("pet") and UnitMana("player") >= 40 and UnitHealth100("pet") < 99 and DoSpell("Лик смерти", "pet") then return end
             return 
         end
     end
-   
     
     --if IsAttack() and not IsArena() and IsAOE() and IsValidTarget("mouseover") and UseItem("Саронитовая бомба") then return end
     -- гарга по контролу
@@ -99,6 +100,7 @@ function Idle()
         
         if TryBuffs() then return end
     end    
+    
     TryTarget()
 
     if not (IsValidTarget("target") and (UnitAffectingCombat("target") and CanAttack("target") or IsAttack()))  then return end
@@ -309,23 +311,77 @@ function TryTarget(useFocus)
     end
 end
 
-
 ------------------------------------------------------------------------------------------------------------------
+
+local physDebuff = {
+    "Poison"
+}
+local magicBuff = {
+    "Стылая кровь",
+    "Героизм",
+    "Жажда крови"
+
+}
+local magicDebuff = {
+    "Призыв горгульи"
+}
+local checkedTargets = {"target", "focus", "arena1", "arena2", "mouseover"}
 function TryProtect()
+
+    local defPhys = false;
+    local defMagic = false;
+
     if InCombatLockdown() then
         if (UnitHealth100() < (IsPvP() and 30 or 50)) then
-            if DoSpell("Незыблемость льда") then return true end
-            if DoSpell("Антимагический панцирь") then return true end
+            echo("Все плохо!", true)
+            defPhys = true
+            defMagic = true;
+        else
+            for i=1,#checkedTargets do
+                local t = checkedTargets[i]
+                if defPhys and defMagic then break end
+                if IsValidTarget(t) then
+                    if HasBuff("Вихрь клинков", 5, t) and InRange("Ледяные оковы", t) then
+                        echo("Вихрь клинков!", true)
+                        defPhys = true
+                        if HasSpell("Сжаться") then RunMacroText("/cast Сжаться") end
+                    end
+                    if IsOneUnit("player", t .. "-target") then
+                        if HasBuff("Гнев карателя", 5, t) and InRange("Ледяные оковы", t) then
+                            echo("Гнев карателя!", true)
+                            defPhys = true
+                            defMagic = true;
+                        end
+                        if HasDebuff(magicDebuff, 5, "player") or HasBuff(magicBuff, 5, t) then
+                            echo("Магия!", true)
+                            defMagic = true;
+                        end
+                        if HasDebuff(physDebuff, 5, "player") then
+                            echo("Яды!", true)
+                            defPhys = true;
+                        end
+                    end
+
+                end
+            end
         end
-        
     end
-    -- if InCombatLockdown() and (IsAlt() or UnitHealth100("player") < 552) then
-    --     if EquipItem("Большой меч разгневанного гладиатора") then return true end
-    --     if (IsPvP() or not InCombatLockdown()) and HasRunes(010) and not HasBuff("Власть льда") and DoSpell("Власть льда") then  return true end
-    -- end
+    if defPhys then 
+        DoSpell("Незыблемость льда")
+        if IsPvP() and Runes(2) > 0 and not HasBuff("Влсть льда") and DoSpell("Власть льда") then 
+            Notify("Влсть льда!") 
+            return true 
+        end
+    end
+    if defMagic then 
+        if not HasBuff("Зона антимагии") and DoSpell("Антимагический панцирь") then return true end
+        if HasSpell("Зона антимагии") and not HasBuff("Антимагический панцирь") and Runes(3) > 0 and DoSpell("Зона антимагии") then 
+            Notify("Зона антимагии!") 
+            return true 
+        end
+    end
     return false;
 end
-
 ------------------------------------------------------------------------------------------------------------------
 function Dotes(t, target)
     if target == nil then target = "target" end

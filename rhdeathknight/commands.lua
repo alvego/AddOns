@@ -67,7 +67,7 @@ SetCommand("dg",
     end, 
     function(target) 
         if target == nil then target = "target" end
-        if not CanMagicAttack(target) or not IsReadySpell("Хватка смерти") then return true end
+        if not CanAttack(target)  or HasBuff("Отражение заклинания", 0.1, target) or not IsReadySpell("Хватка смерти") then return true end
         if GetTime() - dgTime < 0.1 then
             dgTime = 0
             return true
@@ -102,6 +102,9 @@ SetCommand("stun",
 )
 
 ------------------------------------------------------------------------------------------------------------------
+--[[#showtooltip [nomod]Плащ триумфа разгневанного гладиатора;Наголенники триумфа разгневанного гладиатора
+/run if IsAltKeyDown() then UseSlot(8) else  if IsFalling() then UseSlot(15) end end]]
+
 local tryMount = 0
 SetCommand("mount", 
     function() 
@@ -114,7 +117,18 @@ SetCommand("mount",
             tryMount = GetTime()
             return
         end
-        if InGCD() or IsPlayerCasting() or InCombatLockdown() or not IsOutdoors() or not PlayerInPlace() then return end
+        if IsFalling() and UseSlot(15)  then 
+             tryMount = GetTime() 
+            return
+        end
+        if not PlayerInPlace() and not IsMounted() and  not CanExitVehicle() and not IsFalling() and UseSlot(8) then 
+            tryMount = GetTime() 
+            return
+        end
+        if InGCD() or InCombatLockdown() or IsMounted() or CanExitVehicle() or IsPlayerCasting() or not IsOutdoors() or not PlayerInPlace() then
+            tryMount = GetTime() 
+            return
+        end
         --[[local mount = IsShiftKeyDown() and "Большой кодо Хмельного фестиваля" or "Конь смерти Акеруса"
         if IsFlyableArea() and not IsLeftControlKeyDown() then 
             mount = IsShiftKeyDown() and "Бронзовый дракон" or "Крылатый скакун Черного Клинка"
@@ -128,7 +142,7 @@ SetCommand("mount",
     end, 
     function() 
 
-        if tryMount > 0 and GetTime() - tryMount > 0.01 or (InCombatLockdown() or IsMounted() or CanExitVehicle()) then
+        if tryMount > 0 and GetTime() - tryMount > 0.01 then
             tryMount = 0    
             return  true
         end

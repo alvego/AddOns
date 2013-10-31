@@ -170,49 +170,6 @@ function UpdateAutoFreedom(event, ...)
 end
 AttachUpdate(UpdateAutoFreedom, -1)
 ------------------------------------------------------------------------------------------------------------------
-local physicDamage = {
-    "Вихрь клинков", 
-    "Гнев карателя",
-}
-local magicDamage = {
-    "Стылая кровь",
-    "Гнев карателя",
-    "Призыв горгульи"
-}
-local checkedTargets = {"target", "focus", "arena1", "arena2", "mouseover"}
-local defPhys = 0
-local defMagic = 0;
-function UpdateDefense()
-    if GetTime() - defPhys < 5 then 
-        DoSpell("Незыблемость льда")
-        if Runes(2) > 0 and not HasBuff("Власть льда") then DoSpell("Власть льда") end
-    end
-    if GetTime() - defMagic < 5 then 
-        if not not HasBuff("Зона антимагии") then DoSpell("Антимагический панцирь") end
-
-        if HasSpell("Зона антимагии") and (IsSpellInUse("Антимагический панцирь") and not HasBuff("Антимагический панцирь")) then
-            DoSpell("Зона антимагии")
-        end
-    end
-end
-AttachUpdate(UpdateDefense, -1)
-
-function CheckDefense(event, ...)
-    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err = select(1, ...)
-    
-    for i=1,#checkedTargets do
-        local t = checkedTargets[i]
-        if IsValidTarget(t) and UnitGUID(t) == sourceGUID and (IsOneUnit("player", t .. "-target") or InMelee(t)) then
-            if tContains(physicDamage, spellName) then defPhys = GetTime() end
-            if tContains(magicDamage, spellName) then defMagic = GetTime() end
-            if "Вихрь клинков" == spellName and HasSpell("Сжаться") then RunMacroText("/cast Сжаться") end
-            break
-        end
-    end
-
-end
-AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", CheckDefense)
-------------------------------------------------------------------------------------------------------------------
 function DoSpell(spellName, target, runes)
     return UseSpell(spellName, target)
 end
@@ -235,11 +192,11 @@ function trashToggle()
         for i=1, #TrashList do
             if TrashList[i] ==  itemName then 
                 tremove(TrashList, i)
-                chat("C " .. itemName .. " пометка хлам снята.")
+                chat(itemName .. " = это НЕ Хлам! ")
             end
         end            
     else
-        chat(itemName .. " помечен как хлам.")
+        chat(itemName .. " это Хлам! ")
         tinsert(TrashList, itemName)
     end
 end
