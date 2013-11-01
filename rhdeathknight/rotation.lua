@@ -147,7 +147,7 @@ function Idle()
     if not HasMyDebuff("Озноб", 1, "target") and HasRunes(010) and DoSpell(IsPvP() and "Ледяные оковы" or "Ледяное прикосновение") then return end
 
     -- Если нет болезней и не аое, дальше не идем
-    if not (Dotes() or (hasFocus  and  Dotes(1,"focus"))) and not IsPvP() and IsShiftKeyDown() ~= 1 and not IsAttack() then return end
+    if not (Dotes() or (hasFocus  and  Dotes(1,"focus"))) and IsShiftKeyDown() ~= 1 and not IsAttack() then return end
     
     if not IsCtr() and (IsAttack() or UnitMana("player") >= 60) and (DoSpell("Рунический удар") or (hasFocus and DoSpell("Рунический удар", "focus"))) then return end
 
@@ -325,7 +325,7 @@ local magicBuff = {
 local magicDebuff = {
     "Призыв горгульи"
 }
-local checkedTargets = {"target", "focus", "arena1", "arena2", "mouseover"}
+local checkedTargets = TARGETS --{"target", "focus", "arena1", "arena2", "mouseover"}
 function TryProtect()
 
     local defPhys = false;

@@ -157,7 +157,7 @@ local explodeTime = 0
 SetCommand("explode", 
     function() 
         if IsPlayerCasting() and UnitMana("player") < 40 or not HasSpell("Отгрызть") or not HasSpell("Взрыв трупа") then return end
-        RunMacroText("/cast [@pettarget] Прыжок")
+        RunMacroText("/cast [@pet-target] Прыжок")
         RunMacroText("/cast [@pet] Взрыв трупа")
         if IsPlayerCasting() then 
             explodeTime = GetTime()
