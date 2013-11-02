@@ -8,7 +8,6 @@ local advansedTime = 0
 local advansedMod = false
 
 function Idle()
-
     advansedMod = IsAttack()
     if GetTime() - advansedTime > 1 then
         advansedTime = GetTime()
@@ -141,7 +140,7 @@ function Retribution()
             if CanHeal(u) and HasDebuff(redDispelList, 2, u) and TryDispel(u) then return end
         end
     end
-RunMacroText("/startattack")
+    RunMacroText("/startattack")
     if UnitHealth100("player") < 50 and UseItem("Камень здоровья из Скверны") then return end
     if UnitMana100("player") < 20 and not HasBuff("Печать мудрости") and DoSpell("Печать мудрости") then return end
     if UnitMana100("player") > 70 then RunMacroText("/cancelaura Печать мудрости") end
@@ -160,9 +159,14 @@ RunMacroText("/startattack")
     end
     if not IsAttack() and not CanAttack(target) then return end
     if not (UnitAffectingCombat(target) or IsAttack()) then return end
-    if InMelee(target) and HasBuff("Гнев карателя") and UseEquippedItem("Знак превосходства")then return end
+    if InMelee(target) and HasBuff("Гнев карателя") and UseEquippedItem("Знак превосходства") then return end
     if IsShiftKeyDown() == 1 and DoSpell("Освящение") then return end
-    if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
+    if advansedMod and IsReadySpell("Молот гнева") then
+        for i = 1, #TARGETS do
+            local t = TARGETS[i]
+            if CanAttack(t) and UnitHealth100(t) < 20 and InRange("Молот гнева", t) and DoSpell("Молот гнева", t) then return end    
+        end
+    end
     if CanMagicAttack(target) then
         if UseSlot(10) then return end
         if UnitHealth100("player") > 90 and HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end   
@@ -240,10 +244,10 @@ function TryHealing()
     end
     if not UnitIsPet(u) then
         if h < 20 and DoSpell("Возложение рук",u) then return end
-        if  HasBuff("Искусство войны") then
+        if HasBuff("Искусство войны") then
             -- проверить на наличие щита можно так if IsEquippedItemType("Щит") then ...
             -- смысл строчки ниже от меня ускользает, учитывая строчку под ней
-            if IsEquippedItem("Защитник хладных душ") and h < 100 and and not IsFinishHim("target") and DoSpell("Вспышка Света",u) then return true end
+            if IsEquippedItem("Защитник хладных душ") and h < 100 and not IsFinishHim("target") and DoSpell("Вспышка Света",u) then return true end
             if h < (IsFinishHim("target") and 50 or 95) and DoSpell("Вспышка Света",u) then return true end    
         end
     end
