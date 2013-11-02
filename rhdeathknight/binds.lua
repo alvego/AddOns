@@ -192,7 +192,7 @@ function trashToggle()
         for i=1, #TrashList do
             if TrashList[i] ==  itemName then 
                 tremove(TrashList, i)
-                chat(itemName .. " = это НЕ Хлам! ")
+                chat(itemName .. " это НЕ Хлам! ")
             end
         end            
     else

@@ -341,22 +341,22 @@ function TryProtect()
                 local t = checkedTargets[i]
                 if defPhys and defMagic then break end
                 if IsValidTarget(t) then
-                    if HasBuff("Вихрь клинков", 5, t) and InRange("Ледяные оковы", t) then
+                    if HasBuff("Вихрь клинков", 4, t) and InRange("Ледяные оковы", t) then
                         echo("Вихрь клинков!", true)
                         defPhys = true
                         if HasSpell("Сжаться") then RunMacroText("/cast Сжаться") end
                     end
                     if IsOneUnit("player", t .. "-target") then
-                        if HasBuff("Гнев карателя", 5, t) and InRange("Ледяные оковы", t) then
+                        if HasBuff("Гнев карателя", 4, t) and InRange("Ледяные оковы", t) then
                             echo("Гнев карателя!", true)
                             defPhys = true
                             defMagic = true;
                         end
-                        if HasDebuff(magicDebuff, 5, "player") or HasBuff(magicBuff, 5, t) then
+                        if HasDebuff(magicDebuff, 4, "player") or HasBuff(magicBuff, 4, t) then
                             echo("Магия!", true)
                             defMagic = true;
                         end
-                        if HasDebuff(physDebuff, 5, "player") then
+                        if HasDebuff(physDebuff, 4, "player") then
                             echo("Яды!", true)
                             defPhys = true;
                         end
@@ -365,19 +365,19 @@ function TryProtect()
                 end
             end
         end
-    end
-    if defPhys then 
-        DoSpell("Незыблемость льда")
-        if IsPvP() and Runes(2) > 0 and not HasBuff("Влсть льда") and DoSpell("Власть льда") then 
-            Notify("Влсть льда!") 
-            return true 
+        if defPhys then 
+            DoSpell("Незыблемость льда")
+            if not IsAttack() and IsPvP() and Runes(2) > 0 and not HasBuff("Влсть льда") and DoSpell("Власть льда") then 
+                Notify("Влсть льда!") 
+                return true 
+            end
         end
-    end
-    if defMagic then 
-        if not HasBuff("Зона антимагии") and DoSpell("Антимагический панцирь") then return true end
-        if HasSpell("Зона антимагии") and not HasBuff("Антимагический панцирь") and Runes(3) > 0 and DoSpell("Зона антимагии") then 
-            Notify("Зона антимагии!") 
-            return true 
+        if defMagic then 
+            if not HasBuff("Зона антимагии") and DoSpell("Антимагический панцирь") then return true end
+            if HasSpell("Зона антимагии") and not HasBuff("Антимагический панцирь") and Runes(3) > 0 and DoSpell("Зона антимагии") then 
+                Notify("Зона антимагии!") 
+                return true 
+            end
         end
     end
     return false;
