@@ -29,7 +29,7 @@ function Idle()
         end
     end
     
-    if (IsAttack() or InCombatLockdown()) then
+    if IsAttack() or InCombatLockdown() then
         if CanInterrupt then
             for i = 1, #TARGETS do
                 local t = TARGETS[i]
@@ -161,10 +161,11 @@ function Retribution()
     if not (UnitAffectingCombat(target) or IsAttack()) then return end
     if InMelee(target) and HasBuff("Гнев карателя") and UseEquippedItem("Знак превосходства") then return end
     if IsShiftKeyDown() == 1 and DoSpell("Освящение") then return end
+    if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end 
     if advansedMod and IsReadySpell("Молот гнева") then
         for i = 1, #TARGETS do
             local t = TARGETS[i]
-            if CanAttack(t) and UnitHealth100(t) < 20 and InRange("Молот гнева", t) and DoSpell("Молот гнева", t) then return end    
+            if CanAttack(t) and UnitHealth100(t) < 20 and DoSpell("Молот гнева", t) then return end    
         end
     end
     if CanMagicAttack(target) then

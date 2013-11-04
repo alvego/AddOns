@@ -26,7 +26,7 @@ function Idle()
         if IsMounted() then Dismount() return end 
 
     else
-        if IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) or (not InCombatLockdown() and IsPlayerCasting()) then return end
+        if IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) or not InCombatLockdown() or IsPlayerCasting() then return end
         
         if advansedMod and not InCombatLockdown() then 
             if UnitExists("pet") and UnitMana("player") >= 40 and UnitHealth100("pet") < 99 and DoSpell("Лик смерти", "pet") then return end
@@ -35,7 +35,6 @@ function Idle()
     end
     
     --if IsAttack() and not IsArena() and IsAOE() and IsValidTarget("mouseover") and UseItem("Саронитовая бомба") then return end
-    -- гарга по контролу
     
 
     if CanInterrupt then
@@ -47,7 +46,7 @@ function Idle()
     if TryHealing() then return end
     
     if TryProtect() then return end
-
+    -- гарга по контролу
     if IsCtr() and UnitMana("player") >= 60 and DoSpell("Призыв горгульи") then return end
 
     if advansedMod then
@@ -72,7 +71,7 @@ function Idle()
         end]]
 
         if IsPvP() and HasClass(TARGETS, UndeadFearClass) and not HasBuff("Антимагический панцирь") and HasBuff("Перерождение") and not HasBuff("Перерождение", 8) then RunMacroText("/cancelaura Перерождение") end    
-        
+        if EquipItem("Темная Скорбь") then return true end
         if HasRunes(100) and (not HasBuff(stanceBuff) or (IsPvP() and IsAttack() and not HasBuff("Власть крови") )) and DoSpell("Власть крови") then return end
         -- if IsAttack() or (IsCtr() and UnitHealth100("player") > 60) then
         --      if EquipItem("Темная Скорбь") then return true end
@@ -331,7 +330,7 @@ function TryProtect()
     local defPhys = false;
     local defMagic = false;
 
-    if InCombatLockdown() then
+    if InCombatLockdown() and (IsValidTarget("target") or IsValidTarget("focus")) then
         if (UnitHealth100() < (IsPvP() and 30 or 50)) then
             echo("Все плохо!", true)
             defPhys = true
