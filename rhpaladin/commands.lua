@@ -75,9 +75,9 @@ SetCommand("fstun",
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("sv", 
    function() 
-      print("Боб на Ириху!")
+      print("Боб на Омника!")
       --RunMacroText("/target Ириха")
-      RunMacroText("/cast [@Lensy] Длань защиты")
+      RunMacroText("/cast [@Омниссия] Длань защиты")
       --RunMacroText("/targetlasttarget")
    end, 
    function() return HasBuff("Длань защиты", 1, "Ириха") end
@@ -90,13 +90,13 @@ SetCommand("svs",
       DoSpell("Изгнание зла","target")
       RunMacroText("/targetlasttarget")
    end, 
-   function() return not  IsReadySpell("Изгнание зла") end
+   function() return not IsReadySpell("Изгнание зла") end
 )
 
 ------------------------------------------------------------------------------------------------------------------
-SetCommand("svi", 
-   function() return DoSpell("Длань защиты","Идеал") end, 
-   function() return not InForbearance("Идеал") and not InGCD() and not IsReadySpell("Длань защиты") end
+SetCommand("def", 
+   function() return DoSpell("Священная жертва") end, 
+   function() return HasBuff("Священная жертва", 1) end
 )
 
 ------------------------------------------------------------------------------------------------------------------
@@ -114,13 +114,13 @@ SetCommand("dd",
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("cl", 
    function() end, 
-   function() return not InGCD() and DoSpell("Очищение","Ириха") end
+   function() return not InGCD() and DoSpell("Очищение","Омниссия") end
 )
 
 ------------------------------------------------------------------------------------------------------------------
-SetCommand("cli", 
-   function() end, 
-   function() return not InGCD() and DoSpell("Очищение","Идеал") end
+SetCommand("ff", 
+   function() return DoSpell("Изгнание зла","mouseover") end,
+   function() return not IsReadySpell("Изгнание зла") end
 )
 
 ------------------------------------------------------------------------------------------------------------------

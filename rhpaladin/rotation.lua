@@ -202,14 +202,12 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function TryBuffs()
         if HasSpell("Удар воина Света") then
-        -- if not InCombatLockdown() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
-            if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
+            if not InCombatLockdown() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
+            -- if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
             if not HasBuff("Печать") and DoSpell("Печать праведности") then return end
             if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
-                if not HasBuff("Боевой крик")
-                    and not HasBuff("благословение могущества") and DoSpell("Великое благословение могущества","player") then return end
-                if ((HasBuff("благословение могущества") and not HasMyBuff("благословение могущества")) or HasBuff("Боевой крик")) 
-                    and not HasBuff("благословение королей") and DoSpell("Великое благословение королей","player") then return end
+                if not HasBuff("благословение королей") and DoSpell("Великое благословение королей","player") then return end
+                if (not HasBuff("Боевой крик") or not HasBuff("благословение могущества")) and DoSpell("Великое благословение могущества","player") then return end
             end
         else
             if not HasBuff("Благословение") and DoSpell("Великое благословение неприкосновенности","player") then return end
