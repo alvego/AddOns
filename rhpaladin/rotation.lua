@@ -318,10 +318,10 @@ function TryProtect()
             if UseEquippedItem("Проржавевший костяной ключ") then return true end
         end
         
-        -- if HasSpell("Удар воина Света") and (UnitHealth100() < 50) and DoSpell("Священная жертва") then return end
-        
+        if HasSpell("Удар воина Света") and (UnitHealth100() < 50) and DoSpell("Священная жертва") then return end
+                if UnitHealth100() < 50 and RunMacroText("/cancelaura Священная жертва") then return end
+                
         if GetTime() - tryShieldTime > 5 then 
-        
             if HasSpell("Удар воина Света") and (UnitHealth100() < 20) then 
                 if RunMacroText("/cast Божественный щит") then 
                     tryShieldTime = GetTime()

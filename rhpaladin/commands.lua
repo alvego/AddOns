@@ -34,9 +34,9 @@ SetCommand("free",
 )
 
 ------------------------------------------------------------------------------------------------------------------
-SetCommand("frees", 
-   function() return DoSpell("Длань свободы","Pippo") end, 
-   function() return HasBuff("Длань свободы","Pippo") 
+SetCommand("frs", 
+   function() return DoSpell("Длань свободы","Омниссия") end, 
+   function() return HasBuff("Длань свободы","Омниссия") 
       or (not InGCD() and not IsReadySpell("Длань свободы")) end
 )
 
