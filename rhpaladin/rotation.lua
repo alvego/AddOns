@@ -176,7 +176,7 @@ function Retribution()
     if CanAttack(tagret) and UnitMana100("player") > 20 and not InMelee(target) and HasDebuff(rootDispelList, 1, "player") and TryDispel("player") then return end
     if InMelee(target) and DoSpell("Божественная буря") then return end
     if DoSpell("Удар воина Света", target) then return end
-    if IsEquippedItem("Защитник хладных душ") and DoSpell("Щит праведности", target) then return end
+    if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
     if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    
     if UnitHealth100("player") > 80 and UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
     -- if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
@@ -246,7 +246,7 @@ function TryHealing()
         if HasBuff("Искусство войны") then
             -- проверить на наличие щита можно так if IsEquippedItemType("Щит") then ...
             -- смысл строчки ниже от меня ускользает, учитывая строчку под ней
-            if IsEquippedItem("Защитник хладных душ") and h < 100 and not IsFinishHim("target") and DoSpell("Вспышка Света",u) then return true end
+            if IsEquippedItemType("Щит") and h < 100 and not IsFinishHim("target") and DoSpell("Вспышка Света",u) then return true end
             if h < (IsFinishHim("target") and 50 or 95) and DoSpell("Вспышка Света",u) then return true end    
         end
     end
