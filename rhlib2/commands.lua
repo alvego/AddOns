@@ -4,7 +4,7 @@
 local Commands = {}
 ------------------------------------------------------------------------------------------------------------------
 -- метод для задания команды, которая имеет приоритет на ротацией
--- SetCommand(string 'произвольное имя', function команда, bool function проверка, что все выполнилось, или выполнение невозможно)
+-- SetCommand(string 'произвольное имя', function(...) команда, bool function(...) проверка, что все выполнилось, или выполнение невозможно)
 function SetCommand(name, applyFunc, checkFunc)
     Commands[name] = {Timer = 0, Apply = applyFunc, Check = checkFunc, Params == null}
 end
@@ -12,7 +12,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 -- Используется в макросах
 -- /run DoCommand('my_command', 'focus')
-function DoCommand(cmd, params)
+function DoCommand(cmd, ...)
     if not Commands[cmd] then 
         print("DoCommand: Ошибка! Нет такой комманды ".. cmd)
         return
@@ -29,7 +29,7 @@ function DoCommand(cmd, params)
         end
     end
     Commands[cmd].Timer = t
-    Commands[cmd].Params = params
+    Commands[cmd].Params = { ... }
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -41,10 +41,10 @@ function UpdateCommands()
         if not ret then
             if (Commands[cmd].Timer  - GetTime() > 0) then 
                 ret = true
-                if Commands[cmd].Check(Commands[cmd].Params) then 
+                if Commands[cmd].Check(unpack(Commands[cmd].Params)) then 
                    Commands[cmd].Timer = 0
                 else
-                    Commands[cmd].Apply(Commands[cmd].Params)
+                    Commands[cmd].Apply(unpack(Commands[cmd].Params))
                 end
             else
                 Commands[cmd].Timer = 0

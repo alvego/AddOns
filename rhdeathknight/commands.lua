@@ -33,13 +33,25 @@ SetCommand("lich",
     end
 )
 ------------------------------------------------------------------------------------------------------------------
+
+SetCommand("spell", 
+    function(spell, target) 
+        if DoSpell(spell, target) then
+            echo(spell.."!",1)
+        end
+    end, 
+    function(spell, target) 
+        return not HasSpell(spell) or not IsSpellNotUsed(spell, 1) 
+    end
+)
+------------------------------------------------------------------------------------------------------------------
 local stopTime = 0
 SetCommand("stop", 
     function(target) 
         if target == nil then target = "target" end
         if InGCD() and IsPlayerCasting() then return end
         if HasDebuff("Ледяные оковы",7,target) then return end
-        if Runes(2) > 0 and UseSpell("Ледяные оковы", target) then 
+        if DoSpell("Ледяные оковы", target) then 
             stopTime = GetTime()
             return 
         end
@@ -60,7 +72,7 @@ local dgTime = 0
 SetCommand("dg", 
     function(target) 
         if target == nil then target = "target" end
-        if UseSpell("Хватка смерти", target) then 
+        if DoSpell("Хватка смерти", target) then 
             dgTime = GetTime()
             return 
         end
@@ -83,9 +95,8 @@ SetCommand("stun",
         if not IsReadySpell("Отгрызть") then return end
         if target == nil then target = "target" end
         RunMacroText("/petattack "..target)
-        RunMacroText("/cast [@"..target.."] Отгрызть")
-        RunMacroText("/cast [@"..target.."] Прыжок")
-        if not IsReadySpell("Отгрызть") then 
+        DoSpell("Прыжок", target)
+        if DoSpell("Отгрызть", target) then 
             stunTime = GetTime()
             return 
         end
@@ -102,9 +113,6 @@ SetCommand("stun",
 )
 
 ------------------------------------------------------------------------------------------------------------------
---[[#showtooltip [nomod]Плащ триумфа разгневанного гладиатора;Наголенники триумфа разгневанного гладиатора
-/run if IsAltKeyDown() then UseSlot(8) else  if IsFalling() then UseSlot(15) end end]]
-
 local tryMount = 0
 SetCommand("mount", 
     function() 
@@ -157,15 +165,14 @@ local explodeTime = 0
 SetCommand("explode", 
     function() 
         if IsPlayerCasting() and UnitMana("player") < 40 or not HasSpell("Отгрызть") or not HasSpell("Взрыв трупа") then return end
-        RunMacroText("/cast [@pet-target] Прыжок")
-        RunMacroText("/cast [@pet] Взрыв трупа")
-        if IsPlayerCasting() then 
+        DoSpell("Прыжок", "pet-target")
+        if DoSpell("Взрыв трупа", "pet") then 
             explodeTime = GetTime()
             return 
         end
     end, 
     function() 
-        if UnitMana("player") < 35 or not HasSpell("Отгрызть") or not HasSpell("Взрыв трупа") or not CanAttack(target) then return true end
+        if IsPlayerCasting() or UnitMana("player") < 35 or not HasSpell("Отгрызть") or not HasSpell("Взрыв трупа") or not CanAttack(target) then return true end
         if GetTime() - explodeTime < 0.1 then
             explodeTime = 0
             return true
@@ -179,7 +186,7 @@ local silenceTime = 0
 SetCommand("silence", 
     function(target) 
         if target == nil then target = "target" end
-        if Runes(1) > 0 and UseSpell("Удушение", target) then 
+        if DoSpell("Удушение", target) then 
             silenceTime = GetTime()
             return 
         end
@@ -201,8 +208,7 @@ local armyTime = 0
 SetCommand("army", 
     function() 
         if IsPlayerCasting() or not HasRunes(111) or not IsReadySpell("Войско мертвых") then return end
-        RunMacroText("/cast Войско мертвых")
-        if IsPlayerCasting() then 
+        if DoSpell("Войско мертвых") then 
             armyTime = GetTime()
             return 
         end

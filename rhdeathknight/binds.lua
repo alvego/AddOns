@@ -83,7 +83,7 @@ function TryInterrupt(target)
             interruptTime = GetTime() + 4
             return true 
         end
-        if (not channel and t < 1.8) and HasRunes(100) and DoSpell("Удушение", target) then 
+        if (not channel and t < 1.8) and DoSpell("Удушение", target) then 
             echo("Удушение"..m)
             interruptTime = GetTime() + 1
             return true 
@@ -170,7 +170,56 @@ function UpdateAutoFreedom(event, ...)
 end
 AttachUpdate(UpdateAutoFreedom, -1)
 ------------------------------------------------------------------------------------------------------------------
-function DoSpell(spellName, target, runes)
+
+local macroSpell = {
+    "Отгрызть",
+    "Прыжок",
+    "Взрыв трупа"
+}
+
+local spellRunes = {
+    ["Ледяные оковы"] = 010,
+    ["Ледяное прикосновение"] = 010,
+    ["Удар чумы"] = 001,
+    ["Вскипание крови"] = 100,
+    ["Кровавый удар"] = 100,
+    ["Удар смерти"] = 011,
+    ["Удар Плети"] = 011,
+    ["Уничтожение"] = 011,
+    ["Костяной щит"] = 001,
+    ["Захват рун"] = 100,
+    --["Мор"] = 100,
+    ["Войско мертвых"] = 111,
+    ["Смерть и разложение"] = 111,
+    ["Власть крови"] = 100,
+    ["Власть льда"] = 010,
+    ["Власть нечестивости"] = 001,
+    ["Врата смерти"] = 001,
+    ["Зона антимагии"] = 001,
+    ["Удушение"] = 100,
+    ["Удар в сердце"] = 100,
+
+}
+
+local spellCD = {}
+function DoSpell(spellName, target)
+    local t = GetTime()
+    local c = spellCD[spellName]
+    if c ~= nil and t - c < 0.1 then 
+        return false 
+    end
+
+    if tContains(macroSpell, spellName) then
+        if not IsReadySpell(spellName) or not InRange(spellName, target) then return false end
+        local cast = "/cast "
+        if target then cast = cast .. "[@" .. target .. "] " end
+        RunMacroText(cast .. spellName)
+        return IsReadySpell(spellName)
+    end
+
+    spellCD[spellName] = t
+    runes = spellRunes[spellName]
+    if runes ~= nil and not HasRunes(runes) then return false end
     return UseSpell(spellName, target)
 end
 ------------------------------------------------------------------------------------------------------------------
