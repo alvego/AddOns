@@ -59,11 +59,13 @@ function Idle()
         TryTarget()
         
         if (IsControlKeyDown() == 1) and IsValidTarget("target") and DoSpell("Гнев карателя") then return end
+
+        if HasSpell("Удар воина Света") then 
+            Retribution()
+        end
         
         if HasSpell("Щит мстителя") then
             Tank() 
-        else 
-            Retribution()
         end
     end
 end
@@ -209,7 +211,9 @@ function TryBuffs()
                 if not HasBuff("благословение королей") and DoSpell("Великое благословение королей","player") then return end
                 if (not HasBuff("Боевой крик") or not HasBuff("благословение могущества")) and DoSpell("Великое благословение могущества","player") then return end
             end
-        else
+            return false
+        end
+        if HasSpell("Щит мстителя") then
             if not HasBuff("Благословение") and DoSpell("Великое благословение неприкосновенности","player") then return end
             if not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
             if HasSpell("Печать мщения") and not HasBuff("Печать мщения") and DoSpell("Печать мщения") then return end
