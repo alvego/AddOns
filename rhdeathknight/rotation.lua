@@ -43,9 +43,6 @@ function Idle()
         end
     end
     
-    if TryHealing() then return end
-    
-    if TryProtect() then return end
     -- гарга по контролу
     if IsCtr() and UnitMana("player") >= 60 and DoSpell("Призыв горгульи") then return end
 
@@ -145,6 +142,10 @@ function Idle()
     if not HasMyDebuff("Кровавая чума", 1, "target") and HasRunes(001) and DoSpell("Удар чумы") then return end
     if not HasMyDebuff("Озноб", 1, "target") and HasRunes(010) and DoSpell(IsPvP() and "Ледяные оковы" or "Ледяное прикосновение") then return end
 
+    if TryHealing() then return end
+    
+    if TryProtect() then return end
+
     -- Если нет болезней и не аое, дальше не идем
     if not (Dotes() or (hasFocus  and  Dotes(1,"focus"))) and IsShiftKeyDown() ~= 1 and not IsAttack() then return end
     
@@ -234,7 +235,7 @@ function TryHealing()
     if InCombatLockdown() then
         if h < 30 and not IsArena() and UseHealPotion() then return true end
         --if HasSpell("Кровь земли") and h < 40 and DoSpell("Кровь земли") then return true end
-        --if h < 50 and HasRunes(100) and HasSpell("Захват рун") and DoSpell("Захват рун") then return true end
+        if h < 60 and HasRunes(100) and HasSpell("Захват рун") and DoSpell("Захват рун") then return true end
         if (not IsPvP() or not HasClass(TARGETS, UndeadFearClass) or HasBuff("Антимагический панцирь")) and HasSpell("Перерождение") and IsReadySpell("Перерождение") and h < 60 and UnitMana("player") >= 40 and DoSpell("Перерождение") then 
             return DoSpell("Лик смерти", "player") 
         end

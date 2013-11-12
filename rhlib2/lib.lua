@@ -47,7 +47,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 -- Выполняем обработчики события OnUpdate, согласно приоритету (return true - выход)
 local LastUpdate = 0
-UpdateInterval = 0.05
+UpdateInterval = 0.08
 local function OnUpdate(frame, elapsed)
     LastUpdate = LastUpdate + elapsed 
     if LastUpdate < UpdateInterval then return end -- для снижения нагрузки на проц

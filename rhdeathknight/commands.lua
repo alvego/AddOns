@@ -121,7 +121,7 @@ SetCommand("mount",
              tryMount = GetTime() 
             return
         end
-        if not PlayerInPlace() and not IsMounted() and  not CanExitVehicle() and not IsFalling() and UseSlot(8) then 
+        if IsAltKeyDown() and not PlayerInPlace() and not IsMounted() and  not CanExitVehicle() and not IsFalling() and UseSlot(8) then 
             tryMount = GetTime() 
             return
         end
