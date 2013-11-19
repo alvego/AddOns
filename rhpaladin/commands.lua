@@ -28,38 +28,38 @@ SetCommand("vp",
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("free", 
-function(target) 
-UseSpell("Длань свободы", target)
-end, 
-function(target) 
-if not InGCD() and not IsReadySpell("Длань свободы") then return true end
-return false 
-end
+  function(target) 
+    UseSpell("Длань свободы", target)
+  end, 
+  function(target) 
+    if not InGCD() and not IsReadySpell("Длань свободы") then return true end
+    return false 
+  end
 )
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("repentance", 
-function(target) 
-UseSpell("Покаяние", target)
-end, 
-function(target) 
-if target == nil then target = "target" end
-if not InGCD() and not IsReadySpell("Покаяние") then return true end
-return false 
-end
+  function(target) 
+    UseSpell("Покаяние", target)
+  end, 
+  function(target) 
+    if target == nil then target = "target" end
+    if not InGCD() and not IsReadySpell("Покаяние") then return true end
+    return false 
+  end
 )
 
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("stun", 
-function(target) 
-UseSpell("Молот правосудия", target)
-end, 
-function(target) 
-if target == nil then target = "target" end
-if (not InGCD() and not IsReadySpell("Молот правосудия")) or not CanControl() or HasBuff("Незыблемость льда", 0.1 , "target") then return true end
-return false 
-end
+  function(target) 
+    UseSpell("Молот правосудия", target)
+  end, 
+  function(target) 
+    if target == nil then target = "target" end
+    if (not InGCD() and not IsReadySpell("Молот правосудия")) or not CanControl() or HasBuff("Незыблемость льда", 0.1 , target) then return true end
+    return false 
+  end
 )
 
 ------------------------------------------------------------------------------------------------------------------
