@@ -44,7 +44,7 @@ SetCommand("repentance",
   end, 
   function(target) 
     if target == nil then target = "target" end
-    if (not InGCD() and not IsReadySpell("Покаяние")) or not CanMagicAttack(target) and not HasDebuff(ControlList, 3, target) then return true end
+    if (not InGCD() and not IsReadySpell("Покаяние")) or not CanMagicAttack(target) or HasDebuff(ControlList, 3, target) then return true end
     return false 
   end
 )
