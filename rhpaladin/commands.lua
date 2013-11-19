@@ -56,7 +56,7 @@ SetCommand("repentance",
 SetCommand("stun", 
    function() return DoSpell("Молот правосудия") end, 
    function() return (not InGCD() and not IsReadySpell("Молот правосудия")) 
-      or not CanControl() and not HasBuff("Незыблемость льда", 0.1 , "target") end
+      or not CanControl() or HasBuff("Незыблемость льда", 0.1 , "target") end
 )
 
 ------------------------------------------------------------------------------------------------------------------
@@ -69,7 +69,7 @@ SetCommand("frepentance",
 SetCommand("fstun", 
    function() return DoSpell("Молот правосудия","focus") end, 
    function() return (not InGCD() and not IsReadySpell("Молот правосудия")) 
-      or not CanControl("focus") and not HasBuff("Незыблемость льда", 0.1, "focus") end
+      or not CanControl("focus") or HasBuff("Незыблемость льда", 0.1, "focus") end
 )
 
 ------------------------------------------------------------------------------------------------------------------
