@@ -150,7 +150,7 @@ function Retribution()
         for i = 1, #TARGETS do
             local t = TARGETS[i]
             if CanAttack(t) and (UnitCreatureType(t) == "Нежить" or UnitCreatureType(t) == "Демон") 
-                and not HasDebuff("Изгнание зла", 0.1, t) and DoSpell("Изгнание зла",t) then return end
+                and not HasDebuff("Изгнание зла", 0.1, t) and not HasBuff("Антимагический панцирь", t) and DoSpell("Изгнание зла",t) then return end
         end
     end
     if advansedMod and IsReadySpell("Длань возмездия") and IsSpellNotUsed("Длань возмездия", 2) then
@@ -179,7 +179,7 @@ function Retribution()
     if InMelee(target) and DoSpell("Божественная буря") then return end
     if DoSpell("Удар воина Света", target) then return end
     if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
-    if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    
+    if (UnitCreatureType(target) == "Нежить") and not HasBuff("Антимагический панцирь", target) and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end    
     if UnitHealth100("player") > 80 and UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
     -- if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
     --[[if IsReadySpell("Священный щит") and IsSpellNotUsed("Священный щит", 3) and (IsPvP() or (UnitThreat("player") == 3 and UnitHealth100("player") < 95)) and (GetTime() - holyShieldTime > 10) then

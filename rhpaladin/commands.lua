@@ -44,7 +44,7 @@ SetCommand("repentance",
   end, 
   function(target) 
     if target == nil then target = "target" end
-    if not InGCD() and not IsReadySpell("Покаяние") then return true end
+    if (not InGCD() and not IsReadySpell("Покаяние")) or not CanMagicAttack(target) and not HasDebuff(ControlList, 3, target) then return true end
     return false 
   end
 )
@@ -57,7 +57,7 @@ SetCommand("stun",
   end, 
   function(target) 
     if target == nil then target = "target" end
-    if (not InGCD() and not IsReadySpell("Молот правосудия")) or not CanControl() or HasBuff("Незыблемость льда", 0.1 , target) then return true end
+    if (not InGCD() and not IsReadySpell("Молот правосудия")) or not CanControl(target) or HasBuff("Незыблемость льда", 0.1 , target) then return true end
     return false 
   end
 )
