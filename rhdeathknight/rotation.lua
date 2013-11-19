@@ -13,7 +13,7 @@ local burstBuff = {
 local advansedTime = 0
 
 function Idle()
-    local advansedMod = IsAttack()
+    local advansedMod = false
     if GetTime() - advansedTime > 1 then
         advansedTime = GetTime()
         advansedMod = true
@@ -39,10 +39,19 @@ function Idle()
     end
     
     -- гарга по контролу
-    if IsCtr() and UnitMana("player") >= 60 and DoSpell("Призыв горгульи") then return end
+    if IsCtr() and UnitMana("player") >= 60 and IsReadySpell("Призыв горгульи") then
+        if advansedMod then
+            RunMacroText("/cleartarget")
+            RunMacroText("/targetlasttarget")
+        end
+        if DoSpell("Призыв горгульи") then return end
+        if IsReadySpell("Призыв горгульи") then return end
+    end
 
     -- призыв пета
-    if not HasSpell("Цапнуть") and DoSpell("Воскрешение мертвых") then return true end
+    if not HasSpell("Цапнуть") and DoSpell("Воскрешение мертвых") then 
+        return true 
+    end
 
     if advansedMod then
         if IsPvP() and HasClass(TARGETS, UndeadFearClass) and not HasBuff("Антимагический панцирь") and HasBuff("Перерождение") and not HasBuff("Перерождение", 8) then RunMacroText("/cancelaura Перерождение") end    
@@ -164,7 +173,7 @@ function Pet()
         RunMacroText("/petattack " .. ((IsValidTarget("focus") and IsAltKeyDown() == 1) and "[@focus]" or "[@target]"))
     end
 
-    if IsReadySpell("Сжаться") and UnitHealth100("pet") < 50 then
+    --[[if IsReadySpell("Сжаться") and UnitHealth100("pet") < 50 then
         for i = 1, #TARGETS do
             local t = TARGETS[i]
             if t and UnitAffectingCombat(t) and IsOneUnit(t .. "target", "pet") then 
@@ -172,7 +181,7 @@ function Pet()
                 break
             end
         end
-    end
+    end]]
     local mana = UnitMana("pet")
     if mana >= (IsAttack() and 40 or 70) then RunMacroText("/cast [@pet-target] Цапнуть") end
 end
@@ -185,12 +194,12 @@ function TryHealing()
     if InCombatLockdown() then
         if h < 30 and not IsArena() and UseHealPotion() then return true end
         --if HasSpell("Кровь земли") and h < 40 and DoSpell("Кровь земли") then return true end
-        if h < 60 and HasSpell("Захват рун") and DoSpell("Захват рун") then return true end
+        if h < 75 and HasSpell("Захват рун") and DoSpell("Захват рун") then return true end
         if (not IsPvP() or not HasClass(TARGETS, UndeadFearClass) or HasBuff("Антимагический панцирь")) and HasSpell("Перерождение") and IsReadySpell("Перерождение") and h < 60 and UnitMana("player") >= 40 and DoSpell("Перерождение") then 
             return DoSpell("Лик смерти", "player") 
         end
     end
-    if h < 65 and InMelee() and (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) and DoSpell("Удар смерти") then return true end
+    if h < 45 and InMelee() and (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) and DoSpell("Удар смерти") then return true end
     
     --if UnitExists("pet")  and UnitMana("player") >= 110 and UnitHealth100("pet") < 40 and DoSpell("Лик смерти", "pet") then return end
     return false

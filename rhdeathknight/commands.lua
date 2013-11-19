@@ -41,7 +41,7 @@ SetCommand("spell",
         end
     end, 
     function(spell, target) 
-        return not HasSpell(spell) or not IsSpellNotUsed(spell, 1) 
+        return not HasSpell(spell) or not InRange(spell, target) or not IsSpellNotUsed(spell, 1) 
     end
 )
 ------------------------------------------------------------------------------------------------------------------
@@ -137,11 +137,11 @@ SetCommand("mount",
             tryMount = GetTime() 
             return
         end
-        --[[local mount = IsShiftKeyDown() and "Большой кодо Хмельного фестиваля" or "Конь смерти Акеруса"
+        local mount = IsShiftKeyDown() and "Большой кодо Хмельного фестиваля" or "Конь смерти Акеруса"
         if IsFlyableArea() and not IsLeftControlKeyDown() then 
             mount = IsShiftKeyDown() and "Бронзовый дракон" or "Крылатый скакун Черного Клинка"
-        end]]
-        local mount = "Скакун Всадника без головы"
+        end
+        --local mount = "Скакун Всадника без головы"
         if IsAltKeyDown() then mount = "Тундровый мамонт путешественника" end
         if UseMount(mount) then 
             tryMount = GetTime() 
@@ -165,7 +165,9 @@ local explodeTime = 0
 SetCommand("explode", 
     function() 
         if IsPlayerCasting() and UnitMana("player") < 40 or not HasSpell("Отгрызть") or not HasSpell("Взрыв трупа") then return end
-        DoSpell("Прыжок", "pet-target")
+        --DoSpell("Прыжок", "pet-target")
+        RunMacroText("/petpassive")
+        RunMacroText("/petstay")
         if DoSpell("Взрыв трупа", "pet") then 
             explodeTime = GetTime()
             return 

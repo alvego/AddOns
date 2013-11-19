@@ -218,8 +218,18 @@ AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateSapped)
 ------------------------------------------------------------------------------------------------------------------
 -- Alert опасных спелов
 local checkedTargets = {"target", "focus", "arena1", "arena2", "mouseover"}
+
+--[[
+SPELL_AURA_APPLIED Авиена Покаяние Омниссия
+SPELL_CAST_SUCCESS Омниссия Каждый за себя nil
+SPELL_AURA_REMOVED Авиена Покаяние Омниссия
+]]
+
 function UpdateSpellAlert(event, ...)
     local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err = select(1, ...)
+    --[[if sourceName == UnitName("player") or sourceName == UnitName("target") then
+        print(type, sourceName, spellName, destName)
+    end]]
     if InAlertList(spellName) then
         for i=1,#checkedTargets do
             local t = checkedTargets[i]

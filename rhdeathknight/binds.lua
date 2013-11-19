@@ -174,7 +174,10 @@ AttachUpdate(UpdateAutoFreedom, -1)
 local macroSpell = {
     "Отгрызть",
     "Прыжок",
-    "Взрыв трупа"
+    "Взрыв трупа",
+    "Призыв горгульи",
+    "Смертельный союз",
+    "Воскрешение мертвых"
 }
 
 local spellRunes = {
@@ -203,21 +206,20 @@ local spellRunes = {
 
 local spellCD = {}
 function DoSpell(spellName, target)
-    local t = GetTime()
-    local c = spellCD[spellName]
-    if c ~= nil and t - c < 0.1 then 
-        return false 
-    end
-
     if tContains(macroSpell, spellName) then
+        local t = GetTime()
+        local c = spellCD[spellName]
+        if c ~= nil and t - c < 0.15 then 
+            return false 
+        end
+        spellCD[spellName] = t
         if not IsReadySpell(spellName) or not InRange(spellName, target) then return false end
         local cast = "/cast "
         if target then cast = cast .. "[@" .. target .. "] " end
         RunMacroText(cast .. spellName)
+        chat(spellName)
         return IsReadySpell(spellName)
     end
-
-    spellCD[spellName] = t
     runes = spellRunes[spellName]
     if runes ~= nil and not HasRunes(runes) then return false end
     return UseSpell(spellName, target)
