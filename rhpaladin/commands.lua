@@ -28,48 +28,38 @@ SetCommand("vp",
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("free", 
-   function() return DoSpell("Длань свободы") end, 
-   function() return HasBuff("Длань свободы") 
-      or (not InGCD() and not IsReadySpell("Длань свободы")) end
-)
-
-------------------------------------------------------------------------------------------------------------------
-SetCommand("frs", 
-   function() return DoSpell("Длань свободы","Омниссия") end, 
-   function() return HasBuff("Длань свободы","Омниссия") 
-      or (not InGCD() and not IsReadySpell("Длань свободы")) end
-)
-
-------------------------------------------------------------------------------------------------------------------
-SetCommand("freedom", 
-   function() return DoSpell("Каждый за себя") end, 
-   function() return not InGCD() and not IsReadySpell("Каждый за себя") end
+function(target) 
+UseSpell("Длань свободы", target)
+end, 
+function(target) 
+if not InGCD() and not IsReadySpell("Длань свободы") then return true end
+return false 
+end
 )
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("repentance", 
-   function() return DoSpell("Покаяние") end, 
-   function() return (not InGCD() and not IsReadySpell("Покаяние")) or not CanControl() end
+function(target) 
+UseSpell("Покаяние", target)
+end, 
+function(target) 
+if target == nil then target = "target" end
+if not InGCD() and not IsReadySpell("Покаяние") then return true end
+return false 
+end
 )
+
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("stun", 
-   function() return DoSpell("Молот правосудия") end, 
-   function() return (not InGCD() and not IsReadySpell("Молот правосудия")) 
-      or not CanControl() or HasBuff("Незыблемость льда", 0.1 , "target") end
-)
-
-------------------------------------------------------------------------------------------------------------------
-SetCommand("frepentance", 
-   function() return DoSpell("Покаяние","focus") end, 
-   function() return (not InGCD() and not IsReadySpell("Покаяние")) or not CanControl("focus") end
-)
-
-------------------------------------------------------------------------------------------------------------------
-SetCommand("fstun", 
-   function() return DoSpell("Молот правосудия","focus") end, 
-   function() return (not InGCD() and not IsReadySpell("Молот правосудия")) 
-      or not CanControl("focus") or HasBuff("Незыблемость льда", 0.1, "focus") end
+function(target) 
+UseSpell("Молот правосудия", target)
+end, 
+function(target) 
+if target == nil then target = "target" end
+if (not InGCD() and not IsReadySpell("Молот правосудия")) or not CanControl() or HasBuff("Незыблемость льда", 0.1 , "target") then return true end
+return false 
+end
 )
 
 ------------------------------------------------------------------------------------------------------------------
