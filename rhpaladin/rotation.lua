@@ -246,7 +246,7 @@ function TryHealing()
         end
     end
     if not UnitIsPet(u) then
-        if h < 20 and DoSpell("Возложение рук",u) then return end
+        -- if h < 20 and DoSpell("Возложение рук",u) then return end
         if HasBuff("Искусство войны") then
             -- проверить на наличие щита можно так if IsEquippedItemType("Щит") then ...
             -- смысл строчки ниже от меня ускользает, учитывая строчку под ней
