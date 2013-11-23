@@ -226,12 +226,18 @@ function TryBuffs()
 end
 
 ------------------------------------------------------------------------------------------------------------------
+
 local healList = {"player", "Омниссия"}
 function TryHealing()
     if not IsArena() and InCombatLockdown() then
         if CalculateHP("player") < 35 and UseHealPotion() then return true end
         if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
     end
+
+    if HasBuff("Искусство войны") and not IsFinishHim("target") 
+        and UnitHealth100("player") < (IsEquippedItemType("Щит") and 99.9 or 80)  
+        and DoSpell("Вспышка Света", "player") then return true end
+
     local members, membersHP = GetHealingMembers(IsArena() and IUNITS or healList)
     local u = members[1]
     local h = membersHP[u]
@@ -245,14 +251,12 @@ function TryHealing()
             return true
         end
     end
+
     if not UnitIsPet(u) then
-        -- if h < 20 and DoSpell("Возложение рук",u) then return end
-        if HasBuff("Искусство войны") then
-            -- проверить на наличие щита можно так if IsEquippedItemType("Щит") then ...
-            -- смысл строчки ниже от меня ускользает, учитывая строчку под ней
-            if IsEquippedItemType("Щит") and h < 100 and not IsFinishHim("target") and DoSpell("Вспышка Света",u) then return true end
-            if h < (IsFinishHim("target") and 50 or 85) and DoSpell("Вспышка Света",u) then return true end    
-        end
+        if IsBattleground() and h < 20 and DoSpell("Возложение рук",u) then return end
+        if HasBuff("Искусство войны") and not IsFinishHim("target") 
+            and UnitHealth100(u) < (IsEquippedItemType("Щит") and 85 or 50)  
+            and DoSpell("Вспышка Света", u) then return true end
     end
     return false
 end
