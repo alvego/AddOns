@@ -235,7 +235,7 @@ function TryHealing()
     local members, membersHP = GetHealingMembers(IsArena() and IUNITS or healList)
     local u = members[1]
     local h = membersHP[u]
-    if IsSpellNotUsed("Священный щит", 3) then
+    if IsSpellNotUsed("Священный щит", 10) then
         local unitWithShield
         for i=1,#IUNITS do 
             if HasMyBuff("Священный щит",1,IUNITS[i]) then unitWithShield = IUNITS[i] end 
@@ -251,7 +251,7 @@ function TryHealing()
             -- проверить на наличие щита можно так if IsEquippedItemType("Щит") then ...
             -- смысл строчки ниже от меня ускользает, учитывая строчку под ней
             if IsEquippedItemType("Щит") and h < 100 and not IsFinishHim("target") and DoSpell("Вспышка Света",u) then return true end
-            if h < (IsFinishHim("target") and 50 or 95) and DoSpell("Вспышка Света",u) then return true end    
+            if h < (IsFinishHim("target") and 50 or 85) and DoSpell("Вспышка Света",u) then return true end    
         end
     end
     return false
