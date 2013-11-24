@@ -58,7 +58,7 @@ SetCommand("stop",
     end, 
     function(target) 
         if target == nil then target = "target" end
-        if not CanAttack(target) then return true end
+        if not CanAttack(target) or HasBuff("Отражение заклинания", 0.1, target) then return true end
         if GetTime() - stopTime < 0.1 then
             stopTime = 0
             return true
