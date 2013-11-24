@@ -33,7 +33,7 @@ SetCommand("lich",
     end
 )
 ------------------------------------------------------------------------------------------------------------------
-
+-- // /run if IsReadySpell("s") and СanMagicAttack("target") then DoCommand("spell", "s", "target") end
 SetCommand("spell", 
     function(spell, target) 
         if DoSpell(spell, target) then

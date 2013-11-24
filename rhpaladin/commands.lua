@@ -63,41 +63,73 @@ SetCommand("stun",
 )
 
 ------------------------------------------------------------------------------------------------------------------
+-- /run DoCommand("sv", "Омниссия")
 SetCommand("sv", 
-   function() 
-      print("Боб на Омника!")
-      --RunMacroText("/target Ириха")
-      RunMacroText("/cast [@Омниссия] Длань защиты")
-      --RunMacroText("/targetlasttarget")
+   function(target) 
+      if target == nil then target = "target" end
+      print("Боп на " .. target .. "!")
+      RunMacroText("/cast [@".. target .."] Длань защиты")
    end, 
-   function() return HasBuff("Длань защиты", 1, "Ириха") end
+   function(target) 
+      if target == nil then target = "target" end
+      return (not InGCD() and not IsReadySpell("Длань защиты")) or HasBuff("Длань защиты", 1, target) 
+   end
 )
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("svs", 
    function()
-      RunMacroText("/targetexact вороная горгулья")
-      DoSpell("Изгнание зла","target")
-      RunMacroText("/targetlasttarget")
+      if UnitExists("focus") and UnitName("focus") == "Вороная горгулья" then
+         DoSpell("Изгнание зла","focus") end
+      else
+         RunMacroText("/targetexact [harm,nodead] Вороная горгулья")
+         if UnitExists("target") and UnitName("target") == "Вороная горгулья" then RunMacroText("/focus target") end
+         RunMacroText("/targetlasttarget")
+      else
    end, 
-   function() return not IsReadySpell("Изгнание зла") end
+   function() 
+      if not IsReadySpell("Изгнание зла") then
+         if UnitExists("focus") and UnitName("focus") == "Вороная горгулья" then RunMacroText("/clearfocus") end
+         return true
+      end
+      return false
+   end
 )
 
 ------------------------------------------------------------------------------------------------------------------
+SetCommand("fg", 
+   function()
+      if UnitExists("focus") and UnitName("focus") == "Вороная горгулья" then
+         DoSpell("Очищение","focus") end
+      else
+         RunMacroText("/targetexact [help,nodead] Вороная горгулья")
+         if UnitExists("target") and UnitName("target") == "Вороная горгулья" then RunMacroText("/focus target") end
+         RunMacroText("/targetlasttarget")
+      else
+   end, 
+   function() 
+      if not IsSpellInUse("Очищение", 1) then
+         if UnitExists("focus") and UnitName("focus") == "Вороная горгулья" then RunMacroText("/clearfocus") end
+         return true
+      end
+      return false
+   end
+)
+------------------------------------------------------------------------------------------------------------------
 SetCommand("def", 
-   function() return DoSpell("Священная жертва") end, 
-   function() return HasBuff("Священная жертва", 1) end
+   function() DoSpell("Священная жертва") end, 
+   function() return HasBuff("Священная жертва") end
 )
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("hp", 
-   function() return DoSpell("Печать Света") end, 
+   function() DoSpell("Печать Света") end, 
    function() return not InGCD() and HasBuff("Печать Света") end
 )
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("dd", 
-   function() return DoSpell("Печать праведности") end, 
+   function() DoSpell("Печать праведности") end, 
    function() return not InGCD() and HasBuff("Печать праведности") end
 )
 

@@ -133,7 +133,7 @@ function GetUnits()
         local u = units[i]
         local exists = false
         for j = 1, #realUnits do 
-			exists = IsOneUnit(realUnits[j], u)
+        exists = IsOneUnit(realUnits[j], u)
 			if exists then break end 
 		end
         if not exists and InInteractRange(u) then 
@@ -151,7 +151,7 @@ function GetGroupUnits()
     if not InGroup() then return groupUnits end
     local name = "party"
     local size = MAX_PARTY_MEMBERS
-    if InRaid() then
+	if InRaid() then
 		name = "raid"
 		size = MAX_RAID_MEMBERS
     end
@@ -159,6 +159,14 @@ function GetGroupUnits()
 		tinsert(groupUnits, name..i)
     end
     return groupUnits
+end
+------------------------------------------------------------------------------------------------------------------
+-- /run DоCommand("cl", GetSameGroupUnit("mouseover"))
+function GetSameGroupUnit(unit)
+    local group = GetGroupUnits()
+    for i = 1, #group do
+        if InOneUnit(unit, group[i]) then return group[i] end
+    end
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -257,12 +265,12 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function UnitIsNPC(unit)
-    return not (UnitIsPlayer(unit) or UnitPlayerControlled(unit) or UnitCanAttack("player", unit));
+    return UnitExists(unit) and not (UnitIsPlayer(unit) or UnitPlayerControlled(unit) or UnitCanAttack("player", unit));
 end
 
 ------------------------------------------------------------------------------------------------------------------
 function UnitIsPet(unit)
-    return not UnitIsNPC(unit) and not UnitIsPlayer(unit) and UnitPlayerControlled(unit);
+    return UnitExists(unit) and not UnitIsNPC(unit) and not UnitIsPlayer(unit) and UnitPlayerControlled(unit);
 end
 
 ------------------------------------------------------------------------------------------------------------------
