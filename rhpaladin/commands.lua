@@ -80,13 +80,13 @@ SetCommand("sv",
 SetCommand("svs", 
    function()
       if UnitExists("focus") and UnitName("focus") == "Вороная горгулья" then
-         DoSpell("Изгнание зла","focus") end
+         DoSpell("Изгнание зла","focus")
       else
          RunMacroText("/targetexact [harm,nodead] Вороная горгулья")
          if UnitExists("target") and UnitName("target") == "Вороная горгулья" then RunMacroText("/focus target") end
          RunMacroText("/targetlasttarget")
-      end
-   end, 
+         end
+   end,
    function() 
       if not IsReadySpell("Изгнание зла") then
          if UnitExists("focus") and UnitName("focus") == "Вороная горгулья" then RunMacroText("/clearfocus") end
@@ -100,13 +100,12 @@ SetCommand("svs",
 SetCommand("fg", 
    function()
       if UnitExists("focus") and UnitName("focus") == "Вороная горгулья" then
-         DoSpell("Очищение","focus") end
-      else
+         DoSpell("Очищение","focus")
          RunMacroText("/targetexact [help,nodead] Вороная горгулья")
          if UnitExists("target") and UnitName("target") == "Вороная горгулья" then RunMacroText("/focus target") end
          RunMacroText("/targetlasttarget")
-      end
-   end, 
+         end
+   end,
    function() 
       if not IsSpellInUse("Очищение", 1) then
          if UnitExists("focus") and UnitName("focus") == "Вороная горгулья" then RunMacroText("/clearfocus") end
