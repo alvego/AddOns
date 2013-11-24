@@ -85,7 +85,7 @@ SetCommand("svs",
          RunMacroText("/targetexact [harm,nodead] Вороная горгулья")
          if UnitExists("target") and UnitName("target") == "Вороная горгулья" then RunMacroText("/focus target") end
          RunMacroText("/targetlasttarget")
-      else
+      end
    end, 
    function() 
       if not IsReadySpell("Изгнание зла") then
@@ -105,7 +105,7 @@ SetCommand("fg",
          RunMacroText("/targetexact [help,nodead] Вороная горгулья")
          if UnitExists("target") and UnitName("target") == "Вороная горгулья" then RunMacroText("/focus target") end
          RunMacroText("/targetlasttarget")
-      else
+      end
    end, 
    function() 
       if not IsSpellInUse("Очищение", 1) then
