@@ -90,12 +90,12 @@ function TryInterrupt(target)
         end
     end
     
-    if not IsArena() and CanAttack(target) and (channel or t < 1.8) and t > 0.5 and IsOneUnit(target, "mouseover")
-        and (UnitIsPlayer(target) or UnitClassification(target) == "worldboss") and UseSlot(6) then 
-        echo("Наременная граната"..m)
-        interruptTime = GetTime() + 2
-        return true 
-    end
+    -- if not IsArena() and CanAttack(target) and (channel or t < 1.8) and t > 0.5 and IsOneUnit(target, "mouseover")
+    --     and (UnitIsPlayer(target) or UnitClassification(target) == "worldboss") and UseSlot(6) then 
+    --     echo("Наременная граната"..m)
+    --     interruptTime = GetTime() + 2
+    --     return true 
+    -- end
 
     if CanAttack(target) and (channel or t < 0.8) and (UnitIsPlayer(target) or not InParty()) and DoSpell("Хватка смерти", target) then 
         echo("Хватка смерти"..m)
