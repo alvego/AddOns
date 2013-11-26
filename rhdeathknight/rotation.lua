@@ -56,7 +56,7 @@ function Idle()
     if advansedMod then
         if IsPvP() and HasClass(TARGETS, UndeadFearClass) and not HasBuff("Антимагический панцирь") and HasBuff("Перерождение") and not HasBuff("Перерождение", 8) then RunMacroText("/cancelaura Перерождение") end    
         if EquipItem("Темная Скорбь") then return true end
-        if not HasBuff(stanceBuff) and DoSpell("Власть крови") then return end
+        if not HasBuff(stanceBuff) and DoSpell("Власть нечестивости") then return end
         
         if IsPvP() and IsReadySpell("Темная власть") then
             for i = 1, #ITARGETS do
@@ -86,9 +86,11 @@ function Idle()
 
     TryTarget()
 
-    if not (IsValidTarget("target") and (UnitAffectingCombat("target") and CanAttack("target") or IsAttack()))  then return end
+    if not (IsValidTarget("target") and CanAttack("target") and (UnitAffectingCombat("target")  or IsAttack()))  then return end
 
     RunMacroText("/startattack")
+    -- войти в бой
+    if IsPvP() and UnitIsPlayer("target") and not InCombatLockdown() and not InMelee() and IsReadySpell("Темная власть") then DoSpell("Темная власть", "target") end
     if advansedMod then Pet() end
     -- ресаем все.
     if NoRunes() and DoSpell("Усиление рунического оружия") then return end
@@ -114,9 +116,9 @@ function Idle()
     end
 
     local canMagic = CanMagicAttack("target")
-    if canMagic and UseSlot(10) then return end
+    --if canMagic and UseSlot(10) then return end
 
-    if canMagic and IsPvP() and not InMelee() and not HasDebuff("Ледяные оковы",6,"target") and DoSpell("Ледяные оковы", "target") then return end
+    --if canMagic and IsPvP() and not InMelee() and not HasDebuff("Ледяные оковы",6,"target") and DoSpell("Ледяные оковы", "target") then return end
 
     -- накладываем болезни
     if not HasMyDebuff("Кровавая чума", 1, "target") and DoSpell("Удар чумы") then return end
@@ -290,39 +292,34 @@ function TryProtect()
     local defMagic = false;
 
     if InCombatLockdown() and (IsValidTarget("target") or IsValidTarget("focus")) then
-        if (UnitHealth100() < (IsPvP() and 30 or 50)) then
-            echo("Все плохо!", true)
-            defPhys = true
-            defMagic = true;
-        else
-            for i=1,#checkedTargets do
-                local t = checkedTargets[i]
-                if defPhys and defMagic then break end
-                if IsValidTarget(t) then
-                    if HasBuff("Вихрь клинков", 4, t) and InRange("Ледяные оковы", t) then
-                        echo("Вихрь клинков!", true)
-                        defPhys = true
-                        if HasSpell("Сжаться") then RunMacroText("/cast Сжаться") end
-                    end
-                    if IsOneUnit("player", t .. "-target") then
-                        if HasBuff("Гнев карателя", 4, t) and InRange("Ледяные оковы", t) then
-                            echo("Гнев карателя!", true)
-                            defPhys = true
-                            defMagic = true;
-                        end
-                        if HasDebuff(magicDebuff, 4, "player") or HasBuff(magicBuff, 4, t) then
-                            echo("Магия!", true)
-                            defMagic = true;
-                        end
-                        if HasDebuff(physDebuff, 4, "player") then
-                            echo("Яды!", true)
-                            defPhys = true;
-                        end
-                    end
-
+        for i=1,#checkedTargets do
+            local t = checkedTargets[i]
+            if defPhys and defMagic then break end
+            if IsValidTarget(t) then
+                if HasBuff("Вихрь клинков", 4, t) and InRange("Ледяные оковы", t) then
+                    echo("Вихрь клинков!", true)
+                    defPhys = true
+                    if HasSpell("Сжаться") then RunMacroText("/cast Сжаться") end
                 end
+                if IsOneUnit("player", t .. "-target") then
+                    if HasBuff("Гнев карателя", 4, t) and InRange("Ледяные оковы", t) then
+                        echo("Гнев карателя!", true)
+                        defPhys = true
+                        defMagic = true;
+                    end
+                    if HasDebuff(magicDebuff, 4, "player") or HasBuff(magicBuff, 4, t) then
+                        echo("Магия!", true)
+                        defMagic = true;
+                    end
+                    if HasDebuff(physDebuff, 4, "player") then
+                        echo("Яды!", true)
+                        defPhys = true;
+                    end
+                end
+
             end
         end
+
         if defPhys then 
             DoSpell("Незыблемость льда")
         end

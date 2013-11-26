@@ -46,6 +46,7 @@ SetCommand("spell",
 )
 ------------------------------------------------------------------------------------------------------------------
 local stopTime = 0
+local stopImmune = {"Длань свободы", "Отражение заклинания"}
 SetCommand("stop", 
     function(target) 
         if target == nil then target = "target" end
@@ -58,7 +59,7 @@ SetCommand("stop",
     end, 
     function(target) 
         if target == nil then target = "target" end
-        if not CanAttack(target) or HasBuff("Отражение заклинания", 0.1, target) then return true end
+        if not CanAttack(target) or HasBuff(stopImmune, 0.1, target) then return true end
         if GetTime() - stopTime < 0.1 then
             stopTime = 0
             return true
@@ -125,14 +126,6 @@ SetCommand("mount",
             tryMount = GetTime()
             return
         end
-        if IsFalling() and UseSlot(15)  then 
-             tryMount = GetTime() 
-            return
-        end
-        if IsAltKeyDown() and not PlayerInPlace() and not IsMounted() and  not CanExitVehicle() and not IsFalling() and UseSlot(8) then 
-            tryMount = GetTime() 
-            return
-        end
         if InGCD() or InCombatLockdown() or IsMounted() or CanExitVehicle() or IsPlayerCasting() or not IsOutdoors() or not PlayerInPlace() then
             tryMount = GetTime() 
             return
@@ -141,7 +134,6 @@ SetCommand("mount",
         if IsFlyableArea() and not IsLeftControlKeyDown() then 
             mount = IsShiftKeyDown() and "Бронзовый дракон" or "Крылатый скакун Черного Клинка"
         end
-        --local mount = "Скакун Всадника без головы"
         if IsAltKeyDown() then mount = "Тундровый мамонт путешественника" end
         if UseMount(mount) then 
             tryMount = GetTime() 

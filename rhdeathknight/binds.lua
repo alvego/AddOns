@@ -139,7 +139,7 @@ local lichList = {
 }
 
     
-ExceptionControlList = { -- > 4
+local exceptionControlList = { -- > 4
 "Ошеломление", -- 20s
 "Покаяние", 
 }
@@ -160,7 +160,7 @@ function UpdateAutoFreedom(event, ...)
         freedomTime = GetTime()
         return
     end 
-    if HasDebuff(ExceptionControlList, 0.1, "player") and not IsAttack() then return end
+    if HasDebuff(exceptionControlList, 0.1, "player") and not IsAttack() then return end
     if HasDebuff(ControlList, 2, "player") then 
         print("freedom")
         DoCommand("freedom") 
@@ -206,13 +206,13 @@ local spellRunes = {
 
 local spellCD = {}
 function DoSpell(spellName, target)
+    local t = GetTime()
+    local c = spellCD[spellName]
+    if c ~= nil and t - c < 0.15 then 
+        return false 
+    end
+    spellCD[spellName] = t
     if tContains(macroSpell, spellName) then
-        local t = GetTime()
-        local c = spellCD[spellName]
-        if c ~= nil and t - c < 0.15 then 
-            return false 
-        end
-        spellCD[spellName] = t
         if not IsReadySpell(spellName) or not InRange(spellName, target) then return false end
         local cast = "/cast "
         if target then cast = cast .. "[@" .. target .. "] " end
