@@ -116,6 +116,7 @@ function Idle()
     end
 
     local canMagic = CanMagicAttack("target")
+    if UnitMana("player") >= 105 and canMagic and DoSpell("Лик смерти") then return end
     --if canMagic and UseSlot(10) then return end
 
     --if canMagic and IsPvP() and not InMelee() and not HasDebuff("Ледяные оковы",6,"target") and DoSpell("Ледяные оковы", "target") then return end
@@ -133,13 +134,11 @@ function Idle()
 
     if IsAOE() and DoSpell("Вскипание крови") then return end
 
-    if Dotes() and DoSpell( UnitHealth100("player") < 85 and "Удар смерти" or "Удар Плети") then return end 
-
     if DoSpell("Кровавый удар") then return end
 
-    if not InMelee() and DoSpell(IsPvP() and "Ледяные оковы" or "Ледяное прикосновение") then return end
+    if Dotes() and DoSpell((not IsAttack() and UnitHealth100("player") < 85) and "Удар смерти" or "Удар Плети") then return end 
 
-    if UnitMana("player") >= 110 and canMagic and DoSpell("Лик смерти") then return end
+    if not InMelee() and DoSpell(IsPvP() and "Ледяные оковы" or "Ледяное прикосновение") then return end
 end
 
 ------------------------------------------------------------------------------------------------------------------
