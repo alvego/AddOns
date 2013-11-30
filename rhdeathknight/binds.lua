@@ -184,7 +184,7 @@ local spellRunes = {
     ["Уничтожение"] = 011,
     ["Костяной щит"] = 001,
     ["Захват рун"] = 100,
-    --["Мор"] = 100,
+    ["Мор"] = 100,
     ["Войско мертвых"] = 111,
     ["Смерть и разложение"] = 111,
     ["Власть крови"] = 100,
@@ -201,20 +201,22 @@ local spellCD = {}
 function DoSpell(spellName, target)
     local t = GetTime()
     local c = spellCD[spellName]
-    if c ~= nil and t - c < 0.15 then 
+    if c ~= nil and t - c < 0.1 then 
         return false 
     end
-    spellCD[spellName] = t
+    
     if tContains(macroSpell, spellName) then
         if not IsReadySpell(spellName) or not InRange(spellName, target) then return false end
         local cast = "/cast "
         if target then cast = cast .. "[@" .. target .. "] " end
         RunMacroText(cast .. spellName)
+        spellCD[spellName] = t
         chat(spellName)
         return IsReadySpell(spellName)
     end
     runes = spellRunes[spellName]
     if runes ~= nil and not HasRunes(runes) then return false end
+    spellCD[spellName] = t
     return UseSpell(spellName, target)
 end
 ------------------------------------------------------------------------------------------------------------------

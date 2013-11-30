@@ -41,7 +41,19 @@ SetCommand("spell",
         end
     end, 
     function(spell, target) 
-        return not HasSpell(spell) or not InRange(spell, target) or not IsSpellNotUsed(spell, 1) 
+        if not HasSpell(spell) then
+            chat(spell .. " - нет спела!")
+            return true
+        end
+        if not InRange(spell, target) then
+            chat(spell .. " - неверная дистанция!")
+            return true
+        end
+        if not IsSpellNotUsed(spell, 1)  then
+            chat(spell .. " - успешно сработало!")
+            return true
+        end
+        return false
     end
 )
 ------------------------------------------------------------------------------------------------------------------
@@ -130,10 +142,7 @@ SetCommand("mount",
             tryMount = GetTime() 
             return
         end
-        local mount = IsShiftKeyDown() and "Большой кодо Хмельного фестиваля" or "Конь смерти Акеруса"
-        if IsFlyableArea() and not IsLeftControlKeyDown() then 
-            mount = IsShiftKeyDown() and "Бронзовый дракон" or "Крылатый скакун Черного Клинка"
-        end
+        local mount = (IsFlyableArea() and not IsShiftKeyDown()) and "Крылатый скакун Черного Клинка" or "Конь смерти Акеруса"
         if IsAltKeyDown() then mount = "Тундровый мамонт путешественника" end
         if UseMount(mount) then 
             tryMount = GetTime() 
@@ -169,27 +178,6 @@ SetCommand("explode",
         if IsPlayerCasting() or UnitMana("player") < 35 or not HasSpell("Отгрызть") or not HasSpell("Взрыв трупа") or not CanAttack(target) then return true end
         if GetTime() - explodeTime < 0.1 then
             explodeTime = 0
-            return true
-        end
-        return false  
-    end
-)
-
-------------------------------------------------------------------------------------------------------------------
-local silenceTime = 0
-SetCommand("silence", 
-    function(target) 
-        if target == nil then target = "target" end
-        if DoSpell("Удушение", target) then 
-            silenceTime = GetTime()
-            return 
-        end
-    end, 
-    function(target) 
-        if target == nil then target = "target" end
-        if not CanMagicAttack(target) or HasBuff("Мастер аур", 0.1, target) then return true end
-        if GetTime() - silenceTime < 0.1 then
-            silenceTime = 0
             return true
         end
         return false  

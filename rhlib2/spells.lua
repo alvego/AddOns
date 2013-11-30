@@ -130,7 +130,7 @@ function IsReadySpell(name)
     if left > LagTime then return false end
     local spellName, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(name)
     if cost and cost > 0 and not(powerType == -2 and UnitHealth("player") > cost*2 or UnitPower("player", powerType) >= cost) then return false end
-    return true
+    return IsSpellNotUsed(name, 0.5)
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -266,7 +266,7 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateTargetPosition)
 local badSpellTarget = {}
 local inCastSpells = {"Трепка", "Рунический удар", "Удар героя", "Рассекающий удар", "Гиперскоростное ускорение", "Нарукавная зажигательная ракетница"} -- TODO: Нужно уточнить и дополнить.
 function UseSpell(spellName, target)
-    local dump = false --spellName == "Длань защиты"
+    local dump = false --spellName == "Лик смерти"
     if dump then print("Пытаемся прожать", spellName, "на", target) end
     --if spellName == "Священный щит" then error("Щит") end
     -- Не мешаем выбрать область для спела (нажат вручную)
@@ -334,7 +334,7 @@ function UseSpell(spellName, target)
             castInfo.TargetGUID = UnitGUID(target)
         end
         -- пробуем скастовать
-        if dump then print("Жмем", cast .. "!" .. spellName) end
+        if Debug then print("Жмем", cast .. "!" .. spellName) end
         RunMacroText(cast .. "!" .. spellName)
         -- если нужно выбрать область - кидаем на текущий mouseover
         if SpellIsTargeting() then
