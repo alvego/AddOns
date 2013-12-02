@@ -254,7 +254,7 @@ function TryHealing()
 
     if not UnitIsPet(u) then
         if IsBattleground() and h < 20 and DoSpell("Возложение рук",u) then return end
-        if HasBuff("Искусство войны") and not IsFinishHim("target") 
+        if HasBuff("Искусство войны") and (not IsFinishHim("target") or UnitHealth100("player") < 30)
             and UnitHealth100(u) < (IsEquippedItemType("Щит") and 85 or 50)  
             and DoSpell("Вспышка Света", u) then return true end
     end
