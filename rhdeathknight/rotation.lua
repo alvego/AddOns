@@ -100,7 +100,7 @@ function Idle()
     end
 
     local canMagic = CanMagicAttack("target")
-    if (IsAttack() or UnitMana("player") >= 99) and canMagic and DoSpell("Лик смерти") then return end
+    if (IsAttack() or UnitMana("player") >= 99 or not HasDebuff("Нечестивая порча")) and canMagic and DoSpell("Лик смерти") then return end
     if (IsAttack() or UnitMana("player") >= 79) and DoSpell("Рунический удар") then return end
     -- накладываем болезни
     if not HasMyDebuff("Кровавая чума", 3, "target") and DoSpell("Удар чумы") then return end
@@ -112,7 +112,9 @@ function Idle()
     -- ресаем все.
     if NoRunes() and DoSpell("Усиление рунического оружия") then return end
     -- ресаем руну крови
-    if not HasRunes(100, true) and  (min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2)) > 4) and DoSpell("Кровоотвод") then return end
+    -- http://forum.wowcircle.com/showthread.php?t=190352
+    if NoRunes() and DoSpell("Кровоотвод") then return end
+    --if not HasRunes(100, true) and  (min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2)) > 4) and DoSpell("Кровоотвод") then return end
 end
 
 ------------------------------------------------------------------------------------------------------------------
