@@ -33,9 +33,9 @@ function Idle()
             TryInterrupt(TARGETS[i])
         end
     end
-    
+    local baseRP = HasSpell("Призыв горгульи") and 60 or 40
     -- гарга по контролу
-    if IsCtr() and UnitMana("player") >= 60 and IsReadySpell("Призыв горгульи") then
+    if IsCtr() and HasSpell("Призыв горгульи") and UnitMana("player") >= 60 and IsReadySpell("Призыв горгульи") then
         if advansedMod then
             RunMacroText("/cleartarget")
             RunMacroText("/targetlasttarget")
@@ -100,11 +100,12 @@ function Idle()
     end
 
     local canMagic = CanMagicAttack("target")
-    if (IsAttack() or UnitMana("player") >= 99 or not HasDebuff("Нечестивая порча")) and canMagic and DoSpell("Лик смерти") then return end
-    if (IsAttack() or UnitMana("player") >= 79) and DoSpell("Рунический удар") then return end
     -- накладываем болезни
     if not HasMyDebuff("Кровавая чума", 3, "target") and DoSpell("Удар чумы") then return end
     if not HasMyDebuff("Озноб", 3, "target") and DoSpell((IsPvP() and not InMelee()) and "Ледяные оковы" or "Ледяное прикосновение") then return end
+    if not Dotes() and not IsAttack() then return end
+    if (IsAttack() or UnitMana("player") >= (baseRP+39) or (not IsReadySpell("Призыв горгульи") and not HasDebuff("Нечестивая порча", 2))) and canMagic and DoSpell("Лик смерти") then return end
+    if (IsAttack() or UnitMana("player") >= (baseRP+19)) and DoSpell("Рунический удар") then return end
     if DoSpell((CanAOE and (IsShiftKeyDown() or (not InMelee() and ActualDistance() and Dotes()))) and "Вскипание крови" or "Кровавый удар") then return end
     if Dotes() and DoSpell((not HasSpell("Удар Плети") or (not IsAttack() and UnitHealth100("player") < 85)) and "Удар смерти" or "Удар Плети") then return end 
     if not InMelee() and DoSpell(IsPvP() and "Ледяные оковы" or "Ледяное прикосновение") then return end
@@ -157,6 +158,7 @@ end
 function TryHealing()
     local h = CalculateHP("player")
     if h < 40 and UnitMana("player") >= 40 and HasSpell("Цапнуть") and DoSpell("Смертельный союз") then return end
+    if h < 80 and HasSpell("Захват рун") and DoSpell("Захват рун") then return end
     if HasBuff("Перерождение") and UnitHealth100("player") < 100 and DoSpell("Лик смерти", "player") then return end
     if InCombatLockdown() then
         if h < 30 and not IsArena() and UseHealPotion() then return true end
