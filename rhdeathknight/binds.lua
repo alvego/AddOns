@@ -204,7 +204,6 @@ function DoSpell(spellName, target)
     if c ~= nil and t - c < 0.1 then 
         return false 
     end
-    
     if tContains(macroSpell, spellName) then
         if not IsReadySpell(spellName) or not InRange(spellName, target) then return false end
         local cast = "/cast "

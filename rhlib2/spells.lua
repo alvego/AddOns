@@ -264,11 +264,13 @@ end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateTargetPosition)
 ------------------------------------------------------------------------------------------------------------------
 local badSpellTarget = {}
+local cameraCD = 0;
 local inCastSpells = {"Трепка", "Рунический удар", "Удар героя", "Рассекающий удар", "Гиперскоростное ускорение", "Нарукавная зажигательная ракетница"} -- TODO: Нужно уточнить и дополнить.
 function UseSpell(spellName, target)
-    local dump = false --spellName == "Лик смерти"
+    local dump = false --spellName == "Смерть и разложение"
     if dump then print("Пытаемся прожать", spellName, "на", target) end
     --if spellName == "Священный щит" then error("Щит") end
+
     -- Не мешаем выбрать область для спела (нажат вручную)
     if SpellIsTargeting() then 
         if dump then print("Ждем выбор цели, не можем прожать", spellName) end
@@ -316,11 +318,11 @@ function UseSpell(spellName, target)
         return false
     end  
     -- Проверяем что все готово
-    if IsReadySpell(spellName, not InGCD()) then
+    if IsReadySpell(spellName) then
         -- собираем команду
         local cast = "/cast "
         -- с учетом цели
-        if target ~= nil then cast = cast .."[target=".. target .."] "  end
+        if target ~= nil then cast = cast .."[@".. target .."] "  end
         -- проверяем, хватает ли нам маны
         if cost and cost > 0 and UnitManaMax("player") > cost and UnitMana("player") <= cost then 
             if dump then print("Не достаточно маны, не можем прожать", spellName) end
@@ -337,9 +339,9 @@ function UseSpell(spellName, target)
         if Debug then print("Жмем", cast .. "!" .. spellName) end
         RunMacroText(cast .. "!" .. spellName)
         -- если нужно выбрать область - кидаем на текущий mouseover
-        if SpellIsTargeting() then
-            --SpellTargetUnit(target)
-            CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() 
+        if SpellIsTargeting() and GetTime() - cameraCD > 2 then
+            cameraCD = GetTime()
+            RunMacroText("/run CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop()")
             --TurnOrActionStart()  TurnOrActionStop()
         end
         -- данные о кастах

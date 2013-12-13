@@ -184,24 +184,3 @@ SetCommand("explode",
     end
 )
 
-------------------------------------------------------------------------------------------------------------------
-
-local armyTime = 0
-SetCommand("army", 
-    function() 
-        if IsPlayerCasting() or not HasRunes(111) or not IsReadySpell("Войско мертвых") then return end
-        if DoSpell("Войско мертвых") then 
-            armyTime = GetTime()
-            return 
-        end
-    end, 
-    function() 
-        if IsArena() or IsPlayerCasting() or not IsReadySpell("Войско мертвых") then return end
-        if GetTime() - armyTime < 0.1 then
-            armyTime = 0
-            return true
-        end
-        return false  
-    end
-)
-------------------------------------------------------------------------------------------------------------------

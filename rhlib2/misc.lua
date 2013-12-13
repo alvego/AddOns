@@ -48,6 +48,23 @@ function sell(name)
 end
 
 ------------------------------------------------------------------------------------------------------------------
+function switchTargetAndFocus()
+  if UnitExists("target") and not UnitExists("focus") then 
+      RunMacroText("/focus") 
+      RunMacroText("/cleartarget") 
+      return 
+  end
+  if UnitExists("focus") and not UnitExists("target") then 
+    RunMacroText("/target focus") 
+    RunMacroText("/clearfocus") 
+    return 
+  end
+  RunMacroText("/target focus") 
+  RunMacroText("/targetlasttarget") 
+  RunMacroText("/focus") 
+  RunMacroText("/targetlasttarget") 
+end
+------------------------------------------------------------------------------------------------------------------
 -- Update Debug Frame
 local notifyFrame
 local notifyFrameTime = 0

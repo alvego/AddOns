@@ -33,7 +33,8 @@ function Idle()
             TryInterrupt(TARGETS[i])
         end
     end
-    local baseRP = HasSpell("Призыв горгульи") and 60 or 40
+    local baseRP = (HasSpell("Призыв горгульи") and not IsReadySpell("Призыв горгульи")) and 60 or 40
+    if IsCtr() then baseRP = baseRP + 10 end
     -- гарга по контролу
     if IsCtr() and HasSpell("Призыв горгульи") and UnitMana("player") >= 60 and IsReadySpell("Призыв горгульи") then
         if advansedMod then
@@ -104,8 +105,8 @@ function Idle()
     if not HasMyDebuff("Кровавая чума", 3, "target") and DoSpell("Удар чумы") then return end
     if not HasMyDebuff("Озноб", 3, "target") and DoSpell((IsPvP() and not InMelee()) and "Ледяные оковы" or "Ледяное прикосновение") then return end
     if not Dotes() and not IsAttack() then return end
-    if (IsAttack() or UnitMana("player") >= (baseRP+39) or (not IsReadySpell("Призыв горгульи") and not HasDebuff("Нечестивая порча", 2))) and canMagic and DoSpell("Лик смерти") then return end
-    if (IsAttack() or UnitMana("player") >= (baseRP+19)) and DoSpell("Рунический удар") then return end
+    if (IsAttack() or UnitMana("player") >= (baseRP+40) or not HasDebuff("Нечестивая порча", 2)) and canMagic and DoSpell("Лик смерти") then return end
+    if (IsAttack() or UnitMana("player") >= (baseRP+20)) and DoSpell("Рунический удар") then return end
     if DoSpell((CanAOE and (IsShiftKeyDown() or (not InMelee() and ActualDistance() and Dotes()))) and "Вскипание крови" or "Кровавый удар") then return end
     if Dotes() and DoSpell((not HasSpell("Удар Плети") or (not IsAttack() and UnitHealth100("player") < 85)) and "Удар смерти" or "Удар Плети") then return end 
     if not InMelee() and DoSpell(IsPvP() and "Ледяные оковы" or "Ледяное прикосновение") then return end
@@ -307,17 +308,23 @@ end
 function TryPestilence()
     
     if not CanAOE then return false end
-    
 
     if not IsValidTarget("target") then return false end
-
+    -- продлить болезни на цели
     if InMelee() and Dotes() and IsPestilenceTime() then 
         UseSpell("Мор") 
         return true
     end
 
-    if InMelee() and IsAlt() and (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) then 
+    if not IsValidTarget("focus") then return false end
+    -- кинуть болезни с цели на фокус
+    if InMelee() and Dotes() and not Dotes(1, "focus") then 
         DoSpell("Мор") 
+        return true
+    end
+    -- кинуть болезни с фокуса на цель
+    if not Dotes() and InMelee("focus") and Dotes(2, "focus") then 
+        DoSpell("Мор", "focus") 
         return true
     end
 
