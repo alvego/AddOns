@@ -5,7 +5,6 @@ local stanceBuff = {"Власть крови", "Власть льда", "Вла�
 local steathClass = {"ROGUE", "DRUID"}
 local reflectBuff = {"Отражение заклинания", "Эффект тотема заземления", "Рунический покров"}
 local UndeadFearClass = {"PALADIN", "PRIEST"}
-local baseRP = 40
 local advansedTime = 0
 local weaponSwitchTime = 0
 function Idle()
@@ -16,13 +15,13 @@ function Idle()
     end
 
     if advansedMod and GetTime() - weaponSwitchTime > 5 then
-        if IsAttack() or InCombatLockdown() then
+        if InCombatLockdown() and not (not IsPvP() and HasBuff("Власть льда") and InGroup()) then
             if EquipItem("Темная Скорбь") then 
                 weaponSwitchTime = GetTime()
                 return true 
             end
         else 
-            if EquipItem("Большой меч разгневанного гладиатора") then 
+            if not IsEquippedItemType("Удочка") and EquipItem("Большой меч разгневанного гладиатора") then 
                 weaponSwitchTime = GetTime()
                 return true 
             end
@@ -48,7 +47,7 @@ function Idle()
             TryInterrupt(TARGETS[i])
         end
     end
-    
+    local baseRP = (HasSpell("Призыв горгульи") and IsReadySpell("Призыв горгульи")) and 60 or 40
      -- гарга по контролу
     if IsCtr() and HasSpell("Призыв горгульи") and UnitMana("player") >= 60 and IsReadySpell("Призыв горгульи") then
         if advansedMod then
