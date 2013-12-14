@@ -5,15 +5,30 @@ local stanceBuff = {"Власть крови", "Власть льда", "Вла�
 local steathClass = {"ROGUE", "DRUID"}
 local reflectBuff = {"Отражение заклинания", "Эффект тотема заземления", "Рунический покров"}
 local UndeadFearClass = {"PALADIN", "PRIEST"}
-
+local baseRP = 40
 local advansedTime = 0
-
+local weaponSwitchTime = 0
 function Idle()
     local advansedMod = false
     if GetTime() - advansedTime > 1 then
         advansedTime = GetTime()
         advansedMod = true
     end
+
+    if advansedMod and GetTime() - weaponSwitchTime > 5 then
+        if IsAttack() or InCombatLockdown() then
+            if EquipItem("Темная Скорбь") then 
+                weaponSwitchTime = GetTime()
+                return true 
+            end
+        else 
+            if EquipItem("Большой меч разгневанного гладиатора") then 
+                weaponSwitchTime = GetTime()
+                return true 
+            end
+        end
+    end
+
     if IsAttack() then 
         if HasBuff("Парашют") then RunMacroText("/cancelaura Парашют") return end
         if CanExitVehicle() then VehicleExit() return end
@@ -33,9 +48,8 @@ function Idle()
             TryInterrupt(TARGETS[i])
         end
     end
-    local baseRP = (HasSpell("Призыв горгульи") and not IsReadySpell("Призыв горгульи")) and 60 or 40
-    if IsCtr() then baseRP = baseRP + 10 end
-    -- гарга по контролу
+    
+     -- гарга по контролу
     if IsCtr() and HasSpell("Призыв горгульи") and UnitMana("player") >= 60 and IsReadySpell("Призыв горгульи") then
         if advansedMod then
             RunMacroText("/cleartarget")
@@ -52,7 +66,7 @@ function Idle()
 
     if advansedMod then
         if IsPvP() and HasClass(TARGETS, UndeadFearClass) and not HasBuff("Антимагический панцирь") and HasBuff("Перерождение") and not HasBuff("Перерождение", 8) then RunMacroText("/cancelaura Перерождение") end    
-        if EquipItem("Темная Скорбь") then return true end
+        
         if not HasBuff(stanceBuff) and DoSpell("Власть нечестивости") then return end
         
         if IsPvP() and IsReadySpell("Темная власть") then
@@ -105,8 +119,8 @@ function Idle()
     if not HasMyDebuff("Кровавая чума", 3, "target") and DoSpell("Удар чумы") then return end
     if not HasMyDebuff("Озноб", 3, "target") and DoSpell((IsPvP() and not InMelee()) and "Ледяные оковы" or "Ледяное прикосновение") then return end
     if not Dotes() and not IsAttack() then return end
-    if (IsAttack() or UnitMana("player") >= (baseRP+40) or not HasDebuff("Нечестивая порча", 2)) and canMagic and DoSpell("Лик смерти") then return end
-    if (IsAttack() or UnitMana("player") >= (baseRP+20)) and DoSpell("Рунический удар") then return end
+    if canMagic and DoSpell("Лик смерти", "target",  HasDebuff("Нечестивая порча", 2) and baseRP or 0) then return end
+    if DoSpell("Рунический удар", "target", baseRP) then return end
     if DoSpell((CanAOE and (IsShiftKeyDown() or (not InMelee() and ActualDistance() and Dotes()))) and "Вскипание крови" or "Кровавый удар") then return end
     if Dotes() and DoSpell((not HasSpell("Удар Плети") or (not IsAttack() and UnitHealth100("player") < 85)) and "Удар смерти" or "Удар Плети") then return end 
     if not InMelee() and DoSpell(IsPvP() and "Ледяные оковы" or "Ледяное прикосновение") then return end
@@ -114,9 +128,8 @@ function Idle()
     -- ресаем все.
     if NoRunes() and DoSpell("Усиление рунического оружия") then return end
     -- ресаем руну крови
-    -- http://forum.wowcircle.com/showthread.php?t=190352
     if NoRunes() and DoSpell("Кровоотвод") then return end
-    --if not HasRunes(100, true) and  (min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2)) > 4) and DoSpell("Кровоотвод") then return end
+
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -141,10 +154,9 @@ function TryTaunt(target)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-local totems = { "Тотем оков земли", "Тотем прилива маны", "Тотем заземления" }
+local totems = { "Тотем оков земли", "Тотем прилива маны", "Тотем заземления", "Тотем очищения", "Тотем источника маны VIII" }
 function Pet()
     if not HasSpell("Цапнуть") then return end
-
     if UnitExists("mouseover") and tContains(totems, UnitName("mouseover"))  then
         RunMacroText("/petattack mouseover")
     end

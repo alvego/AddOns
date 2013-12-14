@@ -85,14 +85,14 @@ function TryInterrupt(target)
         end
         if (not channel and t < 1.8) and DoSpell("Удушение", target) then 
             echo("Удушение"..m)
-            interruptTime = GetTime() + 1
+            interruptTime = GetTime() + 2
             return true 
         end
     end
     
     if CanAttack(target) and (channel or t < 0.8) and (UnitIsPlayer(target) or not InParty()) and DoSpell("Хватка смерти", target) then 
         echo("Хватка смерти"..m)
-        interruptTime = GetTime() + 1
+        interruptTime = GetTime() + 2
         return true 
     end
 
@@ -107,7 +107,7 @@ function TryInterrupt(target)
         RunMacroText("/cast [@" ..target.."] Отгрызть")
         if not IsReadySpell("Отгрызть") then
             echo("Отгрызть"..m)
-            interruptTime = GetTime() + 2
+            interruptTime = GetTime() + 4
             return false 
         end
     end
@@ -198,7 +198,7 @@ local spellRunes = {
 }
 
 local spellCD = {}
-function DoSpell(spellName, target)
+function DoSpell(spellName, target, baseRP)
     local t = GetTime()
     local c = spellCD[spellName]
     if c ~= nil and t - c < 0.1 then 
@@ -215,6 +215,14 @@ function DoSpell(spellName, target)
     end
     runes = spellRunes[spellName]
     if runes ~= nil and not HasRunes(runes) then return false end
+
+    if not baseRP or IsAttack() then baseRP = 0 end
+    local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spellName)
+    if (powerType == 6) then
+        if IsCtr() and HasSpell("Призыв горгульи") and IsReadySpell("Призыв горгульи") and name ~= "Призыв горгульи"  then return false end
+        if cost > 0 and UnitMana("player") - cost < baseRP then return false end
+    end
+
     spellCD[spellName] = t
     return UseSpell(spellName, target)
 end
