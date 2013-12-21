@@ -6,7 +6,6 @@ local steathClass = {"ROGUE", "DRUID"}
 local reflectBuff = {"Отражение заклинания", "Эффект тотема заземления", "Рунический покров"}
 local UndeadFearClass = {"PALADIN", "PRIEST"}
 local advansedTime = 0
-local weaponSwitchTime = 0
 function Idle()
     local advansedMod = false
     if GetTime() - advansedTime > 1 then
@@ -14,21 +13,13 @@ function Idle()
         advansedMod = true
     end
 
-    if advansedMod and GetTime() - weaponSwitchTime > 5 then
-        if InCombatLockdown() and not (not IsPvP() and HasBuff("Власть льда") and InGroup()) then
-            if EquipItem("Темная Скорбь") then 
-                weaponSwitchTime = GetTime()
-                return true 
-            end
-        else 
-            if not IsEquippedItemType("Удочка") and EquipItem("Большой меч разгневанного гладиатора") then 
-                weaponSwitchTime = GetTime()
-                return true 
-            end
-        end
-    end
+    
+    if advansedMod and InCombatLockdown() and not IsEquippedItemType("Топор") and EquipItem("Темная Скорбь") then return end
+    
+    if (IsAttack() or UnitHealth100() > 60) and HasBuff("Длань защиты") then RunMacroText("/cancelaura Длань защиты") end
 
-    if IsAttack() then 
+    if IsAttack() then
+        
         if HasBuff("Парашют") then RunMacroText("/cancelaura Парашют") return end
         if CanExitVehicle() then VehicleExit() return end
         if IsMounted() then Dismount() return end 

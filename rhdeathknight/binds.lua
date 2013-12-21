@@ -140,22 +140,24 @@ local exceptionControlList = { -- > 4
 local freedomTime = 0
 function UpdateAutoFreedom(event, ...)
     if GetTime() - freedomTime < 1.5 then return end
-    if HasDebuff(lichList, 2, "player") then 
+    local debuff = HasDebuff(lichList, 2, "player")
+    if debuff then 
         if HasSpell("Перерождение") and IsReadySpell("Перерождение") then
-            print("lich")
+            print("lich", debuff)
             DoCommand("lich") 
         else
             if not HasBuff("Перерождение") then  
-                print("lich->freedom")
+                print("lich->freedom", debuff)
                 DoCommand("freedom") 
             end
         end
         freedomTime = GetTime()
         return
     end 
-    if HasDebuff(exceptionControlList, 0.1, "player") and not IsAttack() then return end
-    if HasDebuff(ControlList, 2, "player") then 
-        print("freedom")
+    debuff = HasDebuff(ControlList, 2, "player")
+    if debuff and (not tContains(exceptionControlList, debuff) or IsAttack()) then 
+        local forceMode = tContains(exceptionControlList, debuff) and IsAttack() and "force!" or ""
+        print("freedom", debuff, forceMode)
         DoCommand("freedom") 
         freedomTime = GetTime()
         return
