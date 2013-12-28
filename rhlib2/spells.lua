@@ -264,7 +264,7 @@ end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateTargetPosition)
 ------------------------------------------------------------------------------------------------------------------
 local badSpellTarget = {}
-local cameraCD = 0;
+--local cameraCD = 0;
 local inCastSpells = {"Трепка", "Рунический удар", "Удар героя", "Рассекающий удар", "Гиперскоростное ускорение", "Нарукавная зажигательная ракетница"} -- TODO: Нужно уточнить и дополнить.
 function UseSpell(spellName, target)
     local dump = false --spellName == "Смерть и разложение"
@@ -339,11 +339,11 @@ function UseSpell(spellName, target)
         if Debug then print("Жмем", cast .. "!" .. spellName) end
         RunMacroText(cast .. "!" .. spellName)
         -- если нужно выбрать область - кидаем на текущий mouseover
-        if SpellIsTargeting() and GetTime() - cameraCD > 2 then
+        --[[if SpellIsTargeting() and GetTime() - cameraCD > 2 then
             cameraCD = GetTime()
             RunMacroText("/run CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop()")
             --TurnOrActionStart()  TurnOrActionStop()
-        end
+        end]]
         -- данные о кастах
         local castInfo = getCastInfo(spellName)
         -- проверка на успешное начало кд

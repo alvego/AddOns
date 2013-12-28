@@ -56,6 +56,53 @@ SetCommand("spell",
         return false
     end
 )
+
+------------------------------------------------------------------------------------------------------------------
+if IsValidTarget("target") and InMelee() and (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) then DoCommand("spell", "Мор") end
+------------------------------------------------------------------------------------------------------------------
+local morTime = 0
+SetCommand("mor", 
+    function() 
+        if not HasRunes(100) then DoSpell("Кровоотвод") end
+        if DoSpell("Мор") then 
+            morTime = GetTime()
+            return 
+        end
+    end, 
+    function() 
+        if not IsValidTarget("target") or not InMelee() or not (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) then return true end
+        if GetTime() - morTime < 0.1 then
+            stopTime = 0
+            return true
+        end
+        return false  
+    end
+)
+------------------------------------------------------------------------------------------------------------------
+SetCommand("silence", 
+    function(target) 
+        local spell = "Удушение"
+        if not HasRunes(100) then DoSpell("Кровоотвод") end
+        if DoSpell(spell, target) then
+            echo(spell.."!",1)
+        end
+    end, 
+    function(target) 
+        if not CanMagicAttack(target) or HasBuff("Мастер аур", 0.1, target) then return true end
+        local spell = "Удушение"
+        if not InRange(spell, target) then
+            chat(spell .. " - неверная дистанция!")
+            return true
+        end
+        if not IsSpellNotUsed(spell, 1)  then
+            chat(spell .. " - успешно сработало!")
+            return true
+        end
+        return false
+    end
+)
+
+  
 ------------------------------------------------------------------------------------------------------------------
 local stopTime = 0
 local stopImmune = {"Длань свободы", "Отражение заклинания"}
@@ -108,11 +155,11 @@ SetCommand("stun",
         if not IsReadySpell("Отгрызть") then return end
         if target == nil then target = "target" end
         RunMacroText("/petattack "..target)
-        DoSpell("Прыжок", target)
         if DoSpell("Отгрызть", target) then 
             stunTime = GetTime()
             return 
         end
+        DoSpell("Прыжок", target)
     end, 
     function(target) 
         if target == nil then target = "target" end
@@ -142,7 +189,8 @@ SetCommand("mount",
             tryMount = GetTime() 
             return
         end
-        local mount = (IsFlyableArea() and not IsShiftKeyDown()) and "Крылатый скакун Черного Клинка" or "Конь смерти Акеруса"
+        --local mount = (IsFlyableArea() and not IsShiftKeyDown()) and "Крылатый скакун Черного Клинка" or "Конь смерти Акеруса"
+        local mount = (IsFlyableArea() and not IsShiftKeyDown()) and "Прогулочная ракета X-53" or "Анжинерский чоппер"
         if IsAltKeyDown() then mount = "Тундровый мамонт путешественника" end
         if UseMount(mount) then 
             tryMount = GetTime() 
