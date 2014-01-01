@@ -3,6 +3,7 @@
 local holyShieldTime  =  0
 local steathClass = {"ROGUE", "DRUID"}
 local reflectBuff = {"Отражение заклинания", "Эффект тотема заземления", "Рунический покров"}
+    if HasSpell("Частица Cвета") then return end
 
 local advansedTime = 0
 local advansedMod = false
@@ -227,7 +228,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 
-local healList = {"player", "Омниссия"}
+local healList = {"player", "Омниссия", "Ириха"}
 function TryHealing()
     if not IsArena() and InCombatLockdown() then
         if CalculateHP("player") < 35 and UseHealPotion() then return true end
