@@ -2813,7 +2813,10 @@ function GetMyHotSpellHeal(spellName, spellRank)
     end    
     local _, amount = CalculateHotHealing(spellName..spellRank, spellName, spellRank)
     if type(amount) == 'table' then
-		amount = amount[1]
+      amount = amount[1]
+    end
+    if HasDebuff("Неумолимая атака",0.1,"player") then
+      amount = amount / 2
     end
     return amount
 end

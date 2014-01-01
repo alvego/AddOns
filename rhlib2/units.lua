@@ -320,7 +320,9 @@ function UnitGetIncomingHeals(target, s)
         if UnitThreatAlert(target) == 3 then s = 2 end
         if UnitHealth100(target) < 40 then return 0 end
     end
-    return HealComm:GetHealAmount(UnitGUID(target), HealComm.ALL_HEALS, GetTime() + s) or 0
+    local result = HealComm:GetHealAmount(UnitGUID(target), HealComm.ALL_HEALS, GetTime() + s) or 0
+    if HasDebuff("Смертельный удар", 0.1, target) then result = result / 2 end
+    return result
 end
 
 ------------------------------------------------------------------------------------------------------------------

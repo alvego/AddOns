@@ -106,11 +106,11 @@ function Idle()
 
     local canMagic = CanMagicAttack("target")
     -- накладываем болезни
+    if canMagic and DoSpell("Лик смерти", "target",  HasDebuff("Нечестивая порча", 2) and baseRP or 0) then return end
     if not HasMyDebuff("Кровавая чума", 3, "target") and DoSpell("Удар чумы") then return end
     if not HasMyDebuff("Озноб", 3, "target") and DoSpell((IsPvP() and not InMelee()) and "Ледяные оковы" or "Ледяное прикосновение") then return end
     if CanAOE and IsShiftKeyDown() and DoSpell("Вскипание крови") then return end
     if not Dotes() and not IsAttack() then return end
-    if canMagic and DoSpell("Лик смерти", "target",  HasDebuff("Нечестивая порча", 2) and baseRP or 0) then return end
     if DoSpell("Рунический удар", "target", baseRP) then return end
     if Dotes() and DoSpell((not HasSpell("Удар Плети") or (not IsAttack() and UnitHealth100("player") < 85)) and "Удар смерти" or "Удар Плети") then return end 
     if DoSpell((CanAOE and (IsShiftKeyDown() or (not InMelee() and ActualDistance() and Dotes()))) and "Вскипание крови" or "Кровавый удар") then return end

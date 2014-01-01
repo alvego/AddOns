@@ -51,19 +51,35 @@ SetCommand("root",
 )
 
 ------------------------------------------------------------------------------------------------------------------
+local druidForm = {"облик", "Древо Жизни"}
 SetCommand("hex", 
-    function() 
---[[        if HasSpell("Природная стремительность") then 
+    function(target, force) 
+        if force and HasSpell("Природная стремительность") then 
             DoSpell("Природная стремительность") 
-        end]]
+        end
         echo("Сглаз",1)
         if not IsPlayerCasting() then DoSpell("Сглаз", "target") end
     end, 
-    function() 
-        if not CanControl("target") or not IsSpellNotUsed("Сглаз", 1)  then return true end
-        if not UnitIsPlayer("target") then
-            local creatureType = UnitCreatureType("target")
-            if creatureType ~= "Гуманоид" or creatureType ~= "Животное" then return true end
+    function(target) 
+        if not CanControl(target) then 
+            echo("Имунен к контролю!")
+            return true 
+        end
+        if not IsSpellNotUsed("Сглаз", 1)  then 
+            echo("Успещно прожали Сглаз!")
+            return true 
+        end
+        if not UnitIsPlayer(target) then
+            local creatureType = UnitCreatureType(target)
+            if creatureType ~= "Гуманоид" or creatureType ~= "Животное" then 
+                echo(creatureType .. ' - нельзя кинуть Сглаз!')
+                return true 
+            end
+        else
+            if GetClass(target) == "DRUID" and HasBuff(druidForm, 0.1, target) then 
+                echo('Друид в форме, имунен к превращениям')
+                return true 
+            end 
         end
         return false
     end
@@ -91,8 +107,8 @@ SetCommand("freedom",
 
 ------------------------------------------------------------------------------------------------------------------
 local tryMount = false
-SetCommand("mount", 
-    function() 
+SetCommand("mount",
+    function(mamont) 
         if InGCD() or IsPlayerCasting() then return end
         if (IsLeftControlKeyDown() or IsSwimming()) and not HasBuff("Хождение по воде", 1, "player") and DoSpell("Хождение по воде", "player") then 
             tryMount = true
@@ -104,9 +120,10 @@ SetCommand("mount",
             return 
         end
         if InCombatLockdown() or not IsOutdoors() then return end
-        local mount = "Стремительный белый рысак"
-        if IsFlyableArea() and not IsLeftControlKeyDown() then mount = "Черный дракон" end
-        if IsAltKeyDown() then mount = "Тундровый мамонт путешественника" end
+        local mount = "Большая ракета любви"
+        -- local mount = "Стремительный белый рысак"
+        -- if IsFlyableArea() and not IsLeftControlKeyDown() then mount = "Черный дракон" end
+        if mamont then mount = "Тундровый мамонт путешественника" end
         if UseMount(mount) then tryMount = true return end
     end, 
     function() 
