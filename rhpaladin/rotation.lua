@@ -2,13 +2,13 @@
 ------------------------------------------------------------------------------------------------------------------
 local holyShieldTime  =  0
 local steathClass = {"ROGUE", "DRUID"}
-local reflectBuff = {"Отражение заклинания", "Эффект тотема заземления", "Рунический покров"}
-    if HasSpell("Частица Cвета") then return end
+local reflectBuff = {"Отражение заклинания", "Эффект тотема заземления", "Рунический покров"}    
 
 local advansedTime = 0
 local advansedMod = false
 
 function Idle()
+    if HasSpell("Частица Cвета") then return end
     advansedMod = IsAttack()
     if GetTime() - advansedTime > 1 then
         advansedTime = GetTime()
