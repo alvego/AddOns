@@ -52,13 +52,16 @@ SetCommand("root",
 
 ------------------------------------------------------------------------------------------------------------------
 local druidForm = {"облик", "Древо Жизни"}
+local hexTime = 0
 SetCommand("hex", 
     function(target, force) 
         if force and HasSpell("Природная стремительность") then 
             DoSpell("Природная стремительность") 
         end
         echo("Сглаз",1)
-        if not IsPlayerCasting() then DoSpell("Сглаз", "target") end
+        if DoSpell("Сглаз", "target") then 
+            hexTime = GetTime()
+        end
     end, 
     function(target) 
         if not CanControl(target) then 
@@ -80,6 +83,10 @@ SetCommand("hex",
                 echo('Друид в форме, имунен к превращениям')
                 return true 
             end 
+        end
+        if GetTime() - hexTime < 0.1 then
+            hexTime = 0
+            return true
         end
         return false
     end
@@ -106,10 +113,57 @@ SetCommand("freedom",
 )
 
 ------------------------------------------------------------------------------------------------------------------
+SetCommand("silence", 
+    function(target) 
+        local spell = "Пронизывающий ветер"
+        if DoSpell(spell, target) then
+            echo(spell.."!",1)
+        end
+    end, 
+    function(target) 
+        if not CanMagicAttack(target) or HasBuff("Мастер аур", 0.1, target) then return true end
+        local spell = "Пронизывающий ветер"
+        if not InRange(spell, target) then
+            chat(spell .. " - неверная дистанция!")
+            return true
+        end
+        if not IsSpellNotUsed(spell, 1)  then
+            chat(spell .. " - успешно сработало!")
+            return true
+        end
+        return false
+    end
+)
+------------------------------------------------------------------------------------------------------------------
+SetCommand("dispel", 
+    function(target) 
+        local spell = "Развеивание магии"
+        if DoSpell(spell, target) then
+            echo(spell.."!",1)
+        end
+    end, 
+    function(target) 
+        if not HasBuff("Magic", 1, target) then 
+            chat("Нет магических эффектов на цели")
+            return true 
+        end
+        local spell = "Развеивание магии"
+        if not InRange(spell, target) then
+            chat(spell .. " - неверная дистанция!")
+            return true
+        end
+        if not IsSpellNotUsed(spell, 1)  then
+            chat(spell .. " - успешно сработало!")
+            return true
+        end
+        return false
+    end
+)
+------------------------------------------------------------------------------------------------------------------
 local tryMount = false
 SetCommand("mount",
     function(mamont) 
-        if InGCD() or IsPlayerCasting() then return end
+        --if InGCD() or IsPlayerCasting() then return end
         if (IsLeftControlKeyDown() or IsSwimming()) and not HasBuff("Хождение по воде", 1, "player") and DoSpell("Хождение по воде", "player") then 
             tryMount = true
             return 
@@ -153,7 +207,7 @@ SetCommand("totems",
         return false
     end
 )
-
+------------------------------------------------------------------------------------------------------------------
 SetCommand("untotems", 
     function() 
         echo("Убрать Тотемы!",1)

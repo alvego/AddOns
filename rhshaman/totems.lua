@@ -199,7 +199,7 @@ function TryTotems(forceTotems, h)
     -- нужно поставить какой-то тотем, несмотря но то что NeedTotems = false (Экстренная ситуация)
 
     local forcedNow = false
-    if not NeedTotems and InCombatLockdown() then
+    if not NeedTotems and (IsAttack() or InCombatLockdown()) then
         for i = 1, 4 do 
             if force[i] then 
                 forcedNow = true 
@@ -207,24 +207,24 @@ function TryTotems(forceTotems, h)
             end
         end
     end
-    
     if forcedNow then 
         -- оставляем только экстренные тотемы
         for i = 1, 4 do 
             if not force[i] then totem[i] = nil end
         end
     end
-    
     -- нет критических тотемов или вообще NeedTotems = false (выходим)
     if not (forcedNow or NeedTotems) then 
         return false 
     end
+    --print(2,totem[2])
     -- ничего настолько строчного, чтоб ставить тотемы
     if not (forcedNow or forceTotems) and (h < 30 -- когда мало хп
-        or not InCombatLockdown() -- или не в бою
-        or not PlayerInPlace()) then -- или на бегу
+        or (not IsAttack() and not InCombatLockdown())-- или не в бою
+        or (not IsArena() and not PlayerInPlace())) then -- или на бегу
         return false 
     end
+    --print(3,totem[2])
     if (GetTime() - TotemTime < 2) then return false end -- или только недавно ставил
     
     if h < 40 then 
@@ -233,7 +233,7 @@ function TryTotems(forceTotems, h)
             if not totem[i] ~= "Тотем трепета" then totem[i] = nil end
         end
     end
-    
+    --print(4,totem[1])
     if UnitMana100("player") < 40 then 
         -- нужно только самое необходимое
          for i = 1, 4 do 

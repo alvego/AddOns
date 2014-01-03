@@ -72,7 +72,7 @@ SetCommand("mor",
     function() 
         if not IsValidTarget("target") or not InMelee() or not (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) then return true end
         if GetTime() - morTime < 0.1 then
-            stopTime = 0
+            morTime = 0
             return true
         end
         return false  
