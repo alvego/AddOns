@@ -60,8 +60,15 @@ function Idle()
         TryTarget()
         
         if (IsControlKeyDown() == 1) and IsValidTarget("target") and DoSpell("Гнев карателя") then return end
-
-        if HasSpell("Удар воина Света") then 
+        
+        if not (IsValidTarget("target") and CanAttack("target") and (UnitAffectingCombat("target")  or IsAttack()))  then return end
+        RunMacroText("/startattack")
+        
+        if HasSpell("Печать повиновения") then 
+            Pve()
+        end
+        
+        if HasSpell("Удар воина Света") and HasSpell("Священная жертва") then 
             Retribution()
         end
         
@@ -70,7 +77,27 @@ function Idle()
         end
     end
 end
+------------------------------------------------------------------------------------------------------------------
+local function IsFinishHim(target) return CanAttack(target) and UnitHealth100(target) < 35 end
+function Pve()
+    local target = "target"
+    RunMacroText("/startattack")
+    if UnitHealth100("player") < 50 and UseItem("Камень здоровья из Скверны") then return end
+    
+    if not IsAttack() and not CanAttack(target) then return end
+    if not (UnitAffectingCombat(target) or IsAttack()) then return end
+    if DoSpell(IsAltKeyDown() and "Правосудие справедливости" or "Правосудие мудрости", target) then return end
+    if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
 
+    if DoSpell("Удар воина Света", target) then return end
+    if InMelee(target) and DoSpell("Божественная буря") then return end
+
+    if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
+    if InMelee(target)--[[IsShiftKeyDown() == 1]] and DoSpell("Освящение") then return end
+    if HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end
+    if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 30 and InMelee(target) and DoSpell("Гнев небес") then return end
+    if UnitMana100("player") < 80 and DoSpell("Святая клятва") then return end
+end
 ------------------------------------------------------------------------------------------------------------------
 function Tank()
     local target = "target"
@@ -205,9 +232,9 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function TryBuffs()
         if HasSpell("Удар воина Света") then
-            if not InCombatLockdown() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
+            if HasSpell("Священная жертва") and not InCombatLockdown() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
             -- if HasBuff("Праведное неистовство") and RunMacroText("/cancelaura Праведное неистовство") then return end
-            if not HasBuff("Печать") and DoSpell("Печать праведности") then return end
+            if not HasBuff("Печать") and DoSpell("Печать мщения") then return end
             if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
                 if not HasBuff("благословение королей") and DoSpell("Великое благословение королей","player") then return end
                 if (not HasBuff("Боевой крик") or not HasBuff("благословение могущества")) and DoSpell("Великое благословение могущества","player") then return end
@@ -232,17 +259,17 @@ local healList = {"player", "Омниссия", "Ириха"}
 function TryHealing()
     if not IsArena() and InCombatLockdown() then
         if CalculateHP("player") < 35 and UseHealPotion() then return true end
-        if UnitMana100() < 10 and UseItem("Рунический флакон с зельем маны") then return true end
+        if UnitMana100() < 20 and UseItem("Рунический флакон с зельем маны") then return true end
     end
 
     if HasBuff("Искусство войны") and not IsFinishHim("target") 
-        and UnitHealth100("player") < (IsEquippedItemType("Щит") and 99.9 or 80)  
+        and UnitHealth100("player") < (IsEquippedItemType("Щит") and 99.9 or 40)  
         and DoSpell("Вспышка Света", "player") then return true end
 
     local members, membersHP = GetHealingMembers(IsArena() and IUNITS or healList)
     local u = members[1]
     local h = membersHP[u]
-    if IsSpellNotUsed("Священный щит", 10) then
+    if IsPvP() and IsSpellNotUsed("Священный щит", 10) then
         local unitWithShield
         for i=1,#IUNITS do 
             if HasMyBuff("Священный щит",1,IUNITS[i]) then unitWithShield = IUNITS[i] end 
@@ -327,7 +354,7 @@ function TryProtect()
             if UseEquippedItem("Проржавевший костяной ключ") then return true end
         end
         
-        if HasSpell("Удар воина Света") and (UnitHealth100() < 50) and DoSpell("Священная жертва") then return end
+        if HasSpell("Удар воина Света") and HasSpell("Священная жертва") and (UnitHealth100() < 50) and DoSpell("Священная жертва") then return end
                 if UnitHealth100() < 50 and RunMacroText("/cancelaura Священная жертва") then return end
                 
         if GetTime() - tryShieldTime > 5 then 
