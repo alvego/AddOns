@@ -51,7 +51,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 
-local nointerruptBuffs = {"Мастер аур", "Дубовая кожа"}
+local nointerruptBuffs = {"Мастер аур"}
 local lichSpells = {"Превращение", "Сглаз", "Соблазн", "Страх", "Вой ужаса", "Контроль над разумом"}
 local conrLichSpells = {"Изгнание зла", "Сковывание нежити"}
 function TryInterrupt(target)
@@ -206,6 +206,7 @@ function DoSpell(spellName, target, baseRP)
     if c ~= nil and t - c < 0.1 then 
         return false 
     end
+
     if tContains(macroSpell, spellName) then
         if not IsReadySpell(spellName) or not InRange(spellName, target) then return false end
         local cast = "/cast "
@@ -221,7 +222,11 @@ function DoSpell(spellName, target, baseRP)
     if not baseRP or IsAttack() then baseRP = 0 end
     local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spellName)
     if (powerType == 6) then
-        if IsCtr() and HasSpell("Призыв горгульи") and IsReadySpell("Призыв горгульи") and name ~= "Призыв горгульи"  then return false end
+        -- and IsReadySpell("Призыв горгульи")
+        if IsCtr() and HasSpell("Призыв горгульи") and not (spellName == "Призыв горгульи")  then 
+            --chat(spellName)
+            return false 
+        end
         if cost > 0 and UnitMana("player") - cost < baseRP then return false end
     end
 

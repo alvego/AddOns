@@ -234,7 +234,7 @@ function TryTotems(forceTotems, h)
         end
     end
     --print(4,totem[1])
-    if UnitMana100("player") < 40 then 
+    if UnitMana100("player") < 70 then 
         -- нужно только самое необходимое
          for i = 1, 4 do 
             if totem[i] and not tContains(importantTotems, totem[i]) then totem[i] = nil end

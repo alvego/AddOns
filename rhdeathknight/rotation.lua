@@ -45,8 +45,9 @@ function Idle()
             RunMacroText("/cleartarget")
             RunMacroText("/targetlasttarget")
         end
+        chat("Призываем гаргу")
         if DoSpell("Призыв горгульи") then return end
-        if IsReadySpell("Призыв горгульи") then return end
+        --if IsReadySpell("Призыв горгульи") then return end
     end
 
     -- призыв пета

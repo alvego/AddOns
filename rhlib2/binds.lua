@@ -66,6 +66,12 @@ end
 local targetWeights = {}
 local function compareTargets(t1,t2) return targetWeights[t1] < targetWeights[t2] end
 local function UpdateIdle()
+    -- if UnitIsAFK("player") then
+    --     chat("You are AFK");
+    --     RunMacroText("/run JumpOrAscendStart()  AscendStop()")
+    -- end
+    
+
     if (IsAttack() and Paused) then
         echo("Авто ротация: ON",true)
         Paused = false

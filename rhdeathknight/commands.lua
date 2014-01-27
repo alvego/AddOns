@@ -58,8 +58,6 @@ SetCommand("spell",
 )
 
 ------------------------------------------------------------------------------------------------------------------
-if IsValidTarget("target") and InMelee() and (HasMyDebuff("Озноб") or HasMyDebuff("Кровавая чума")) then DoCommand("spell", "Мор") end
-------------------------------------------------------------------------------------------------------------------
 local morTime = 0
 SetCommand("mor", 
     function() 
@@ -190,7 +188,7 @@ SetCommand("mount",
             return
         end
         --local mount = (IsFlyableArea() and not IsShiftKeyDown()) and "Крылатый скакун Черного Клинка" or "Конь смерти Акеруса"
-        local mount = (IsFlyableArea() and not IsShiftKeyDown()) and "Прогулочная ракета X-53" or "Анжинерский чоппер"
+        local mount = not IsShiftKeyDown() and "Непобедимый" or (IsFlyableArea() and "Прогулочная ракета X-53" or "Анжинерский чоппер")
         if IsAltKeyDown() then mount = "Тундровый мамонт путешественника" end
         if UseMount(mount) then 
             tryMount = GetTime() 

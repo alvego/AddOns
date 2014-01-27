@@ -578,6 +578,7 @@ function RDDRotation()
     --ротация элема древняя версия для Идеала
     if (
         HasBuff("Жажда крови") or
+        HasBuff("Героизм") or
         HasBuff("Неустойчивая сила") or
         HasBuff("Гиперскоростное ускорение") or
         HasBuff("Покорение стихий") or
@@ -587,6 +588,7 @@ function RDDRotation()
     
     if  HasDebuff("Огненный шок") and not(
         HasBuff("Жажда крови") or
+        HasBuff("Героизм") or
         HasBuff("Неустойчивая сила") or
         HasBuff("Гиперскоростное ускорение") or
         HasBuff("Покорение стихий") or
@@ -597,11 +599,11 @@ function RDDRotation()
         if IsEquippedItem("Фетиш неустойчивой силы") and UseItem("Фетиш неустойчивой силы") then return end
     end
     
-    if HasBuff("Жажда крови") and not(HasBuff("Дикая магия")) then UseItem("Зелье дикой магии") end
+    if (HasBuff("Жажда крови") or HasBuff("Героизм")) and not(HasBuff("Дикая магия")) then UseItem("Зелье дикой магии") end
     
     if not HasMyDebuff("Огненный шок", 0.5,"target") and DoSpell("Огненный шок") then return end
     if HasMyDebuff("Огненный шок", 2,"target") and DoSpell("Выброс лавы") then return end
-    if (IsRightControlKeyDown() == 1) and not (FindAura("Жажда крови")) and DoSpell("Жажда крови") then return end
+    --if (IsRightControlKeyDown() == 1) and not (FindAura("Жажда крови")) and DoSpell("Жажда крови") then return end
     if (IsAOE()) and DoSpell("Цепная молния") then return end
     if (IsLeftAltKeyDown() == 1) and HasTotem(1) ~= "Тотем магмы VII" and DoSpell("Тотем магмы") then return end
     if (IsRightAltKeyDown() == 1) and DoSpell("Зов Стихий") then return end
