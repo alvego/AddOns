@@ -2,51 +2,90 @@
 ------------------------------------------------------------------------------------------------------------------
 local peaceBuff = {"Пища", "Питье"}
 function Idle()
-
+    
     if (IsAttack() or UnitHealth100() > 60) and HasBuff("Длань защиты") then RunMacroText("/cancelaura Длань защиты") end
 
-    if IsAttack() then
+    if IsAttack() then 
         if HasBuff("Парашют") then RunMacroText("/cancelaura Парашют") return end
         if CanExitVehicle() then VehicleExit() return end
         if IsMounted() then Dismount() return end 
     else
-        if IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) or not InCombatLockdown() or IsPlayerCasting() then return end
+        if IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) or (not InCombatLockdown() and IsPlayerCasting()) then return end
+        if TryBuffs() then return end
     end
-
+    
     if CanInterrupt then
         for i=1,#TARGETS do
             TryInterrupt(TARGETS[i])
         end
     end
-    
+
     if TryHealing() then return end
     if TryProtect() then return end
-
     TryTarget()
 
     if not (IsValidTarget("target") and CanAttack("target") and (UnitAffectingCombat("target")  or IsAttack()))  then return end
     RunMacroText("/startattack")
 
-    DoSpell("Победный раж")
-    DoSpell("Удар героя")
-
+    if HasSpell("Вихрь клинков") then 
+        if GetShapeshiftForm() == 3 and IsReadySpell("Перехват") and InRange("Перехват") and DoSpell("Перехват") then return end
+        if GetShapeshiftForm() ~= 1 and DoSpell("Боевая стойка") then return end
+        if UnitMana("player") > 10 and not IsReadySpell("Рывок") and GetSpellCooldownLeft("Рывок") < 18 and GetSpellCooldownLeft("Перехват") < 1 and InRange("Перехват") and GetShapeshiftForm() ~= 3 and DoSpell("Стойка берсерка") then return end
+        if DoSpell("Рывок") then return end
+        if DoSpell("Кровавая ярость") then return end
+        if UnitMana("player") < 10 and DoSpell("Ярость берсерка") then return end
+        if DoSpell("Героический бросок") then return end
+        if not HasMyDebuff("Подрезать сухожилия", 1, "target") and UnitMana("player") > 10 and DoSpell("Подрезать сухожилия") then return end
+        if not HasMyDebuff("Кровопускание", 1, "target") and UnitMana("player") > 10 and DoSpell("Кровопускание") then return end
+        if InMelee() and UnitMana("player") > 25 and DoSpell("Вихрь клинков") then return end
+        if DoSpell("Превосходство") then return end
+        if HasBuff("Внезапная смерть",2,"player") and DoSpell("Казнь") then return end
+        if UnitMana("player") > 30 and DoSpell("Смертельный удар") then return end
+        if UnitHealth100(target) < 20 and UnitMana("player") > 20 and DoSpell("Казнь") then return end
+        if not (HasBuff("Боевой крик") or HasBuff("благословение могущества")) and UnitMana("player") > 10 and DoSpell("Боевой крик") then return end
+        if DoSpell("Удар героя") then return end
+    else
+        if not InCombatLockdown() and GetShapeshiftForm() ~= 1 and DoSpell("Боевая стойка") then return end
+        if DoSpell("Рывок") then return end
+        if InCombatLockdown() and GetShapeshiftForm() ~= 3 and DoSpell("Стойка берсерка") then return end
+        if DoSpell("Перехват") then return end
+        if DoSpell("Кровавая ярость") then return end
+        if UnitMana("player") < 25 and DoSpell("Ярость берсерка") then return end
+        if IsReadySpell("Победный раж") and DoSpell("Победный раж") then return end
+        if HasBuff("Сокрушить!") and DoSpell("Мощный удар") then return end
+        if InMelee() and DoSpell("Вихрь") then return end
+        if DoSpell("Героический бросок") then return end
+        if DoSpell("Кровожадность") then return end
+        if IsReadySpell("Казнь") and DoSpell("Казнь") then return end
+        if not (HasBuff("Боевой крик") or HasBuff("благословение могущества")) and UnitMana("player") > 10 and DoSpell("Боевой крик") then return end
+        if UnitMana("player") > 20 then
+            if IsShiftKeyDown() == 1 then DoSpell("Рассекающий удар") else DoSpell("Удар героя") return end
+        end
+    end
 end
-
-
 ------------------------------------------------------------------------------------------------------------------
 function TryHealing()
     local h = CalculateHP("player")
-    if InCombatLockdown() then
+	if InCombatLockdown() then
         if h < 30 and not IsArena() and UseHealPotion() then return true end
+        if h < 40 and UnitMana("player") >= 16 and IsReadySpell("Безудержное восстановление") and DoSpell("Безудержное восстановление") then return end
     end
-    return false
+end
+------------------------------------------------------------------------------------------------------------------
+function TryBuffs()
+   --[[ -- Если моб даже не элитка, то смысл бафаться?
+    --if CanAttack("target") and UnitHealth("target") < 19000 then return false end
+    if HasSpell("Костяной щит") and not InCombatLockdown() and not HasBuff("Костяной щит") and HasRunes(001) and DoSpell("Костяной щит") then return true end
+    if not HasBuff("Зимний горн") and DoSpell("Зимний горн") then return true end
+    -- призыв пета
+    if not HasSpell("Цапнуть") and DoSpell("Воскрешение мертвых") then return true end
+    return false]]
 end
 ------------------------------------------------------------------------------------------------------------------
 function ActualDistance(target)
     if target == nil then target = "target" end
     return (CheckInteractDistance(target, 3) == 1)
 end
-
 ------------------------------------------------------------------------------------------------------------------
 function TryTarget(useFocus)
     -- помощь в группе
@@ -106,6 +145,7 @@ function TryTarget(useFocus)
         end
     end
 end
+
 
 ------------------------------------------------------------------------------------------------------------------
 
