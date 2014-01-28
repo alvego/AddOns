@@ -1,0 +1,8 @@
+<Bindings>
+  <Binding name="RHWARRIOR_AOE" description="Use AOE" header="RHWARRIOR">
+    AOEToggle();
+  </Binding>
+  <Binding name="RHWARRIOR_INTERRUPT" description="Use cast interrupt" header="RHWARRIOR">
+    InterruptToggle();
+  </Binding>
+</Bindings>
