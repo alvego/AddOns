@@ -10,8 +10,8 @@ function Idle()
         if CanExitVehicle() then VehicleExit() return end
         if IsMounted() then Dismount() return end 
     else
-        if IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) or (not InCombatLockdown() and IsPlayerCasting()) then return end
-        if TryBuffs() then return end
+        if IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) or not InCombatLockdown() then return end
+        
     end
     
     if CanInterrupt then
@@ -22,10 +22,16 @@ function Idle()
 
     if TryHealing() then return end
     if TryProtect() then return end
+    if TryBuffs() then return end
     TryTarget()
 
     if not (IsValidTarget("target") and CanAttack("target") and (UnitAffectingCombat("target")  or IsAttack()))  then return end
     RunMacroText("/startattack")
+    --[[if DoSpell("Рывок") then return end
+    if not HasMyDebuff("Кровопускание", 1, "target") and UnitMana("player") > 10 and DoSpell("Кровопускание") then return end
+    if DoSpell("Победный раж") then return end
+    if DoSpell("Удар грома") then return end
+    DoSpell("Удар героя")]]
 
     if HasSpell("Вихрь клинков") then 
         if GetShapeshiftForm() == 3 and IsReadySpell("Перехват") and InRange("Перехват") and DoSpell("Перехват") then return end
@@ -73,6 +79,7 @@ function TryHealing()
 end
 ------------------------------------------------------------------------------------------------------------------
 function TryBuffs()
+    if not (HasBuff("Боевой крик") or HasBuff("благословение могущества")) and UnitMana("player") > 10 and DoSpell("Боевой крик") then return end
    --[[ -- Если моб даже не элитка, то смысл бафаться?
     --if CanAttack("target") and UnitHealth("target") < 19000 then return false end
     if HasSpell("Костяной щит") and not InCombatLockdown() and not HasBuff("Костяной щит") and HasRunes(001) and DoSpell("Костяной щит") then return true end
