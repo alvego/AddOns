@@ -36,19 +36,38 @@ function Idle()
     if HasSpell("Вихрь клинков") then 
         if GetShapeshiftForm() == 3 and IsReadySpell("Перехват") and InRange("Перехват") and DoSpell("Перехват") then return end
         if GetShapeshiftForm() ~= 1 and DoSpell("Боевая стойка") then return end
-        if UnitMana("player") > 10 and not IsReadySpell("Рывок") and GetSpellCooldownLeft("Рывок") < 18 and GetSpellCooldownLeft("Перехват") < 1 and InRange("Перехват") and GetShapeshiftForm() ~= 3 and DoSpell("Стойка берсерка") then return end
+        if UnitMana("player") > 10 and 
+            not IsReadySpell("Рывок") 
+            and GetSpellCooldownLeft("Рывок") < 18 
+            and GetSpellCooldownLeft("Перехват") < 1 
+            and InRange("Перехват") 
+            and GetShapeshiftForm() ~= 3 
+            and DoSpell("Стойка берсерка") then return end
+
         if DoSpell("Рывок") then return end
+
         if DoSpell("Кровавая ярость") then return end
+
         if UnitMana("player") < 10 and DoSpell("Ярость берсерка") then return end
+
         if DoSpell("Героический бросок") then return end
+
         if not HasMyDebuff("Подрезать сухожилия", 1, "target") and UnitMana("player") > 10 and DoSpell("Подрезать сухожилия") then return end
+
         if not HasMyDebuff("Кровопускание", 1, "target") and UnitMana("player") > 10 and DoSpell("Кровопускание") then return end
+
         if InMelee() and UnitMana("player") > 25 and DoSpell("Вихрь клинков") then return end
+
         if DoSpell("Превосходство") then return end
+
         if HasBuff("Внезапная смерть",2,"player") and DoSpell("Казнь") then return end
+
         if UnitMana("player") > 30 and DoSpell("Смертельный удар") then return end
+
         if UnitHealth100(target) < 20 and UnitMana("player") > 20 and DoSpell("Казнь") then return end
+
         if not (HasBuff("Боевой крик") or HasBuff("благословение могущества")) and UnitMana("player") > 10 and DoSpell("Боевой крик") then return end
+        
         if DoSpell("Удар героя") then return end
     else
         if not InCombatLockdown() and GetShapeshiftForm() ~= 1 and DoSpell("Боевая стойка") then return end

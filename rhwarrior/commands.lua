@@ -44,3 +44,31 @@ SetCommand("spell",
         return false
     end
 )
+
+------------------------------------------------------------------------------------------------------------------
+local tryMount = 0
+SetCommand("mount", 
+    function() 
+        if InGCD() or InCombatLockdown() or IsMounted() or CanExitVehicle() or IsPlayerCasting() or not IsOutdoors() or not PlayerInPlace() then
+            tryMount = GetTime() 
+            return
+        end
+        local mount = (IsFlyableArea() and not IsShiftKeyDown()) and "Стремительный сиреневый грифон" or "Стремительный игреневый конь"
+        --local mount = not IsShiftKeyDown() and "Непобедимый" or (IsFlyableArea() and "Прогулочная ракета X-53" or "Анжинерский чоппер")
+        --[[if IsAltKeyDown() then mount = "Тундровый мамонт путешественника" end]]
+        if UseMount(mount) then 
+            tryMount = GetTime() 
+            return
+        end
+    end, 
+    function() 
+
+        if tryMount > 0 and GetTime() - tryMount > 0.01 then
+            tryMount = 0    
+            return  true
+        end
+
+        return false 
+    end
+)
+------------------------------------------------------------------------------------------------------------------
