@@ -2,7 +2,8 @@
 ------------------------------------------------------------------------------------------------------------------
 local peaceBuff = {"Пища", "Питье"}
 function Idle()
-    
+        
+
     if (IsAttack() or UnitHealth100() > 60) and HasBuff("Длань защиты") then RunMacroText("/cancelaura Длань защиты") end
 
     if IsAttack() then 
@@ -31,7 +32,8 @@ function Idle()
     if not HasMyDebuff("Кровопускание", 1, "target") and UnitMana("player") > 10 and DoSpell("Кровопускание") then return end
     if DoSpell("Победный раж") then return end
     if DoSpell("Удар грома") then return end
-    DoSpell("Удар героя")]]
+    DoSpell("Удар героя")
+    DoSpell("Выстрел")]]
 
     if HasSpell("Вихрь клинков") then 
         if GetShapeshiftForm() == 3 and IsReadySpell("Перехват") and InRange("Перехват") and DoSpell("Перехват") then return end
@@ -75,6 +77,13 @@ function Idle()
         if InCombatLockdown() and GetShapeshiftForm() ~= 3 and DoSpell("Стойка берсерка") then return end
         if DoSpell("Перехват") then return end
         if DoSpell("Кровавая ярость") then return end
+        if InMelee() then 
+            UseEquippedItem("Карманные часы Феззика") 
+            if (UnitClassification("target") ~= "worldboss") then
+                if DoSpell("Безрассудство") then return end
+                if UnitMana("player") < 10 and DoSpell("Жажда смерти") then return end
+            end
+        end
         if UnitMana("player") < 25 and DoSpell("Ярость берсерка") then return end
         if IsReadySpell("Победный раж") and DoSpell("Победный раж") then return end
         if HasBuff("Сокрушить!") and DoSpell("Мощный удар") then return end
@@ -84,7 +93,7 @@ function Idle()
         if IsReadySpell("Казнь") and DoSpell("Казнь") then return end
         if not (HasBuff("Боевой крик") or HasBuff("благословение могущества")) and UnitMana("player") > 10 and DoSpell("Боевой крик") then return end
         if UnitMana("player") > 20 then
-            if IsShiftKeyDown() == 1 then DoSpell("Рассекающий удар") else DoSpell("Удар героя") return end
+            if IsAOE() then DoSpell("Рассекающий удар") else DoSpell("Удар героя") return end
         end
     end
 end

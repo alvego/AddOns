@@ -4,6 +4,7 @@
 BINDING_HEADER_RHLIB = "Rotation Helper Library"
 BINDING_NAME_RHLIB_OFF = "Выкл ротацию"
 BINDING_NAME_RHLIB_DEBUG = "Вкл/Выкл режим отладки"
+BINDING_NAME_RHLIB_RELOAD = "Перезагрузить интерфейс"
 ------------------------------------------------------------------------------------------------------------------
 -- Условие для включения ротации
 function IsAttack()

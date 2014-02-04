@@ -139,7 +139,7 @@ end
 
 function trashToggle()
     local itemName, ItemLink = GameTooltip:GetItem()
-    if nil == itemName then return end
+    if nil == itemName then Notify("Наведите на предмет") return end
     if tContains(TrashList, itemName) then 
         for i=1, #TrashList do
             if TrashList[i] ==  itemName then 
