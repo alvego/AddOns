@@ -94,8 +94,9 @@ function Pve()
     if DoSpell("Удар воина Света", target) then return end
 
     if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
-    if InMelee(target)--[[IsShiftKeyDown() == 1]] and DoSpell("Освящение") then return end
     if HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end
+    if InMelee(target)--[[IsShiftKeyDown() == 1]] and DoSpell("Освящение") then return end
+
     if (UnitCreatureType(target) == "Нежить") and UnitMana100("player") > 30 and InMelee(target) and DoSpell("Гнев небес") then return end
     if UnitMana100("player") < 60 and DoSpell("Святая клятва") then return end
 end
