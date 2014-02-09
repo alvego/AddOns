@@ -78,19 +78,19 @@ function Idle()
         if DoSpell("Перехват") then return end
         if DoSpell("Кровавая ярость") then return end
         if InMelee() then 
-            UseEquippedItem("Карманные часы Феззика") 
+            UseEquippedItem("Знак превосходства") 
             if (UnitClassification("target") ~= "worldboss") then
                 if DoSpell("Безрассудство") then return end
-                if UnitMana("player") < 10 and DoSpell("Жажда смерти") then return end
+                if UnitMana("player") > 10 and DoSpell("Жажда смерти") then return end
             end
         end
         if UnitMana("player") < 25 and DoSpell("Ярость берсерка") then return end
         if IsReadySpell("Победный раж") and DoSpell("Победный раж") then return end
-        if HasBuff("Сокрушить!") and DoSpell("Мощный удар") then return end
+        if DoSpell("Кровожадность") then return end
         if InMelee() and DoSpell("Вихрь") then return end
         if DoSpell("Героический бросок") then return end
-        if DoSpell("Кровожадность") then return end
         if IsReadySpell("Казнь") and DoSpell("Казнь") then return end
+        if HasBuff("Сокрушить!") and DoSpell("Мощный удар") then return end
         if not (HasBuff("Боевой крик") or HasBuff("благословение могущества")) and UnitMana("player") > 10 and DoSpell("Боевой крик") then return end
         if UnitMana("player") > 20 then
             if IsAOE() then DoSpell("Рассекающий удар") else DoSpell("Удар героя") return end
