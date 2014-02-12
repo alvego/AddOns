@@ -79,7 +79,7 @@ function Idle()
         if DoSpell("Кровавая ярость") then return end
         if InMelee() then 
             UseEquippedItem("Знак превосходства") 
-            if (UnitClassification("target") ~= "worldboss") then
+            if IsControlKeyDown() then
                 if DoSpell("Безрассудство") then return end
                 if UnitMana("player") > 10 and DoSpell("Жажда смерти") then return end
             end
@@ -92,7 +92,7 @@ function Idle()
         if IsReadySpell("Казнь") and DoSpell("Казнь") then return end
         if HasBuff("Сокрушить!") and DoSpell("Мощный удар") then return end
         if not (HasBuff("Боевой крик") or HasBuff("благословение могущества")) and UnitMana("player") > 10 and DoSpell("Боевой крик") then return end
-        if UnitMana("player") > 20 then
+        if UnitMana("player") > (GetSpellCooldownLeft("Вихрь") < 2 and 25 or 20) then
             if IsAOE() then DoSpell("Рассекающий удар") else DoSpell("Удар героя") return end
         end
     end

@@ -53,8 +53,9 @@ SetCommand("mount",
             tryMount = GetTime() 
             return
         end
-        local mount = (IsFlyableArea() and not IsShiftKeyDown()) and "Стремительный сиреневый грифон" or "Стремительный игреневый конь"
+        --local mount = (IsFlyableArea() and not IsShiftKeyDown()) and "Стремительный сиреневый грифон" or "Стремительный игреневый конь"
         --local mount = not IsShiftKeyDown() and "Непобедимый" or (IsFlyableArea() and "Прогулочная ракета X-53" or "Анжинерский чоппер")
+        local mount = "Большая ракета любви"
         --[[if IsAltKeyDown() then mount = "Тундровый мамонт путешественника" end]]
         if UseMount(mount) then 
             tryMount = GetTime() 
