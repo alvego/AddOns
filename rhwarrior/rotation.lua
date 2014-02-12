@@ -77,9 +77,9 @@ function Idle()
         if InCombatLockdown() and GetShapeshiftForm() ~= 3 and DoSpell("Стойка берсерка") then return end
         if DoSpell("Перехват") then return end
         if DoSpell("Кровавая ярость") then return end
-        if InMelee() then 
-            UseEquippedItem("Знак превосходства") 
+        if InMelee() then
             if IsControlKeyDown() then
+                UseEquippedItem("Знак превосходства") 
                 if DoSpell("Безрассудство") then return end
                 if UnitMana("player") > 10 and DoSpell("Жажда смерти") then return end
             end
