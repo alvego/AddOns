@@ -86,8 +86,8 @@ function Idle()
         end
         if UnitMana("player") < 25 and DoSpell("Ярость берсерка") then return end
         if IsReadySpell("Победный раж") and DoSpell("Победный раж") then return end
-        if DoSpell("Кровожадность") then return end
         if InMelee() and DoSpell("Вихрь") then return end
+        if DoSpell("Кровожадность") then return end
         if DoSpell("Героический бросок") then return end
         if IsReadySpell("Казнь") and DoSpell("Казнь") then return end
         if HasBuff("Сокрушить!") and DoSpell("Мощный удар") then return end
