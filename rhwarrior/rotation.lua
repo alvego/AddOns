@@ -80,8 +80,8 @@ function Idle()
         if InMelee() then
             if IsControlKeyDown() then
                 UseEquippedItem("Знак превосходства") 
-                if DoSpell("Безрассудство") then return end
                 if UnitMana("player") > 10 and DoSpell("Жажда смерти") then return end
+                if DoSpell("Безрассудство") then return end
             end
         end
         if UnitMana("player") < 25 and DoSpell("Ярость берсерка") then return end
