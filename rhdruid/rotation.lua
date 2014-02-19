@@ -13,6 +13,10 @@ function Idle()
     if IsHeal() then
         HealRotation()
         return
+	end
+	if IsDD() then
+        Sova()
+        return
     end
 end
 
@@ -136,4 +140,28 @@ function HealRotation()
 
 end
 
+------------------------------------------------------------------------------------------------------------------
+local t = 0
+local s = 0
+local l = 0
+function Sova()
+    if t ~= 7 and Debug then print(t) end
+    t = 0
+    if not HasBuff("Облик лунного совуха") and DoSpell("Облик лунного совуха") then return end
+    t = 1
+    if UnitMana100("player") < 50 and DoSpell("Озарение", "player") then return end
+    t = 2
+    if UnitHealth("target") > 200000 and not HasDebuff("Волшебный огонь") and DoSpell("Волшебный огонь") then return end
+    t = 3
+    --if not HasDebuff("Земля и луна") and DoSpell("Гнев") then end
+    if not HasMyDebuff("Рой насекомых", 1,"target") and DoSpell("Рой насекомых") then return end
+    t = 4
+    if not HasMyDebuff("Лунный огонь", 1,"target") and DoSpell("Лунный огонь") then return end
+    t = 5
 
+    if not HasBuff("Солнечное") and (HasBuff("Лунное") or GetTime() - l < 4.6) and DoSpell("Звездный огонь") then l = GetTime() return end
+    t = 6
+    if not (HasBuff("Лунное")or GetTime() - l < 4.6) and DoSpell("Гнев") then return end
+    t = 7
+	if HasBuff("Солнечное") and DoSpell("Гнев") then return end
+end
