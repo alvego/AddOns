@@ -5,4 +5,7 @@
   <Binding name="RHWARRIOR_INTERRUPT" description="Use cast interrupt" header="RHWARRIOR">
     InterruptToggle();
   </Binding>
+   <Binding name="RHWARRIOR_ROLE" description="Toggle roles" header="RHWARRIOR">
+    RoleToggle();
+  </Binding>
 </Bindings>
