@@ -35,8 +35,9 @@ function Idle()
     DoSpell("Удар героя")
     DoSpell("Выстрел")]]
     local base = 25
-    if HasSpell("Вихрь клинков") then 
-        if GetShapeshiftForm() == 3 and IsReadySpell("Перехват") and InRange("Перехват") and DoSpell("Перехват") then return end
+    --if HasSpell("Вихрь клинков") then 
+        
+        --[[if GetShapeshiftForm() == 3 and IsReadySpell("Перехват") and InRange("Перехват") and DoSpell("Перехват") then return end
         if GetShapeshiftForm() ~= 1 and DoSpell("Боевая стойка") then return end
         if UnitMana("player") > 10 and 
             not IsReadySpell("Рывок") 
@@ -46,33 +47,34 @@ function Idle()
             and GetShapeshiftForm() ~= 3 
             and DoSpell("Стойка берсерка") then return end
 
-        if DoSpell("Рывок") then return end
+        if DoSpell("Рывок") then return end]]
 
-        if not HasMyDebuff("Смертельный удар", 3, "target") and DoSpell("Смертельный удар") then return end
+        if IsAOE() and HasSpell("Размашестые удары") and DoSpell("Размашестые удары") then return end
+        if HasSpell("Смертельный удар") and not HasMyDebuff("Смертельный удар", 3, "target") and DoSpell("Смертельный удар") then return end
 
-        if DoSpell("Превосходство") then return end
+        if Stance(1) and DoSpell("Превосходство") then return end
 
-        if (HasBuff("Внезапная смерть",1,"player") or UnitHealth100("target") < 20) and DoSpell("Казнь") then return end
+        if Stance(1,3) and (HasBuff("Внезапная смерть",1,"player") or UnitHealth100("target") < 20) and DoSpell("Казнь") then return end
 
-        if not HasMyDebuff("Подрезать сухожилия", 1, "target") and DoSpell("Подрезать сухожилия") then return end
+        if Stance(1,3) and not HasMyDebuff("Подрезать сухожилия", 1, "target") and DoSpell("Подрезать сухожилия") then return end
 
-        if not HasMyDebuff("Кровопускание", 1, "target") and UnitMana("player") > 10 and DoSpell("Кровопускание") then return end
+        if Stance(1,2) and not HasMyDebuff("Кровопускание", 1, "target") and UnitMana("player") > 10 and DoSpell("Кровопускание") then return end
 
-        if InMelee() and DoSpell("Вихрь клинков") then return end
-
-        
+        if IsCtr() and HasSpell("Вихрь клинков") and InMelee() and DoSpell("Вихрь клинков") then return end
 
         if not (HasBuff("Боевой крик") or HasBuff("благословение могущества")) and UnitMana("player") > 10 and DoSpell("Боевой крик") then return end
         
-        if DoSpell("Удар героя", "target", base) then return end
+        if InMelee() and DoSpell("Удар героя", "target", base) then return end
 
         if DoSpell("Героический бросок") then return end
 
         if DoSpell("Кровавая ярость") then return end
 
-        if DoSpell("Ярость берсерка") then return end
+        if (not IsPvP() or IsAttack()) and DoSpell("Ярость берсерка") then return end
 
-    else
+        DoSpell("Выстрел")
+
+    --[[else
         if InRange("Рывок") and GetSpellCooldownLeft("Рывок") < 1 and not InCombatLockdown() and GetShapeshiftForm() ~= 1 and DoSpell("Боевая стойка") then return end
         if DoSpell("Рывок") then return end
         if InRange("Рывок") and GetSpellCooldownLeft("Рывок") < 1 and not InCombatLockdown() then return end
@@ -100,7 +102,7 @@ function Idle()
         
         if not (HasMyBuff("Командирский крик") or HasMyBuff("Боевой крик") or HasBuff("благословение могущества")) and UnitMana("player") > 10 and DoSpell("Боевой крик") then return end
         
-    end
+    end]]
 end
 ------------------------------------------------------------------------------------------------------------------
 function TryHealing()

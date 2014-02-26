@@ -52,6 +52,13 @@ function RoleToggle()
 end
 
 ------------------------------------------------------------------------------------------------------------------
+function Stance(...) 
+    for i = 1, select('#', ...) do
+        if GetShapeshiftForm() == select(i, ...) then return true end
+    end
+    return false
+end
+------------------------------------------------------------------------------------------------------------------
 function IsMouse3()
     return  IsMouseButtonDown(3) == 1
 end
@@ -154,7 +161,7 @@ function DoSpell(spellName, target, mana)
     if not mana or IsAttack() then mana = 0 end
     local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spellName)
     if (1 == powerType and cost > 0) then
-        if IsCtr() then return false end
+        if IsShiftKeyDown() then return false end
         if UnitMana("player") - cost < mana then return false end
     end
     return UseSpell(spellName, target)
