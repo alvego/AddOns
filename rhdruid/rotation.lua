@@ -14,7 +14,8 @@ function Idle()
         HealRotation()
         return
 	end
-	if IsDD() then
+	if IsAttack() or InCombatLockdown() then TryTarget() end
+	if IsAttack() or InCombatLockdown() and IsDD() then
         Sova()
         return
     end
@@ -141,27 +142,50 @@ function HealRotation()
 end
 
 ------------------------------------------------------------------------------------------------------------------
-local t = 0
 local s = 0
 local l = 0
 function Sova()
-    if t ~= 7 and Debug then print(t) end
-    t = 0
     if not HasBuff("Облик лунного совуха") and DoSpell("Облик лунного совуха") then return end
-    t = 1
     if UnitMana100("player") < 50 and DoSpell("Озарение", "player") then return end
-    t = 2
-    if UnitHealth("target") > 200000 and not HasDebuff("Волшебный огонь") and DoSpell("Волшебный огонь") then return end
-    t = 3
-    --if not HasDebuff("Земля и луна") and DoSpell("Гнев") then end
+    if UnitHealth("target") > 300000 and not HasDebuff("Волшебный огонь") and DoSpell("Волшебный огонь") then return end
     if not HasMyDebuff("Рой насекомых", 1,"target") and DoSpell("Рой насекомых") then return end
-    t = 4
     if not HasMyDebuff("Лунный огонь", 1,"target") and DoSpell("Лунный огонь") then return end
-    t = 5
-
     if not HasBuff("Солнечное") and (HasBuff("Лунное") or GetTime() - l < 4.6) and DoSpell("Звездный огонь") then l = GetTime() return end
-    t = 6
-    if not (HasBuff("Лунное")or GetTime() - l < 4.6) and DoSpell("Гнев") then return end
-    t = 7
-	if HasBuff("Солнечное") and DoSpell("Гнев") then return end
+    if not (HasBuff("Лунное")or GetTime() - l < 4.6) and HasMyDebuff("Рой насекомых", 1,"target") and HasMyDebuff("Рой насекомых", 1,"target") and DoSpell("Гнев") then return end
+	if HasBuff("Солнечное") and HasMyDebuff("Рой насекомых", 1,"target") and HasMyDebuff("Рой насекомых", 1,"target") and DoSpell("Гнев") then return end
+end
+------------------------------------------------------------------------------------------------------------------
+function TryTarget()
+    -- помощь в группе
+    if not IsValidTarget("target") and InGroup() then
+        -- если что-то не то есть в цели
+        if UnitExists("target") then RunMacroText("/cleartarget") end
+        for i = 1, #TARGET do
+            local t = TARGET[i]
+            if t and (UnitAffectingCombat(t) or IsPvP()) and ActualDistance(t) and (not IsPvP() or UnitIsPlayer(t))  then 
+                RunMacroText("/startattack " .. target) 
+                break
+            end
+        end
+    end
+    -- пытаемся выбрать ну хоть что нибудь
+    if not IsValidTarget("target") then
+        -- если что-то не то есть в цели
+        if UnitExists("target") then RunMacroText("/cleartarget") end
+
+        if IsPvP() then
+            RunMacroText("/targetenemyplayer [nodead]")
+        else
+            RunMacroText("/targetenemy [nodead]")
+        end
+        if not IsAttack()  -- если в авторежиме
+            and (
+            not IsValidTarget("target")  -- вообще не цель
+            or not ActualDistance("target")  -- далековато
+            or (not IsPvP() and not UnitAffectingCombat("target")) -- моб не в бою
+            or (IsPvP() and not UnitIsPlayer("target")) -- не игрок в пвп
+            )  then 
+            if UnitExists("target") then RunMacroText("/cleartarget") end
+        end
+    end
 end
