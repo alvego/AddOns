@@ -127,6 +127,7 @@ local rootDispelList = {
     "Леденящий взгляд",
     "Хватка земли"
 }
+local shieldChangeTime = 0
 function Heal()
     local members, membersHP = GetHealingMembers(UNITS)
     local myHP, myLost = CalculateHP("player"), UnitLostHP("player")
@@ -141,7 +142,7 @@ function Heal()
             -- если нет цели для лечения, выбираем враждебную
             if not IsInteractUnit("target") then TryTarget(false) end
             -- можно впилить дамаг ротацию при необходимости
-            Retribution() --??
+            --Retribution() --??
         else
             -- чтоб выбирались мобы, которые бьют меня. Если не выбрана цель для лечения
             if InCombatLockdown() and UnitName("target") and not IsInteractUnit("target") and not IsOneUnit("target-target", "player") and UnitThreat("player") == 3 then
@@ -205,23 +206,19 @@ function Heal()
     end
     
     ---------------------------------------------------------------------------------------------------------
-    local healSpells = {"Вспышка Света"}  -- тут добавишь спелы хилок
-    local heal = {}
-    for i=1,#healSpells do
-        local s =healSpells[i]
-        heal[s] = GetMySpellHeal(s)
-    end
     
     ---------------------------------------------------------------------------------------------------------
     -- тут хилим мгновенками
+    if (h < 25 or (l >  7000)) and DoSpell("Шок небес", u) then return end
+    if HasBuff("Прилив Света") and (h < 25 or (l >  GetMySpellHeal("Вспышка Света"))) and DoSpell("Вспышка Света", u) then return end
     if PlayerInPlace() then
         --тут касты
-        if (h < 25 or (l > heal["Вспышка Света"])) and DoSpell("Вспышка Света", u) then return end
+        if h < 95  and DoSpell("Вспышка Света", u) then return end
     end
     
 
     if (h > 60 and UnitMana100("player") > 50) then
-        if (CanInterrupt or IsPvP()) and IsSpellNotUsed("Очищение", 5)  then
+        if (CanInterrupt or IsPvP()) and IsSpellNotUsed("Очищение", 2)  then
             for i = 1, #IUNITS do
                 if TryDispel(IUNITS[i]) then return  end
             end
@@ -344,8 +341,10 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function TryBuffs()
-    if HasSpell("Частица Cвета") then
-        --...
+    if HasSpell("Частица Света") then
+    if not InCombatLockdown() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
+    if not HasBuff("Печать") and DoSpell("Печать мудрости","player") then return end    
+    if not InCombatLockdown() and not HasBuff("Благословение") and DoSpell("Великое благословение королей","player") then return end
         return false
     end
     if HasSpell("Удар воина Света") then
