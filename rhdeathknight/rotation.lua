@@ -164,6 +164,7 @@ function TryHealing()
     local h = CalculateHP("player")
     if h < 40 and UnitMana("player") >= 40 and HasSpell("Цапнуть") and DoSpell("Смертельный союз") then return end
     if h < 80 and HasSpell("Захват рун") and DoSpell("Захват рун") then return end
+    if h < 80 and HasSpell("Кровь земли") and DoSpell("Кровь земли") then return end
     if HasBuff("Перерождение") and UnitHealth100("player") < 100 and DoSpell("Лик смерти", "player") then return end
     if InCombatLockdown() then
         if h < 30 and not IsArena() and UseHealPotion() then return true end
