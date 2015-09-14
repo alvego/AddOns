@@ -22,31 +22,35 @@ ControlList = { -- > 4
 "Пронзительный вой", -- 6s
 "Головокружение", -- 6s
 "Ошеломление", -- 20s
+"Соблазн"
 }
 
 ------------------------------------------------------------------------------------------------------------------
 -- Можно законтролить игрока
+local imperviousList = {"Вихрь клинков", "Зверь внутри", "Незыблемость льда"} -- TODO: Незыблемость льда под вопросом
 function CanControl(target)
     if nil == target then target = "target" end 
-    return CanMagicAttack(target) and not HasBuff({"Вихрь клинков", "Зверь внутри"}, 0.1, target) 
+    return CanMagicAttack(target) and not HasBuff(imperviousList, 0.1, target) 
         and not HasDebuff(ControlList, 3, target)
 end
 
 ------------------------------------------------------------------------------------------------------------------
 -- можно использовать магические атаки против игрока
+local magicList = {"Отражение заклинания", "Антимагический панцирь", "Рунический покров", "Эффект тотема заземления"}
 function CanMagicAttack(target)
     if nil == target then target = "target" end 
     return CanAttack(target) 
-        and not HasBuff({"Отражение заклинания", "Антимагический панцирь", "Рунический покров"}, 0.1, target)
+        and not HasBuff(magicList, 0.1, target)
 end
 
 ------------------------------------------------------------------------------------------------------------------
 -- можно атаковать игрока (в противном случае не имеет смысла просаживать кд))
+local immuneList = {"Божественный щит", "Ледяная глыба", "Сдерживание"}
 function CanAttack(target)
     if nil == target then target = "target" end 
     return IsValidTarget(target) 
         and IsInView(target)
-        and not HasBuff({"Божественный щит", "Ледяная глыба", "Сдерживание"}, 0.01, target) 
+        and not HasBuff(immuneList, 0.01, target) 
         and not HasDebuff("Смерч", 0.01, target)
 end
 
@@ -87,14 +91,36 @@ local InterruptRedList = {
     "Смерч",
     "Спокойствие потоковое",
     "Восстановление",
-    "Целительное прикосновение"
+    "Целительное прикосновение",
+    "Изгнание зла", 
+    "Сковывание нежити"
 }
 
 function InInterruptRedList(spellName)
     return tContains(InterruptRedList, spellName)
 end
 
+------------------------------------------------------------------------------------------------------------------
+-- касты обязательные к сбитию в любом случае
+local AlertList = {
+    "Божественный щит",
+    "Вихрь клинков", 
+    "Стылая кровь",
+    "Гнев карателя",
+    "Призыв горгульи",
+    "PvP-аксессуар",
+    "Каждый за себя",
+    "Озарение",
+    "Святая клятва",
+    "Питье",
+    "Длань свободы",
+    "Воля Отрекшихся",
+    "Перерождение"
+}
 
+function InAlertList(spellName)
+    return tContains(AlertList, spellName)
+end
 ------------------------------------------------------------------------------------------------------------------
 --[[ Interrupt + - хилка
 SHAMAN|Малая волна исцеления +

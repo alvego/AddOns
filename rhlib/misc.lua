@@ -1,12 +1,17 @@
 ﻿-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
+--UIParentLoadAddOn("Blizzard_DebugTools");
+--DevTools_Dump(n)
 function SellGray()
     for b=0,4 do                                   
       for s=1, GetContainerNumSlots(b) do          
-        n=GetContainerItemLink(b,s)               
-        if n and string.find(n, "ff9d9d9d") then                                 
-            UseContainerItem(b,s)                   
-        end                                        
+        local n=GetContainerItemLink(b,s)
+        if n then
+            if string.find(n, "ff9d9d9d") or (IsTrash and IsTrash(n)) then                                 
+              UseContainerItem(b,s)                   
+            end
+        end
+                                               
       end                                          
     end                                            
 end
@@ -43,32 +48,53 @@ function sell(name)
 end
 
 ------------------------------------------------------------------------------------------------------------------
+function switchTargetAndFocus()
+  if UnitExists("target") and not UnitExists("focus") then 
+      RunMacroText("/focus") 
+      RunMacroText("/cleartarget") 
+      return 
+  end
+  if UnitExists("focus") and not UnitExists("target") then 
+    RunMacroText("/target focus") 
+    RunMacroText("/clearfocus") 
+    return 
+  end
+  RunMacroText("/target focus") 
+  RunMacroText("/targetlasttarget") 
+  RunMacroText("/focus") 
+  RunMacroText("/targetlasttarget") 
+end
+------------------------------------------------------------------------------------------------------------------
 -- Update Debug Frame
-NotifyFrame = nil
-function NotifyFrame_OnUpdate()
-        if (NotifyFrameTime < GetTime() - 5) then
-                local alpha = NotifyFrame:GetAlpha()
-                if (alpha ~= 0) then NotifyFrame:SetAlpha(alpha - .02) end
-                if (aplha == 0) then NotifyFrame:Hide() end
+local notifyFrame
+local notifyFrameTime = 0
+local function notifyFrame_OnUpdate()
+        if (notifyFrameTime > 0 and notifyFrameTime < GetTime() - 5) then
+                local alpha = notifyFrame:GetAlpha()
+                if (alpha ~= 0) then notifyFrame:SetAlpha(alpha - .02) end
+                if (aplha == 0) then 
+					notifyFrame:Hide() 
+					notifyFrameTime = 0
+				end
         end
 end
 -- Debug & Notification Frame
-NotifyFrame = CreateFrame('Frame')
-NotifyFrame:ClearAllPoints()
-NotifyFrame:SetHeight(300)
-NotifyFrame:SetWidth(300)
-NotifyFrame:SetScript('OnUpdate', NotifyFrame_OnUpdate)
-NotifyFrame:Hide()
-NotifyFrame.text = NotifyFrame:CreateFontString(nil, 'BACKGROUND', 'PVPInfoTextFont')
-NotifyFrame.text:SetAllPoints()
-NotifyFrame:SetPoint('CENTER', 0, 200)
-NotifyFrameTime = 0
+notifyFrame = CreateFrame('Frame')
+notifyFrame:ClearAllPoints()
+notifyFrame:SetHeight(300)
+notifyFrame:SetWidth(800)
+notifyFrame:SetScript('OnUpdate', notifyFrame_OnUpdate)
+notifyFrame:Hide()
+notifyFrame.text = notifyFrame:CreateFontString(nil, 'BACKGROUND', 'PVPInfoTextFont')
+notifyFrame.text:SetAllPoints()
+notifyFrame:SetPoint('CENTER', 0, 0)
+
 -- Debug messages.
 function Notify(message)
-        NotifyFrame.text:SetText(message)
-        NotifyFrame:SetAlpha(1)
-        NotifyFrame:Show()
-        NotifyFrameTime = GetTime()
+        notifyFrame.text:SetText(message)
+        notifyFrame:SetAlpha(1)
+        notifyFrame:Show()
+        notifyFrameTime = GetTime()
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -123,19 +149,6 @@ function printtable(t, indent)
   end
   indent = indent - 1;
   print(string.rep('  ', indent)..'}');
-end
-
-------------------------------------------------------------------------------------------------------------------
-function TryEach(list, func)
-    if not func then 
-      error("Func can't be nil") 
-      return 
-    end
-    local state = nil
-    for _,value in pairs(list) do 
-        if not state then state = func(value) end 
-    end
-    return state
 end
 
 ------------------------------------------------------------------------------------------------------------------

@@ -7,29 +7,33 @@ local function HasAura(aura, last, target, method, my)
     if method == nil then method = UnitAura end
     if target == nil then target = "player" end
     if last == nil then last = 0.1 end
-    
-    if (type(target) == 'table') then 
-        return TryEach(target, function(t) return HasAura(aura, last, t, method, my) end)
-    end
-    if not UnitExists(target) then return false end
-    if (type(aura) == 'table') then
-        return TryEach(aura, function(a) return HasAura(a, last, target, method, my) end)
-    end
-    
-    local i = 0
-    local name, _, _, _, debuffType, _, Expires, unitCaster  = method(target, i)
     local result = false
-    while (i <= 40) and not result do
-        if (name and sContains(name, aura) or debuffType and sContains(debuffType, aura))
+    if type(target) == 'table' and #target > 0 then 
+        for i = 1, #target do 
+			result = HasAura(aura, last, target[i], method, my)
+			if result then break end
+		end
+		return result
+    end
+    
+    if not UnitExists(target) then return false end
+    if (type(aura) == 'table' and #aura > 0) then
+		for i = 1, #aura do 
+			result = HasAura(aura[i], last, target, method, my)
+			if result then break end
+		end
+		return result
+    end
+    for i = 1, 40 do
+        local name, _, _, _, debuffType, _, Expires, unitCaster  = method(target, i)
+        if not name then break end
+        if (sContains(name, aura) or (debuffType and sContains(debuffType, aura)))
             and (Expires - GetTime() >= last or Expires == 0) 
             and (not my or unitCaster == "player") then
-            result = true
-        end
-        i = i + 1
-        if not result then
-            name, _, _, _, debuffType, _, Expires, unitCaster  = method(target, i)
-        end
-    end
+            result = name
+            break
+        end 
+    end 
     return result
 end
 
@@ -89,100 +93,62 @@ end
 function GetMyDebuffTime(debuff, target)
     if debuff == nil then return false end
     if target == nil then target = "target" end
-    local i = 1
-    local name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId  = UnitDebuff(target, i)
-    local result = false
-        while (i <= 40) and not result do
-        if name and strlower(name):match(strlower(debuff)) and (unitCaster == "player")then 
-            result = true
-        end
-        i = i + 1
-        if not result then
-            name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId  = UnitDebuff(target, i)
-        end
-    end
-    if not result then return 0 end
-    if expirationTime == 0 then return 10 end
-    local left =  expirationTime - GetTime()
-    if left < 0 then left = 0 end
-    return left
-end
-
-------------------------------------------------------------------------------------------------------------------
--- Устарело
-function FindAura(aura, target)
-    return HasAura(aura, 1, target)
-end
-
-------------------------------------------------------------------------------------------------------------------
--- Enchants helper
-local function GetUtilityTooltips()
-    if ( not RH_Tooltip1 ) then
-        for idxTip = 1,2 do
-            local ttname = "RH_Tooltip"..idxTip
-            local tt = CreateFrame("GameTooltip", ttname)
-            tt:SetOwner(UIParent, "ANCHOR_NONE")
-            tt.left = {}
-            tt.right = {}
-            -- Most of the tooltip lines share the same text widget,
-            -- But we need to query the third one for cooldown info
-            for i = 1, 30 do
-                tt.left[i] = tt:CreateFontString()
-                tt.left[i]:SetFontObject(GameFontNormal)
-                if i < 5 then
-                    tt.right[i] = tt:CreateFontString()
-                    tt.right[i]:SetFontObject(GameFontNormal)
-                    tt:AddFontStrings(tt.left[i], tt.right[i])
-                else
-                    tt:AddFontStrings(tt.left[i], tt.right[4])
-                end
-            end 
-         end
-    end
-    local tt1,tt2 = RH_Tooltip1, RH_Tooltip2
-    
-    tt1:ClearLines()
-    tt2:ClearLines()
-    return tt1,tt2
-end
-
-------------------------------------------------------------------------------------------------------------------
---~ using: TempEnchantName = DetermineTempEnchantFromTooltip(16 or 17)
-function DetermineTempEnchantFromTooltip(i_invID)
-    local tt1,tt2 = GetUtilityTooltips()
-    
-    tt1:SetInventoryItem("player", i_invID)
-    local n,h = tt1:GetItem()
-
-    tt2:SetHyperlink(h)
-    
-    -- Look for green lines present in tt1 that are missing from tt2
-    local nLines1, nLines2 = tt1:NumLines(), tt2:NumLines()
-    local i1, i2 = 1,1
-    while ( i1 <= nLines1 ) do
-        local txt1 = tt1.left[i1]
-        if ( txt1:GetTextColor() ~= 0 ) then
-            i1 = i1 + 1
-        elseif ( i2 <= nLines2 ) then
-            local txt2 = tt2.left[i2]
-            if ( txt2:GetTextColor() ~= 0 ) then
-                i2 = i2 + 1
-            elseif (txt1:GetText() == txt2:GetText()) then
-                i1 = i1 + 1
-                i2 = i2 + 1
-            else
+    local result = 0
+    for i = 1, 40 do
+        local name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId  = UnitDebuff(target, i)
+        if not name then break end
+        if name and sContains(name, debuff) and (unitCaster == "player")then 
+            if expirationTime == 0 then 
+                -- постоянный
+                result = 10 
                 break
             end
-        else
+            result =  expirationTime - GetTime()
+            if result < 0 then result = 0 end
             break
         end
     end
-    if ( i1 <= nLines1 ) then
-        local line = tt1.left[i1]:GetText()
-        local paren = line:find("[(]")
-        if ( paren ) then
-            line = line:sub(1,paren-2)
+    return result
+end
+
+------------------------------------------------------------------------------------------------------------------
+-- using: HasTemporaryEnchant(16 or 17)
+local enchantTooltip
+function GetTemporaryEnchant(slot)
+    if enchantTooltip == nil then
+        enchantTooltip = CreateFrame("GameTooltip", "EnchantTooltip")
+        enchantTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+        enchantTooltip.left = {}
+        enchantTooltip.right = {}
+        -- Most of the tooltip lines share the same text widget,
+        -- But we need to query the third one for cooldown info
+        for i = 1, 30 do
+            enchantTooltip.left[i] = enchantTooltip:CreateFontString()
+            enchantTooltip.left[i]:SetFontObject(GameFontNormal)
+            if i < 5 then
+                enchantTooltip.right[i] = enchantTooltip:CreateFontString()
+                enchantTooltip.right[i]:SetFontObject(GameFontNormal)
+                enchantTooltip:AddFontStrings(enchantTooltip.left[i], enchantTooltip.right[i])
+            else
+                enchantTooltip:AddFontStrings(enchantTooltip.left[i], enchantTooltip.right[4])
+            end
+        end 
+        enchantTooltip:ClearLines()
+    end
+    enchantTooltip:SetInventoryItem("player", slot)
+    local n,h = enchantTooltip:GetItem()
+
+    local nLines = enchantTooltip:NumLines()
+
+    for i = 1, nLines do
+        local txt = enchantTooltip.left[i]
+        if ( txt:GetTextColor() == 0 ) then
+            local line = txt:GetText()  
+            local paren = line:find("[(]")
+            if ( paren ) then
+                line = line:sub(1,paren-2)
+                return line
+            end
         end
-        return line
-    end    
+    end
 end

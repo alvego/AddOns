@@ -1,8 +1,17 @@
 ﻿-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
-local LagTime = 0
+-- Время сетевой задержки 
+LagTime = 0
+local lastUpdate = 0
+local function UpdateLagTime()
+    if GetTime() - lastUpdate < 30 then return end
+    lastUpdate = GetTime() 
+    LagTime = tonumber(select(3, GetNetStats()) / 1000)  * 1.5
+
+end
+AttachUpdate(UpdateLagTime)
 local sendTime = 0
-local function UpdateLag(event, ...)
+local function CastLagTime(event, ...)
     local unit, spell = select(1,...)
     if spell and unit == "player" then
         if event == "UNIT_SPELLCAST_SENT" then
@@ -14,12 +23,8 @@ local function UpdateLag(event, ...)
         end
     end
 end
-AttachEvent('UNIT_SPELLCAST_START', UpdateLag)
-AttachEvent('UNIT_SPELLCAST_SENT', UpdateLag)
--- Время сетевой задержки 
-function GetLagTime()
-    return LagTime
-end
+AttachEvent('UNIT_SPELLCAST_START', CastLagTime)
+AttachEvent('UNIT_SPELLCAST_SENT', CastLagTime)
 
 ------------------------------------------------------------------------------------------------------------------
 function IsPlayerCasting()
@@ -28,82 +33,86 @@ function IsPlayerCasting()
         spell, rank, displayName, icon, startTime, endTime = UnitChannelInfo("player")
     end
     if not spell or not endTime then return false end
-    local res = ((endTime/1000 - GetTime()) < GetLagTime())
+    local res = ((endTime/1000 - GetTime()) < LagTime)
     if res then return false end
     return true
 end
 
 ------------------------------------------------------------------------------------------------------------------
+local spellToIdList = {}
 function GetSpellId(name, rank)
-    local link = GetSpellLink(name,rank)
-    if not link then return nil end
-    return 0 + link:match("spell:%d+"):match("%d+")
+    spellGUID = name
+    if rank then
+        spellGUID = name .. rank
+    end
+    local result = spellToIdList[spellGUID]
+    if nil == result then
+        local link = GetSpellLink(name,rank)
+        if not link then 
+            result = 0 
+        else
+            result = 0 + link:match("spell:%d+"):match("%d+")
+        end
+        spellToIdList[spellGUID] = result
+    end
+    return result
 end
 
 ------------------------------------------------------------------------------------------------------------------
 function HasSpell(spellName)
     local spell = GetSpellInfo(spellName)
-    return spell == spellName
+    return (spell == spellName)
 end
-
 ------------------------------------------------------------------------------------------------------------------
-local function GetGCDSpellID()
-    -- Use these spells to detect GCD
-    local spells = {
-        PALADIN = 635,       -- Holy Light I [OK]
-        PRIEST = 1243,       -- Power Word: Fortitude I
-        SHAMAN = 8071,       -- Rockbiter I
-        WARRIOR = 772,       -- Rend I (only from level 4) [OK]
-        DRUID = 5176,        -- Wrath I
-        MAGE = 168,          -- Frost Armor I
-        WARLOCK = 687,       -- Demon Skin I
-        ROGUE = 1752,        -- Sinister Strike I
-        HUNTER = 1978,       -- Serpent Sting I (only from level 4)
-        DEATHKNIGHT = 45902, -- Blood Strike I
-    }
-    return spells[GetClass()]
-end
+-- Use these spells to detect GCD
+local GCDSpells = {
+    PALADIN = 635,       -- Holy Light I [OK]
+    PRIEST = 1243,       -- Power Word: Fortitude I
+    SHAMAN = 8071,       -- Rockbiter I
+    WARRIOR = 772,       -- Rend I (only from level 4) [OK]
+    DRUID = 5176,        -- Wrath I
+    MAGE = 168,          -- Frost Armor I
+    WARLOCK = 687,       -- Demon Skin I
+    ROGUE = 1752,        -- Sinister Strike I
+    HUNTER = 1978,       -- Serpent Sting I (only from level 4)
+    DEATHKNIGHT = 45902, -- Blood Strike I
+}
+GCDSpellID = GCDSpells[GetClass()]
 
 function InGCD()
-    local gcdStart = GetSpellCooldown(GetGCDSpellID());
-    return (gcdStart and (gcdStart>0));
+    local left = GetSpellCooldownLeft(GCDSpellID)
+    return (left > LagTime)
 end
 ------------------------------------------------------------------------------------------------------------------
 -- Interact range - 40 yards
-local function GetInteractRangeSpell()
-    local spells = {
-        DRUID = "Целительное прикосновение",
-        PALADIN = "Свет небес",
-        SHAMAN = "Волна исцеления",
-        PRIEST = "Малое исцеление"
-    }
-    return spells[GetClass()]
-end
+local interactSpells = {
+    DRUID = "Целительное прикосновение",
+    PALADIN = "Свет небес",
+    SHAMAN = "Волна исцеления",
+    PRIEST = "Малое исцеление"
+}
+InteractRangeSpell = interactSpells[GetClass()]
 
 function InInteractRange(unit)
     -- need test and review
     if (unit == nil) then unit = "target" end
     if not IsInteractUnit(unit) then return false end
-    local spell = GetInteractRangeSpell()
-    if spell then return IsSpellInRange(spell,unit) == 1 end
+    if spell then return IsSpellInRange(InteractRangeSpell,unit) == 1 end
     if IsArena() then return true end
     return InDistance("player", unit, 40)
 end
 ------------------------------------------------------------------------------------------------------------------
-local function GetMeleeSpell()
-    -- Use these spells to melee
-    local spells = {
-        DRUID = "Цапнуть",        
-        DEATHKNIGHT = "Удар чумы", 
-        PALADIN = "Щит праведности",
-        SHAMAN = "Удар бури"
-    }
-    return spells[GetClass()]
-end
-
+local meleeSpells = {
+    DRUID = "Цапнуть",        
+    DEATHKNIGHT = "Удар чумы", 
+    PALADIN = "Щит праведности",
+    SHAMAN = "Удар бури",
+    WARRIOR = "Кровопускание"
+}
+MeleeSpell = meleeSpells[GetClass()]
 function InMelee(target)
     if (target == nil) then target = "target" end
-    return (IsSpellInRange(GetMeleeSpell(),target) == 1)
+    return (IsSpellInRange(MeleeSpell,target) == 1)
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -114,29 +123,14 @@ function SpellCastTime(spell)
 end
 
 ------------------------------------------------------------------------------------------------------------------
---~ local GCDSpellList = {}
 function IsReadySpell(name)
     local usable, nomana = IsUsableSpell(name)
     if not usable then return false end
     local left = GetSpellCooldownLeft(name)
+    if left > LagTime then return false end
     local spellName, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(name)
---~     local leftGCD = GetSpellCooldownLeft(GetGCDSpellID())
---~     
---~     if InGCD() and tContains(GCDSpellList,name) then
---~         return false
---~     end
---~     
---~     if InGCD() and (left == leftGCD) then
---~         if not tContains(GCDSpellList,name) then 
---~             tinsert(GCDSpellList, name)
---~         end
---~     end
-    
-    if left > 0 then return false end
-    
-    if cost and cost > 0 and not(UnitPower("player", powerType) >= cost) then return false end
-    
-    return true
+    if cost and cost > 0 and not(powerType == -2 and UnitHealth("player") > cost*2 or UnitPower("player", powerType) >= cost) then return false end
+    return IsSpellNotUsed(name, 0.5)
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -145,10 +139,6 @@ function GetSpellCooldownLeft(name)
     if enabled ~= 1 then return 1 end
     if not start then return 0 end
     if start == 0 then return 0 end
---~     if duration < 1 then 
---~         print(name, duration)
---~         duration = 1.4 
---~     end
     local left = start + duration - GetTime()
     return left
 end
@@ -174,10 +164,16 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 local InCast = {}
+local function getCastInfo(spell)
+	if not InCast[spell] then
+		InCast[spell] = {}
+	end
+	return InCast[spell]
+end
 local function UpdateIsCast(event, ...)
     local unit, spell, rank, target = select(1,...)
     if spell and unit == "player" then
-        local castInfo = InCast[spell] or {}
+        local castInfo = getCastInfo(spell)
         if event == "UNIT_SPELLCAST_SUCCEEDED"
             and castInfo.StartTime and castInfo.StartTime > 0 then
             castInfo.LastCastTime = castInfo.StartTime 
@@ -188,7 +184,6 @@ local function UpdateIsCast(event, ...)
         else
             castInfo.StartTime = 0
         end
-        InCast[spell] = castInfo
     end
 end
 AttachEvent('UNIT_SPELLCAST_SENT', UpdateIsCast)
@@ -196,12 +191,12 @@ AttachEvent('UNIT_SPELLCAST_SUCCEEDED', UpdateIsCast)
 AttachEvent('UNIT_SPELLCAST_FAILED', UpdateIsCast)
 
 function GetLastSpellTarget(spell)
-    local castInfo = InCast[spell] or {}
+    local castInfo = getCastInfo(spell)
     return (castInfo.Target and castInfo.TargetGUID and UnitExists(castInfo.Target) and UnitGUID(castInfo.Target) == castInfo.TargetGUID) and castInfo.Target or nil
 end
 
 function GetSpellLastTime(spell)
-    local castInfo = InCast[spell] or {}
+    local castInfo = getCastInfo(spell)
     return castInfo.LastCastTime or 0
 end
 
@@ -251,7 +246,7 @@ local function UpdateTargetPosition(event, ...)
     local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
     if sourceGUID == UnitGUID("player") and (event:match("^SPELL_CAST") and spellID and spellName)  then
         local err = agrs12
-        local cast = InCast[spellName] or {}
+        local cast = getCastInfo(spellName)
         local guid = cast.TargetGUID or nil
         if err and guid then
             if err == "Цель вне поля зрения." then
@@ -269,9 +264,13 @@ end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateTargetPosition)
 ------------------------------------------------------------------------------------------------------------------
 local badSpellTarget = {}
+--local cameraCD = 0;
+local inCastSpells = {"Трепка", "Рунический удар", "Удар героя", "Рассекающий удар", "Гиперскоростное ускорение", "Нарукавная зажигательная ракетница"} -- TODO: Нужно уточнить и дополнить.
 function UseSpell(spellName, target)
-    local dump = false --spellName == "Божественная буря"
+    local dump = false --spellName == "Смерть и разложение"
+    if dump then print("Пытаемся прожать", spellName, "на", target) end
     --if spellName == "Священный щит" then error("Щит") end
+
     -- Не мешаем выбрать область для спела (нажат вручную)
     if SpellIsTargeting() then 
         if dump then print("Ждем выбор цели, не можем прожать", spellName) end
@@ -296,21 +295,16 @@ function UseSpell(spellName, target)
         return false 
     end
      -- проверяем, что не кастится другой спел
-     -- TODO: "Освященные перчатки ледяной ведьмы" -  не спелл, скорее всего тут никогда не бывает. Нужно удалить.
-    local inCastSpells = {"Трепка", "Рунический удар", "Удар героя", "Рассекающий удар", "Гиперскоростное ускорение", "Освященные перчатки ледяной ведьмы"} -- TODO: Нужно уточнить и дополнить.
-   foreach(InCast,
-       function(s)
-          if not IsBusy and not tContains(inCastSpells, s) and not IsReadySpell(s) then
-                if dump then print("Уже прожали " .. s .. ", ждем окончания, пока не можем больше прожать", spellName) end
-                IsBusy = true
-            end
+     for s,_ in pairs(InCast) do
+		if not IsBusy and not tContains(inCastSpells, s) and IsSpellInUse(s) then
+            if dump then print("Уже прожали " .. s .. ", ждем окончания, пока не можем больше прожать", spellName) end
+            IsBusy = true
         end
-)
-   -- if IsBusy then return false end
+     end
+    if IsBusy then return false end
     -- проверяем, что цель подходящая для этого спела
-    local badTargets =  badSpellTarget[spellName] or {}
-    if UnitExists(target) then 
-        local badTargetTime = badTargets[UnitGUID(target)]
+    if UnitExists(target) and badSpellTarget[spellName] then 
+        local badTargetTime = badSpellTarget[spellName][UnitGUID(target)]
         if badTargetTime and (GetTime() - badTargetTime < 10) then 
             if dump then 
                 print(target, "- Цель не подходящая, не можем прожать", spellName) 
@@ -328,7 +322,7 @@ function UseSpell(spellName, target)
         -- собираем команду
         local cast = "/cast "
         -- с учетом цели
-        if target ~= nil then cast = cast .."[target=".. target .."] "  end
+        if target ~= nil then cast = cast .."[@".. target .."] "  end
         -- проверяем, хватает ли нам маны
         if cost and cost > 0 and UnitManaMax("player") > cost and UnitMana("player") <= cost then 
             if dump then print("Не достаточно маны, не можем прожать", spellName) end
@@ -336,20 +330,22 @@ function UseSpell(spellName, target)
         end
         if UnitExists(target) then 
             -- данные о кастах
-            local castInfo = InCast[spellName] or {}
+            local castInfo = getCastInfo(spellName)
             castInfo.Target = target
             castInfo.TargetName = UnitName(target)
             castInfo.TargetGUID = UnitGUID(target)
-            InCast[spellName] = castInfo
         end
         -- пробуем скастовать
-        if dump then print("Жмем", cast .. "!" .. spellName) end
+        if Debug then print("Жмем", cast .. "!" .. spellName) end
         RunMacroText(cast .. "!" .. spellName)
         -- если нужно выбрать область - кидаем на текущий mouseover
-        if SpellIsTargeting() then CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() end 
-        
+        --[[if SpellIsTargeting() and GetTime() - cameraCD > 2 then
+            cameraCD = GetTime()
+            RunMacroText("/run CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop()")
+            --TurnOrActionStart()  TurnOrActionStop()
+        end]]
         -- данные о кастах
-        local castInfo = InCast[spellName] or {}
+        local castInfo = getCastInfo(spellName)
         -- проверка на успешное начало кд
         if castInfo.StartTime and (GetTime() - castInfo.StartTime < 0.01) then
             if UnitExists(target) then
@@ -358,14 +354,16 @@ function UseSpell(spellName, target)
                     if dump then print("Цели не совпали", spellName) end
                     RunMacroText("/stopcasting") 
                     --chat("bad target", target, spellName)
+                    if nil == badSpellTarget[spellName] then
+						badSpellTarget[spellName] = {}
+                    end
+                    local badTargets = badSpellTarget[spellName]
                     badTargets[UnitGUID(target)] = GetTime()
-                    badSpellTarget[spellName] = badTargets
                     castInfo.Target = nil
                     castInfo.TargetName = nil
                     castInfo.TargetGUID = nil
                 end
-                InCast[spellName] = castInfo
-            end
+             end
             if dump then print("Спел вроде прожался", spellName) end
             if Debug then
                 print(spellName, cost, target)

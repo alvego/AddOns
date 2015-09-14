@@ -28,18 +28,20 @@ function NoRunes(t)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function IsRuneReady(id)
+function IsRuneReady(id, time)
+    if nil == time then time = 0 end
     local left = GetRuneCooldownLeft(id)
-    if left == 0 then return true end
-    return false;
+    if left - time > LagTime then return false end
+    return true
 end
 
 ------------------------------------------------------------------------------------------------------------------
 function GetRuneCooldownLeft(id)
-    local start, duration, enabled = GetRuneCooldown(id);
+    local start, duration = GetRuneCooldown(id);
     if not start then return 0 end
     if start == 0 then return 0 end
     local left = start + duration - GetTime()
     if left < 0 then left = 0 end
-    return left;
+    return left
 end
+
