@@ -1,7 +1,5 @@
 ﻿-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
--- protected lock test
-RunMacroText("/cleartarget")
 -- Инициализация скрытого фрейма для обработки событий
 local frame=CreateFrame("Frame","RHLIB2FRAME",UIParent)
 
