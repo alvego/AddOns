@@ -11,7 +11,6 @@ function SellGray()
               UseContainerItem(b,s)                   
             end
         end
-                                               
       end                                          
     end                                            
 end
@@ -48,35 +47,18 @@ function sell(name)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function switchTargetAndFocus()
-  if UnitExists("target") and not UnitExists("focus") then 
-      RunMacroText("/focus") 
-      RunMacroText("/cleartarget") 
-      return 
-  end
-  if UnitExists("focus") and not UnitExists("target") then 
-    RunMacroText("/target focus") 
-    RunMacroText("/clearfocus") 
-    return 
-  end
-  RunMacroText("/target focus") 
-  RunMacroText("/targetlasttarget") 
-  RunMacroText("/focus") 
-  RunMacroText("/targetlasttarget") 
-end
-------------------------------------------------------------------------------------------------------------------
 -- Update Debug Frame
 local notifyFrame
 local notifyFrameTime = 0
 local function notifyFrame_OnUpdate()
-        if (notifyFrameTime > 0 and notifyFrameTime < GetTime() - 5) then
-                local alpha = notifyFrame:GetAlpha()
-                if (alpha ~= 0) then notifyFrame:SetAlpha(alpha - .02) end
-                if (aplha == 0) then 
-					notifyFrame:Hide() 
-					notifyFrameTime = 0
-				end
-        end
+  if (notifyFrameTime > 0 and notifyFrameTime < GetTime() - 5) then
+    local alpha = notifyFrame:GetAlpha()
+    if (alpha ~= 0) then notifyFrame:SetAlpha(alpha - .02) end
+    if (aplha == 0) then 
+  		notifyFrame:Hide() 
+  		notifyFrameTime = 0
+  	end
+  end
 end
 -- Debug & Notification Frame
 notifyFrame = CreateFrame('Frame')
@@ -107,50 +89,6 @@ end
 function chat(msg)
     DEFAULT_CHAT_FRAME:AddMessage(msg, 1.0, 0.5, 0.5);
 end
-
-------------------------------------------------------------------------------------------------------------------
-function printtable(t, indent)
-  indent = indent or 0;
-  local keys = {};
-  for k in pairs(t) do
-    keys[#keys+1] = k;
-    table.sort(keys, function(a, b)
-      local ta, tb = type(a), type(b);
-      if (ta ~= tb) then
-        return ta < tb;
-      else
-        return a < b;
-      end
-    end);
-  end
-  print(string.rep('  ', indent)..'{');
-  indent = indent + 1;
-  for k, v in pairs(t) do
-    local key = k;
-    if (type(key) == 'string') then
-      if not (string.match(key, '^[A-Za-z_][0-9A-Za-z_]*$')) then
-        key = "['"..key.."']";
-      end
-    elseif (type(key) == 'number') then
-      key = "["..key.."]";
-    end
-    if (type(v) == 'table') then
-      if (next(v)) then
-        print(format("%s%s =", string.rep('  ', indent), tostring(key)));
-        printtable(v, indent);
-      else
-        print(format("%s%s = {},", string.rep('  ', indent), tostring(key)));
-      end 
-    elseif (type(v) == 'string') then
-      print(format("%s%s = %s,", string.rep('  ', indent), tostring(key), "'"..v.."'"));
-    else
-      print(format("%s%s = %s,", string.rep('  ', indent), tostring(key), tostring(v)));
-    end
-  end
-  indent = indent - 1;
-  print(string.rep('  ', indent)..'}');
-end
-
 ------------------------------------------------------------------------------------------------------------------
 function tContainsKey(table, key)
     for name,value in pairs(table) do 

@@ -27,15 +27,15 @@ AttachEvent('UNIT_SPELLCAST_START', CastLagTime)
 AttachEvent('UNIT_SPELLCAST_SENT', CastLagTime)
 
 ------------------------------------------------------------------------------------------------------------------
-function IsPlayerCasting()
-    local spell, rank, displayName, icon, startTime, endTime = UnitCastingInfo("player")
+function IsCasting(unit)
+    if not unit then unit = 'player' end
+    local spell, rank, displayName, icon, startTime, endTime = UnitCastingInfo(unit)
     if spell == nil then
-        spell, rank, displayName, icon, startTime, endTime = UnitChannelInfo("player")
+        spell, rank, displayName, icon, startTime, endTime = UnitChannelInfo(unit)
     end
     if not spell or not endTime then return false end
-    local res = ((endTime/1000 - GetTime()) < LagTime)
-    if res then return false end
-    return true
+    if ((endTime * 0.001 - GetTime()) < LagTime) then return nil end
+    return spell, rank, displayName, icon, startTime, endTime
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -144,18 +144,6 @@ function GetSpellCooldownLeft(name)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function UseMount(mountName)
-    if IsPlayerCasting() then return false end
-    if InGCD() then return false end
-    if IsMounted()then return false end
-    if Debug then
-        print(mountName)
-    end
-    RunMacroText("/use "..mountName)
-    return true
-end
-
-------------------------------------------------------------------------------------------------------------------
 function InRange(spell, target) 
     if target == nil then target = "target" end
     if spell and IsSpellInRange(spell,target) == 0 then return false end 
@@ -189,11 +177,6 @@ end
 AttachEvent('UNIT_SPELLCAST_SENT', UpdateIsCast)
 AttachEvent('UNIT_SPELLCAST_SUCCEEDED', UpdateIsCast)
 AttachEvent('UNIT_SPELLCAST_FAILED', UpdateIsCast)
-
-function GetLastSpellTarget(spell)
-    local castInfo = getCastInfo(spell)
-    return (castInfo.Target and castInfo.TargetGUID and UnitExists(castInfo.Target) and UnitGUID(castInfo.Target) == castInfo.TargetGUID) and castInfo.Target or nil
-end
 
 function GetSpellLastTime(spell)
     local castInfo = getCastInfo(spell)
@@ -240,8 +223,6 @@ function IsBehind(target)
     return checkTargetInErrList(target, notBehind)
 end
 
-
-
 local function UpdateTargetPosition(event, ...)
     local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
     if sourceGUID == UnitGUID("player") and (event:match("^SPELL_CAST") and spellID and spellName)  then
@@ -263,115 +244,6 @@ local function UpdateTargetPosition(event, ...)
 end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateTargetPosition)
 ------------------------------------------------------------------------------------------------------------------
-local badSpellTarget = {}
---local cameraCD = 0;
-local inCastSpells = {"Трепка", "Рунический удар", "Удар героя", "Рассекающий удар", "Гиперскоростное ускорение", "Нарукавная зажигательная ракетница"} -- TODO: Нужно уточнить и дополнить.
 function UseSpell(spellName, target)
-    local dump = false --spellName == "Смерть и разложение"
-    if dump then print("Пытаемся прожать", spellName, "на", target) end
-    --if spellName == "Священный щит" then error("Щит") end
 
-    -- Не мешаем выбрать область для спела (нажат вручную)
-    if SpellIsTargeting() then 
-        if dump then print("Ждем выбор цели, не можем прожать", spellName) end
-        return false 
-    end 
-    -- Не пытаемся что либо прожимать во время каста
-    if IsPlayerCasting() then 
-        if dump then print("Кастим, не можем прожать", spellName) end
-        return false 
-    end
-    if target == nil and IsHarmfulSpell(spellName) then target = "target" end
-    -- Проверяем на наличе спела в спелбуке
-    local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spellName)
-    if not name or (name ~= spellName)  then
-        if Debug then error("Спел [".. spellName .. "] не найден!") end
-        return false;
-    end
-    -- проверяем, что этот спел не используется сейчас
-    local IsBusy = IsSpellInUse(spellName)
-    if IsBusy then
-        if dump then print("Уже прожали, SPELL_SENT пошел, не можем больше прожать", spellName) end
-        return false 
-    end
-     -- проверяем, что не кастится другой спел
-     for s,_ in pairs(InCast) do
-		if not IsBusy and not tContains(inCastSpells, s) and IsSpellInUse(s) then
-            if dump then print("Уже прожали " .. s .. ", ждем окончания, пока не можем больше прожать", spellName) end
-            IsBusy = true
-        end
-     end
-    if IsBusy then return false end
-    -- проверяем, что цель подходящая для этого спела
-    if UnitExists(target) and badSpellTarget[spellName] then 
-        local badTargetTime = badSpellTarget[spellName][UnitGUID(target)]
-        if badTargetTime and (GetTime() - badTargetTime < 10) then 
-            if dump then 
-                print(target, "- Цель не подходящая, не можем прожать", spellName) 
-            end
-            return false 
-        end
-    end
-    -- проверяем что цель в зоне досягаемости
-    if not InRange(spellName, target) then 
-        if dump then print(target," - Цель вне зоны досягаемости, не можем прожать", spellName) end
-        return false
-    end  
-    -- Проверяем что все готово
-    if IsReadySpell(spellName) then
-        -- собираем команду
-        local cast = "/cast "
-        -- с учетом цели
-        if target ~= nil then cast = cast .."[@".. target .."] "  end
-        -- проверяем, хватает ли нам маны
-        if cost and cost > 0 and UnitManaMax("player") > cost and UnitMana("player") <= cost then 
-            if dump then print("Не достаточно маны, не можем прожать", spellName) end
-            return false
-        end
-        if UnitExists(target) then 
-            -- данные о кастах
-            local castInfo = getCastInfo(spellName)
-            castInfo.Target = target
-            castInfo.TargetName = UnitName(target)
-            castInfo.TargetGUID = UnitGUID(target)
-        end
-        -- пробуем скастовать
-        if Debug then print("Жмем", cast .. "!" .. spellName) end
-        RunMacroText(cast .. "!" .. spellName)
-        -- если нужно выбрать область - кидаем на текущий mouseover
-        --[[if SpellIsTargeting() and GetTime() - cameraCD > 2 then
-            cameraCD = GetTime()
-            RunMacroText("/run CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop()")
-            --TurnOrActionStart()  TurnOrActionStop()
-        end]]
-        -- данные о кастах
-        local castInfo = getCastInfo(spellName)
-        -- проверка на успешное начало кд
-        if castInfo.StartTime and (GetTime() - castInfo.StartTime < 0.01) then
-            if UnitExists(target) then
-                -- проверяем цель на соответствие реальной
-                if castInfo.TargetName and castInfo.TargetName ~= "" and castInfo.TargetName ~= UnitName(target) then 
-                    if dump then print("Цели не совпали", spellName) end
-                    RunMacroText("/stopcasting") 
-                    --chat("bad target", target, spellName)
-                    if nil == badSpellTarget[spellName] then
-						badSpellTarget[spellName] = {}
-                    end
-                    local badTargets = badSpellTarget[spellName]
-                    badTargets[UnitGUID(target)] = GetTime()
-                    castInfo.Target = nil
-                    castInfo.TargetName = nil
-                    castInfo.TargetGUID = nil
-                end
-             end
-            if dump then print("Спел вроде прожался", spellName) end
-            if Debug then
-                print(spellName, cost, target)
-            end
-            return true
-        end
-        if dump then print("SPELL_CAST - не произошел для", spellName) end
-    end
-    if dump then print("Не готово, не можем прожать", spellName) end
-    return false
 end

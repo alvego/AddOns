@@ -16,8 +16,9 @@ if Paused == nil then Paused = false end
 -- Отключаем авторотацию, при повторном нажатии останавливаем каст (если есть)
 function AutoRotationOff()
     if IsPlayerCasting() and Paused then 
-        
+        --stop cast
     end
+    --stop attack
     Paused = true
     echo("Авто ротация: OFF",true)
 end
@@ -35,7 +36,6 @@ function DebugToggle()
         echo("Режим отладки: OFF",true)
     end 
 end
-
 ------------------------------------------------------------------------------------------------------------------
 -- Вызывает функцию Idle если таковая имеется, с заданным рекомендованным интервалом UpdateInterval, 
 -- при включенной Авто-ротации
@@ -67,7 +67,7 @@ local function UpdateCombatLogFix()
         and GetTime() - CombatLogTimer > 15
         and GetTime() - CombatLogResetTimer > 30 then 
         CombatLogClearEntries()
-        --chat("Reset CombatLog!")
+        chat("Reset CombatLog!")
         CombatLogResetTimer = GetTime()
     end 
 end
@@ -95,8 +95,7 @@ function UpdateSpellAlert(event, ...)
             local t = checkedTargets[i]
             if IsValidTarget(t) and UnitGUID(t) == sourceGUID then
                 type = strreplace(type, "SPELL_AURA_", "")
-                Notify("|cffff7d0a" .. spellName .. " ("..(sourceName or "unknown")..")|r  - " .. type .. "!")
-                PlaySound("RaidWarning", "master");
+                Notify("|cffff7d0a" .. spellName .. " ("..(sourceName or "?")..")|r  - " .. type .. "!")
                 break
             end
         end
@@ -132,14 +131,14 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateHarmfulSpell)
 local debugFrame
 local debugFrameTime = 0
 local function debugFrame_OnUpdate()
-        if (debugFrameTime > 0 and debugFrameTime < GetTime() - 1) then
-                local alpha = debugFrame:GetAlpha()
-                if (alpha ~= 0) then debugFrame:SetAlpha(alpha - .005) end
-                if (aplha == 0) then 
-					debugFrame:Hide() 
-					debugFrameTime = 0
-				end
-        end
+    if (debugFrameTime > 0 and debugFrameTime < GetTime() - 1) then
+        local alpha = debugFrame:GetAlpha()
+        if (alpha ~= 0) then debugFrame:SetAlpha(alpha - .005) end
+        if (aplha == 0) then 
+			debugFrame:Hide() 
+			debugFrameTime = 0
+		end
+    end
 end
 -- Debug & Notification Frame
 debugFrame = CreateFrame('Frame')
@@ -166,7 +165,7 @@ local function UpdateDebugStats()
     updateDebugStatsTime = GetTime()
 	UpdateAddOnMemoryUsage()
     UpdateAddOnCPUUsage()
-    local mem  = GetAddOnMemoryUsage("rhlib2")
+    local mem  = GetAddOnMemoryUsage("rhlib")
     local fps = GetFramerate();
     debug(format('MEM: %.1fKB, LAG: %ims, FPS: %i', mem, LagTime * 1000, fps))
 end

@@ -1,29 +1,19 @@
 ﻿-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
 function Runes(slot)
+    if slot == 2 then slot = 5 end
     local c = 0
-    if slot == 1 then
-       if IsRuneReady(1) then c = c + 1 end
-       if IsRuneReady(2) then c = c + 1 end
-    elseif slot == 2 then
-        if IsRuneReady(5) then c = c + 1 end
-        if IsRuneReady(6) then c = c + 1 end
-    elseif slot == 3 then
-        if IsRuneReady(3) then c = c + 1 end
-        if IsRuneReady(4) then c = c + 1 end
-    end
+    if IsRuneReady(slot) then c = c + 1 end
+    if IsRuneReady(slot + 1) then c = c + 1 end
     return c;
 end
 
 ------------------------------------------------------------------------------------------------------------------
 function NoRunes(t)
     if (t == nil) then t = 1.6 end
-    if GetRuneCooldownLeft(1) < t then return false end
-    if GetRuneCooldownLeft(2) < t then return false end
-    if GetRuneCooldownLeft(3) < t then return false end
-    if GetRuneCooldownLeft(4) < t then return false end
-    if GetRuneCooldownLeft(5) < t then return false end
-    if GetRuneCooldownLeft(6) < t then return false end
+    for i=1,6 do
+        if GetRuneCooldownLeft(i) < t then return false end    
+    end
     return true
 end
 

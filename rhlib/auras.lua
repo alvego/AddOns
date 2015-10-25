@@ -8,12 +8,9 @@ local function HasAura(aura, last, target, method, my)
     if target == nil then target = "player" end
     if last == nil then last = 0.1 end
     local result = false
-    if type(target) == 'table' and #target > 0 then 
-        for i = 1, #target do 
-			result = HasAura(aura, last, target[i], method, my)
-			if result then break end
-		end
-		return result
+    if type(target) == 'table' then 
+        error("HasAura not supported target-list as argumet!")
+        return
     end
     
     if not UnitExists(target) then return false end

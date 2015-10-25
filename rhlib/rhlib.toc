@@ -10,10 +10,7 @@ misc.lua
 units.lua
 data.lua
 auras.lua
-zones.lua
 runes.lua
-totems.lua
 spells.lua
 items.lua
-commands.lua
 binds.lua

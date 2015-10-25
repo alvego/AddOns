@@ -1,7 +1,7 @@
 ﻿-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
 -- Инициализация скрытого фрейма для обработки событий
-local frame=CreateFrame("Frame","RHLIB2FRAME",UIParent)
+local frame=CreateFrame("Frame","RHLIB7FRAME",UIParent)
 
 ------------------------------------------------------------------------------------------------------------------
 -- Список событие -> обработчики
@@ -47,21 +47,13 @@ end
 local LastUpdate = 0
 UpdateInterval = 0.03
 local function OnUpdate(frame, elapsed)
+    
     LastUpdate = LastUpdate + elapsed 
     if LastUpdate < UpdateInterval then return end -- для снижения нагрузки на проц
     LastUpdate = 0
-    
+
     for i = 1, #UpdateList do
-        local upd = UpdateList[i]
-        if UpdateInterval == 0 then
-            -- выполняем только самое важное
-            if upd.weight < 0 then 
-                upd.func() 
-            end
-        else
-            -- выполняем все что есть
-            upd.func()
-        end
+        UpdateList[i].func()
     end
 end
 frame:SetScript("OnUpdate", OnUpdate)
