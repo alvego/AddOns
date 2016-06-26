@@ -1,8 +1,0 @@
-<Bindings>
-  <Binding name="RHDEATHKNIGHT_AOE" description="Use AOE" header="RHDEATHKNIGHT">
-    AOEToggle();
-  </Binding>
-  <Binding name="RHDEATHKNIGHT_INTERRUPT" description="Use cast interrupt" header="RHDEATHKNIGHT">
-    InterruptToggle();
-  </Binding>
-</Bindings>
