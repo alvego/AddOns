@@ -1,0 +1,9 @@
+## Author: Timofeev Alvexey & Co
+## Title:|cff69ccf0 Sova|r |cffffd200 Rotation Helper|r
+## Version: 0.1
+## DefaultState: Disabled
+## Interface: 30300
+## Dependencies: rhlib
+commands.lua
+rotation.lua
+binds.lua

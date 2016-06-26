@@ -1,0 +1,14 @@
+<Bindings>
+  <Binding name="DKRH_AOE" description="Use AOE" header="DKRH">
+    AOEToggle();
+  </Binding>
+  <Binding name="DKRH_INTERRUPT" description="Use cust interrupt" header="DKRH">
+    InterruptToggle();
+  </Binding>
+  <Binding name="DKRH_DEATHGRIP" description="Auto Death Grip" header="DKRH">
+    DeathGripToggle();
+  </Binding>
+  <Binding name="DKRH_BERSMOD" description="Use Bers Mode" header="DKRH">
+    BersModToggle();
+  </Binding>
+</Bindings>

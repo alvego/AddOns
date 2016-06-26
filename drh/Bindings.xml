@@ -1,0 +1,20 @@
+<Bindings>
+  <Binding name="DRH_OFF" description="Auto rotation off" header="DRH">
+    AutoRotationOff();
+  </Binding>
+  <Binding name="DRH_DEBUG" description="Debug mode toggle" header="DRH">
+    DebugToggle();
+  </Binding>
+  <Binding name="DRH_MOUNT" description="Mount" header="DRH">
+    Mount();
+  </Binding>
+  <Binding name="DRH_INTERRUPT" description="Use cust interrupt" header="DRH">
+    UseInterrupt();
+  </Binding>
+  <Binding name="DRH_BERSMOD" description="Use Bers Mode" header="DRH">
+    BersModToggle();
+  </Binding>
+  <Binding name="DRH_AUTOAOE" description="Use Auto AOE" header="DRH">
+    AutoAOEToggle();
+  </Binding>
+</Bindings>

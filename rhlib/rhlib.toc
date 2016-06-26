@@ -1,16 +1,19 @@
-## Interface: 30300
-## Title: |cff0055ffRotation Helper|r|cffffe00a > |r|c00ff00ffLibrary 7|r
 ## Author: Timofeev Alvexey
-## Version: 7.0
+## Title:|cff69ccf0 Rotation Helper|r |cffffd200 Library|r
+## Version: 0.2
 ## DefaultState: Disabled
-## LoadOnDemand: 1
-## SavedVariables: Paused,Debug,HarmfulCastingSpell
+## Interface: 30300
+## SavedVariables: Paused, Debug, HarmfulCastingSpell
 lib.lua
 misc.lua
 units.lua
 data.lua
 auras.lua
+zones.lua
 runes.lua
+totems.lua
 spells.lua
 items.lua
+commands.lua
 binds.lua
+

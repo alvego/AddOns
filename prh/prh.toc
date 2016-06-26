@@ -1,0 +1,10 @@
+## Author: Timofeev Alvexey & Co
+## Title:|cff69ccf0 Paladin|r |cffffd200 Rotation Helper|r
+## Version: 0.1
+## DefaultState: Disabled
+## Interface: 30300
+## Dependencies: rhlib
+## SavedVariables: AutoAGGRO, CanInterrupt, DispelBlacklist, DispelWhitelist
+commands.lua
+rotation.lua
+binds.lua
