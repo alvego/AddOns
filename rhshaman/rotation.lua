@@ -243,7 +243,7 @@ function HealRotation()
         else
             -- чтоб выбирались мобы, которые бьют меня. Если не выбрана цель для лечения
             if InCombatLockdown() and UnitName("target") and not IsInteractUnit("target") and not IsOneUnit("target-target", "player") and UnitThreat("player") == 3 then
-                orun("/cleattarget")
+                orun("/cleartarget")
             end
         end
 
