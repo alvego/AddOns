@@ -122,7 +122,7 @@ end
 AttachEvent("UNIT_SPELLCAST_SUCCEEDED", UpdateCanRes)
 
 local function UpdateResCast(elapsed)
-    if (CanHeal(resUnit) and UnitCastingInfo("player") == resSpell)  then RunMacroText("/stopcasting") end
+    if (CanHeal(resUnit) and UnitCastingInfo("player") == resSpell)  then orun("/stopcasting") end
 end
 AttachUpdate(UpdateResCast, 900)
 
@@ -272,7 +272,7 @@ function TryInterrupt(target, hp)
 
     if (channel or t < 0.8) and not notinterrupt and IsReadySpell(interruptSpell) and InRange(interruptSpell,target) 
         and not HasBuff(nointerruptBuffs, 0.1, target) and CanMagicAttack(target) then
-        if canBreak and UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
+        if canBreak and UnitCastingInfo("player") ~= nil then orun("/stopcasting") end
         if UseSpell(interruptSpell, target) then 
             interruptedSpell = spell 
             echo("Interrupt " .. spell .. " ("..target.." => " .. UnitName(target) .. ")")
@@ -282,7 +282,7 @@ function TryInterrupt(target, hp)
      
     if (not channel and t < 1.8) and not HasTotem("Тотем заземления") and IsReadySpell("Тотем заземления") 
         and IsHarmfulCast(spell) then
-        if canBreak and UnitCastingInfo("player") ~= nil then RunMacroText("/stopcasting") end
+        if canBreak and UnitCastingInfo("player") ~= nil then orun("/stopcasting") end
         if UseSpell("Тотем заземления") then 
             print("Тотем заземления " .. spell .. " (".. UnitName(target) .. ")")
             return true 

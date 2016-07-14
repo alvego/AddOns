@@ -12,7 +12,7 @@ end
 function UseSlot(slot)
     if IsPlayerCasting() then return false end
     if not IsReadySlot(slot) then return false end
-    RunMacroText("/use " .. slot) 
+    orun("/use " .. slot) 
     if SpellIsTargeting() then
         --SpellTargetUnit("target")
         CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() 
@@ -56,7 +56,7 @@ function EquipItem(itemName)
     if Debug then
         print(itemName)
     end
-    RunMacroText("/equip  " .. itemName) 
+    orun("/equip  " .. itemName) 
     return  IsEquippedItem(itemName)
 end
 ------------------------------------------------------------------------------------------------------------------
@@ -70,7 +70,7 @@ function UseItem(itemName, count)
     end
     if not count then count = 1 end
     for i = 1, count do
-        RunMacroText("/use " .. itemName)
+        orun("/use " .. itemName)
         if SpellIsTargeting() then
             --SpellTargetUnit("target")
             CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop() 

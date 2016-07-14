@@ -75,14 +75,14 @@ local reflectBuff = {"Отражение заклинания", "Руничес�
 function Idle()
 	-- слезаем со всего, если решили драться
     if IsAttack() then
-        if HasBuff("Призрачный волк") then RunMacroText("/cancelaura Призрачный волк") return end
+        if HasBuff("Призрачный волк") then orun("/cancelaura Призрачный волк") return end
         if CanExitVehicle() then VehicleExit() return end
         if IsMounted() then Dismount() return end 
     end
     -- дайте поесть спокойно
     if not IsAttack() and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
     -- чтоб контроли не сбивать
-    if not CanControl("target") then RunMacroText("/stopattack") end
+    if not CanControl("target") then orun("/stopattack") end
     -- геру под крылья на арене
 	if IsArena() then
 		for i = 1, #IUNITS do
@@ -187,7 +187,7 @@ function CheckHealCast(u, h)
     local spellHeal = GetMySpellHeal(spell)
     local lost = maxhp - (hp - spellHeal)
     if (lost < (spellHeal * 0.3)) then -- 30% оверхила допустимо
-        RunMacroText("/stopcasting")
+        orun("/stopcasting")
         print("Для игрока ", UnitName(lastHealCastTarget), " хилка ", spell, " особо не нужна." )
     end
 end
@@ -243,7 +243,7 @@ function HealRotation()
         else
             -- чтоб выбирались мобы, которые бьют меня. Если не выбрана цель для лечения
             if InCombatLockdown() and UnitName("target") and not IsInteractUnit("target") and not IsOneUnit("target-target", "player") and UnitThreat("player") == 3 then
-                RunMacroText("/cleattarget")
+                orun("/cleattarget")
             end
         end
 
@@ -506,7 +506,7 @@ function MDDRotation()
     
     if not IsValidTarget("target") then return end
     
-    RunMacroText("/startattack")
+    orun("/startattack")
     
     if (UnitHealth100("player") < 35) and DoSpell("Дух дикого волка") then return end
 
@@ -563,7 +563,7 @@ function RDDRotation()
     if not IsAttack() and not CanAttack() then return end
     if not (UnitAffectingCombat("target") or IsAttack()) then return end
     if not IsValidTarget("target") then return end
-    RunMacroText("/startattack")
+    orun("/startattack")
     if IsSpellNotUsed("Развеивание магии", 5) and UnitMana100("player") > 30 and IsReadySpell("Развеивание магии") and CanMagicAttack("target") then
         if HasBuff(StealShieldsRedList, 2, "target") and TrySteal("target") then return end
         if HasBuff(StealRedList, 2, "target") and TrySteal("target") then return end
@@ -622,11 +622,11 @@ function TryTarget(useFocus)
     -- помощь в группе
     if not IsValidTarget("target") and InGroup() then
         -- если что-то не то есть в цели
-        if UnitExists("target") then RunMacroText("/cleartarget") end
+        if UnitExists("target") then orun("/cleartarget") end
         for i = 1, #TARGET do
             local t = TARGET[i]
             if t and (UnitAffectingCombat(t) or IsPvP()) and ActualDistance(t) and (not IsPvP() or UnitIsPlayer(t))  then 
-                RunMacroText("/startattack " .. target) 
+                orun("/startattack " .. target) 
                 break
             end
         end
@@ -634,12 +634,12 @@ function TryTarget(useFocus)
     -- пытаемся выбрать ну хоть что нибудь
     if not IsValidTarget("target") then
         -- если что-то не то есть в цели
-        if UnitExists("target") then RunMacroText("/cleartarget") end
+        if UnitExists("target") then orun("/cleartarget") end
 
         if IsPvP() then
-            RunMacroText("/targetenemyplayer [nodead]")
+            orun("/targetenemyplayer [nodead]")
         else
-            RunMacroText("/targetenemy [nodead]")
+            orun("/targetenemy [nodead]")
         end
         if not IsAttack()  -- если в авторежиме
             and (
@@ -648,31 +648,31 @@ function TryTarget(useFocus)
             or (not IsPvP() and not UnitAffectingCombat("target")) -- моб не в бою
             or (IsPvP() and not UnitIsPlayer("target")) -- не игрок в пвп
             )  then 
-            if UnitExists("target") then RunMacroText("/cleartarget") end
+            if UnitExists("target") then orun("/cleartarget") end
         end
     end
 
     if useFocus ~= false then 
         if not IsValidTarget("focus") then
-            if UnitExists("focus") then RunMacroText("/clearfocus") end
+            if UnitExists("focus") then orun("/clearfocus") end
             for i = 1, #TARGETS do
                 local t = TARGETS[i]
                 if UnitAffectingCombat(t) and ActualDistance(t) and not IsOneUnit("target", t) then 
-                    RunMacroText("/focus " .. t) 
+                    orun("/focus " .. t) 
                     break
                 end
             end
         end
         
         if not IsValidTarget("focus") or IsOneUnit("target", "focus") or not ActualDistance("focus") then
-            if UnitExists("focus") then RunMacroText("/clearfocus") end
+            if UnitExists("focus") then orun("/clearfocus") end
         end
     end
 
     if not IsArena() then
         if IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
-            if IsOneUnit("target","arena1") then RunMacroText("/focus arena2") end
-            if IsOneUnit("target","arena2") then RunMacroText("/focus arena1") end
+            if IsOneUnit("target","arena1") then orun("/focus arena2") end
+            if IsOneUnit("target","arena2") then orun("/focus arena1") end
         end
     end
 end

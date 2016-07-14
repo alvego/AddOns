@@ -15,12 +15,12 @@ end
 if Paused == nil then Paused = false end
 -- Отключаем авторотацию, при повторном нажатии останавливаем каст (если есть)
 function AutoRotationOff()
-    if IsPlayerCasting() and Paused then 
-        RunMacroText("/stopcasting") 
+    if IsPlayerCasting() and Paused then
+        orun("/stopcasting")
     end
     Paused = true
-    RunMacroText("/stopattack")
-    RunMacroText("/petfollow")
+    orun("/stopattack")
+    orun("/petfollow")
     echo("Авто ротация: OFF",true)
 end
 
@@ -35,11 +35,11 @@ function DebugToggle()
     else
         SetCVar("scriptErrors", 0)
         echo("Режим отладки: OFF",true)
-    end 
+    end
 end
 
 ------------------------------------------------------------------------------------------------------------------
--- Вызывает функцию Idle если таковая имеется, с заданным рекомендованным интервалом UpdateInterval, 
+-- Вызывает функцию Idle если таковая имеется, с заданным рекомендованным интервалом UpdateInterval,
 -- при включенной Авто-ротации
 local iTargets = {"target", "focus", "mouseover"}
 TARGETS = iTargets
@@ -61,32 +61,26 @@ local function getTargetWeight(t)
     if IsOneUnit("focus", t) then w = 3 end
     if IsOneUnit("target", t) then w = 4 end
     if IsOneUnit("mouseover", t) then w = 5 end
-    w = w + (1 - UnitHealth100(t) / 100) 
+    w = w + (1 - UnitHealth100(t) / 100)
     return w
 end
 local targetWeights = {}
 local function compareTargets(t1,t2) return targetWeights[t1] < targetWeights[t2] end
 local function UpdateIdle()
-    -- if UnitIsAFK("player") then
-    --     chat("You are AFK");
-    --     RunMacroText("/run JumpOrAscendStart()  AscendStop()")
-    -- end
-    
-
     if (IsAttack() and Paused) then
         echo("Авто ротация: ON",true)
         Paused = false
     end
-    
+
     if UpdateCommands() then return end
-    
+
     if Paused then return end
-    
+
     if GetTime() - StartTime < 2 then return end
-    
-    if UnitIsDeadOrGhost("player") or UnitIsCharmed("player") 
+
+    if UnitIsDeadOrGhost("player") or UnitIsCharmed("player")
         or not UnitPlayerControlled("player") then return end
-    if UpdateInterval > 0 then    
+    if UpdateInterval > 0 then
         -- Update units
         UNITS = GetUnits()
         wipe(unitWeights)
@@ -103,7 +97,7 @@ local function UpdateIdle()
             end
         end
         table.sort(UNITS, compareUnits)
-        
+
         -- Update targets
         TARGETS = GetTargets()
         wipe(targetWeights)
@@ -115,7 +109,7 @@ local function UpdateIdle()
         wipe(IUNITS)
         for i = 0, #UNITS do
             local u = UNITS[i]
-        	if IsArena() or IsFriend(u) then 
+        	if IsArena() or IsFriend(u) then
     			tinsert(IUNITS, u)
     		end
     	end
@@ -134,8 +128,8 @@ local function UpdateArenaRaidIcons(event, ...)
         local members = GetGroupUnits()
         for i=1, #members do
             local u = members[i]
-            if UnitExists(u) and not GetRaidTargetIndex(u) and (not unitCD[u] or GetTime() - unitCD[u] > 5) then 
-                SetRaidTarget(u,raidIconsByClass[select(2,UnitClass(u))]) 
+            if UnitExists(u) and not GetRaidTargetIndex(u) and (not unitCD[u] or GetTime() - unitCD[u] > 5) then
+                SetRaidTarget(u,raidIconsByClass[select(2,UnitClass(u))])
                 unitCD[u] = GetTime()
             end
         end
@@ -150,13 +144,13 @@ local CombatLogTimer = GetTime();
 local CombatLogResetTimer = GetTime();
 
 local function UpdateCombatLogFix()
-    if InCombatLockdown() 
+    if InCombatLockdown()
         and GetTime() - CombatLogTimer > 15
-        and GetTime() - CombatLogResetTimer > 30 then 
+        and GetTime() - CombatLogResetTimer > 30 then
         CombatLogClearEntries()
         --chat("Reset CombatLog!")
         CombatLogResetTimer = GetTime()
-    end 
+    end
 end
 AttachUpdate(UpdateCombatLogFix)
 
@@ -168,10 +162,10 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateCombatLogTimer)
 ------------------------------------------------------------------------------------------------------------------
 -- Мониторим, когда начался и когда закончился бой
 local startCombatTime
-local endCombatTime     
+local endCombatTime
 local function UpdateCombatTimers()
     if InCombatLockdown() then
-        if not startCombatTime then 
+        if not startCombatTime then
             startCombatTime = GetTime()
         end
         endCombatTime = nil
@@ -180,16 +174,16 @@ local function UpdateCombatTimers()
             endCombatTime = GetTime()
         end
         startCombatTime = nil
-        
+
     end
 end
-AttachUpdate(UpdateCombatTimers)   
+AttachUpdate(UpdateCombatTimers)
 
-function InCombat(t) 
+function InCombat(t)
     if not t then t = 0 end
     return InCombatLockdown() and startCombatTime and GetTime() - startCombatTime > t
 end
-function NotInCombat(t) 
+function NotInCombat(t)
     if not t then t = 0 end
     return not InCombatLockdown() and endCombatTime and GetTime() - endCombatTime > t
 end
@@ -200,8 +194,8 @@ local function UpdateFallingFix()
     if IsFalling() then
         if FallingTime == nil then FallingTime = GetTime() end
         if FallingTime and (GetTime() - FallingTime > 1) then
-            if HasBuff("Хождение по воде") then RunMacroText("/cancelaura Хождение по воде") end
-            if HasBuff("Льдистый путь") then RunMacroText("/cancelaura Льдистый путь") end
+            if HasBuff("Хождение по воде") then orun("/cancelaura Хождение по воде") end
+            if HasBuff("Льдистый путь") then orun("/cancelaura Льдистый путь") end
         end
     else
         if FallingTime ~= nil then FallingTime = nil end
@@ -217,7 +211,7 @@ function UpdateSapped(event, ...)
 	and destGUID == UnitGUID("player")
 	and (type == "SPELL_AURA_APPLIED" or type == "SPELL_AURA_REFRESH")
 	then
-		RunMacroText("/к Меня сапнули, помогите плиз!")
+		orun("/к Меня сапнули, помогите плиз!")
 		Notify("Словил сап от роги: "..(sourceName or "(unknown)"))
 	end
 end
@@ -269,7 +263,7 @@ end
 local function UpdateHarmfulSpell(event, ...)
     local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
     if event:match("SPELL_DAMAGE") and spellName and agrs12 > 0 then
-        local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellID) 
+        local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellID)
         if castTime > 0 then HarmfulCastingSpell[name] = true end
     end
 end
@@ -282,8 +276,8 @@ local function debugFrame_OnUpdate()
         if (debugFrameTime > 0 and debugFrameTime < GetTime() - 1) then
                 local alpha = debugFrame:GetAlpha()
                 if (alpha ~= 0) then debugFrame:SetAlpha(alpha - .005) end
-                if (aplha == 0) then 
-					debugFrame:Hide() 
+                if (aplha == 0) then
+					debugFrame:Hide()
 					debugFrameTime = 0
 				end
         end
@@ -317,4 +311,4 @@ local function UpdateDebugStats()
     local fps = GetFramerate();
     debug(format('MEM: %.1fKB, LAG: %ims, FPS: %i', mem, LagTime * 1000, fps))
 end
-AttachUpdate(UpdateDebugStats) 
+AttachUpdate(UpdateDebugStats)

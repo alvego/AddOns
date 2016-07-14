@@ -63,12 +63,12 @@ SetCommand("stun",
 )
 
 ------------------------------------------------------------------------------------------------------------------
--- /run DoCommand("sv", "Омниссия")
+-- /orun DoCommand("sv", "Омниссия")
 SetCommand("sv", 
    function(target) 
       if target == nil then target = "target" end
       print("Боп на " .. target .. "!")
-      RunMacroText("/cast [@".. target .."] Длань защиты")
+      orun("/cast [@".. target .."] Длань защиты")
    end, 
    function(target) 
       if target == nil then target = "target" end
@@ -82,14 +82,14 @@ SetCommand("svs",
       if UnitExists("focus") and UnitName("focus") == "Вороная горгулья" then
          DoSpell("Изгнание зла","focus")
       else
-         RunMacroText("/targetexact [harm,nodead] Вороная горгулья")
-         if UnitExists("target") and UnitName("target") == "Вороная горгулья" then RunMacroText("/focus target") end
-         RunMacroText("/targetlasttarget")
+         orun("/targetexact [harm,nodead] Вороная горгулья")
+         if UnitExists("target") and UnitName("target") == "Вороная горгулья" then orun("/focus target") end
+         orun("/targetlasttarget")
          end
    end,
    function() 
       if not IsReadySpell("Изгнание зла") then
-         if UnitExists("focus") and UnitName("focus") == "Вороная горгулья" then RunMacroText("/clearfocus") end
+         if UnitExists("focus") and UnitName("focus") == "Вороная горгулья" then orun("/clearfocus") end
          return true
       end
       return false
@@ -101,14 +101,14 @@ SetCommand("fg",
    function()
       if UnitExists("focus") and UnitName("focus") == "Вороная горгулья" then
          DoSpell("Очищение","focus")
-         RunMacroText("/targetexact [help,nodead] Вороная горгулья")
-         if UnitExists("target") and UnitName("target") == "Вороная горгулья" then RunMacroText("/focus target") end
-         RunMacroText("/targetlasttarget")
+         orun("/targetexact [help,nodead] Вороная горгулья")
+         if UnitExists("target") and UnitName("target") == "Вороная горгулья" then orun("/focus target") end
+         orun("/targetlasttarget")
          end
    end,
    function() 
       if not IsSpellInUse("Очищение", 1) then
-         if UnitExists("focus") and UnitName("focus") == "Вороная горгулья" then RunMacroText("/clearfocus") end
+         if UnitExists("focus") and UnitName("focus") == "Вороная горгулья" then orun("/clearfocus") end
          return true
       end
       return false

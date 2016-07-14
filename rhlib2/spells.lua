@@ -151,7 +151,7 @@ function UseMount(mountName)
     if Debug then
         print(mountName)
     end
-    RunMacroText("/use "..mountName)
+    orun("/use "..mountName)
     return true
 end
 
@@ -337,11 +337,11 @@ function UseSpell(spellName, target)
         end
         -- пробуем скастовать
         if Debug then print("Жмем", cast .. "!" .. spellName) end
-        RunMacroText(cast .. "!" .. spellName)
+        orun(cast .. "!" .. spellName)
         -- если нужно выбрать область - кидаем на текущий mouseover
         --[[if SpellIsTargeting() and GetTime() - cameraCD > 2 then
             cameraCD = GetTime()
-            RunMacroText("/run CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop()")
+            orun("/orun CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop()")
             --TurnOrActionStart()  TurnOrActionStop()
         end]]
         -- данные о кастах
@@ -352,7 +352,7 @@ function UseSpell(spellName, target)
                 -- проверяем цель на соответствие реальной
                 if castInfo.TargetName and castInfo.TargetName ~= "" and castInfo.TargetName ~= UnitName(target) then 
                     if dump then print("Цели не совпали", spellName) end
-                    RunMacroText("/stopcasting") 
+                    orun("/stopcasting") 
                     --chat("bad target", target, spellName)
                     if nil == badSpellTarget[spellName] then
 						badSpellTarget[spellName] = {}

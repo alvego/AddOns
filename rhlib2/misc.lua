@@ -50,19 +50,19 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function switchTargetAndFocus()
   if UnitExists("target") and not UnitExists("focus") then 
-      RunMacroText("/focus") 
-      RunMacroText("/cleartarget") 
+      orun("/focus") 
+      orun("/cleartarget") 
       return 
   end
   if UnitExists("focus") and not UnitExists("target") then 
-    RunMacroText("/target focus") 
-    RunMacroText("/clearfocus") 
+    orun("/target focus") 
+    orun("/clearfocus") 
     return 
   end
-  RunMacroText("/target focus") 
-  RunMacroText("/targetlasttarget") 
-  RunMacroText("/focus") 
-  RunMacroText("/targetlasttarget") 
+  orun("/target focus") 
+  orun("/targetlasttarget") 
+  orun("/focus") 
+  orun("/targetlasttarget") 
 end
 ------------------------------------------------------------------------------------------------------------------
 -- Update Debug Frame

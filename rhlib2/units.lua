@@ -161,7 +161,7 @@ function GetGroupUnits()
     return groupUnits
 end
 ------------------------------------------------------------------------------------------------------------------
--- /run DоCommand("cl", GetSameGroupUnit("mouseover"))
+-- /orun DоCommand("cl", GetSameGroupUnit("mouseover"))
 function GetSameGroupUnit(unit)
     local group = GetGroupUnits()
     for i = 1, #group do

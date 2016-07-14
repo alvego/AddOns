@@ -11,7 +11,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 -- Используется в макросах
--- /run DoCommand('my_command', 'focus')
+-- /orun DoCommand('my_command', 'focus')
 function DoCommand(cmd, ...)
     if not Commands[cmd] then 
         print("DoCommand: Ошибка! Нет такой комманды ".. cmd)
@@ -24,7 +24,7 @@ function DoCommand(cmd, ...)
     if spell and endTime then 
         t = endTime/1000 + d
         if Commands[cmd].Timer and Commands[cmd].Timer == t then 
-            RunMacroText("/stopcasting") 
+            orun("/stopcasting") 
             t = GetTime() + d
         end
     end
