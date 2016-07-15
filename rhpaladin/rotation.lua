@@ -320,18 +320,6 @@ function Retribution()
     if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
     if (UnitCreatureType(target) == "Нежить") and not HasBuff("Антимагический панцирь", 0.1, target) and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end
     if UnitHealth100("player") > 80 and UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
-    -- if not HasBuff("Священный щит") and DoSpell("Священный щит","player") then return end
-    --[[if IsReadySpell("Священный щит") and IsSpellNotUsed("Священный щит", 3) and (IsPvP() or (UnitThreat("player") == 3 and UnitHealth100("player") < 95)) and (GetTime() - holyShieldTime > 10) then
-        local hasShield = false
-        for i = 1, #IUNITS do
-            local u = IUNITS[i]
-            if HasMyBuff("Священный щит", 0.1, u) then
-                hasShield = true
-                break
-            end
-        end
-       if not hasShield and DoSpell("Священный щит", "player") then holyShieldTime = GetTime() return end
-    end]]
 
     if not InMelee(target) and advansedMod and IsReadySpell("Очищение") and IsSpellNotUsed("Очищение", 3) and not IsFinishHim(target) and UnitMana100("player") > 40 then
          for i = 1, #IUNITS do
