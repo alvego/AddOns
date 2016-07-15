@@ -1,11 +1,10 @@
 ## Author: Timofeev Alvexey
-## Title:|cff0055ffRotation Helper|r|cffffe00a > |cff0000ffShaman|r 
+## Title:|cff0055ffRotation Helper|r|cffffe00a > |cff0000ffShaman|r
 ## Version: 2.0
 ## DefaultState: Disabled
 ## Interface: 30300
 ## Dependencies: rhlib2
-## SavedVariables: CanInterrupt, AutoAOE, DispelWhiteList, DispelBlackList, StealWhiteList, StealBlackList, InterruptWhiteList, InterruptBlackList
-totems.lua
+## SavedVariables: CanInterrupt, AutoAOE
 rotation.lua
 commands.lua
 binds.lua
