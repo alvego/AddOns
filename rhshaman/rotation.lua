@@ -36,22 +36,24 @@ function Idle()
 end
 
 function RDDRotation()
-    if not InCombatLockdown() and not HasBuff("Водный щит") and DoSpell("Водный щит") then return end
+    --if not InCombatLockdown() and not HasBuff("Водный щит") and DoSpell("Водный щит") then return end
     if GetInventoryItemID("player",16) and not GetTemporaryEnchant(16) and DoSpell("Оружие языка пламени") then return end
     if not IsAttack() and not CanAttack() then return end
     if not (UnitAffectingCombat("target") or IsAttack()) then return end
     if not IsValidTarget("target") then return end
     orun("/startattack")
     --ротация элема древняя версия для Идеала
+    if IsBurst() and DoSpell("Покорение стихий") then return end
+    if IsEquippedItem("Талисман восстановления") and HasBuff("Покорение стихий", player) and UseItem("Талисман восстановления") then return end
     if not HasMyDebuff("Огненный шок", 0.5,"target") and DoSpell("Огненный шок", "target") then return end
-    if HasMyDebuff("Огненный шок", 2,"target") and DoSpell("Выброс лавы", "target") then return end
+    if HasMyDebuff("Огненный шок", 1.5,"target") and DoSpell("Выброс лавы", "target") then return end
     if UnitMana100() < 10 and DoSpell("Гром и молния") then return end
     if IsAOE() and DoSpell("Цепная молния", "target") then return end
-    if IsAOE() and HasTotem(1) ~= "Тотем магмы VII" and DoSpell("Тотем магмы") then return end
-    if IsAOE() and HasTotem(1) and DoSpell("Кольцо огня") then return end
+    if IsAOE() and AutoAOE and HasTotem(1) ~= "Тотем магмы VII" and DoSpell("Тотем магмы") then return end
+    if IsAOE() and AutoAOE and HasTotem(1) and DoSpell("Кольцо огня") then return end
     --if (IsRightAltKeyDown() == 1) and DoSpell("Зов Стихий") then return end
-    if not HasBuff("Водный щит") and DoSpell("Водный щит") then return end
     if DoSpell("Молния", "target") then return end
+    if not HasBuff("Водный щит") and DoSpell("Водный щит") then return end
 end
 
 
