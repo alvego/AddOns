@@ -1,11 +1,11 @@
 ﻿-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
--- Время сетевой задержки 
+-- Время сетевой задержки
 LagTime = 0
 local lastUpdate = 0
 local function UpdateLagTime()
     if GetTime() - lastUpdate < 30 then return end
-    lastUpdate = GetTime() 
+    lastUpdate = GetTime()
     LagTime = tonumber(select(3, GetNetStats()) / 1000)  * 1.5
 
 end
@@ -48,8 +48,8 @@ function GetSpellId(name, rank)
     local result = spellToIdList[spellGUID]
     if nil == result then
         local link = GetSpellLink(name,rank)
-        if not link then 
-            result = 0 
+        if not link then
+            result = 0
         else
             result = 0 + link:match("spell:%d+"):match("%d+")
         end
@@ -93,18 +93,21 @@ local interactSpells = {
 }
 InteractRangeSpell = interactSpells[GetClass()]
 
+
 function InInteractRange(unit)
     -- need test and review
     if (unit == nil) then unit = "target" end
+    if not UnitExists(unit) then return false end
     if not IsInteractUnit(unit) then return false end
-    if spell then return IsSpellInRange(InteractRangeSpell,unit) == 1 end
+    if IsOneUnit(unit, "player") then return true end
+    if InteractRangeSpell then return IsSpellInRange(InteractRangeSpell, unit) == 1 end
     if IsArena() then return true end
     return InDistance("player", unit, 40)
 end
 ------------------------------------------------------------------------------------------------------------------
 local meleeSpells = {
-    DRUID = "Цапнуть",        
-    DEATHKNIGHT = "Удар чумы", 
+    DRUID = "Цапнуть",
+    DEATHKNIGHT = "Удар чумы",
     PALADIN = "Щит праведности",
     SHAMAN = "Удар бури",
     WARRIOR = "Кровопускание"
@@ -112,7 +115,8 @@ local meleeSpells = {
 MeleeSpell = meleeSpells[GetClass()]
 function InMelee(target)
     if (target == nil) then target = "target" end
-    return (IsSpellInRange(MeleeSpell,target) == 1)
+    if MeleeSpell then return IsSpellInRange(MeleeSpell, unit) == 1 end
+    return InDistance("player", unit, 5)
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -156,10 +160,10 @@ function UseMount(mountName)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function InRange(spell, target) 
+function InRange(spell, target)
     if target == nil then target = "target" end
-    if spell and IsSpellInRange(spell,target) == 0 then return false end 
-    return true    
+    if spell and IsSpellInRange(spell,target) == 0 then return false end
+    return true
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -176,7 +180,7 @@ local function UpdateIsCast(event, ...)
         local castInfo = getCastInfo(spell)
         if event == "UNIT_SPELLCAST_SUCCEEDED"
             and castInfo.StartTime and castInfo.StartTime > 0 then
-            castInfo.LastCastTime = castInfo.StartTime 
+            castInfo.LastCastTime = castInfo.StartTime
         end
         if event == "UNIT_SPELLCAST_SENT" then
             castInfo.StartTime = GetTime()
@@ -253,10 +257,10 @@ local function UpdateTargetPosition(event, ...)
                 notVisible[guid] = GetTime()
             end
             if err == "Цель должна быть перед вами." then
-                notInView[guid] = GetTime() 
+                notInView[guid] = GetTime()
             end
-            if err == "Вы должны находиться позади цели." then 
-                notBehind[guid] = GetTime() 
+            if err == "Вы должны находиться позади цели." then
+                notBehind[guid] = GetTime()
             end
         end
     end
@@ -272,14 +276,14 @@ function UseSpell(spellName, target)
     --if spellName == "Священный щит" then error("Щит") end
 
     -- Не мешаем выбрать область для спела (нажат вручную)
-    if SpellIsTargeting() then 
+    if SpellIsTargeting() then
         if dump then print("Ждем выбор цели, не можем прожать", spellName) end
-        return false 
-    end 
+        return false
+    end
     -- Не пытаемся что либо прожимать во время каста
-    if IsPlayerCasting() then 
+    if IsPlayerCasting() then
         if dump then print("Кастим, не можем прожать", spellName) end
-        return false 
+        return false
     end
     if target == nil and IsHarmfulSpell(spellName) then target = "target" end
     -- Проверяем на наличе спела в спелбуке
@@ -292,7 +296,7 @@ function UseSpell(spellName, target)
     local IsBusy = IsSpellInUse(spellName)
     if IsBusy then
         if dump then print("Уже прожали, SPELL_SENT пошел, не можем больше прожать", spellName) end
-        return false 
+        return false
     end
      -- проверяем, что не кастится другой спел
      for s,_ in pairs(InCast) do
@@ -303,20 +307,20 @@ function UseSpell(spellName, target)
      end
     if IsBusy then return false end
     -- проверяем, что цель подходящая для этого спела
-    if UnitExists(target) and badSpellTarget[spellName] then 
+    if UnitExists(target) and badSpellTarget[spellName] then
         local badTargetTime = badSpellTarget[spellName][UnitGUID(target)]
-        if badTargetTime and (GetTime() - badTargetTime < 10) then 
-            if dump then 
-                print(target, "- Цель не подходящая, не можем прожать", spellName) 
+        if badTargetTime and (GetTime() - badTargetTime < 10) then
+            if dump then
+                print(target, "- Цель не подходящая, не можем прожать", spellName)
             end
-            return false 
+            return false
         end
     end
     -- проверяем что цель в зоне досягаемости
-    if not InRange(spellName, target) then 
+    if not InRange(spellName, target) then
         if dump then print(target," - Цель вне зоны досягаемости, не можем прожать", spellName) end
         return false
-    end  
+    end
     -- Проверяем что все готово
     if IsReadySpell(spellName) then
         -- собираем команду
@@ -324,11 +328,11 @@ function UseSpell(spellName, target)
         -- с учетом цели
         if target ~= nil then cast = cast .."[@".. target .."] "  end
         -- проверяем, хватает ли нам маны
-        if cost and cost > 0 and UnitManaMax("player") > cost and UnitMana("player") <= cost then 
+        if cost and cost > 0 and UnitManaMax("player") > cost and UnitMana("player") <= cost then
             if dump then print("Не достаточно маны, не можем прожать", spellName) end
             return false
         end
-        if UnitExists(target) then 
+        if UnitExists(target) then
             -- данные о кастах
             local castInfo = getCastInfo(spellName)
             castInfo.Target = target
@@ -350,9 +354,9 @@ function UseSpell(spellName, target)
         if castInfo.StartTime and (GetTime() - castInfo.StartTime < 0.01) then
             if UnitExists(target) then
                 -- проверяем цель на соответствие реальной
-                if castInfo.TargetName and castInfo.TargetName ~= "" and castInfo.TargetName ~= UnitName(target) then 
+                if castInfo.TargetName and castInfo.TargetName ~= "" and castInfo.TargetName ~= UnitName(target) then
                     if dump then print("Цели не совпали", spellName) end
-                    orun("/stopcasting") 
+                    orun("/stopcasting")
                     --chat("bad target", target, spellName)
                     if nil == badSpellTarget[spellName] then
 						badSpellTarget[spellName] = {}

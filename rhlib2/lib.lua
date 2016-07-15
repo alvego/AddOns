@@ -4,6 +4,8 @@ local _m = 'Run' .. 'Mac' .. 'ro' .. 'Text'
 function orun(m)
   if (oexecute) then
     oexecute(_m .. '("'..m..'")')
+  else
+    echo('Требуется активация!', true)
   end
 end
 
@@ -28,7 +30,6 @@ end
 ------------------------------------------------------------------------------------------------------------------
 -- Выполняем обработчики соответсвующего события
 local function onEvent(self, event, ...)
-    if not oexecute then return end
     if EventList[event] ~= nil then
         local funcList = EventList[event]
         for i = 1, #funcList do
@@ -55,7 +56,6 @@ end
 local LastUpdate = 0
 UpdateInterval = 0.03
 local function OnUpdate(frame, elapsed)
-    if not oexecute then return end
     LastUpdate = LastUpdate + elapsed
     if LastUpdate < UpdateInterval then return end -- для снижения нагрузки на проц
     LastUpdate = 0
