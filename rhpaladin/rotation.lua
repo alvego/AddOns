@@ -5,14 +5,14 @@ local steathClass = {"ROGUE", "DRUID"}
 local reflectBuff = {"Отражение заклинания", "Эффект тотема заземления", "Рунический покров"}
 
 local advansedTime = 0
-local advansedMod = false
+local advancedMod = false
 
 function Idle()
 
-    advansedMod = IsAttack()
+    advancedMod = IsAttack()
     if GetTime() - advansedTime > 1 then
         advansedTime = GetTime()
-        advansedMod = true
+        advancedMod = true
     end
 
     if IsAttack() then
@@ -22,7 +22,7 @@ function Idle()
     if not IsAttack() and (HasBuff("Пища") or HasBuff("Питье") or IsMounted() or  CanExitVehicle()) then return end
     if IsMouseButtonDown(3) and TryTaunt("mouseover") then return end
 
-    if advansedMod and IsReadySpell("Длань возмездия") then
+    if advancedMod and IsReadySpell("Длань возмездия") then
         for i = 1, #ITARGETS do
             local t = ITARGETS[i]
             if UnitIsPlayer(t) and ((tContains(steathClass, GetClass(t)) and not InRange("Покаяние", t)) or HasBuff(reflectBuff, 1, t))
@@ -43,7 +43,7 @@ function Idle()
             end
         end
 
-        if advansedMod and AutoAGGRO and InGroup() and InCombat(1) then
+        if advancedMod and AutoAGGRO and InGroup() and InCombat(1) then
             for i = 1, #TARGETS do
                 local t = TARGETS[i]
                 if UnitAffectingCombat(t) and TryTaunt(t) then return end
@@ -51,7 +51,7 @@ function Idle()
         end
 
         -- Священная жертва
-        if advansedMod and InCombatLockdown() and HasSpell("Щит мстителя") and InGroup() and CalculateHP("player") > 70 then
+        if advancedMod and InCombatLockdown() and HasSpell("Щит мстителя") and InGroup() and CalculateHP("player") > 70 then
             local lowhpmembers = 0
             for i = 1, #UNITS do
                 if CalculateHP(UNITS[i]) <= 50 then lowhpmembers = lowhpmembers + 1 end
@@ -275,7 +275,7 @@ local totems = { "Тотем оков земли", "Тотем прилива м
 function Retribution()
     local target = "target"
 
-    if advansedMod and not IsFinishHim(target) and UnitMana100("player") > 10 and IsReadySpell("Очищение") and IsSpellNotUsed("Очищение", 5) then
+    if advancedMod and not IsFinishHim(target) and UnitMana100("player") > 10 and IsReadySpell("Очищение") and IsSpellNotUsed("Очищение", 5) then
         for i = 1, #IUNITS do
             local u = IUNITS[i]
             if CanHeal(u) and HasDebuff(redDispelList, 2, u) and TryDispel(u) then return end
@@ -285,14 +285,14 @@ function Retribution()
     if UnitHealth100("player") < 50 and UseItem("Камень здоровья из Скверны") then return end
     if UnitMana100("player") < 20 and not HasBuff("Печать мудрости") and DoSpell("Печать мудрости") then return end
     if UnitMana100("player") > 70 then orun("/cancelaura Печать мудрости") end
-    if advansedMod and IsPvP() and IsReadySpell("Изгнание зла") and IsSpellNotUsed("Изгнание зла", 5) then
+    if advancedMod and IsPvP() and IsReadySpell("Изгнание зла") and IsSpellNotUsed("Изгнание зла", 5) then
         for i = 1, #TARGETS do
             local t = TARGETS[i]
             if CanAttack(t) and (UnitCreatureType(t) == "Нежить" or UnitCreatureType(t) == "Демон")
                 and not HasDebuff("Изгнание зла", 0.1, t) and not HasBuff("Антимагический панцирь", 0.1, t) and DoSpell("Изгнание зла",t) then return end
         end
     end
-    if advansedMod and IsReadySpell("Длань возмездия") and IsSpellNotUsed("Длань возмездия", 2) then
+    if advancedMod and IsReadySpell("Длань возмездия") and IsSpellNotUsed("Длань возмездия", 2) then
         for i = 1, #TARGETS do
             local t = TARGETS[i]
             if tContains(totems, UnitName(t)) and DoSpell("Длань возмездия",t) then return end
@@ -303,7 +303,7 @@ function Retribution()
     if InMelee(target) and HasBuff("Гнев карателя") and UseEquippedItem("Знак превосходства") then return end
     if IsShiftKeyDown() == 1 and DoSpell("Освящение") then return end
     if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
-    if advansedMod and IsReadySpell("Молот гнева") then
+    if advancedMod and IsReadySpell("Молот гнева") then
         for i = 1, #TARGETS do
             local t = TARGETS[i]
             if CanAttack(t) and UnitHealth100(t) < 20 and DoSpell("Молот гнева", t) then return end
@@ -321,7 +321,7 @@ function Retribution()
     if (UnitCreatureType(target) == "Нежить") and not HasBuff("Антимагический панцирь", 0.1, target) and UnitMana100("player") > 40 and InMelee(target) and DoSpell("Гнев небес") then return end
     if UnitHealth100("player") > 80 and UnitMana100("player") < 50 and DoSpell("Святая клятва") then return end
 
-    if not InMelee(target) and advansedMod and IsReadySpell("Очищение") and IsSpellNotUsed("Очищение", 3) and not IsFinishHim(target) and UnitMana100("player") > 40 then
+    if not InMelee(target) and advancedMod and IsReadySpell("Очищение") and IsSpellNotUsed("Очищение", 3) and not IsFinishHim(target) and UnitMana100("player") > 40 then
          for i = 1, #IUNITS do
             if TryDispel(IUNITS[i]) then return end
         end

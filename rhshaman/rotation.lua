@@ -2,6 +2,7 @@
 print("|cff0055ffRotation Helper|r|cffffe00a > |cff0000ffShaman|r loaded!")
 ------------------------------------------------------------------------------------------------------------------
 local peaceBuff = {"Пища", "Питье", "Призрачный волк"}
+local reflectBuff = {"Отражение заклинания", "Эффект тотема заземления", "Рунический покров"}
 -- Общее для всех ротаций
 function Idle()
 	-- слезаем со всего, если решили драться
@@ -14,9 +15,6 @@ function Idle()
     if not IsAttack() and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
     -- чтоб контроли не сбивать
     if not CanControl("target") then orun("/stopattack") end
-    -- геру под крылья на арене
-
-
    ---------------------------------------------------------------------------------------------------------------
 
     -- прожим деф абилок
@@ -42,6 +40,8 @@ function RDDRotation()
     if not (UnitAffectingCombat("target") or IsAttack()) then return end
     if not IsValidTarget("target") then return end
     orun("/startattack")
+    -- Зачем вару отражение???
+    if HasBuff(reflectBuff, 1, "target") and DoSpell("Пронизывающий ветер", "target") then return end
     --ротация элема древняя версия для Идеала
     if IsBurst() and DoSpell("Покорение стихий") then return end
     if IsEquippedItem("Талисман восстановления") and HasBuff("Покорение стихий", player) and UseItem("Талисман восстановления") then return end
@@ -101,10 +101,11 @@ end
 function TryProtect()
     if InCombatLockdown() then
         local hp = CalculateHP("player")
+        local mana = UnitMana100("player")
         if not IsPvP() then
             if hp < 40 and UseHealPotion() then return true end
-            if UnitMana100("player") < 10 and UseItem("Рунический флакон с зельем маны") then return true end
-            if UnitMana100("player") < 30 and UseItem("Бездонный флакон с зельем маны") then return true end
+            if mana < 10 and UseItem("Рунический флакон с зельем маны") then return true end
+            if mana < 30 and UseItem("Бездонный флакон с зельем маны") then return true end
         end
         if hp < 70 and HasSpell("Дар наару") and DoSpell("Дар наару", 'player') then return true end
         if hp < 30 and PlayerInPlace() and DoSpell("Малая волна исцеления", 'player') then return true end

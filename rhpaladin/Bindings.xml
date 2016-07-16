@@ -1,5 +1,5 @@
 <Bindings>
-  <Binding name="PRH_INTERRUPT" description="Use cust interrupt" header="PRH">
+  <Binding name="PRH_INTERRUPT" description="Use cast interrupt" header="PRH">
     UseInterrupt();
   </Binding>
   <Binding name="PRH_AUTOAGGRO" description="Auto AGGRO" header="PRH">

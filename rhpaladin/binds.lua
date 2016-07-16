@@ -3,7 +3,6 @@
 print("|cff0055ffRotation Helper|r|cffffe00a > |cffff4080Paladin|r loaded!")
 -- Binding
 BINDING_HEADER_PRH = "Paladin Rotation Helper"
-BINDING_NAME_PRH_AOE = "Вкл/Выкл AOE в ротации"
 BINDING_NAME_PRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 BINDING_NAME_PRH_AUTOAGGRO = "Авто АГГРО"
 ------------------------------------------------------------------------------------------------------------------
@@ -15,7 +14,7 @@ function UseInterrupt()
         echo("Interrupt: ON",true)
     else
         echo("Interrupt: OFF",true)
-    end 
+    end
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -27,16 +26,16 @@ function AutoAGGROToggle()
         echo("АвтоАГГРО: ON",true)
     else
         echo("АвтоАГГРО: OFF",true)
-    end 
+    end
 end
 
 ------------------------------------------------------------------------------------------------------------------
 function IsAOE()
     if IsShiftKeyDown() == 1 then return true end
-    if IsValidTarget("target") 
-        and IsValidTarget("focus") 
-        and not IsOneUnit("target", "focus") 
-        and UnitAffectingCombat("focus") 
+    if IsValidTarget("target")
+        and IsValidTarget("focus")
+        and not IsOneUnit("target", "focus")
+        and UnitAffectingCombat("focus")
         and UnitAffectingCombat("target") then return true end
     return false
 end
@@ -52,11 +51,11 @@ function TryDispel(unit)
     local ret = false
     for i = 1, 40 do
         if not ret then
-            local name, _, _, _, debuffType, duration, expirationTime   = UnitDebuff(unit, i,true) 
-            if name and (expirationTime - GetTime() >= 3 or expirationTime == 0) 
+            local name, _, _, _, debuffType, duration, expirationTime   = UnitDebuff(unit, i,true)
+            if name and (expirationTime - GetTime() >= 3 or expirationTime == 0)
                 and (tContains(DispelWhitelist, name) or tContains(dispelTypes, debuffType) and not tContains(DispelBlacklist, name)) then
-                if DoSpell(dispelSpell, unit) then 
-                    ret = true 
+                if DoSpell(dispelSpell, unit) then
+                    ret = true
                 end
             end
         end
@@ -72,7 +71,7 @@ local function UpdateDispelLists(event, ...)
 
         if type:match("^SPELL_CAST") and unit and err and err == "Нечего рассеивать." then
             for i = 1, 40 do
-                local name, _, _, _, debuffType = UnitDebuff(unit, i,true) 
+                local name, _, _, _, debuffType = UnitDebuff(unit, i,true)
                 if name and tContains(dispelTypes, debuffType)
                     and not tContains(DispelWhitelist, name)
                     and not tContains(DispelBlacklist, name) then
@@ -80,12 +79,12 @@ local function UpdateDispelLists(event, ...)
                 end
             end
         end
-        
+
         if type == "SPELL_DISPEL" and not tContains(DispelWhitelist, dispel) then
             tinsert(DispelWhitelist, dispel)
         end
     end
-end    
+end
 
 AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateDispelLists)
 
