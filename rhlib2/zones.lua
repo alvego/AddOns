@@ -2,13 +2,11 @@
 ------------------------------------------------------------------------------------------------------------------
 
 function CheckDistance(unit1,unit2)
-  error("1")
   return DistanceTo(unit1, unit2)
 end
 
 ------------------------------------------------------------------------------------------------------------------
 function InDistance(unit1,unit2, distance)
-error("2")
   local d = DistanceTo(unit1, unit2)
   return not d or d < distance
 end
