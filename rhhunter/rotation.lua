@@ -33,8 +33,8 @@ function Rotation()
     if not HasMyDebuff("Укус змеи", 0.5,"target") and DoSpell("Укус змеи", "target") then return end
     if DoSpell("Контузящий выстрел", "target") then return end
     if DoSpell("Чародейский выстрел", "target") then return end
-    if DoSpell("Подрезать крылья", "target") then return end
-    if DoSpell("Удар ящера", "target") then return end
+    if InMelee(target) and not HasMyDebuff("Подрезать крылья", 0.5,"target") and DoSpell("Подрезать крылья", "target") then return end
+    if InMelee(target) and DoSpell("Удар ящера", "target") then return end
 end
 
 
