@@ -29,7 +29,12 @@ function Rotation()
     if not (UnitAffectingCombat("target") or IsAttack()) then return end
     if not IsValidTarget("target") then return end
     orun("/startattack")
-    -- rotation there
+    if not HasMyDebuff("Метка охотника", 0.5,"target") and DoSpell("Метка охотника", "target") then return end
+    if not HasMyDebuff("Укус змеи", 0.5,"target") and DoSpell("Укус змеи", "target") then return end
+    if DoSpell("Контузящий выстрел", "target") then return end
+    if DoSpell("Чародейский выстрел", "target") then return end
+    if DoSpell("Подрезать крылья", "target") then return end
+    if DoSpell("Удар ящера", "target") then return end
 end
 
 
