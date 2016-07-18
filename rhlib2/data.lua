@@ -1,6 +1,77 @@
-﻿-- Rotation Helper Library by Timofeev Alexey
+-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
--- TODO: need review
+CanControlInfo = ""
+local imperviousList = {"Вихрь клинков", "Зверь внутри"}
+local physicsList = {"Незыблемость льда", "Длань защиты"} --Перерождение
+function CanControl(target, magic, physic)
+    CanControlInfo = ""
+    if nil == target then target = "target" end
+    if not (magic and CanMagicAttack or CanAttack)(target) then
+        CanControlInfo = (magic and CanMagicAttackInfo or CanAttackInfo)
+        return false
+    end
+    local aura =  HasBuff(imperviousList, 0.1, target) or (physic and HasBuff(physicsList, 0.1, target))
+    if aura then
+        CanControlInfo = aura
+        return false
+    end
+    return true
+end
+------------------------------------------------------------------------------------------------------------------
+-- можно использовать магические атаки против игрока
+CanMagicAttackInfo = ""
+local magicList = {"Антимагический панцирь", "Плащ Теней", "Символ ледяной глыбы" } --Символ ледяной глыбы ?
+local magicReflectList = {"Отражение заклинания", "Рунический покров", "Эффект тотема заземления"}
+function CanMagicAttack(target)
+    CanMagicAttackInfo = ""
+    if nil == target then target = "target" end
+    if not CanAttack(target) then
+        CanMagicAttackInfo = CanAttackInfo
+        return false
+    end
+    local aura = HasBuff(magicList, 0.1, target)
+    if not aura and not IsAttack() then
+        aura = HasBuff(magicReflectList, 0.1, target)
+    end
+    if aura then
+        CanMagicAttackInfo = aura
+        return false
+    end
+    return true
+end
+
+------------------------------------------------------------------------------------------------------------------
+-- можно атаковать игрока (в противном случае не имеет смысла просаживать кд))
+local immuneList = {"Божественный щит", "Ледяная глыба", "Сдерживание", "Смерч", "Слияние с Тьмой", "Развоплощение"}
+CanAttackInfo = ""
+function CanAttack(target)
+    CanAttackInfo = ""
+    if nil == target then target = "target" end
+    if not IsValidTarget(target) then
+        CanAttackInfo = IsValidTargetInfo
+        return false
+    end
+    if not IsVisible(target) then
+        CanAttackInfo = "Цель в лосе."
+        return false
+    end
+
+    local aura = HasAura(immuneList, 0.01, target)
+    if aura then
+        CanAttackInfo = "Цель имунна: " .. aura
+        return false
+    end
+    return true
+end
+
+------------------------------------------------------------------------------------------------------------------
+local nointerruptBuffs = {"Мастер аур", "Дубовая кожа"}
+function IsInterruptImmune(target, t)
+    if target == nil then target = "target" end
+    if t == nil then t = 0.1 end
+    return HasBuff(nointerruptBuffs, t , target)
+end
+
 ControlList = { -- > 4
 "Ненасытная стужа", -- 10s
 "Смерч", -- 6s
@@ -25,217 +96,8 @@ ControlList = { -- > 4
 "Соблазн"
 }
 
-------------------------------------------------------------------------------------------------------------------
--- Можно законтролить игрока
-local imperviousList = {"Вихрь клинков", "Зверь внутри", "Незыблемость льда"} -- TODO: Незыблемость льда под вопросом
-function CanControl(target)
-    if nil == target then target = "target" end 
-    return CanMagicAttack(target) and not HasBuff(imperviousList, 0.1, target) 
-        and not HasDebuff(ControlList, 3, target)
+function InControl(target, t)
+  if target == nil then target = "target" end
+  if t == nil then t = 0.1 end
+  return HasDebuff(ControlList, t, target)
 end
-
-------------------------------------------------------------------------------------------------------------------
--- можно использовать магические атаки против игрока
-local magicList = {"Отражение заклинания", "Антимагический панцирь", "Рунический покров", "Эффект тотема заземления"}
-function CanMagicAttack(target)
-    if nil == target then target = "target" end 
-    return CanAttack(target) 
-        and not HasBuff(magicList, 0.1, target)
-end
-
-------------------------------------------------------------------------------------------------------------------
--- можно атаковать игрока (в противном случае не имеет смысла просаживать кд))
-local immuneList = {"Божественный щит", "Ледяная глыба", "Сдерживание"}
-function CanAttack(target)
-    if nil == target then target = "target" end 
-    return IsValidTarget(target) 
-        and IsInView(target)
-        and not HasBuff(immuneList, 0.01, target) 
-        and not HasDebuff("Смерч", 0.01, target)
-end
-
-------------------------------------------------------------------------------------------------------------------
--- касты обязательные к сбитию в любом случае
-local InterruptRedList = {
-    "Малая волна исцеления",
-    "Волна исцеления",
-    "Выброс лавы",
-    "Сглаз",
-    "Цепное исцеление",
-    "Превращение",
-    "Прилив сил",
-    "Нестабильное колдовство",
-    "Блуждающий дух",
-    "Стрела Тьмы",
-    "Сокрушительный бросок",
-    "Стрела Хаоса",
-    "Вой ужаса",
-    "Страх",
-    "Похищение жизни",
-    "Похищение души",
-    "Свет небес",
-    "Вспышка Света",
-    "Быстрое исцеление",
-    "Исповедь",
-    "Божественный гимн",
-    "Связующее исцеление",
-    "Массовое рассеивание",
-    "Прикосновение вампира",
-    "Сожжение маны",
-    "Молитва исцеления",
-    "Исцеление",
-    "Контроль над разумом",
-    "Великое исцеление",
-    "Покровительство Природы",
-    "Звездный огонь",
-    "Смерч",
-    "Спокойствие потоковое",
-    "Восстановление",
-    "Целительное прикосновение",
-    "Изгнание зла", 
-    "Сковывание нежити"
-}
-
-function InInterruptRedList(spellName)
-    return tContains(InterruptRedList, spellName)
-end
-
-------------------------------------------------------------------------------------------------------------------
--- касты обязательные к сбитию в любом случае
-local AlertList = {
-    "Божественный щит",
-    "Вихрь клинков", 
-    "Стылая кровь",
-    "Гнев карателя",
-    "Призыв горгульи",
-    "PvP-аксессуар",
-    "Каждый за себя",
-    "Озарение",
-    "Святая клятва",
-    "Питье",
-    "Длань свободы",
-    "Воля Отрекшихся",
-    "Перерождение"
-}
-
-function InAlertList(spellName)
-    return tContains(AlertList, spellName)
-end
-------------------------------------------------------------------------------------------------------------------
---[[ Interrupt + - хилка
-SHAMAN|Малая волна исцеления +
-SHAMAN|Волна исцеления +
-SHAMAN|Выброс лавы
-SHAMAN|Сглаз
-SHAMAN|Цепное исцеление +
-MAGE|Превращение
-MAGE|Прилив сил, потоковое
-WARLOCK|Нестабильное колдовство
-WARLOCK|Блуждающий дух
-WARLOCK|Стрела Тьмы
-WARRIOR|Сокрушительный бросок
-WARLOCK|Стрела Хаоса
-WARLOCK|Вой ужаса
-WARLOCK|Страх
-WARLOCK|Похищение жизни
-PALADIN|Свет небес +
-PALADIN|Вспышка Света +
-PRIEST|Быстрое исцеление  +
-PRIEST|Исповедь, потоковое сразу сбивать +
-PRIEST|Божественный гимн  +
-PRIEST|Связующее исцеление, +
-PRIEST|Массовое рассеивание
-PRIEST|Прикосновение вампира
-PRIEST|Сожжение маны
-PRIEST|Молитва исцеления +
-PRIEST|Исцеление +
-PRIEST|Контроль над разумом
-PRIEST|Великое исцеление +
-DRUID|Покровительство Природы
-DRUID|Звездный огонь
-DRUID|Смерч
-DRUID|Спокойствие потоковое +
-DRUID|Восстановление +
-DRUID|Целительное прикосновение +
-
-диспел
-
-Сглаз
-Укус змеи
-Укус гадюки
-Проклятие стихий
-Проклятие косноязычия
-Проклятие агонии
-
-остальное тотем яды и болезни
-
-
-комунизм
-
-Обновление
-Слово силы: Щит
-Дубовая кожа
-Жажда крови
-Вспышка Света
-Священный щит
-Святая клятва
-Гнев карателя
-Щит Бездны
-Щит маны,
-Жизнецвет
-Щит земли, весь не состилишь
-Милость,
-Стылая кровь
-Искусство войны
-Буйный рост
-Омоложение
-Защита Пустоты
-Лишнее время
-Чародейское ускорение
-Героизм
-Призрачный волк
-Быстрина
-Частица Света
-Улучшенный скачок
-Божественная защита
-Жизнь Земли
-Восстановление
-Покров Света
-Хватка природы
-Длань свободы
-Ледяная преграда
-Жертвоприношение
-Мощь тайной магии
-Незыблемость льда
-Праведное неистовство
-Быстрота хищника
-Ускорение
-Изничтожение
-Стылая кровь
-Обратный поток
-Средоточие воли
-Молитва восстановления
-
-red list
-
-Слово силы: Щит
-Дубовая кожа
-Жажда крови
-Святая клятва
-Гнев карателя
-Щит Бездны
-Щит маны,
-Стылая кровь
-Защита Пустоты
-Чародейское ускорение
-Героизм
-Быстрина
-Божественная защита
-Длань свободы
-Ледяная преграда
-Жертвоприношение
-Мощь тайной магии
-Незыблемость льда
-Быстрота хищника
-Стылая кровь
-]]

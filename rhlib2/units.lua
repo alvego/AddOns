@@ -1,120 +1,20 @@
-﻿-- Rotation Helper Library by Timofeev Alexey
+-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
--- Возвращает список членов группы отсортированных по приоритету исцеления
-local members = {}
-local membersHP = {}
-local protBuffsList = {"Ледяная глыба", "Божественный щит", "Превращение", "Щит земли", "Частица Света"}
-local dangerousType = {"worldboss", "rareelite", "elite"}
-local function compareMembers(u1, u2) 
-    return membersHP[u1] < membersHP[u2]
-end
-function GetHealingMembers(units)
-    local myHP = UnitHealth100("player")
-    if #members > 0 and UpdateInterval == 0 then
-        return members, membersHP
-    end
-    wipe(members)
-    wipe(membersHP)
-    if units == nil then 
-        tinsert(members, "player")
-        membersHP["player"] = CalculateHP("player")
-        return members, membersHP
-    end
-    for i = 1, #units do
-        local u = units[i]
-        if CanHeal(u) then 
-             local h =  CalculateHP(u)
-            if IsFriend(u) then 
-                if UnitAffectingCombat(u) and h > 99 then h = h - 1 end
-                h = h  - ((100 - h) * 1.15) 
-            end
-            if UnitIsPet(u) then
-                if UnitAffectingCombat("player") then 
-                    h = h * 1.5
-                end
-            else
-                local status = 0
-                for j = 1, #TARGETS do
-                    local t = TARGETS[j]
-                    if tContains(dangerousType, UnitClassification(t)) then 
-                        local isTanking, state, scaledPercent, rawPercent, threatValue = UnitDetailedThreatSituation("player", t)
-                        if state ~= nil and state > status then status = state end
-                    end
-                end
-                h = h - 2 * status
-                if HasBuff(protBuffsList, 1, u) then h = h + 5 end
-                if not IsArena() and myHP < 50 and not IsOneUnit("player", u) and not (UnitThreat(u) == 3) then h = h + 30 end
-            end
-            tinsert(members, u)
-            membersHP[u] = h
-        end
-    end
-    table.sort(members, compareMembers)  
-    for i = 1, #members do
-        local u = members[i]
-        if UnitHealth100(u) == 100 then membersHP[u] = 100 end
-    end
-    return members, membersHP
-end
-------------------------------------------------------------------------------------------------------------------
--- friend list
-local friendList = {}
-local function friendListUpdate()
-    wipe(friendList)
-    local numberOfFriends = GetNumFriends()
-    for i = 1, numberOfFriends do
-        local name = GetFriendInfo(i);
-        if name then 
-            friendList[name] = true
-        end
-    end
-end
-AttachEvent("FRIENDLIST_UPDATE", friendListUpdate)
-
-function IsFriend(unit)
-    if IsOneUnit(unit, "player") then return true end
-    if not UnitIsPlayer(unit) or not IsInteractUnit(unit) then return false end
-    return friendList[UnitName(unit)]
+local inDuel = false
+local startDuel = StartDuel
+function StartDuel()
+    inDuel = true
+    startDuel()
 end
 
-------------------------------------------------------------------------------------------------------------------
--- unit filted start
-local IgnoredNames = {}
-
-function Ignore(target)
-    if target == nil then target = "target" end
-    local n = UnitName(target)
-    if n == nil then 
-        Notify(target .. " not exists")
-        return 
-    end
-    IgnoredNames[n] = true
-    Notify("Ignore " .. n)
+function InDuel()
+    return inDuel
 end
-
-function IsIgnored(target)
-    if target == nil then target = "target" end
-    local n = UnitName(target)
-    if n == nil or not IgnoredNames[n] then return false end
-    -- Notify(n .. " in ignore list")
-    return true
+local function DuelUpdate(event)
+   inDuel = (event == 'DUEL_REQUESTED' and true or false)
 end
-
-function NotIgnore(target)
-    if target == nil then target = "target" end
-    local n = UnitName(target)
-    if n then 
-        IgnoredNames[n] = false
-        Notify("Not ignore " .. n)
-    end
-end
-
-function NotIgnoreAll()
-    wipe(IgnoredNames)
-    Notify("Not ignore all")
-end
--- unit filted start end
-
+AttachEvent('DUEL_REQUESTED', DuelUpdate)
+AttachEvent('DUEL_FINISHED', DuelUpdate)
 ------------------------------------------------------------------------------------------------------------------
 local units = {}
 local realUnits = {}
@@ -123,21 +23,21 @@ function GetUnits()
 	tinsert(units, "target")
 	tinsert(units, "focus")
 	local members = GetGroupUnits()
-	for i = 1, #members, 1 do 
+	for i = 1, #members, 1 do
 		tinsert(units, members[i])
 		tinsert(units, members[i] .."pet")
 	end
 	tinsert(units, "mouseover")
 	wipe(realUnits)
-    for i = 1, #units do 
+    for i = 1, #units do
         local u = units[i]
         local exists = false
-        for j = 1, #realUnits do 
+        for j = 1, #realUnits do
         exists = IsOneUnit(realUnits[j], u)
-			if exists then break end 
+			if exists then break end
 		end
-        if not exists and InInteractRange(u) then 
-			tinsert(realUnits, u) 
+        if not exists and InInteractRange(u) then
+			tinsert(realUnits, u)
 		end
     end
     return realUnits
@@ -148,25 +48,26 @@ local groupUnits  = {}
 function GetGroupUnits()
 	wipe(groupUnits)
 	tinsert(groupUnits, "player")
-    if not InGroup() then return groupUnits end
+    if not IsInGroup() then return groupUnits end
     local name = "party"
     local size = MAX_PARTY_MEMBERS
-	if InRaid() then
+	if IsInRaid() then
 		name = "raid"
 		size = MAX_RAID_MEMBERS
     end
-    for i = 0, size do 
+    for i = 0, size do
 		tinsert(groupUnits, name..i)
     end
     return groupUnits
 end
 ------------------------------------------------------------------------------------------------------------------
--- /orun DоCommand("cl", GetSameGroupUnit("mouseover"))
+-- /run DоCommand("cl", GetSameGroupUnit("mouseover"))
 function GetSameGroupUnit(unit)
     local group = GetGroupUnits()
     for i = 1, #group do
-        if InOneUnit(unit, group[i]) then return group[i] end
+        if IsOneUnit(unit, group[i]) then return group[i] end
     end
+    return unit
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -177,63 +78,112 @@ function GetTargets()
 	tinsert(targets, "target")
 	tinsert(targets, "focus")
 	if IsArena() then
-		for i = 1, 5 do 
+		for i = 1, 5 do
 			 tinsert(targets, "arena" .. i)
 		end
 	end
-	for i = 1, 4 do 
+	for i = 1, 4 do
 		 tinsert(targets, "boss" .. i)
 	end
 	local members = GetGroupUnits()
-	for i = 1, #members do 
+	for i = 1, #members do
 		 tinsert(targets, members[i] .."-target")
 		 tinsert(targets, members[i] .."pet-target")
 	end
 	tinsert(targets, "mouseover")
 	wipe(realTargets)
-    for i = 1, #targets do 
+    for i = 1, #targets do
         local u = targets[i]
-        
+
         local exists = false
-        for j = 1, #realTargets do 
- 			exists = IsOneUnit(realTargets[j], u) 
-			if exists then break end 
+        for j = 1, #realTargets do
+ 			exists = IsOneUnit(realTargets[j], u)
+			if exists then break end
 		end
-        
-        if not exists and IsValidTarget(u) and (IsArena() or CheckInteractDistance(u, 1) 
-                or IsOneUnit("player", u .. '-target')) then 
-            tinsert(realTargets, u) 
+
+        if not exists and IsValidTarget(u) and (IsArena() or CheckInteractDistance(u, 1)
+                or IsOneUnit("player", u .. '-target')) then
+            tinsert(realTargets, u)
         end
-        
+
     end
     return realTargets
 end
 
 ------------------------------------------------------------------------------------------------------------------
+IsValidTargetInfo = ""
 function IsValidTarget(target)
+    IsValidTargetInfo = ""
     if target == nil then target = "target" end
-    if not UnitExists(target) then return false end
-    if IsIgnored(target) then return false end
-    if UnitIsDeadOrGhost(target) then return false end
-    if UnitIsEnemy("player",target) and UnitCanAttack("player", target) then return true end 
-    if (UnitInParty(target) or UnitInRaid(target)) then return false end 
-    return UnitCanAttack("player", target)
+    if not UnitName(target) then
+        IsValidTargetInfo = "Нет цели"
+        return false
+    end
+    if IsIgnored(target) then
+        IsValidTargetInfo = "Цель в игнор листе"
+        return false
+    end
+    if UnitIsDeadOrGhost(target) and not HasBuff("Притвориться мертвым", 1,target) then
+        IsValidTargetInfo = "Цель дохлая"
+        return false
+    end
+
+    if not UnitCanAttack("player", target) then
+        IsValidTargetInfo = "Невозможно атаковать"
+        return false
+    end
+
+    return true
 end
 
 ------------------------------------------------------------------------------------------------------------------
+IsInteractUnitInfo = ""
 function IsInteractUnit(t)
-    if not UnitExists(t) then return false end
-    if IsIgnored(t) then return false end
-    if IsValidTarget(t) then return false end
-    if UnitIsDeadOrGhost(t) then return false end
-    if UnitIsCharmed(t) then return false end
-    return not UnitIsEnemy("player",t)
+    if not UnitExists(t) then
+    	IsInteractUnitInfo = "Нет юнита " .. t
+    	return false
+    end
+    if IsIgnored(t) then
+    	IsInteractUnitInfo = "В игноре " .. t
+    	return false
+    end
+    if IsValidTarget(t) then
+    	IsInteractUnitInfo = "Валидная цель " .. t
+    	return false
+    end
+    if UnitIsDeadOrGhost(t) then
+    	IsInteractUnitInfo = "Труп или призрак " .. t
+    	return false
+    end
+    if UnitIsCharmed(t) then
+    	IsInteractUnitInfo = "Околдован " .. t
+    	return false
+    end
+    if UnitIsEnemy("player",t) then
+    	IsInteractUnitInfo = "Враждебен "  .. t
+    	return false
+    end
+    return true
 end
 
 ------------------------------------------------------------------------------------------------------------------
+CanHealInfo = ""
 function CanHeal(t)
-    return InInteractRange(t) and not HasDebuff("Смерч", 0.1, t) and IsVisible(t)
-end 
+    CanHealInfo = ""
+    if not InInteractRange(t) then
+        CanHealInfo = "Не в радиусе взаимодействия"
+        return false
+    end
+    if not IsVisible(t) then
+        CanHealInfo = "Вне поля зрения"
+        return false
+    end
+    if HasDebuff("Смерч", 0.1, t) then
+        CanHealInfo = "В Смерче (имунна)"
+        return false
+    end
+    return true
+end
 ------------------------------------------------------------------------------------------------------------------
 function GetClass(target)
     if not target then target = "player" end
@@ -243,10 +193,17 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function HasClass(units, classes)
-	for i = 1, #units do
-        local u = units[i]
-		if UnitExists(u) and UnitIsPlayer(u) and (type(classes) == 'table' and tContains(classes, GetClass(u)) or classes == GetClass(u)) then return true end
-	end
+    local function checkClass(u, classes)
+        return  UnitExists(u) and UnitIsPlayer(u) and (type(classes) == 'table' and tContains(classes, GetClass(u)) or classes == GetClass(u))
+    end
+    if type(units) == 'table' then
+    	for i = 1, #units do
+            local u = units[i]
+    		if checkClass(u, classes) then return true end
+    	end
+    else
+        if checkClass(units, classes) then return true end
+    end
     return false
 end
 
@@ -276,30 +233,21 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function IsOneUnit(unit1, unit2)
     if not UnitExists(unit1) or not UnitExists(unit2) then return false end
-    return UnitGUID(unit1) == UnitGUID(unit2)
+    return unit1 == unit2 or UnitGUID(unit1) == UnitGUID(unit2)
 end
 
 ------------------------------------------------------------------------------------------------------------------
 function UnitThreat(u, t)
+    if not UnitIsPlayer(u) then return 0 end
     local threat = UnitThreatSituation(u, t)
     if threat == nil then threat = 0 end
     return threat
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function UnitThreatAlert(u)
-    local threat, target = UnitThreat(u), format("%s-target", u)
-    if UnitAffectingCombat(target) 
-        and UnitIsPlayer(target) 
-        and IsValidTarget(target) 
-        and IsOneUnit(u, target .. "-target") then threat = 3 end
-    return threat
-end
-
-------------------------------------------------------------------------------------------------------------------
 function UnitHealth100(target)
     if target == nil then target = "player" end
-    return UnitHealth(target) * 100 / UnitHealthMax(target)
+    return UnitHP(target) * 100 / UnitHealthMax(target)
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -309,57 +257,19 @@ function UnitMana100(target)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-local HealComm = LibStub("LibHealComm-4.1")
-
-function UnitGetIncomingHeals(target, s)
-    if not target then 
-        target = "player" 
-    end
-    if not s then 
-        s = 4
-        if UnitThreatAlert(target) == 3 then s = 2 end
-        if UnitHealth100(target) < 40 then return 0 end
-    end
-    local result = HealComm:GetHealAmount(UnitGUID(target), HealComm.ALL_HEALS, GetTime() + s) or 0
-    if HasDebuff("Смертельный удар", 0.1, target) then result = result / 2 end
-    return result
-end
-
-------------------------------------------------------------------------------------------------------------------
-function CalculateHP(t)
-  return 100 * UnitHP(t) / UnitHealthMax(t)
-end
-
-------------------------------------------------------------------------------------------------------------------
 function UnitLostHP(unit)
     local hp = UnitHP(unit)
     local maxhp = UnitHealthMax(unit)
     local lost = maxhp - hp
-    if UnitThreatAlert(unit) == 3 then lost = lost * 1.5 end
     return lost
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function UnitHP(t)
-  local incomingheals = UnitGetIncomingHeals(t)
-  local hp = UnitHealth(t) + incomingheals
-  if hp > UnitHealthMax(t) then hp = UnitHealthMax(t) end
+function UnitHP(unit)
+  --if target == "player" and IsCtr() then return 50 end
+  local hp = UnitHealth(unit) + (UnitGetIncomingHeals(unit) or 0)
+  if hp > UnitHealthMax(unit) then hp = UnitHealthMax(unit) end
   return hp
-end
-
-------------------------------------------------------------------------------------------------------------------
-function InGroup()
-    return (InRaid() or InParty())
-end
-
-------------------------------------------------------------------------------------------------------------------
-function InRaid()
-    return (GetNumRaidMembers() > 0)
-end
-
-------------------------------------------------------------------------------------------------------------------
-function InParty()
-    return (GetNumPartyMembers() > 0)
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -376,5 +286,38 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function IsPvP()
-    return (IsBattleground() or IsArena() or (IsValidTarget("target") and UnitIsPlayer("target")))
+    if InDuel() then return true end
+    if IsValidTarget("target") and UnitIsPlayer("target") then return true end
+    local inInstance, instanceType = IsInInstance()
+    return (inInstance ~= nil and (instanceType =="arena" or instanceType =="pvp")) or (IsValidTarget("target") and UnitIsPlayer("target"))
 end
+------------------------------------------------------------------------------------------------------------------
+function PlayerInPlace()
+    return (GetUnitSpeed("player") == 0) and not IsFalling()
+end
+
+------------------------------------------------------------------------------------------------------------------
+function PlayerFacingTarget(unit)
+    if not UnitExists(unit) or IsOneUnit("player",unit) then return false end
+    local facing = GetPlayerFacing()
+    local x1,y1 = UnitPosition("player")
+    local x2,y2 = UnitPosition(unit)
+    local yawAngle = atan2(y1 - y2, x1 - x2) - deg(facing)
+    if yawAngle < 0 then yawAngle = yawAngle + 360 end
+    return yawAngle > 90 and yawAngle < 270
+end
+------------------------------------------------------------------------------------------------------------------
+function InCombatMode()
+    if IsValidTarget("target") then
+      TimerStart('CombatTarget')
+    end
+    if InCombatLockdown() then
+      TimerStart('CombatLock')
+    end
+    if IsAttack() then
+      return true
+    end
+    if TimerLess('CombatLock', 1) and TimerLess('CombatTarget', 3) then return true end
+    return false
+end
+------------------------------------------------------------------------------------------------------------------

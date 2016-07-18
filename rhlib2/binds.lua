@@ -1,14 +1,23 @@
-﻿-- Rotation Helper Library by Timofeev Alexey
+-- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
 -- l18n
 BINDING_HEADER_RHLIB = "Rotation Helper Library"
+BINDING_NAME_RHLIB_FACE = "Лицом к Цели"
 BINDING_NAME_RHLIB_OFF = "Выкл ротацию"
 BINDING_NAME_RHLIB_DEBUG = "Вкл/Выкл режим отладки"
 BINDING_NAME_RHLIB_RELOAD = "Перезагрузить интерфейс"
-------------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------------
 -- Условие для включения ротации
+function TryAttack()
+    if Paused then return end
+    TimerStart('Attack')
+end
 function IsAttack()
-    return (IsMouseButtonDown(4) == 1)
+    if IsMouse(4) then
+        TimerStart('Attack')
+    end
+
+    return TimerLess('Attack', 0.5)
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -16,299 +25,129 @@ if Paused == nil then Paused = false end
 -- Отключаем авторотацию, при повторном нажатии останавливаем каст (если есть)
 function AutoRotationOff()
     if IsPlayerCasting() and Paused then
-        orun("/stopcasting")
+        StopCast("Pause")
     end
     Paused = true
-    orun("/stopattack")
-    orun("/petfollow")
-    echo("Авто ротация: OFF",true)
+    TimerReset('Attack')
+    oexecute("StopAttack()")
+    oexecute("PetFollow()")
+    echo("Авто ротация: OFF")
 end
+
+function IsPaused()
+    if Paused then return true end
+    for i = 1, 72 do
+        local btn = _G["BT4Button"..i]
+        if btn ~= nil then
+            if btn:GetButtonState() == 'PUSHED' then
+                TimerStart('Paused')
+                return true
+            end
+        else
+            break
+        end
+    end
+    local t = 0.3
+    local spell, _, _, _, _, endTime  = UnitCastingInfo("player")
+    if not spell then spell, _, _, _, _, endTime, _, nointerrupt = UnitChannelInfo("player") end
+    if spell and endTime then
+        t = t + endTime/1000 - GetTime()
+    end
+    return TimerLess('Paused', t)
+end
+
+
+------------------------------------------------------------------------------------------------------------------
+function FaceToTarget(force)
+    if not force and (IsMouselooking() or not PlayerInPlace()) then
+      return
+    end
+    if not force then force = not PlayerFacingTarget("target") end
+    if force and TimerMore("FaceToTarget", 2) and UnitExists("target") and FaceToUnit then
+        TimerStart("FaceToTarget")
+        FaceToUnit("target")
+    end
+end
+
+local function updateFaceTotTarget(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, info = ...
+    if type:match("SPELL_CAST_FAILED") and sourceGUID == UnitGUID("player")
+        and (amount == "Цель должна быть перед вами." or amount == "Цель вне поля зрения.") then
+        FaceToTarget()
+    end
+end
+AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateFaceTotTarget)
 
 ------------------------------------------------------------------------------------------------------------------
 if Debug == nil then Debug = false end
--- Переключает режим отладки, а так же и показ ошибок lua
+
+local debugFrame = CreateFrame('Frame')
+debugFrame:ClearAllPoints()
+debugFrame:SetHeight(15)
+debugFrame:SetWidth(800)
+debugFrame.text = debugFrame:CreateFontString(nil, 'BACKGROUND', 'GameFontNormalSmallLeft')
+debugFrame.text:SetAllPoints()
+debugFrame:SetPoint('TOPLEFT', 2, 0)
+debugFrame:SetScale(0.8);
+debugFrame:SetAlpha(1)
+local updateDebugStatsTime = 0
+local function updateDebugStats()
+    if not Debug then
+        if debugFrame:IsVisible() then debugFrame:Hide() end
+        return
+    end
+    if TimerLess('DebugFrame', 0.5) then return end
+    TimerStart('DebugFrame')
+    UpdateAddOnMemoryUsage()
+    UpdateAddOnCPUUsage()
+    local mem  = GetAddOnMemoryUsage("rhlib5")
+    local fps = GetFramerate();
+    local speed = GetUnitSpeed("player") / 7 * 100
+    debugFrame.text:SetText(format('MEM: %.1fKB, LAG: %ims, FPS: %i, SPD: %d%%', mem, LagTime * 1000, fps, speed))
+    if not debugFrame:IsVisible() then debugFrame:Show() end
+end
+
+AttachUpdate(updateDebugStats)
+
 function DebugToggle()
     Debug = not Debug
     if Debug then
+        debugFrame:Show()
         SetCVar("scriptErrors", 1)
-        echo("Режим отладки: ON",true)
+        --UIErrorsFrame:RegisterEvent("UI_ERROR_MESSAGE");
+        SetCVar("Sound_EnableErrorSpeech", "1");
+        echo("Режим отладки: ON")
     else
+        debugFrame:Hide()
         SetCVar("scriptErrors", 0)
-        echo("Режим отладки: OFF",true)
+        --UIErrorsFrame:UnregisterEvent("UI_ERROR_MESSAGE");
+        SetCVar("Sound_EnableErrorSpeech", "0");
+        echo("Режим отладки: OFF")
     end
 end
 
 ------------------------------------------------------------------------------------------------------------------
 -- Вызывает функцию Idle если таковая имеется, с заданным рекомендованным интервалом UpdateInterval,
 -- при включенной Авто-ротации
-local iTargets = {"target", "focus", "mouseover"}
-TARGETS = iTargets
-ITARGETS = iTargets
-UNITS = {"player"}
-IUNITS = UNITS -- Important Units
-local StartTime = GetTime()
-local function getUnitWeight(u)
-    local w = 0
-    if IsFriend(u) then w = 2 end
-    if IsOneUnit(u, "player") then w = 3 end
-    return w
-end
-local unitWeights = {}
-local friendTargets = {}
-local function compareUnits(u1,u2) return unitWeights[u1] < unitWeights[u2] end
-local function getTargetWeight(t)
-    local w = friendTargets[UnitGUID(t)] or 0
-    if IsOneUnit("focus", t) then w = 3 end
-    if IsOneUnit("target", t) then w = 4 end
-    if IsOneUnit("mouseover", t) then w = 5 end
-    w = w + (1 - UnitHealth100(t) / 100)
-    return w
-end
-local targetWeights = {}
-local function compareTargets(t1,t2) return targetWeights[t1] < targetWeights[t2] end
-local function UpdateIdle()
-    if (IsAttack() and Paused) then
-        echo("Авто ротация: ON",true)
-        Paused = false
+
+------------------------------------------------------------------------------------------------------------------
+function UpdateIdle(elapsed)
+
+    if nil == oexecute then
+        echo("Требуется магичеcкое действие!!!")
+        return
     end
 
     if UpdateCommands() then return end
 
-    if Paused then return end
+    if UnitIsDeadOrGhost("player") or IsPaused() then return end
 
-    if GetTime() - StartTime < 2 then return end
+    ------------------------------------------------------------------------------------------------------------------
 
-    if UnitIsDeadOrGhost("player") or UnitIsCharmed("player")
-        or not UnitPlayerControlled("player") then return end
-    if UpdateInterval > 0 then
-        -- Update units
-        UNITS = GetUnits()
-        wipe(unitWeights)
-        wipe(friendTargets)
-        for i=1,#UNITS do
-            local u = UNITS[i]
-            unitWeights[u] = getUnitWeight(u)
-
-            local guid = UnitGUID(u .. "-target")
-            if guid then
-                local w = friendTargets[guid] or 1
-                if w < 2 and IsFriend(u) then w = 2 end
-                friendTargets[guid] = w
-            end
-        end
-        table.sort(UNITS, compareUnits)
-
-        -- Update targets
-        TARGETS = GetTargets()
-        wipe(targetWeights)
-        for i=1,#TARGETS do
-            local t = TARGETS[i]
-            targetWeights[t] = getTargetWeight(t)
-        end
-        table.sort(TARGETS, compareTargets)
-        wipe(IUNITS)
-        for i = 0, #UNITS do
-            local u = UNITS[i]
-        	if IsArena() or IsFriend(u) then
-    			tinsert(IUNITS, u)
-    		end
-    	end
-        ITARGETS = IsArena() and iTargets or TARGETS
+    if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then
+        oexecute('FocusUnit("mouseover")')
     end
+
     if Idle then Idle() end
 end
-AttachUpdate(UpdateIdle, -1000)
-
 ------------------------------------------------------------------------------------------------------------------
---Arena Raid Icons
-local unitCD = {}
-local raidIconsByClass = {WARRIOR=8,DEATHKNIGHT=7,PALADIN=3,PRIEST=5,SHAMAN=6,DRUID=2,ROGUE=1,MAGE=8,WARLOCK=3,HUNTER=4}
-local function UpdateArenaRaidIcons(event, ...)
-    if IsArena() then
-        local members = GetGroupUnits()
-        for i=1, #members do
-            local u = members[i]
-            if UnitExists(u) and not GetRaidTargetIndex(u) and (not unitCD[u] or GetTime() - unitCD[u] > 5) then
-                SetRaidTarget(u,raidIconsByClass[select(2,UnitClass(u))])
-                unitCD[u] = GetTime()
-            end
-        end
-	end
-end
-AttachEvent("GROUP_ROSTER_UPDATE", UpdateArenaRaidIcons)
-AttachEvent("ARENA_OPPONENT_UPDATE", UpdateArenaRaidIcons)
-AttachEvent("ARENA_PREP_OPPONENT_SPECIALIZATIONS", UpdateArenaRaidIcons)
-------------------------------------------------------------------------------------------------------------------
--- Фиксим возможные подвисвния CombatLog
-local CombatLogTimer = GetTime();
-local CombatLogResetTimer = GetTime();
-
-local function UpdateCombatLogFix()
-    if InCombatLockdown()
-        and GetTime() - CombatLogTimer > 15
-        and GetTime() - CombatLogResetTimer > 30 then
-        CombatLogClearEntries()
-        --chat("Reset CombatLog!")
-        CombatLogResetTimer = GetTime()
-    end
-end
-AttachUpdate(UpdateCombatLogFix)
-
-local function UpdateCombatLogTimer(event, ...)
-    CombatLogTimer = GetTime()
-end
-AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateCombatLogTimer)
-
-------------------------------------------------------------------------------------------------------------------
--- Мониторим, когда начался и когда закончился бой
-local startCombatTime
-local endCombatTime
-local function UpdateCombatTimers()
-    if InCombatLockdown() then
-        if not startCombatTime then
-            startCombatTime = GetTime()
-        end
-        endCombatTime = nil
-    else
-        if not endCombatTime then
-            endCombatTime = GetTime()
-        end
-        startCombatTime = nil
-
-    end
-end
-AttachUpdate(UpdateCombatTimers)
-
-function InCombat(t)
-    if not t then t = 0 end
-    return InCombatLockdown() and startCombatTime and GetTime() - startCombatTime > t
-end
-function NotInCombat(t)
-    if not t then t = 0 end
-    return not InCombatLockdown() and endCombatTime and GetTime() - endCombatTime > t
-end
-
--- Лайфхак, чтоб не разбиться об воду при падении с высоты (защита от ДК с повышенным чувством юмора)
-local FallingTime
-local function UpdateFallingFix()
-    if IsFalling() then
-        if FallingTime == nil then FallingTime = GetTime() end
-        if FallingTime and (GetTime() - FallingTime > 1) then
-            if HasBuff("Хождение по воде") then orun("/cancelaura Хождение по воде") end
-            if HasBuff("Льдистый путь") then orun("/cancelaura Льдистый путь") end
-        end
-    else
-        if FallingTime ~= nil then FallingTime = nil end
-    end
-end
-AttachUpdate(UpdateFallingFix)
-
-------------------------------------------------------------------------------------------------------------------
--- нас сапнул рога
-function UpdateSapped(event, ...)
-    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err = select(1, ...)
-	if spellName == "Ошеломление"
-	and destGUID == UnitGUID("player")
-	and (type == "SPELL_AURA_APPLIED" or type == "SPELL_AURA_REFRESH")
-	then
-		orun("/к Меня сапнули, помогите плиз!")
-		Notify("Словил сап от роги: "..(sourceName or "(unknown)"))
-	end
-end
-AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateSapped)
-------------------------------------------------------------------------------------------------------------------
--- Alert опасных спелов
-local checkedTargets = {"target", "focus", "arena1", "arena2", "mouseover"}
-
---[[
-SPELL_AURA_APPLIED Авиена Покаяние Омниссия
-SPELL_CAST_SUCCESS Омниссия Каждый за себя nil
-SPELL_AURA_REMOVED Авиена Покаяние Омниссия
-]]
-
-function UpdateSpellAlert(event, ...)
-    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err = select(1, ...)
-    --[[if sourceName == UnitName("player") or sourceName == UnitName("target") then
-        print(type, sourceName, spellName, destName)
-    end]]
-    if InAlertList(spellName) then
-        for i=1,#checkedTargets do
-            local t = checkedTargets[i]
-            if IsValidTarget(t) and UnitGUID(t) == sourceGUID then
-                type = strreplace(type, "SPELL_AURA_", "")
-                Notify("|cffff7d0a" .. spellName .. " ("..(sourceName or "unknown")..")|r  - " .. type .. "!")
-                PlaySound("RaidWarning", "master");
-                break
-            end
-        end
-    end
-end
-AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateSpellAlert)
-------------------------------------------------------------------------------------------------------------------
--- Автоматическая продажа хлама и починка
-local function SellGrayAndRepair()
-    SellGray();
-    RepairAllItems(1); -- сперва пробуем за счет ги банка
-    RepairAllItems();
-end
-AttachEvent('MERCHANT_SHOW', SellGrayAndRepair)
-
-------------------------------------------------------------------------------------------------------------------
--- Запоминаем вредоносные спелы которые нужно кастить (нужно для сбивания кастов, например тотемом заземления)
-if HarmfulCastingSpell == nil then HarmfulCastingSpell = {} end
-function IsHarmfulCast(spellName)
-    return HarmfulCastingSpell[spellName]
-end
-
-local function UpdateHarmfulSpell(event, ...)
-    local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
-    if event:match("SPELL_DAMAGE") and spellName and agrs12 > 0 then
-        local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellID)
-        if castTime > 0 then HarmfulCastingSpell[name] = true end
-    end
-end
-AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateHarmfulSpell)
-
-------------------------------------------------------------------------------------------------------------------
-local debugFrame
-local debugFrameTime = 0
-local function debugFrame_OnUpdate()
-        if (debugFrameTime > 0 and debugFrameTime < GetTime() - 1) then
-                local alpha = debugFrame:GetAlpha()
-                if (alpha ~= 0) then debugFrame:SetAlpha(alpha - .005) end
-                if (aplha == 0) then
-					debugFrame:Hide()
-					debugFrameTime = 0
-				end
-        end
-end
--- Debug & Notification Frame
-debugFrame = CreateFrame('Frame')
-debugFrame:ClearAllPoints()
-debugFrame:SetHeight(15)
-debugFrame:SetWidth(800)
-debugFrame:SetScript('OnUpdate', debugFrame_OnUpdate)
-debugFrame:Hide()
-debugFrame.text = debugFrame:CreateFontString(nil, 'BACKGROUND', 'GameFontNormalSmallLeft')
-debugFrame.text:SetAllPoints()
-debugFrame:SetPoint('TOPLEFT', 70, 0)
-
--- Debug messages.
-function debug(message)
-        debugFrame.text:SetText(message)
-        debugFrame:SetAlpha(1)
-        debugFrame:Show()
-        debugFrameTime = GetTime()
-end
-
-local updateDebugStatsTime = 0
-local function UpdateDebugStats()
-	if not Debug or GetTime() - updateDebugStatsTime < 0.5 then return end
-    updateDebugStatsTime = GetTime()
-	UpdateAddOnMemoryUsage()
-    UpdateAddOnCPUUsage()
-    local mem  = GetAddOnMemoryUsage("rhlib2")
-    local fps = GetFramerate();
-    debug(format('MEM: %.1fKB, LAG: %ims, FPS: %i', mem, LagTime * 1000, fps))
-end
-AttachUpdate(UpdateDebugStats)

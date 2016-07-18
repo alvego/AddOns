@@ -10,9 +10,9 @@ if CanInterrupt == nil then CanInterrupt = true end
 function UseInterrupt()
     CanInterrupt = not CanInterrupt
     if CanInterrupt then
-        echo("Interrupt: ON",true)
+        echo("Interrupt: ON")
     else
-        echo("Interrupt: OFF",true)
+        echo("Interrupt: OFF")
     end
 end
 ------------------------------------------------------------------------------------------------------------------
@@ -22,20 +22,20 @@ if AutoAOE == nil then AutoAOE = true end
 function AutoAOEToggle()
     AutoAOE = not AutoAOE
     if AutoAOE then
-        echo("Авто АОЕ: ON",true)
+        echo("Авто АОЕ: ON")
     else
-        echo("Авто АОЕ: OFF",true)
+        echo("Авто АОЕ: OFF")
     end
 end
 
 
 function IsAOE()
-   return (IsShiftKeyDown() == 1)
+   return IsShift()
 end
 
 ------------------------------------------------------------------------------------------------------------------
 function IsBurst()
-   return (IsControlKeyDown() == 1)
+   return IsCtrl()
 end
 
 ------------------------------------------------------------------------------------------------------------------

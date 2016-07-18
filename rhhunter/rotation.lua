@@ -12,7 +12,7 @@ function Idle()
     -- дайте поесть спокойно
     if not IsAttack() and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
     -- чтоб контроли не сбивать
-    if not CanControl("target") then orun("/stopattack") end
+    if not CanControl("target") then omacro("/stopattack") end
    ---------------------------------------------------------------------------------------------------------------
     -- Выбор цели
     if IsAttack() or InCombatLockdown() then TryTarget() end
@@ -28,7 +28,7 @@ function Rotation()
     if not IsAttack() and not CanAttack() then return end
     if not (UnitAffectingCombat("target") or IsAttack()) then return end
     if not IsValidTarget("target") then return end
-    orun("/startattack")
+    omacro("/startattack")
     if not HasMyDebuff("Метка охотника", 0.5,"target") and DoSpell("Метка охотника", "target") then return end
     if not HasMyDebuff("Укус змеи", 0.5,"target") and DoSpell("Укус змеи", "target") then return end
     if DoSpell("Контузящий выстрел", "target") then return end
@@ -47,11 +47,11 @@ function TryTarget()
     -- помощь в группе
     if not IsValidTarget("target") and InGroup() then
         -- если что-то не то есть в цели
-        if UnitExists("target") then orun("/cleartarget") end
+        if UnitExists("target") then omacro("/cleartarget") end
         for i = 1, #TARGET do
             local t = TARGET[i]
             if t and (UnitAffectingCombat(t) or IsPvP()) and ActualDistance(t) and (not IsPvP() or UnitIsPlayer(t))  then
-                orun("/startattack " .. target)
+                omacro("/startattack " .. target)
                 break
             end
         end
@@ -59,12 +59,12 @@ function TryTarget()
     -- пытаемся выбрать ну хоть что нибудь
     if not IsValidTarget("target") then
         -- если что-то не то есть в цели
-        if UnitExists("target") then orun("/cleartarget") end
+        if UnitExists("target") then omacro("/cleartarget") end
 
         if IsPvP() then
-            orun("/targetenemyplayer [nodead]")
+            omacro("/targetenemyplayer [nodead]")
         else
-            orun("/targetenemy [nodead]")
+            omacro("/targetenemy [nodead]")
         end
         if not IsAttack()  -- если в авторежиме
             and (
@@ -73,7 +73,7 @@ function TryTarget()
             or (not IsPvP() and not UnitAffectingCombat("target")) -- моб не в бою
             or (IsPvP() and not UnitIsPlayer("target")) -- не игрок в пвп
             )  then
-            if UnitExists("target") then orun("/cleartarget") end
+            if UnitExists("target") then omacro("/cleartarget") end
         end
     end
 end

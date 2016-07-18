@@ -1,10 +1,10 @@
 ## Author: Timofeev Alvexey & Co
-## Title:|cff0055ffRotation Helper|r|cffffe00a > |cffff4080Paladin|r 
+## Title:|cff0055ffRotation Helper|r|cffffe00a > |cffff4080Paladin|r
 ## Version: 2.0
 ## DefaultState: Disabled
 ## Interface: 30300
 ## Dependencies: rhlib2
-## SavedVariables: AutoAGGRO, CanInterrupt, DispelBlacklist, DispelWhitelist
+## SavedVariables: AutoAGGRO, CanInterrupt
 commands.lua
 rotation.lua
 binds.lua

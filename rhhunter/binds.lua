@@ -9,9 +9,9 @@ if CanInterrupt == nil then CanInterrupt = true end
 function UseInterrupt()
     CanInterrupt = not CanInterrupt
     if CanInterrupt then
-        echo("Interrupt: ON",true)
+        echo("Interrupt: ON")
     else
-        echo("Interrupt: OFF",true)
+        echo("Interrupt: OFF")
     end
 end
 ------------------------------------------------------------------------------------------------------------------

@@ -1,4 +1,6 @@
-﻿-- Rotation Helper Library by Timofeev Alexey
+-- Rotation Helper Library by Timofeev Alexey
+------------------------------------------------------------------------------------------------------------------
+local GetTime = GetTime
 ------------------------------------------------------------------------------------------------------------------
 function Runes(slot)
     local c = 0
@@ -44,4 +46,3 @@ function GetRuneCooldownLeft(id)
     if left < 0 then left = 0 end
     return left
 end
-

@@ -1,4 +1,6 @@
-﻿-- Rotation Helper Library by Timofeev Alexey
+-- Rotation Helper Library by Timofeev Alexey
+------------------------------------------------------------------------------------------------------------------
+local GetTime = GetTime
 ------------------------------------------------------------------------------------------------------------------
 -- Время сетевой задержки
 LagTime = 0
@@ -6,8 +8,7 @@ local lastUpdate = 0
 local function UpdateLagTime()
     if GetTime() - lastUpdate < 30 then return end
     lastUpdate = GetTime()
-    LagTime = tonumber(select(3, GetNetStats()) / 1000)  * 1.5
-
+    LagTime = tonumber((select(3, GetNetStats()) or 0)) / 1000
 end
 AttachUpdate(UpdateLagTime)
 local sendTime = 0
@@ -19,7 +20,7 @@ local function CastLagTime(event, ...)
         end
         if event == "UNIT_SPELLCAST_START" then
             if not sendTime then return end
-            LagTime = GetTime() - sendTime
+            LagTime = (GetTime() - sendTime) / 2
         end
     end
 end
@@ -27,15 +28,51 @@ AttachEvent('UNIT_SPELLCAST_START', CastLagTime)
 AttachEvent('UNIT_SPELLCAST_SENT', CastLagTime)
 
 ------------------------------------------------------------------------------------------------------------------
-function IsPlayerCasting()
+function StopCast(info)
+    if not info then info = "?" end
+    if Debug then chat("Stop Cast! ( ".. info .. " )") end
+    oexecute("SpellStopCasting()")
+end
+------------------------------------------------------------------------------------------------------------------
+function GetKickInfo(target)
+    if target == nil then target = "target" end
+    if not CanAttack(target) then return end
+    local channel = false
+    -- name, subText, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible = UnitCastingInfo("unit")
+    local spell, _, _, _, startTime, endTime, _, _, notinterrupt = UnitCastingInfo(target)
+    if not spell then
+        --name, subText, text, texture, startTime, endTime, isTradeSkill, notInterruptible = UnitChannelInfo("unit")
+        spell, _, _, _, startTime, endTime, _, nointerrupt = UnitChannelInfo(target)
+        channel = true
+    end
+    if not spell then return nil end
+    if IsPvP() and not tContains(InterruptRedList, spell) then return end
+    local s = startTime / 1000 -- время начала каста
+    local c = GetTime() -- текущее время
+    local e = endTime / 1000 -- время конца каста
+    local t = e - c -- осталось до конца каста
+    local l = e - s -- время каста
+    local d = 0.2 + 0.3 * random() -- время задержки интерапта, чтоб не палить контору.
+    if d > l * 0.8 then d = l - 0.3 end -- если каст меньше задержки, уменьшаем задержку
+    if c - s < d then return end -- если пока рано сбивать, выходим (задержка)
+    if t < (channel and 0.5 or 0.2) then  return  end -- если уже докастил, нет смысла трепыхаться, тунелинг - нет смысла сбивать последний тик
+    local name = UnitName(target)
+    name = name or target
+    local m = " -> " .. spell .. " ("..name..")"
+    return spell, t, channel, notinterrupt, m
+end
+
+------------------------------------------------------------------------------------------------------------------
+--IsPlayerCasting(1)  кастим, но меньше секунды
+function IsPlayerCasting(less)
     local spell, rank, displayName, icon, startTime, endTime = UnitCastingInfo("player")
     if spell == nil then
         spell, rank, displayName, icon, startTime, endTime = UnitChannelInfo("player")
     end
-    if not spell or not endTime then return false end
+    if not spell or not endTime then return nil end
     local res = ((endTime/1000 - GetTime()) < LagTime)
-    if res then return false end
-    return true
+    if res then return nil end
+    return less and (GetTime() - startTime / 1000 < less) or true
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -60,81 +97,65 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function HasSpell(spellName)
-    local spell = GetSpellInfo(spellName)
-    return (spell == spellName)
+    if GetSpellInfo(spellName) then return true end
+    return false
 end
 ------------------------------------------------------------------------------------------------------------------
--- Use these spells to detect GCD
-local GCDSpells = {
-    PALADIN = 635,       -- Holy Light I [OK]
-    PRIEST = 1243,       -- Power Word: Fortitude I
-    SHAMAN = 8071,       -- Rockbiter I
-    WARRIOR = 772,       -- Rend I (only from level 4) [OK]
-    DRUID = 5176,        -- Wrath I
-    MAGE = 168,          -- Frost Armor I
-    WARLOCK = 687,       -- Demon Skin I
-    ROGUE = 1752,        -- Sinister Strike I
-    HUNTER = 1978,       -- Serpent Sting I (only from level 4)
-    DEATHKNIGHT = 45902, -- Blood Strike I
-}
-GCDSpellID = GCDSpells[GetClass()]
+local gcd_starttime, gcd_duration
+local function updateGCD(_, start, dur, enable)
+    if start > 0 and enable > 0 then
+        if dur and dur > 0 and dur <= 1.5 then
+            gcd_starttime = start
+            gcd_duration = dur
+        end
+    end
+end
+hooksecurefunc("CooldownFrame_SetTimer", updateGCD)
+
+function GetGCDLeft()
+    if not gcd_starttime then return 0 end
+    local t = GetTime() - gcd_starttime
+    if  t  > gcd_duration then
+        return 0
+    end
+    return gcd_duration - t
+end
+
 
 function InGCD()
-    local left = GetSpellCooldownLeft(GCDSpellID)
-    return (left > LagTime)
+    return GetGCDLeft() > LagTime
+end
+
+local abs = math.abs
+function IsReady(left, checkGCD)
+    if checkGCD == nil then checkGCD = false end
+    if not checkGCD then
+        local gcdLeft = GetGCDLeft()
+        if (abs(left - gcdLeft) < 0.01) then return true end
+    end
+    if left > LagTime then return false end
+    return true
 end
 ------------------------------------------------------------------------------------------------------------------
--- Interact range - 40 yards
-local interactSpells = {
-    DRUID = "Целительное прикосновение",
-    PALADIN = "Свет небес",
-    SHAMAN = "Волна исцеления",
-    PRIEST = "Малое исцеление"
-}
-InteractRangeSpell = interactSpells[GetClass()]
-
-
 function InInteractRange(unit)
     -- need test and review
     if (unit == nil) then unit = "target" end
-    if not UnitExists(unit) then return false end
     if not IsInteractUnit(unit) then return false end
-    if IsOneUnit(unit, "player") then return true end
-    if InteractRangeSpell then return IsSpellInRange(InteractRangeSpell, unit) == 1 end
-    if IsArena() then return true end
-    return InDistance("player", unit, 40)
+    return IsItemInRange(34471, unit) == 1
 end
 ------------------------------------------------------------------------------------------------------------------
-local meleeSpells = {
-    DRUID = "Цапнуть",
-    DEATHKNIGHT = "Удар чумы",
-    PALADIN = "Щит праведности",
-    SHAMAN = "Удар бури",
-    WARRIOR = "Кровопускание"
-}
-MeleeSpell = meleeSpells[GetClass()]
 function InMelee(target)
     if (target == nil) then target = "target" end
-    if MeleeSpell then return IsSpellInRange(MeleeSpell, unit) == 1 end
-    return InDistance("player", unit, 5)
+    return IsItemInRange(37727, target) == 1
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function SpellCastTime(spell)
-    local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spell)
-    if not name then return 0 end
-    return castTime / 1000
-end
 
-------------------------------------------------------------------------------------------------------------------
-function IsReadySpell(name)
+function IsReadySpell(name, checkGCD)
     local usable, nomana = IsUsableSpell(name)
     if not usable then return false end
     local left = GetSpellCooldownLeft(name)
-    if left > LagTime then return false end
-    local spellName, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(name)
-    if cost and cost > 0 and not(powerType == -2 and UnitHealth("player") > cost*2 or UnitPower("player", powerType) >= cost) then return false end
-    return IsSpellNotUsed(name, 0.5)
+    return IsSpellNotUsed(name, 0.5) and IsReady(left, checkGCD)
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -143,22 +164,20 @@ function GetSpellCooldownLeft(name)
     if enabled ~= 1 then return 1 end
     if not start then return 0 end
     if start == 0 then return 0 end
-    local left = start + duration - GetTime()
-    return left
+    return start + duration - GetTime()
 end
 
 ------------------------------------------------------------------------------------------------------------------
 function UseMount(mountName)
     if IsPlayerCasting() then return false end
     if InGCD() then return false end
-    if IsMounted()then return false end
-    if Debug then
+    if IsMounted() then return false end
+    --[[if Debug then
         print(mountName)
-    end
-    orun("/use "..mountName)
+    end]]
+    omacro("/use " .. mountName)
     return true
 end
-
 ------------------------------------------------------------------------------------------------------------------
 function InRange(spell, target)
     if target == nil then target = "target" end
@@ -209,10 +228,13 @@ function IsSpellNotUsed(spell, t)
     return GetTime() - last >= t
 end
 
+
 function IsSpellInUse(spellName)
-    if not spellName or not InCast[spellName] or not InCast[spellName].StartTime then return false end
+    -- нет спела -- Используется сейчас
+    if not spellName or IsCurrentSpell(spellName) then return true end
+    if not InCast[spellName] or not InCast[spellName].StartTime then return false end
     local start = InCast[spellName].StartTime
-    if (GetTime() - start <= 0.5) then return true end
+    if (GetTime() - start <= LagTime) then return true end
     if IsReadySpell(spellName) then InCast[spellName].StartTime = 0 end
     return false
 end
@@ -229,27 +251,43 @@ end
 local notVisible = {}
 --~ Цель в поле зрения.
 function IsVisible(target)
+    if UnitInLos then return not UnitInLos(target) end
     return checkTargetInErrList(target, notVisible)
 end
 
 local notInView = {}
 -- передо мной
 function IsInView(target)
+    if PlayerFacingTarget then return PlayerFacingTarget(target) end
     return checkTargetInErrList(target, notInView)
 end
 
 local notBehind = {}
 -- за спиной цели
 function IsBehind(target)
+    --if BehindUnit then return BehindUnit(target) end
     return checkTargetInErrList(target, notBehind)
 end
 
+local lastFailedSpellTime = {}
+local lastFailedSpellError = {}
 
+function GetLastSpellError(spellName, t)
+    if not spellName then return nil end
+    local lastTime = lastFailedSpellTime[spellName]
+    if t and lastTime and (GetTime() - lastTime > t) then return nil end
+    return lastFailedSpellError[spellName]
+end
 
 local function UpdateTargetPosition(event, ...)
-    local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
-    if sourceGUID == UnitGUID("player") and (event:match("^SPELL_CAST") and spellID and spellName)  then
-        local err = agrs12
+
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, info = ...
+    if sourceGUID == UnitGUID("player") and sContains(type, "SPELL_CAST_FAILED") and spellId and spellName  then
+        local err = amount
+        if err then
+            lastFailedSpellTime[spellName] = GetTime()
+            lastFailedSpellError[spellName] = err
+        end
         local cast = getCastInfo(spellName)
         local guid = cast.TargetGUID or nil
         if err and guid then
@@ -267,46 +305,42 @@ local function UpdateTargetPosition(event, ...)
 end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateTargetPosition)
 ------------------------------------------------------------------------------------------------------------------
-local badSpellTarget = {}
---local cameraCD = 0;
-local inCastSpells = {"Трепка", "Рунический удар", "Удар героя", "Рассекающий удар", "Гиперскоростное ускорение", "Нарукавная зажигательная ракетница"} -- TODO: Нужно уточнить и дополнить.
-function UseSpell(spellName, target)
-    local dump = false --spellName == "Смерть и разложение"
-    if dump then print("Пытаемся прожать", spellName, "на", target) end
-    --if spellName == "Священный щит" then error("Щит") end
 
-    -- Не мешаем выбрать область для спела (нажат вручную)
-    if SpellIsTargeting() then
-        if dump then print("Ждем выбор цели, не можем прожать", spellName) end
-        return false
-    end
+
+
+
+local badSpellTarget = {}
+function UseSpell(spellName, target)
+    local dump = false --spellName == "Целительный ливень"
     -- Не пытаемся что либо прожимать во время каста
     if IsPlayerCasting() then
         if dump then print("Кастим, не можем прожать", spellName) end
         return false
     end
-    if target == nil and IsHarmfulSpell(spellName) then target = "target" end
+    local manual = target == false;
+    if manual then target = nil end
+    if target == nil then target = "target" end
+    if dump then print("Пытаемся прожать", spellName, "на", target) end
+    if SpellIsTargeting() then
+        -- Не мешаем выбрать область для спела (нажат вручную)
+        if dump then print("Ждем выбор цели, не можем прожать", spellName) end
+        if TimerStarted('Manual') and TimerMore('Manual', 3) then oexecute('SpellStopTargeting()') end
+        return false
+    else
+        TimerReset('Manual')
+    end
     -- Проверяем на наличе спела в спелбуке
     local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spellName)
-    if not name or (name ~= spellName)  then
+    if not name then
         if Debug then error("Спел [".. spellName .. "] не найден!") end
         return false;
     end
     -- проверяем, что этот спел не используется сейчас
-    local IsBusy = IsSpellInUse(spellName)
-    if IsBusy then
-        if dump then print("Уже прожали, SPELL_SENT пошел, не можем больше прожать", spellName) end
+    if IsSpellInUse(spellName) then
+        if dump then print("Уже прожали, не можем больше прожать", spellName) end
         return false
     end
-     -- проверяем, что не кастится другой спел
-     for s,_ in pairs(InCast) do
-		if not IsBusy and not tContains(inCastSpells, s) and IsSpellInUse(s) then
-            if dump then print("Уже прожали " .. s .. ", ждем окончания, пока не можем больше прожать", spellName) end
-            IsBusy = true
-        end
-     end
-    if IsBusy then return false end
-    -- проверяем, что цель подходящая для этого спела
+
     if UnitExists(target) and badSpellTarget[spellName] then
         local badTargetTime = badSpellTarget[spellName][UnitGUID(target)]
         if badTargetTime and (GetTime() - badTargetTime < 10) then
@@ -316,50 +350,79 @@ function UseSpell(spellName, target)
             return false
         end
     end
+
     -- проверяем что цель в зоне досягаемости
     if not InRange(spellName, target) then
         if dump then print(target," - Цель вне зоны досягаемости, не можем прожать", spellName) end
         return false
     end
+
     -- Проверяем что все готово
-    if IsReadySpell(spellName) then
-        -- собираем команду
-        local cast = "/cast "
-        -- с учетом цели
-        if target ~= nil then cast = cast .."[@".. target .."] "  end
-        -- проверяем, хватает ли нам маны
-        if cost and cost > 0 and UnitManaMax("player") > cost and UnitMana("player") <= cost then
-            if dump then print("Не достаточно маны, не можем прожать", spellName) end
-            return false
-        end
-        if UnitExists(target) then
-            -- данные о кастах
-            local castInfo = getCastInfo(spellName)
-            castInfo.Target = target
-            castInfo.TargetName = UnitName(target)
-            castInfo.TargetGUID = UnitGUID(target)
-        end
-        -- пробуем скастовать
-        if Debug then print("Жмем", cast .. "!" .. spellName) end
-        orun(cast .. "!" .. spellName)
-        -- если нужно выбрать область - кидаем на текущий mouseover
-        --[[if SpellIsTargeting() and GetTime() - cameraCD > 2 then
-            cameraCD = GetTime()
-            orun("/orun CameraOrSelectOrMoveStart() CameraOrSelectOrMoveStop()")
-            --TurnOrActionStart()  TurnOrActionStop()
-        end]]
+    if not IsReadySpell(spellName) then
+        if dump then print("Не готово, не можем прожать", spellName) end
+        return false
+    end
+
+    if not IsReadySpell(spellName, true) then
+        if dump then print("ГКД, не можем прожать", spellName) end
+        return true -- дальше не идем
+    end
+    -- собираем команду
+    local cast = "/cast "
+    -- с учетом цели
+    if target ~= nil then cast = cast .."[@".. target .."] "  end
+    -- проверяем, хватает ли нам маны
+    if cost and cost > 0 and (UnitPower("player", powerType) or 0) <= cost then
+        if dump then print("Не достаточно маны, не можем прожать", spellName) end
+        return false
+    end
+    if UnitExists(target) then
         -- данные о кастах
         local castInfo = getCastInfo(spellName)
+        castInfo.Target = target
+        castInfo.TargetName = UnitName(target)
+        castInfo.TargetGUID = UnitGUID(target)
+    end
+    -- пробуем скастовать
+    --if Debug then print("Жмем", cast .. "!" .. spellName) end
+    omacro(cast .. "!" .. spellName)
+    -- если нужно выбрать область - кидаем на текущий mouseover
+    if SpellIsTargeting() then
+        if manual then
+            TimerStart('Manual')
+        else
+            if auto then
+                 local look = IsMouselooking()
+                if look then
+                    oexecute('TurnOrActionStop()')
+                end
+                oexecute('CameraOrSelectOrMoveStart()')
+                oexecute('CameraOrSelectOrMoveStop()')
+                if look then
+                    oexecute('TurnOrActionStart()')
+                end
+                oexecute('SpellStopTargeting()')
+            else
+                UnitWorldClick(target)
+                oexecute('SpellStopTargeting()')
+            end
+
+        end
+    end
+
+    if dump then print("Спел вроде прожался", spellName) end
+    local castInfo = getCastInfo(spellName)
         -- проверка на успешное начало кд
         if castInfo.StartTime and (GetTime() - castInfo.StartTime < 0.01) then
             if UnitExists(target) then
                 -- проверяем цель на соответствие реальной
-                if castInfo.TargetName and castInfo.TargetName ~= "" and castInfo.TargetName ~= UnitName(target) then
+                if castInfo.TargetGUID  and castInfo.TargetGUID ~= UnitGUID(target) then
+                    print(castInfo.TargetGUID, UnitGUID(target))
                     if dump then print("Цели не совпали", spellName) end
-                    orun("/stopcasting")
-                    --chat("bad target", target, spellName)
+                    StopCast("Target Diff")
+                    --print("bad target", target, spellName)
                     if nil == badSpellTarget[spellName] then
-						badSpellTarget[spellName] = {}
+                        badSpellTarget[spellName] = {}
                     end
                     local badTargets = badSpellTarget[spellName]
                     badTargets[UnitGUID(target)] = GetTime()
@@ -367,15 +430,12 @@ function UseSpell(spellName, target)
                     castInfo.TargetName = nil
                     castInfo.TargetGUID = nil
                 end
-             end
-            if dump then print("Спел вроде прожался", spellName) end
-            if Debug then
-                print(spellName, cost, target)
             end
-            return true
         end
-        if dump then print("SPELL_CAST - не произошел для", spellName) end
+    if Debug then
+        local name = UnitName(target)
+        name = name or target
+        chat(spellName .. " -> ".. name, 0.4,0.4,0.4)
     end
-    if dump then print("Не готово, не можем прожать", spellName) end
-    return false
+    return true
 end
