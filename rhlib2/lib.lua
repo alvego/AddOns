@@ -6,10 +6,8 @@ FaceToUnit
 UnitInLos
 UnitWorldClick
 UnitPosition
-UnitPtr
+UnitFacing
 oexecute
-olog
-ohelp
 ]]
 
 -- Инициализация скрытого фрейма для обработки событий

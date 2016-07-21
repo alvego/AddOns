@@ -6,5 +6,4 @@
 ## Dependencies: rhlib2
 ## SavedVariables: CanInterrupt, AutoAOE
 rotation.lua
-commands.lua
 binds.lua

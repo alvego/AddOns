@@ -15,14 +15,6 @@ function HasAura(aura, last, target, method, my)
 
     local name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId
 
-    if type(target) == 'table' and #target > 0 then
-        for i = 1, #target do
-			     name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId = HasAura(aura, last, target[i], method, my)
-           if name then break end
-         end
-         return name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId
-    end
-
     if not UnitExists(target) then return nil end
 
     for i = 1, 40 do
@@ -37,7 +29,7 @@ function HasAura(aura, last, target, method, my)
                     local a = aura[i]
                     if (sContains(name, a) or (debuffType and sContains(debuffType, a))) then
                       find = true
-                      break 
+                      break
                     end
                 end
                 if find then break end

@@ -12,22 +12,19 @@ function Idle()
     -- дайте поесть спокойно
     if not IsAttack() and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
     -- чтоб контроли не сбивать
-    if not CanControl("target") then omacro("/stopattack") end
    ---------------------------------------------------------------------------------------------------------------
     -- Выбор цели
     if IsAttack() or InCombatLockdown() then TryTarget() end
-    -- сбиваем касты
-    for i = 1, #TARGETS do
-        TryInterrupt(TARGETS[i])
-    end
     --------------------------------------------------------------------------------------------------------------
+
     Rotation()
 end
 
 function Rotation()
-    if not IsAttack() and not CanAttack() then return end
     if not (UnitAffectingCombat("target") or IsAttack()) then return end
+
     if not IsValidTarget("target") then return end
+    TryInterrupt("target")
     omacro("/startattack")
     if not HasMyDebuff("Метка охотника", 0.5,"target") and DoSpell("Метка охотника", "target") then return end
     --if not HasMyDebuff("Укус змеи", 0.5,"target") and DoSpell("Укус змеи", "target") then return end

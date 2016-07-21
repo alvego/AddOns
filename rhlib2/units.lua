@@ -36,7 +36,7 @@ function GetUnits()
         exists = IsOneUnit(realUnits[j], u)
 			if exists then break end
 		end
-        if not exists and InInteractRange(u) then
+        if not exists and IsInteractUnit(u) then
 			tinsert(realUnits, u)
 		end
     end
@@ -112,24 +112,25 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 IsValidTargetInfo = ""
-function IsValidTarget(target)
+function IsValidTarget(t)
     IsValidTargetInfo = ""
-    if target == nil then target = "target" end
-    if not UnitName(target) then
+    if t == nil then t = "target" end
+    if not UnitName(t) then
         IsValidTargetInfo = "Нет цели"
         return false
     end
-    if IsIgnored(target) then
-        IsValidTargetInfo = "Цель в игнор листе"
-        return false
-    end
-    if UnitIsDeadOrGhost(target) and not HasBuff("Притвориться мертвым", 1,target) then
+    if UnitIsDeadOrGhost(t) and not HasBuff("Притвориться мертвым", 0.1,t) then
         IsValidTargetInfo = "Цель дохлая"
         return false
     end
 
-    if not UnitCanAttack("player", target) then
+    if not UnitCanAttack("player", t) then
         IsValidTargetInfo = "Невозможно атаковать"
+        return false
+    end
+
+    if UnitInLos && UnitInLos(t) then
+        IsValidTargetInfo = "В лосе"
         return false
     end
 
@@ -139,21 +140,18 @@ end
 ------------------------------------------------------------------------------------------------------------------
 IsInteractUnitInfo = ""
 function IsInteractUnit(t)
+    if t == nil then t = "player" end
     if not UnitExists(t) then
     	IsInteractUnitInfo = "Нет юнита " .. t
     	return false
     end
-    if IsIgnored(t) then
-    	IsInteractUnitInfo = "В игноре " .. t
-    	return false
-    end
-    if IsValidTarget(t) then
-    	IsInteractUnitInfo = "Валидная цель " .. t
-    	return false
-    end
-    if UnitIsDeadOrGhost(t) then
+    if UnitIsDeadOrGhost(t) and not HasBuff("Притвориться мертвым", 0.1, t)  then
     	IsInteractUnitInfo = "Труп или призрак " .. t
     	return false
+    end
+    if UnitCanAttack("player", t) then
+        IsValidTargetInfo = "Можно атаковать"
+        return false
     end
     if UnitIsCharmed(t) then
     	IsInteractUnitInfo = "Околдован " .. t
@@ -163,63 +161,26 @@ function IsInteractUnit(t)
     	IsInteractUnitInfo = "Враждебен "  .. t
     	return false
     end
+
+    if UnitInLos && UnitInLos(t) then
+        IsInteractUnitInfo = "Вне поля зрения"
+        return false
+    end
+
+    if not InInteractRange(t) then
+        IsInteractUnitInfo = "Не в радиусе взаимодействия"
+        return false
+    end
+
     return true
 end
 
-------------------------------------------------------------------------------------------------------------------
-CanHealInfo = ""
-function CanHeal(t)
-    CanHealInfo = ""
-    if not InInteractRange(t) then
-        CanHealInfo = "Не в радиусе взаимодействия"
-        return false
-    end
-    if not IsVisible(t) then
-        CanHealInfo = "Вне поля зрения"
-        return false
-    end
-    if HasDebuff("Смерч", 0.1, t) then
-        CanHealInfo = "В Смерче (имунна)"
-        return false
-    end
-    return true
-end
 ------------------------------------------------------------------------------------------------------------------
 function GetClass(target)
     if not target then target = "player" end
     local _, class = UnitClass(target)
     return class
 end
-
-------------------------------------------------------------------------------------------------------------------
-function HasClass(units, classes)
-    local function checkClass(u, classes)
-        return  UnitExists(u) and UnitIsPlayer(u) and (type(classes) == 'table' and tContains(classes, GetClass(u)) or classes == GetClass(u))
-    end
-    if type(units) == 'table' then
-    	for i = 1, #units do
-            local u = units[i]
-    		if checkClass(u, classes) then return true end
-    	end
-    else
-        if checkClass(units, classes) then return true end
-    end
-    return false
-end
-
-------------------------------------------------------------------------------------------------------------------
-function GetUnitType(target)
-    if not target then target = "target" end
-    local unitType = UnitName(target)
-    if UnitIsPlayer(target) then
-        unitType = GetClass(target)
-    end
-    if UnitIsPet(target) then
-        unitType ='PET'
-    end
-    return unitType
-end
-
 ------------------------------------------------------------------------------------------------------------------
 function UnitIsNPC(unit)
     return UnitExists(unit) and not (UnitIsPlayer(unit) or UnitPlayerControlled(unit) or UnitCanAttack("player", unit));
@@ -266,7 +227,6 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function UnitHP(unit)
-  --if target == "player" and IsCtr() then return 50 end
   local hp = UnitHealth(unit) + (UnitGetIncomingHeals(unit) or 0)
   if hp > UnitHealthMax(unit) then hp = UnitHealthMax(unit) end
   return hp

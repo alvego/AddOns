@@ -3,32 +3,34 @@
 -- l18n
 BINDING_HEADER_RHLIB = "Rotation Helper Library"
 BINDING_NAME_RHLIB_FACE = "Лицом к Цели"
+BINDING_NAME_RHLIB_ON = "Вкл ротацию"
 BINDING_NAME_RHLIB_OFF = "Выкл ротацию"
 BINDING_NAME_RHLIB_DEBUG = "Вкл/Выкл режим отладки"
 BINDING_NAME_RHLIB_RELOAD = "Перезагрузить интерфейс"
 -----------------------------------------------------------------------------------------------------------------
 -- Условие для включения ротации
-function TryAttack()
-    if Paused then return end
-    TimerStart('Attack')
-end
-function IsAttack()
-    if IsMouse(4) then
-        TimerStart('Attack')
-    end
-
-    return TimerLess('Attack', 0.5)
-end
-
 ------------------------------------------------------------------------------------------------------------------
 if Paused == nil then Paused = false end
+local isAttack = false
+
+function IsAttack()
+   return isAttack
+end
+
+function AutoRotationOn()
+    Paused = false
+    isAttack = true
+    oexecute("StartAttack()")
+    oexecute("PetAttack()")
+    echo("Авто ротация: ON")
+end
+
 -- Отключаем авторотацию, при повторном нажатии останавливаем каст (если есть)
 function AutoRotationOff()
     if IsPlayerCasting() and Paused then
         StopCast("Pause")
     end
     Paused = true
-    TimerReset('Attack')
     oexecute("StopAttack()")
     oexecute("PetFollow()")
     echo("Авто ротация: OFF")
@@ -43,8 +45,6 @@ function IsPaused()
                 TimerStart('Paused')
                 return true
             end
-        else
-            break
         end
     end
     local t = 0.3
@@ -134,20 +134,13 @@ end
 function UpdateIdle(elapsed)
 
     if nil == oexecute then
-        echo("Требуется магичеcкое действие!!!")
+        echo("Требуется активация!")
         return
     end
 
-    if UpdateCommands() then return end
-
     if UnitIsDeadOrGhost("player") or IsPaused() then return end
 
-    ------------------------------------------------------------------------------------------------------------------
-
-    if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then
-        oexecute('FocusUnit("mouseover")')
-    end
-
     if Idle then Idle() end
+    isAttack = false
 end
 ------------------------------------------------------------------------------------------------------------------

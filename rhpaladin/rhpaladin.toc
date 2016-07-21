@@ -5,6 +5,5 @@
 ## Interface: 30300
 ## Dependencies: rhlib2
 ## SavedVariables: AutoAGGRO, CanInterrupt
-commands.lua
 rotation.lua
 binds.lua
