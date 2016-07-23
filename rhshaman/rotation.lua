@@ -64,7 +64,7 @@ end
 
 function TryTarget()
     -- помощь в группе
-    if not IsValidTarget("target") and InGroup() then
+    if not IsValidTarget("target") and IsInGroup() then
         -- если что-то не то есть в цели
         if UnitExists("target") then omacro("/cleartarget") end
         for i = 1, #TARGET do

@@ -17,6 +17,38 @@ function UseInterrupt()
     end
 end
 
+function TryInterrupt(target)
+    if target == nil then target = "target" end
+    --if not CanAttack(target) then return end
+    local channel = false
+    -- name, subText, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible = UnitCastingInfo("unit")
+    local spell, _, _, _, startTime, endTime, _, _, notinterrupt = UnitCastingInfo(target)
+    if not spell then
+        --name, subText, text, texture, startTime, endTime, isTradeSkill, notInterruptible = UnitChannelInfo("unit")
+        spell, _, _, _, startTime, endTime, _, nointerrupt = UnitChannelInfo(target)
+        channel = true
+    end
+    if not spell then return nil end
+    local s = startTime / 1000 -- время начала каста
+    local c = GetTime() -- текущее время
+    local e = endTime / 1000 -- время конца каста
+    local t = e - c -- осталось до конца каста
+    if t < (channel and 0.5 or 0.2) then  return  end -- если уже докастил, нет смысла трепыхаться, тунелинг - нет смысла сбивать последний тик
+    local name = UnitName(target)
+    name = name or target
+    local m = " -> " .. spell .. " ("..name..")"
+
+    if not notinterrupt then
+
+        if (channel or t < 0.8) and DoSpell("Молот правосудия", target) then
+            print("Молот правосудия"..m)
+            return true
+        end
+
+    end
+    return false
+end
+
 ------------------------------------------------------------------------------------------------------------------
 if AutoAGGRO == nil then AutoAGGRO = true end
 

@@ -3,7 +3,6 @@
 -- l18n
 BINDING_HEADER_RHLIB = "Rotation Helper Library"
 BINDING_NAME_RHLIB_FACE = "Лицом к Цели"
-BINDING_NAME_RHLIB_ON = "Вкл ротацию"
 BINDING_NAME_RHLIB_OFF = "Выкл ротацию"
 BINDING_NAME_RHLIB_DEBUG = "Вкл/Выкл режим отладки"
 BINDING_NAME_RHLIB_RELOAD = "Перезагрузить интерфейс"
@@ -11,18 +10,17 @@ BINDING_NAME_RHLIB_RELOAD = "Перезагрузить интерфейс"
 -- Условие для включения ротации
 ------------------------------------------------------------------------------------------------------------------
 if Paused == nil then Paused = false end
-local isAttack = false
-
-function IsAttack()
-   return isAttack
+-- Условие для включения ротации
+function TryAttack()
+    if Paused then return end
+    TimerStart('Attack')
 end
+function IsAttack()
+    if IsMouse(4) then
+        TimerStart('Attack')
+    end
 
-function AutoRotationOn()
-    Paused = false
-    isAttack = true
-    oexecute("StartAttack()")
-    oexecute("PetAttack()")
-    echo("Авто ротация: ON")
+    return TimerLess('Attack', 0.5)
 end
 
 -- Отключаем авторотацию, при повторном нажатии останавливаем каст (если есть)
@@ -100,7 +98,7 @@ local function updateDebugStats()
     TimerStart('DebugFrame')
     UpdateAddOnMemoryUsage()
     UpdateAddOnCPUUsage()
-    local mem  = GetAddOnMemoryUsage("rhlib5")
+    local mem  = GetAddOnMemoryUsage("rhlib2")
     local fps = GetFramerate();
     local speed = GetUnitSpeed("player") / 7 * 100
     debugFrame.text:SetText(format('MEM: %.1fKB, LAG: %ims, FPS: %i, SPD: %d%%', mem, LagTime * 1000, fps, speed))
@@ -139,6 +137,10 @@ function UpdateIdle(elapsed)
     end
 
     if UnitIsDeadOrGhost("player") or IsPaused() then return end
+
+    if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then
+        oexecute('FocusUnit("mouseover")')
+    end
 
     if Idle then Idle() end
     isAttack = false

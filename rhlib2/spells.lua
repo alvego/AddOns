@@ -28,6 +28,19 @@ AttachEvent('UNIT_SPELLCAST_START', CastLagTime)
 AttachEvent('UNIT_SPELLCAST_SENT', CastLagTime)
 
 ------------------------------------------------------------------------------------------------------------------
+function spellCastErrorMonitoring(event, ...)
+  local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
+  if sourceGUID == playerGUID and spellName then
+    local err = agrs12
+    if err then
+      UIErrorsFrame:Clear()
+      UIErrorsFrame:AddMessage(spellName .. ' - ' .. err, 1.0, 0.2, 0.2);
+    end
+  end
+end
+AttachEvent('SPELL_CAST_FAILED', CastLagTime)
+
+------------------------------------------------------------------------------------------------------------------
 function StopCast(info)
     if not info then info = "?" end
     if Debug then chat("Stop Cast! ( ".. info .. " )") end
@@ -99,11 +112,12 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 
-function IsReadySpell(name, checkGCD)
+function IsReadySpell(name)
     local usable, nomana = IsUsableSpell(name)
     if not usable then return false end
     local left = GetSpellCooldownLeft(name)
-    return left > LagTime
+    if left > LagTime then return false end
+    return true
 end
 
 ------------------------------------------------------------------------------------------------------------------

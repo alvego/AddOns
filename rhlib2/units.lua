@@ -129,7 +129,7 @@ function IsValidTarget(t)
         return false
     end
 
-    if UnitInLos && UnitInLos(t) then
+    if UnitInLos and UnitInLos(t) then
         IsValidTargetInfo = "В лосе"
         return false
     end
@@ -162,7 +162,7 @@ function IsInteractUnit(t)
     	return false
     end
 
-    if UnitInLos && UnitInLos(t) then
+    if UnitInLos and UnitInLos(t) then
         IsInteractUnitInfo = "Вне поля зрения"
         return false
     end
@@ -281,3 +281,17 @@ function InCombatMode()
     return false
 end
 ------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------
+function IsInGroup()
+    return (IsInRaid() or IsInParty())
+end
+
+------------------------------------------------------------------------------------------------------------------
+function IsInRaid()
+    return (GetNumRaidMembers() > 0)
+end
+
+------------------------------------------------------------------------------------------------------------------
+function IsInParty()
+    return (GetNumPartyMembers() > 0)
+end
