@@ -67,33 +67,47 @@ function TryBuffs()
 end
 
 function Retribution()
-    local target = "target"
-    local player = "player"
+  local target = "target"
+  local player = "player"
+  local hp = UnitHealth100(player)
+  local mana = UnitMana100(player)
 
-    if (IsAttack() or UnitAffectingCombat(target)) and not IsCurrentSpell("Автоматическая атака") then
-      omacro("/startattack")
-    end
-    if not attack and not UnitAffectingCombat(target) then return end
-    local hp = UnitHealth100("player")
-    local mana = UnitMana100("player")
+  if InCombatLockdown() then
+    if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
+    if hp < 35 and UseItem("Рунический флакон с лечебным зельем") then return end
+    if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
+  end
 
-    if HasBuff("Праведное неистовство", 0.1, player) and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия") then return end
-    if DoSpell("Молот гнева") then return end
-    if UnitBuff(player, "Искусство войны") and DoSpell("Экзорцизм") then return end
+  if not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
 
-    if GetSpellCooldownLeft("Экзорцизм") > 3 and UnitBuff(player, "Искусство войны") and hp < 90 then
-       if DoSpell("Вспышка Света") then return end
-    end
+  if TryInterrupt(target) then return end
 
+  if TryDispel(player) then return end
 
-    local justice = "Правосудие света"
-     if mana < 60 then
-        justice = "Правосудие мудрости"
-    end
+  if (IsAttack() or UnitAffectingCombat(target)) and not IsCurrentSpell("Автоматическая атака") then omacro("/startattack") end
 
-    if DoSpell(justice) then return end
-    if DoSpell("Удар воина Света") then return end
-    if InRange("Удар воина Света", target) and DoSpell("Божественная буря") then return end
+  if not IsAttack() and not UnitAffectingCombat(target) then return end
+
+  if hp < 90 and HasBuff("Искусство войны") and GetSpellCooldownLeft("Экзорцизм") > 3 then
+     if DoSpell("Вспышка Света") then return end
+  end
+  if hp < 20 and DoSpell("Божественный щит", player) then return end
+  if PlayerInPlace() and HasBuff("Божественный щит", 2, player) then
+      if hp < 50 and DoSpell("Свет небес", player) then return end
+      if hp < 80 and DoSpell("Вспышка Света", player) then return end
+  end
+  if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
+  if DoSpell("Правосудие мудрости", target) then return end
+  if DistanceTo(player, target) > 8 and DoSpell("Божественная буря") then return end
+  if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
+  if DoSpell("Удар воина Света", target) then return end
+  if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
+  if HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end
+  if DistanceTo(player, target) > 8 and mana > 30 then
+     if DoSpell("Освящение") then return end
+     if (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
+  end
+  if mana < 30 and DoSpell("Святая клятва") then return end
 end
 
 function Tank()
@@ -103,6 +117,7 @@ function Tank()
   local mana = UnitMana100(player)
 
   if InCombatLockdown() then
+    if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
     if hp < 35 and UseItem("Рунический флакон с лечебным зельем") then return end
     if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
   end
