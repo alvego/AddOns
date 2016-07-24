@@ -21,6 +21,8 @@ function Idle()
 
     if not UnitIsPlayer("target") and TryInterrupt("target") then return end
 
+    if TryDispel(player) then return end
+
     if AutoAGGRO and IsInGroup() then
         local TARGETS = GetTargets()
         for i = 1, #TARGETS do
@@ -80,10 +82,6 @@ function Retribution()
 
   if not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
 
-  if TryInterrupt(target) then return end
-
-  if TryDispel(player) then return end
-
   if (IsAttack() or UnitAffectingCombat(target)) and not IsCurrentSpell("Автоматическая атака") then omacro("/startattack") end
 
   if not IsAttack() and not UnitAffectingCombat(target) then return end
@@ -126,13 +124,12 @@ function Tank()
   if not HasBuff("Святая клятва") and DoSpell("Святая клятва", player) then return end
   if not HasBuff("Щит небес",0.1) and DoSpell("Щит небес", player) then return end
 
-  if TryInterrupt(target) then return end
-
-  if TryDispel(player) then return end
 
   if (IsAttack() or UnitAffectingCombat(target)) and not IsCurrentSpell("Автоматическая атака") then omacro("/startattack") end
-
   if not IsAttack() and not UnitAffectingCombat(target) then return end
+
+
+
 
   if hp < 20 and DoSpell("Возложение рук") then return end
   if hp < 30 and DoSpell("Длань спасения") then return end
@@ -172,8 +169,6 @@ function TryTarget()
             if UnitExists("target") then omacro("/cleartarget") end
         end
     end
-
-
 end
 
 
