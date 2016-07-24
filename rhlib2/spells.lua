@@ -87,7 +87,7 @@ end
 function InInteractRange(unit)
     -- need test and review
     if (unit == nil) then unit = "target" end
-    if not IsInteractUnit(unit) then return false end
+    --if not IsInteractUnit(unit) then return false end
     return IsItemInRange(34471, unit) == 1
 end
 ------------------------------------------------------------------------------------------------------------------

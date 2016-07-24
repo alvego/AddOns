@@ -57,7 +57,7 @@ function TryBuffs()
         return false
     end
     if HasSpell("Щит мстителя") then
-        if not HasBuff("Благословение") and DoSpell("Великое благословение неприкосновенности", player) then return end
+        if not HasMyBuff("Великое благословение неприкосновенности") and DoSpell("Великое благословение неприкосновенности", player) then return end
         if not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство", player) then return end
         if not HasMyBuff("Печать", 0.1, player) then
           local seal = "Печать мщения"
@@ -82,10 +82,6 @@ function Retribution()
 
   if not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
 
-  if (IsAttack() or UnitAffectingCombat(target)) and not IsCurrentSpell("Автоматическая атака") then omacro("/startattack") end
-
-  if not IsAttack() and not UnitAffectingCombat(target) then return end
-
   if hp < 90 and HasBuff("Искусство войны") and GetSpellCooldownLeft("Экзорцизм") > 3 then
      if DoSpell("Вспышка Света") then return end
   end
@@ -94,6 +90,14 @@ function Retribution()
       if hp < 50 and DoSpell("Свет небес", player) then return end
       if hp < 80 and DoSpell("Вспышка Света", player) then return end
   end
+
+  if (IsAttack() or UnitAffectingCombat(target)) then
+      if IsValidTarget(target) and not IsCurrentSpell("Автоматическая атака") then omacro("/startattack") end
+  else
+    if IsCurrentSpell("Автоматическая атака") then  omacro("/stopattack") end
+  end
+  if not IsValidTarget(target) then return end
+
   if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
   if DoSpell("Правосудие мудрости", target) then return end
   if DistanceTo(player, target) > 8 and DoSpell("Божественная буря") then return end
@@ -124,25 +128,25 @@ function Tank()
   if not HasBuff("Святая клятва") and DoSpell("Святая клятва", player) then return end
   if not HasBuff("Щит небес",0.1) and DoSpell("Щит небес", player) then return end
 
-
-  if (IsAttack() or UnitAffectingCombat(target)) and not IsCurrentSpell("Автоматическая атака") then omacro("/startattack") end
-  if not IsAttack() and not UnitAffectingCombat(target) then return end
-
-
-
-
   if hp < 20 and DoSpell("Возложение рук") then return end
   if hp < 30 and DoSpell("Длань спасения") then return end
 
-  if (attack or mana > 50) and InRange("Молот праведника", target) then
+  if (IsAttack() or UnitAffectingCombat(target)) then
+      if IsValidTarget(target) and not IsCurrentSpell("Автоматическая атака") then omacro("/startattack") end
+  else
+    if IsCurrentSpell("Автоматическая атака") then  omacro("/stopattack") end
+  end
+  if not IsValidTarget(target) then return end
+
+  if (IsAOE() or mana > 50) and InRange("Молот праведника", target) then
       if DoSpell("Освящение") then return end
       if (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
   end
 
   if DoSpell("Молот гнева") then return end
   if DoSpell("Молот праведника") then return end
-  if DoSpell("Щит праведности") then return end
-  if (IsAttack() or mana > 50) and DoSpell("Щит мстителя") then return end
+  if IsEquippedItemType("Щит") and DoSpell("Щит праведности") then return end
+  if (IsAOE() or mana > 50) and DoSpell("Щит мстителя") then return end
   if DoSpell("Правосудие мудрости") then return end
 end
 
