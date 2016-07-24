@@ -92,17 +92,3 @@ function UseEquippedItem(item)
     if IsEquippedItem(item) and UseItem(item) then return true end
     return false
 end
-
-------------------------------------------------------------------------------------------------------------------
-local potions = {
-  "Камень здоровья",
-	"Рунический флакон с лечебным зельем",
-	"Бездонный флакон с лечебным зельем",
-  "Гигантский флакон с лечебным зельем"
-}
-function UseHealPotion()
-    for i = 1, #potions do
-		if UseItem(potions[i], 3) then return true end
-	end
-    return false
-end

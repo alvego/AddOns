@@ -69,9 +69,13 @@ end
 
 local function updateFaceTotTarget(event, ...)
     local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, info = ...
-    if type:match("SPELL_CAST_FAILED") and sourceGUID == UnitGUID("player")
-        and (amount == "Цель должна быть перед вами." or amount == "Цель вне поля зрения.") then
-        FaceToTarget()
+    if type:match("SPELL_CAST_FAILED") and sourceGUID == UnitGUID("player") then
+        if (amount == "Цель должна быть перед вами." or amount == "Цель вне поля зрения.") then FaceToTarget() end
+        if amount and Debug then
+          UIErrorsFrame:Clear()
+          UIErrorsFrame:AddMessage(spellName .. ' - ' .. amount, 1.0, 0.2, 0.2);
+          --if amount == "Еще не готово." then print("Не готово", spellName , " GCD:", InGCD(), " left:", GetSpellCooldownLeft(spellName), " LagTime:", LagTime) end
+        end
     end
 end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateFaceTotTarget)

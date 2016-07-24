@@ -208,13 +208,30 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function UnitHealth100(target)
     if target == nil then target = "player" end
-    return UnitHP(target) * 100 / UnitHealthMax(target)
+    return UnitHealth(target) * 100 / UnitHealthMax(target)
 end
 
 ------------------------------------------------------------------------------------------------------------------
 function UnitMana100(target)
     if target == nil then target = "player" end
     return UnitMana(target) * 100 / UnitManaMax(target)
+end
+
+------------------------------------------------------------------------------------------------------------------
+local HealComm = LibStub("LibHealComm-4.1")
+
+function UnitGetIncomingHeals(target, s)
+    if not target then
+        target = "player"
+    end
+    if not s then
+        s = 4
+        if UnitThreatAlert(target) == 3 then s = 2 end
+        if UnitHealth100(target) < 40 then return 0 end
+    end
+    local result = HealComm:GetHealAmount(UnitGUID(target), HealComm.ALL_HEALS, GetTime() + s) or 0
+    if HasDebuff("Смертельный удар", 0.1, target) then result = result / 2 end
+    return result
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -226,12 +243,12 @@ function UnitLostHP(unit)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function UnitHP(unit)
-  local hp = UnitHealth(unit) + (UnitGetIncomingHeals(unit) or 0)
-  if hp > UnitHealthMax(unit) then hp = UnitHealthMax(unit) end
+function UnitHP(t)
+  local incomingheals = UnitGetIncomingHeals(t)
+  local hp = UnitHealth(t) + incomingheals
+  if hp > UnitHealthMax(t) then hp = UnitHealthMax(t) end
   return hp
 end
-
 ------------------------------------------------------------------------------------------------------------------
 function IsBattleground()
     local inInstance, instanceType = IsInInstance()

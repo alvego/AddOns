@@ -26,20 +26,6 @@ local function CastLagTime(event, ...)
 end
 AttachEvent('UNIT_SPELLCAST_START', CastLagTime)
 AttachEvent('UNIT_SPELLCAST_SENT', CastLagTime)
-
-------------------------------------------------------------------------------------------------------------------
-function spellCastErrorMonitoring(event, ...)
-  local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
-  if sourceGUID == playerGUID and spellName then
-    local err = agrs12
-    if err then
-      UIErrorsFrame:Clear()
-      UIErrorsFrame:AddMessage(spellName .. ' - ' .. err, 1.0, 0.2, 0.2);
-    end
-  end
-end
-AttachEvent('SPELL_CAST_FAILED', CastLagTime)
-
 ------------------------------------------------------------------------------------------------------------------
 function StopCast(info)
     if not info then info = "?" end
@@ -197,7 +183,7 @@ function UseSpell(spellName, target)
 
     -- Проверяем что все готово
     if not IsReadySpell(spellName) then
-        if dump then print("Не готово, не можем прожать", spellName) end
+        if dump then print("Не готово, не можем прожать", spellName , "GCD:", InGCD(), "left:", GetSpellCooldownLeft(spellName), "LagTime:", LagTime) end
         return false
     end
     -- собираем команду
