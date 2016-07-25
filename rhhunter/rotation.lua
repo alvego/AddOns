@@ -54,8 +54,8 @@ function Rotation()
     --if DoSpell("Контузящий выстрел", "target") then return end
     if DoSpell("Прицельный выстрел", "target") then return end
     if DoSpell("Чародейский выстрел", "target") then return end
-    if InMelee(target) and not HasMyDebuff("Подрезать крылья", 0.5,"target") and DoSpell("Подрезать крылья", "target") then return end
-    if InMelee(target) and DoSpell("Укус мангуста", "target") then return end
+    if DistanceTo("player", "target") > 5 and not HasMyDebuff("Подрезать крылья", 0.5,"target") and DoSpell("Подрезать крылья", "target") then return end
+    if DistanceTo("player", "target") > 5 and DoSpell("Укус мангуста", "target") then return end
 
 end
 
