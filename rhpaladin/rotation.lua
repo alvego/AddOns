@@ -100,12 +100,12 @@ function Retribution()
 
   if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
   if DoSpell("Правосудие мудрости", target) then return end
-  if DistanceTo(player, target) > 8 and DoSpell("Божественная буря") then return end
+  if DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
   if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
   if DoSpell("Удар воина Света", target) then return end
   if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
   if HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end
-  if DistanceTo(player, target) > 8 and mana > 30 then
+  if DistanceTo(player, target) < 8 and mana > 30 then
      if DoSpell("Освящение") then return end
      if (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
   end
@@ -138,7 +138,7 @@ function Tank()
   end
   if not IsValidTarget(target) then return end
 
-  if (IsAOE() or mana > 50) and InRange("Молот праведника", target) then
+  if (IsAOE() or mana > 50) and DistanceTo(player, target) < 8 then
       if DoSpell("Освящение") then return end
       if (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
   end

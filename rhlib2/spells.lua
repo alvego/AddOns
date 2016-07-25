@@ -82,20 +82,36 @@ end
 function InGCD()
     return GetGCDLeft() > LagTime
 end
+-- Interact range - 40 yards
+local interactSpells = {
+    DRUID = "Целительное прикосновение",
+    PALADIN = "Свет небес",
+    SHAMAN = "Волна исцеления",
+    PRIEST = "Малое исцеление"
+}
+local interactRangeSpell = interactSpells[GetClass()]
 
-------------------------------------------------------------------------------------------------------------------
 function InInteractRange(unit)
     -- need test and review
     if (unit == nil) then unit = "target" end
-    --if not IsInteractUnit(unit) then return false end
-    return IsItemInRange(34471, unit) == 1
+    if not UnitIsFriend("player", unit) then return false end
+    if interactRangeSpell then return IsSpellInRange(interactRangeSpell, unit) == 1 end
+    return DistanceTo and DistanceTo("player", unit) < 40
 end
 ------------------------------------------------------------------------------------------------------------------
+local meleeSpells = {
+    DRUID = "Цапнуть",
+    DEATHKNIGHT = "Удар чумы",
+    PALADIN = "Щит праведности",
+    SHAMAN = "Удар бури",
+    WARRIOR = "Кровопускание"
+}
+local meleeSpell = meleeSpells[GetClass()]
 function InMelee(target)
     if (target == nil) then target = "target" end
-    return IsItemInRange(37727, target) == 1
+    if meleeSpell then return  (IsSpellInRange(meleeSpell, target) == 1) end
+    return DistanceTo and DistanceTo("player", target) < 5
 end
-
 ------------------------------------------------------------------------------------------------------------------
 
 function IsReadySpell(name)
