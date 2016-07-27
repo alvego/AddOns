@@ -27,7 +27,8 @@ function Idle()
 end
 
 function TryBuffs()
-    --if DoSpell("Бафф", "player") then return true end
+    if UnitMana100() < 30 and not HasBuff("Дух гадюки") and DoSpell("Дух гадюки") then return true end
+    if UnitMana100() > 80 and not HasBuff("Дух ястреба") and DoSpell("Дух ястреба") then return true end
     return false
 end
 
@@ -50,10 +51,11 @@ function Rotation()
 
     if not IsValidTarget("target") then return end
     if not HasMyDebuff("Метка охотника", 0.5,"target") and DoSpell("Метка охотника", "target") then return end
-    --if not HasMyDebuff("Укус змеи", 0.5,"target") and DoSpell("Укус змеи", "target") then return end
+    if not HasMyDebuff("Укус змеи", 0.5,"target") and DoSpell("Укус змеи", "target") then return end
     --if DoSpell("Контузящий выстрел", "target") then return end
     if DoSpell("Прицельный выстрел", "target") then return end
     if DoSpell("Чародейский выстрел", "target") then return end
+    if DoSpell("Верный выстрел", "target") then return end
     if InMelee("target") and not HasMyDebuff("Подрезать крылья", 0.5,"target") and DoSpell("Подрезать крылья", "target") then return end
     if InMelee("target") and DoSpell("Укус мангуста", "target") then return end
 
