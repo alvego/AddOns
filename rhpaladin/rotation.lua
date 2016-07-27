@@ -180,9 +180,7 @@ function TryTaunt(target)
 
   if TimerLess("Taunt", 1)  then return false end
 
-  if UnitIsPlayer(target) return false end
-
-
+  if UnitIsPlayer(target) then return false end
 
   local tt = UnitName(target .. "-target")
   if not UnitExists(tt) then return false end
