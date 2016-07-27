@@ -54,11 +54,12 @@ function ItemInRange(item, unit)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function IsReadyItem(name, checkGCD)
+function IsReadyItem(name)
    local usable = IsUsableItem(name)
    if not usable then return true end
    local left = GetItemCooldownLeft(name)
-   return IsReady(left, checkGCD)
+   if left > LagTime then return false end
+   return true
 end
 
 ------------------------------------------------------------------------------------------------------------------
