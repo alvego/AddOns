@@ -161,6 +161,58 @@ function IsPlayerCasting()
     return true
 end
 ------------------------------------------------------------------------------------------------------------------
+local InCast = {}
+local function getCastInfo(spell)
+	if not InCast[spell] then
+		InCast[spell] = {}
+	end
+	return InCast[spell]
+end
+local function UpdateIsCast(event, ...)
+    local unit, spell, rank, target = select(1,...)
+    if spell and unit == "player" then
+        local castInfo = getCastInfo(spell)
+        if event == "UNIT_SPELLCAST_SUCCEEDED"
+            and castInfo.StartTime and castInfo.StartTime > 0 then
+            castInfo.LastCastTime = castInfo.StartTime
+        end
+        if event == "UNIT_SPELLCAST_SENT" then
+            castInfo.StartTime = GetTime()
+            castInfo.TargetName = target
+        else
+            castInfo.StartTime = 0
+        end
+    end
+end
+AttachEvent('UNIT_SPELLCAST_SENT', UpdateIsCast)
+AttachEvent('UNIT_SPELLCAST_SUCCEEDED', UpdateIsCast)
+AttachEvent('UNIT_SPELLCAST_FAILED', UpdateIsCast)
+
+function GetLastSpellTarget(spell)
+    local castInfo = getCastInfo(spell)
+    return (castInfo.Target and castInfo.TargetGUID and UnitExists(castInfo.Target) and UnitGUID(castInfo.Target) == castInfo.TargetGUID) and castInfo.Target or nil
+end
+
+function GetSpellLastTime(spell)
+    local castInfo = getCastInfo(spell)
+    return castInfo.LastCastTime or 0
+end
+
+function IsSpellNotUsed(spell, t)
+    local last  = GetSpellLastTime(spell)
+    return GetTime() - last >= t
+end
+
+function IsSpellInUse(spellName)
+    if not spellName or not InCast[spellName] or not InCast[spellName].StartTime then return false end
+    local start = InCast[spellName].StartTime
+    if (GetTime() - start <= 0.5) then return true end
+    if IsReadySpell(spellName) then InCast[spellName].StartTime = 0 end
+    return false
+end
+------------------------------------------------------------------------------------------------------------------
+local badSpellTarget = {}
+local inCastSpells = {"Трепка", "Рунический удар", "Удар героя", "Рассекающий удар", "Гиперскоростное ускорение", "Нарукавная зажигательная ракетница"} -- TODO: Нужно уточнить и дополнить.
 function UseSpell(spellName, target)
     local dump = false --spellName == "Целительный ливень"
     -- Не пытаемся что либо прожимать во время каста
@@ -185,10 +237,30 @@ function UseSpell(spellName, target)
         if Debug then error("Спел [".. spellName .. "] не найден!") end
         return false;
     end
+
     -- проверяем, что этот спел не используется сейчас
-    if IsCurrentSpell(spellName) then
-        if dump then print("Уже прожали, не можем больше прожать", spellName) end
+    local IsBusy = IsSpellInUse(spellName)
+    if IsBusy then
+        if dump then print("Уже прожали, SPELL_SENT пошел, не можем больше прожать", spellName) end
         return false
+    end
+     -- проверяем, что не кастится другой спел
+     for s,_ in pairs(InCast) do
+		if not IsBusy and not tContains(inCastSpells, s) and IsSpellInUse(s) then
+            if dump then print("Уже прожали " .. s .. ", ждем окончания, пока не можем больше прожать", spellName) end
+            IsBusy = true
+        end
+     end
+    if IsBusy then return false end
+    -- проверяем, что цель подходящая для этого спела
+    if  not manual and UnitExists(target) and badSpellTarget[spellName] then
+        local badTargetTime = badSpellTarget[spellName][UnitGUID(target)]
+        if badTargetTime and (GetTime() - badTargetTime < 10) then
+            if dump then
+                print(target, "- Цель не подходящая, не можем прожать", spellName)
+            end
+            return false
+        end
     end
 
     if not manual and UnitInLos and target and UnitExists(target) and UnitInLos(t) then
@@ -216,6 +288,14 @@ function UseSpell(spellName, target)
         if dump then print("Не достаточно маны, не можем прожать", spellName) end
         return false
     end
+
+    if not manual and UnitExists(target) then
+        -- данные о кастах
+        local castInfo = getCastInfo(spellName)
+        castInfo.Target = target
+        castInfo.TargetName = UnitName(target)
+        castInfo.TargetGUID = UnitGUID(target)
+    end
       -- пробуем скастовать
     --if Debug then print("Жмем", cast .. "!" .. spellName) end
     omacro(cast .. "!" .. spellName)
@@ -237,12 +317,35 @@ function UseSpell(spellName, target)
           oexecute('SpellStopTargeting()')
     end
 
-    if dump then print("Спел вроде прожался", spellName) end
+    -- данные о кастах
+    local castInfo = getCastInfo(spellName)
+    -- проверка на успешное начало кд
+    if castInfo.StartTime and (GetTime() - castInfo.StartTime < 0.01) then
+        if not manual and UnitExists(target) then
+            -- проверяем цель на соответствие реальной
+            if castInfo.TargetName and castInfo.TargetName ~= "" and castInfo.TargetName ~= UnitName(target) then
+                if dump then print("Цели не совпали", spellName) end
+                StopCast("Цели не совпали")
+                --chat("bad target", target, spellName)
+                if nil == badSpellTarget[spellName] then
+		                badSpellTarget[spellName] = {}
+                end
+                local badTargets = badSpellTarget[spellName]
+                badTargets[UnitGUID(target)] = GetTime()
+                castInfo.Target = nil
+                castInfo.TargetName = nil
+                castInfo.TargetGUID = nil
+            end
+         end
+         if dump then print("Спел вроде прожался", spellName) end
 
-    if Debug then
-        local name = UnitName(target)
-        name = name or target
-        chat(spellName .. " -> ".. name, 0.4,0.4,0.4)
+         if Debug then
+             local name = UnitName(target)
+             name = name or target
+             chat(spellName .. " -> ".. name, 0.4,0.4,0.4)
+         end
+        return true
     end
-    return true
+    if dump then print("SPELL_CAST - не произошел для", spellName) end
+    return false
 end

@@ -180,23 +180,24 @@ function TryTaunt(target)
 
   if TimerLess("Taunt", 1)  then return false end
 
-  if UnitIsPlayer(target) or not UnitAffectingCombat(target) then return false end
+  if UnitIsPlayer(target) return false end
+
+
 
   local tt = UnitName(target .. "-target")
   if not UnitExists(tt) then return false end
-
+  if not UnitIsPlayer(tt) then return false end
   if IsOneUnit("player", tt) then return false end
-
 
   if DoSpell("Длань возмездия", target) then
      TimerStart("Taunt")
-     -- chat("Длань возмездия на " .. UnitName(target))
+     chat("Длань возмездия на " .. UnitName(target))
      return true
   end
 
   if not IsReadySpell("Длань возмездия") and IsInteractUnit(tt) and DoSpell("Праведная защита", tt) then
      TimerStart("Taunt")
-     -- chat("Праведная защита на " .. UnitName(tt))
+     chat("Праведная защита на " .. UnitName(tt))
      return true
   end
   return false
