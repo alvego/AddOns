@@ -191,6 +191,11 @@ function UseSpell(spellName, target)
         return false
     end
 
+    if not manual and UnitInLos and target and UnitExists(target) and UnitInLos(t) then
+        if dump then print("Не можем больше прожать, цель за препятствием", spellName) end
+        return false
+    end
+
     -- проверяем что цель в зоне досягаемости
     if not manual and not InRange(spellName, target) then
         if dump then print(target," - Цель вне зоны досягаемости, не можем прожать", spellName) end

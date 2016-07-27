@@ -129,11 +129,6 @@ function IsValidTarget(t)
         return false
     end
 
-    if UnitInLos and UnitInLos(t) then
-        IsValidTargetInfo = "В лосе"
-        return false
-    end
-
     return true
 end
 
@@ -162,12 +157,7 @@ function IsInteractUnit(t)
     	return false
     end
 
-    if UnitInLos and UnitInLos(t) then
-        IsInteractUnitInfo = "Вне поля зрения"
-        return false
-    end
-
-    if not InInteractRange(t) then
+   if not InInteractRange(t) then
         IsInteractUnitInfo = "Не в радиусе взаимодействия"
         return false
     end
