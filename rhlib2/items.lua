@@ -58,8 +58,7 @@ function IsReadyItem(name)
    local usable = IsUsableItem(name)
    if not usable then return true end
    local left = GetItemCooldownLeft(name)
-   if left > LagTime then return false end
-   return true
+   return IsReady(left, checkGCD)
 end
 
 ------------------------------------------------------------------------------------------------------------------

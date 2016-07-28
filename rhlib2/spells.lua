@@ -78,10 +78,21 @@ function GetGCDLeft()
     return gcd_duration - t
 end
 
-
 function InGCD()
     return GetGCDLeft() > LagTime
 end
+
+local abs = math.abs
+function IsReady(left, checkGCD)
+    if checkGCD == nil then checkGCD = false end
+    if not checkGCD then
+        local gcdLeft = GetGCDLeft()
+        if (abs(left - gcdLeft) < 0.01) then return true end
+    end
+    if left > LagTime then return false end
+    return true
+end
+------------------------------------------------------------------------------------------------------------------
 -- Interact range - 40 yards
 local interactSpells = {
     DRUID = "Целительное прикосновение",
@@ -114,12 +125,11 @@ function InMelee(target)
 end
 ------------------------------------------------------------------------------------------------------------------
 
-function IsReadySpell(name)
+function IsReadySpell(name, checkGCD)
     local usable, nomana = IsUsableSpell(name)
     if not usable then return false end
     local left = GetSpellCooldownLeft(name)
-    if left > LagTime then return false end
-    return true
+    return IsSpellNotUsed(name, 0.5) and IsReady(left, checkGCD)
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -275,10 +285,15 @@ function UseSpell(spellName, target)
     end
 
     -- Проверяем что все готово
-    if not IsReadySpell(spellName) then
-        if dump then print("Не готово, не можем прожать", spellName , "GCD:", InGCD(), "left:", GetSpellCooldownLeft(spellName), "LagTime:", LagTime) end
-        return false
-    end
+   if dump and not IsReadySpell(spellName) then
+       if dump then print("Не готово, не можем прожать", spellName) end
+       return false
+   end
+
+   if not IsReadySpell(spellName, true) then
+       if dump then print("ГКД, не можем прожать", spellName) end
+       return true -- дальше не идем
+   end
     -- собираем команду
     local cast = "/cast "
     -- с учетом цели
