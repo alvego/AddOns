@@ -224,7 +224,7 @@ end
 local badSpellTarget = {}
 local inCastSpells = {"Трепка", "Рунический удар", "Удар героя", "Рассекающий удар", "Гиперскоростное ускорение", "Нарукавная зажигательная ракетница"} -- TODO: Нужно уточнить и дополнить.
 function UseSpell(spellName, target)
-    local dump = false --spellName == "Целительный ливень"
+    local dump = true --spellName == "Целительный ливень"
     -- Не пытаемся что либо прожимать во время каста
     if IsPlayerCasting() then
         if dump then print("Кастим, не можем прожать", spellName) end
@@ -285,7 +285,7 @@ function UseSpell(spellName, target)
     end
 
     -- Проверяем что все готово
-   if dump and not IsReadySpell(spellName) then
+   if not IsReadySpell(spellName) then
        if dump then print("Не готово, не можем прожать", spellName) end
        return false
    end

@@ -18,6 +18,7 @@ function UseInterrupt()
 end
 
 function TryInterrupt(target)
+    if not CanInterrupt then return false end
     if target == nil then target = "target" end
     --if not CanAttack(target) then return end
     local channel = false
