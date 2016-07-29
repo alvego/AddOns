@@ -52,6 +52,7 @@ function Rotation()
     if not IsValidTarget("target") then return end
     if not HasMyDebuff("Метка охотника", 0.5,"target") and DoSpell("Метка охотника", "target") then return end
     if not HasMyDebuff("Укус змеи", 0.5,"target") and DoSpell("Укус змеи", "target") then return end
+    if DoSpell("Выстрел химеры", "target") then return end
     --if DoSpell("Контузящий выстрел", "target") then return end
     if DoSpell("Прицельный выстрел", "target") then return end
     if DoSpell("Чародейский выстрел", "target") then return end
