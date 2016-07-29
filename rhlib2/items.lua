@@ -14,7 +14,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 
 function UseSlot(slot)
-    if IsPlayerCasting() then return false end
+    if UnitIsCasting() then return false end
     if not IsReadySlot(slot) then return false end
     if not IsReadySlot(slot, true) then return true end
     omacro("/use " .. slot)
@@ -73,7 +73,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 
 function UseItem(itemName)
-    if IsPlayerCasting() then return false end
+    if UnitIsCasting() then return false end
     if not ItemExists(itemName) then return false end
     if not IsEquippedItem(itemName) and not IsUsableItem(itemName) then return false end
     if IsCurrentItem(itemName) then return false end

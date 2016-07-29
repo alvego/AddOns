@@ -25,7 +25,7 @@ end
 
 -- Отключаем авторотацию, при повторном нажатии останавливаем каст (если есть)
 function AutoRotationOff()
-    if IsPlayerCasting() and Paused then
+    if UnitIsCasting() and Paused then
         StopCast("Pause")
     end
     Paused = true
@@ -33,27 +33,6 @@ function AutoRotationOff()
     oexecute("PetFollow()")
     echo("Авто ротация: OFF")
 end
-
-function IsPaused()
-    if Paused then return true end
-    for i = 1, 72 do
-        local btn = _G["BT4Button"..i]
-        if btn ~= nil then
-            if btn:GetButtonState() == 'PUSHED' then
-                TimerStart('Paused')
-                return true
-            end
-        end
-    end
-    local t = 0.3
-    local spell, _, _, _, _, endTime  = UnitCastingInfo("player")
-    if not spell then spell, _, _, _, _, endTime, _, nointerrupt = UnitChannelInfo("player") end
-    if spell and endTime then
-        t = t + endTime/1000 - GetTime()
-    end
-    return TimerLess('Paused', t)
-end
-
 
 ------------------------------------------------------------------------------------------------------------------
 function FaceToTarget(force)
@@ -66,20 +45,6 @@ function FaceToTarget(force)
         FaceToUnit("target")
     end
 end
-
-local function updateFaceTotTarget(event, ...)
-    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, info = ...
-    if type:match("SPELL_CAST_FAILED") and sourceGUID == UnitGUID("player") then
-        if (amount == "Цель должна быть перед вами." or amount == "Цель вне поля зрения.") then FaceToTarget() end
-        if amount and Debug then
-          UIErrorsFrame:Clear()
-          UIErrorsFrame:AddMessage(spellName .. ' - ' .. amount, 1.0, 0.2, 0.2);
-          --if amount == "Еще не готово." then print("Не готово", spellName , " GCD:", InGCD(), " left:", GetSpellCooldownLeft(spellName), " LagTime:", LagTime) end
-        end
-    end
-end
-AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateFaceTotTarget)
-
 ------------------------------------------------------------------------------------------------------------------
 if Debug == nil then Debug = false end
 
@@ -139,8 +104,11 @@ function UpdateIdle(elapsed)
         echo("Требуется активация!")
         return
     end
-
-    if UnitIsDeadOrGhost("player") or IsPaused() then return end
+    if UnitIsDeadOrGhost("player") then return end
+    if SpellIsTargeting() then return end
+    if UnitIsCasting() then return end
+    if TrySpell() then return end
+    if Paused then return end
 
     if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then
         oexecute('FocusUnit("mouseover")')
