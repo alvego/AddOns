@@ -10,6 +10,7 @@ function Idle()
       if IsMounted() then Dismount() return end
   end
   -- дайте поесть (побегать) спокойно
+  if (IsMounted() or CanExitVehicle()) and not HasBuff("Аура воина Света") and DoSpell("Аура воина Света", "player") then return  end
   if not IsAttack() and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
 
 
@@ -57,6 +58,7 @@ function TryBuffs()
         return false
     end
     if HasSpell("Щит мстителя") then
+        if not HasBuff("Аура благочестия") and DoSpell("Аура благочестия", player) then return end
         if not HasMyBuff("Великое благословение неприкосновенности") and DoSpell("Великое благословение неприкосновенности", player) then return end
         if not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство", player) then return end
         if not HasMyBuff("Печать", 0.1, player) then

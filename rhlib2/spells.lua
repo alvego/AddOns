@@ -279,6 +279,7 @@ end
 CanTrySpellInfo = ""
 CanTrySpellName = ""
 function CanTrySpell(spell, target)
+  CanTrySpellPrint = ""
   CanTrySpellInfo = ""
   CanTrySpellName = ""
   if not spell then CanTrySpellInfo = "!Spell" return false end
@@ -313,16 +314,13 @@ local function updateSpellErrors(event, ...)
         --  print(amount)
         if (amount == "Цель должна быть перед вами." or amount == "Цель вне поля зрения.") then
           FaceToTarget()
-          return
         end
 
         --[[if (amount == "Еще не готово.") or (amount == "Заклинание пока недоступно.")  then
           if Debug then print("Не готово", spellName , " GCD:", InGCD(), " left:", GetSpellCooldownLeft(spellName), " LagTime:", LagTime) end
-          return
         end]]
         if (amount == "Эту цель атаковать нельзя.") then
           updateBadSpellTarget(spell, destGUID)
-          return
         end
         if Debug then
           UIErrorsFrame:Clear()
@@ -377,11 +375,16 @@ function TrySpell()
 end
 
 function UseSpell(spell, target)
+  if target and UnitExists(target) and UnitInLos and UnitInLos(target) then print("UnitInLos!") end
   if _spell == nil and CanTrySpell(spell, target) then
     _spell = spell
     _target = target
     return true
   end
-  --if Debug then print(CanTrySpellInfo) end
+  --if Debug and CanTrySpellInfo then print(CanTrySpellInfo) end
+  if target and UnitExists(target) and UnitInLos and UnitInLos(target) then
+    UIErrorsFrame:Clear()
+    UIErrorsFrame:AddMessage("UnitInLos: " .. target, 1.0, 0.2, 0.2)
+  end
   return false
 end
