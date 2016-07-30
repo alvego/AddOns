@@ -191,6 +191,7 @@ function IsBadSpellTarget(spell, target)
   return false
 end
 function updateBadSpellTarget(spell, targetGUID)
+  if nil == targetGUID then return end
   if nil == badSpellTarget[spell] then
         badSpellTarget[spell] = {}
   end
@@ -232,7 +233,7 @@ local function UpdateIsCast(event, ...)
         end
         if event == "UNIT_SPELLCAST_SENT" then
           castInfo.StartTime = GetTime()
-          if target and target ~= "" and castInfo.TargetName and not (castInfo.TargetName == target) then
+          if target and target ~= "" and castInfo.TargetGUID and castInfo.TargetName and not (castInfo.TargetName == target) then
             -- Цели не совпали
             --/run DoSpell("Âñïûøêà ñâåòà", "target")
             _badCast = spell;
