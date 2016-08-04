@@ -107,6 +107,7 @@ function InInteractRange(unit)
     if (unit == nil) then unit = "target" end
     if not UnitIsFriend("player", unit) then return false end
     if interactRangeSpell then return IsSpellInRange(interactRangeSpell, unit) == 1 end
+    --UnitInRange("target")
     return DistanceTo and DistanceTo("player", unit) < 40
 end
 ------------------------------------------------------------------------------------------------------------------
@@ -179,50 +180,15 @@ function UnitIsCasting(unit)
     return spell, left, duration, channel, nointerrupt
 end
 ------------------------------------------------------------------------------------------------------------------
-local badSpellTarget = {}
-function IsBadSpellTarget(spell, target)
-  if badSpellTarget[spellName] then
-      local badTargetTime = badSpellTarget[spellName][UnitGUID(target)]
-      -- 3 sec ignore wrong target
-      if badTargetTime and (GetTime() - badTargetTime < 3) then
-          return true
-      end
-  end
-  return false
-end
-function updateBadSpellTarget(spell, targetGUID)
-  if nil == targetGUID then return end
-  if nil == badSpellTarget[spell] then
-        badSpellTarget[spell] = {}
-  end
-  local badTargets = badSpellTarget[spell]
-  badTargets[targetGUID] = GetTime()
-end
-------------------------------------------------------------------------------------------------------------------
 local InCast = {}
 
 local function getCastInfo(spell)
 	if not InCast[spell] then
-		InCast[spell] = {StartTime = 0, LastCastTime = 0, TargetName = nil, TargetGUID = nil }
+		InCast[spell] = {StartTime = 0, LastCastTime = 0 }
 	end
 	return InCast[spell]
 end
 
-local function updateIsCastTarget(spell, target)
-  local castInfo = getCastInfo(spell)
-  if target and UnitExists(target) then
-    castInfo.Target = target
-    castInfo.TargetName = UnitName(target)
-    castInfo.TargetGUID = UnitGUID(target)
-  else
-    castInfo.Target = nil
-    castInfo.TargetName = nil
-    castInfo.TargetGUID = nil
-  end
-  --print(spell, castInfo.TargetName)
-end
-
-local _badCast = nil;
 local function UpdateIsCast(event, ...)
     local unit, spell, rank, target = select(1,...)
     if spell and unit == "player" then
@@ -232,15 +198,7 @@ local function UpdateIsCast(event, ...)
             return
         end
         if event == "UNIT_SPELLCAST_SENT" then
-          castInfo.StartTime = GetTime()
-          if target and target ~= "" and castInfo.TargetGUID and castInfo.TargetName and not (castInfo.TargetName == target) then
-            -- Цели не совпали
-            --/run DoSpell("Âñïûøêà ñâåòà", "target")
-            _badCast = spell;
-            updateBadSpellTarget(spell, castInfo.TargetGUID)
-            updateIsCastTarget(spell, nil)
-          end
-          castInfo.TargetName = target
+           castInfo.StartTime = GetTime()
         else
             castInfo.StartTime = 0
         end
@@ -249,11 +207,6 @@ end
 AttachEvent('UNIT_SPELLCAST_SENT', UpdateIsCast)
 AttachEvent('UNIT_SPELLCAST_SUCCEEDED', UpdateIsCast)
 AttachEvent('UNIT_SPELLCAST_FAILED', UpdateIsCast)
-
-function GetLastSpellTarget(spell)
-    local castInfo = getCastInfo(spell)
-    return (castInfo.Target and castInfo.TargetGUID and UnitExists(castInfo.Target) and UnitGUID(castInfo.Target) == castInfo.TargetGUID) and castInfo.Target or nil
-end
 
 function GetSpellLastTime(spell)
     local castInfo = getCastInfo(spell)
@@ -264,7 +217,6 @@ function IsSpellNotUsed(spell, t)
     local last  = GetSpellLastTime(spell)
     return GetTime() - last >= t
 end
-
 
 
 function IsSpellInUse(spell)
@@ -299,7 +251,6 @@ function CanTrySpell(spell, target)
   if UnitExists(target) ~= 1 then CanTrySpellInfo = "!UnitExists " .. target .. " ".. spell return false end
   if IsSpellInRange(name, target) == 0 then CanTrySpellInfo = "!InRange " .. target .. " ".. spell return false end
   if UnitInLos and UnitInLos(target) then CanTrySpellInfo = "UnitInLos " .. target .. " ".. spell return false end
-  if IsBadSpellTarget(name, target)  then CanTrySpellInfo = "BadTarget " .. target .. " ".. spell return false end
   return true
 end
 
@@ -315,13 +266,12 @@ local function updateSpellErrors(event, ...)
         if (amount == "Цель должна быть перед вами." or amount == "Цель вне поля зрения.") then
           FaceToTarget()
         end
-
         --[[if (amount == "Еще не готово.") or (amount == "Заклинание пока недоступно.")  then
           if Debug then print("Не готово", spellName , " GCD:", InGCD(), " left:", GetSpellCooldownLeft(spellName), " LagTime:", LagTime) end
         end]]
-        if (amount == "Эту цель атаковать нельзя.") then
-          updateBadSpellTarget(spell, destGUID)
-        end
+        --[[if (amount == "Эту цель атаковать нельзя.") then
+
+        end]]
         if Debug then
           UIErrorsFrame:Clear()
           UIErrorsFrame:AddMessage(spellName .. ' - ' .. amount, 1.0, 0.2, 0.2);
@@ -338,15 +288,10 @@ function TrySpell()
       --chat("Reset CombatLog!")
       TimerStart("CombatLogReset")
   end
-  if _badCast then
-    StopCast("Цели не совпали")
-    _badCast = nil
-  end
   if _spell ~= nil and CanTrySpell(_spell, _target) then
     local cast = "/cast "
-    if _target then  cast = cast .."[@".. _target .."] " end
     -- с учетом цели
-    updateIsCastTarget(CanTrySpellName, _target)
+    if _target then  cast = cast .."[@".. _target .."] " end
     -- пробуем скастовать
     --print(cast .. "!" .. CanTrySpellName .. '->' .. _spell)
     omacro(cast .. "!" .. CanTrySpellName)

@@ -3,6 +3,7 @@
 local peaceBuff = {"Пища", "Питье"}
 
 function Idle()
+
   -- Дизамаунт
   if IsAttack() or IsMouse(3) then
       if HasBuff("Парашют") then oexecute('CancelUnitBuff("player", "Парашют")') return end
@@ -12,7 +13,7 @@ function Idle()
   -- дайте поесть (побегать) спокойно
   if (IsMounted() or CanExitVehicle()) and not HasBuff("Аура воина Света") and DoSpell("Аура воина Света", "player") then return  end
   if not IsAttack() and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
-
+  if HasBuff("Аура воина Света") and oexecute('CancelUnitBuff("player", "Аура воина Света")') then return end
 
   if TryBuffs() then return end
 
@@ -25,7 +26,6 @@ function Idle()
     if TryDispel(player) then return end
 
     if AutoAGGRO and IsInGroup() then
-        local TARGETS = GetTargets()
         for i = 1, #TARGETS do
             local t = TARGETS[i]
             if UnitAffectingCombat(t) and TryTaunt(t) then return end
@@ -58,7 +58,7 @@ function TryBuffs()
         return false
     end
     if HasSpell("Щит мстителя") then
-        if not HasBuff("Аура благочестия") and DoSpell("Аура благочестия", player) then return end
+        if not HasBuff("Аура") and DoSpell("Аура благочестия", player) then return end
         if not HasMyBuff("Великое благословение неприкосновенности") and DoSpell("Великое благословение неприкосновенности", player) then return end
         if not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство", player) then return end
         if not HasMyBuff("Печать", 0.1, player) then

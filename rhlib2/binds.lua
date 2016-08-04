@@ -98,8 +98,13 @@ end
 -- при включенной Авто-ротации
 
 ------------------------------------------------------------------------------------------------------------------
-function UpdateIdle(elapsed)
 
+TARGETS = {}
+UNITS = {}
+
+
+------------------------------------------------------------------------------------------------------------------
+function UpdateIdle(elapsed)
     if nil == oexecute then
         echo("Требуется активация!")
         return
@@ -109,6 +114,26 @@ function UpdateIdle(elapsed)
     if UnitIsCasting() then return end
     if TrySpell() then return end
     if Paused then return end
+
+
+    if (ObjectsCount) then
+      wipe(UNITS)
+      wipe(TARGETS)
+      local objCount = ObjectsCount()
+      for i = 0, objCount - 1 do
+        local uid = GUIDByIndex(i)
+        if UnitExists(uid) and not UnitInLos(uid) and (not UnitIsDeadOrGhost(uid) or HasBuff("Притвориться мертвым", 0.1, uid))  then
+          if UnitCanAttack("player", uid) then
+              tinsert(TARGETS, uid)
+          else
+            if not UnitIsEnemy("player", uid) and UnitInRange(uid) then
+              tinsert(UNITS, uid)
+            end
+          end
+        end
+      end
+    end
+
 
     if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then
         oexecute('FocusUnit("mouseover")')
