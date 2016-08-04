@@ -103,7 +103,8 @@ TARGETS = {}
 UNITS = {}
 
 
-------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------\
+
 function UpdateIdle(elapsed)
     if nil == oexecute then
         echo("Требуется активация!")
@@ -115,14 +116,14 @@ function UpdateIdle(elapsed)
     if TrySpell() then return end
     if Paused then return end
 
-
-    if (ObjectsCount) then
+    if ObjectsCount and not TimerLess("UpdateObjects", 1) then
+      TimerStart("UpdateObjects")
       wipe(UNITS)
       wipe(TARGETS)
       local objCount = ObjectsCount()
       for i = 0, objCount - 1 do
         local uid = GUIDByIndex(i)
-        if UnitExists(uid) and not UnitInLos(uid) and (not UnitIsDeadOrGhost(uid) or HasBuff("Притвориться мертвым", 0.1, uid))  then
+        if UnitCanAttack("player", uid) then
           if UnitCanAttack("player", uid) then
               tinsert(TARGETS, uid)
           else
@@ -133,7 +134,6 @@ function UpdateIdle(elapsed)
         end
       end
     end
-
 
     if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then
         oexecute('FocusUnit("mouseover")')
