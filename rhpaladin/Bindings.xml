@@ -2,7 +2,7 @@
   <Binding name="PRH_INTERRUPT" description="Use cast interrupt" header="PRH">
     UseInterrupt();
   </Binding>
-  <Binding name="PRH_AUTOAGGRO" description="Auto AGGRO" header="PRH">
-    AutoAGGROToggle();
+  <Binding name="PRH_AUTOTAUNT" description="Auto Taunt" header="PRH">
+    AutoTauntToggle();
   </Binding>
 </Bindings>

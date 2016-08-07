@@ -40,7 +40,7 @@ function FaceToTarget(force)
       return
     end
     if not force then force = not PlayerFacingTarget("target") end
-    if force and TimerMore("FaceToTarget", 2) and UnitExists("target") and FaceToUnit then
+    if force and TimerMore("FaceToTarget", 1.5) and UnitExists("target") and FaceToUnit then
         TimerStart("FaceToTarget")
         FaceToUnit("target")
     end
@@ -98,12 +98,12 @@ end
 -- при включенной Авто-ротации
 
 ------------------------------------------------------------------------------------------------------------------
-
 TARGETS = {}
 UNITS = {}
-
-
 ------------------------------------------------------------------------------------------------------------------\
+local objectHP = {}
+local function compareMinHP(u1, u2) return objectHP[u1] < objectHP[u2] end
+local function compareMaxHP(u1, u2) return objectHP[u1] > objectHP[u2] end
 
 function UpdateIdle(elapsed)
     if nil == oexecute then
@@ -118,22 +118,30 @@ function UpdateIdle(elapsed)
 
     if ObjectsCount and not TimerLess("UpdateObjects", 1) then
       TimerStart("UpdateObjects")
-      wipe(UNITS)
+      wipe(objectHP)
       wipe(TARGETS)
+      wipe(UNITS)
       local objCount = ObjectsCount()
       for i = 0, objCount - 1 do
         local uid = GUIDByIndex(i)
-        if UnitCanAttack("player", uid) then
-          if UnitCanAttack("player", uid) then
-              tinsert(TARGETS, uid)
-          else
-            if not UnitIsEnemy("player", uid) and UnitInRange(uid) then
-              tinsert(UNITS, uid)
-            end
-          end
+        if UnitCanAttack("player", uid) and not UnitInLos(uid) and DistanceTo("player", uid) <= 40 then
+          --print(UnitName(uid), DistanceTo("player", uid))
+            tinsert(TARGETS, uid)
+            objectHP[uid] = UnitHealth(uid)
         end
       end
+      local groupUnits = GetGroupUnits()
+      for i = 1, #groupUnits do
+        local u = groupUnits[i]
+        if UnitInRange(u) and not UnitIsDeadOrGhost(u) and not UnitIsEnemy("player", u) and not UnitInLos(u) then
+          tinsert(UNITS, u)
+          objectHP[u] = UnitHealth(u)
+        end
+      end
+      sort(TARGETS, compareMaxHP)
+      sort(UNITS, compareMinHP)
     end
+
 
     if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then
         oexecute('FocusUnit("mouseover")')

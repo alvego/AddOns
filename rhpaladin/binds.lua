@@ -4,7 +4,7 @@ print("|cff0055ffRotation Helper|r|cffffe00a > |cffff4080Paladin|r loaded!")
 -- Binding
 BINDING_HEADER_PRH = "Paladin Rotation Helper"
 BINDING_NAME_PRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
-BINDING_NAME_PRH_AUTOAGGRO = "Авто АГГРО"
+BINDING_NAME_PRH_AUTOTAUNT = "Авто Taunt"
 ------------------------------------------------------------------------------------------------------------------
 if CanInterrupt == nil then CanInterrupt = true end
 
@@ -19,27 +19,85 @@ end
 
 function TryInterrupt(target)
     if not CanInterrupt then return false end
+    if UnitIsPlayer(target) then return false end
     if target == nil then target = "target" end
     --if not CanAttack(target) then return end
-    localspell, left, duration, channel, nointerrupt = UnitIsCasting("unit")
+    local spell, left, duration, channel, nointerrupt = UnitIsCasting(target)
     if not spell then return nil end
     if left < (channel and 0.5 or 0.2) then  return  end -- если уже докастил, нет смысла трепыхаться, тунелинг - нет смысла сбивать последний тик
     local name = UnitName(target)
     name = name or target
-    if not notinterrupt and (channel or t < 0.8) and DoSpell("Молот правосудия", target) then return true end
+    if not notinterrupt and (channel or left < 0.8) and DoSpell("Молот правосудия", target) then
+      chat("Молот правосудия в " .. UnitName(target))
+      return true
+    end
     return false
 end
 
 ------------------------------------------------------------------------------------------------------------------
-if AutoAGGRO == nil then AutoAGGRO = true end
+if AutoTaunt == nil then AutoTaunt = true end
 
-function AutoAGGROToggle()
-    AutoAGGRO = not AutoAGGRO
+function AutoTauntToggle()
+    AutoTaunt = not AutoTaunt
     if AutoAGGRO then
-        echo("АвтоАГГРО: ON")
+        echo("Авто Taunt: ON")
     else
-        echo("АвтоАГГРО: OFF")
+        echo("Авто Taunt: OFF")
     end
+end
+
+function TryTaunt()
+  if not AutoTaunt then return false end
+  if TimerLess("Taunt", 1.5)  then return false end
+  if not IsInGroup() then return false end
+  for i = 1, #UNITS do
+    local u = UNITS[i]
+    if UnitAffectingCombat(u) and not IsOneUnit("player", u) then
+      local _status = UnitThreatSituation(u)
+      if type(_status) == "number" and _status > 1 then
+        if DoSpell("Праведная защита", u) then
+           TimerStart("Taunt")
+           chat("Праведная защита на " .. UnitName(u))
+           return true
+        end
+        for j = 1, #TARGETS do
+          local t = TARGETS[j]
+          local isTanking, status, threatpct, rawthreatpct, threatvalue = UnitDetailedThreatSituation(u, t);
+          if isTanking then
+
+            if DoSpell("Щит мстителя", t) then
+               TimerStart("Taunt")
+               chat("Щит мстителя на " .. UnitName(t))
+               return true
+            end
+
+            if DoSpell("Длань возмездия", t) then
+               TimerStart("Taunt")
+               chat("Длань возмездия на " .. UnitName(t))
+               return true
+            end
+
+          end
+        end
+      end
+    end
+  end
+  return false
+end
+
+------------------------------------------------------------------------------------------------------------------
+function TryDispel(unit)
+   if TimerLess("Dispel", 3)  then return false end
+    if not unit then unit = "player" end
+    for i=1,40 do
+        local name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId = UnitDebuff(unit,i);
+        -- Magic, Disease, Poison, Curse
+        if name and debuffType and (debuffType == 'Magic' or debuffType == 'Disease' or debuffType == 'Poison') and DoSpell("Очищение", unit) then
+            TimerStart("Dispel")
+            return true
+        end
+    end
+    return false
 end
 
 ------------------------------------------------------------------------------------------------------------------

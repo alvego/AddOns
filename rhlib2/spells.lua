@@ -177,6 +177,7 @@ function UnitIsCasting(unit)
     local left = endTime * 0.001 - GetTime()
     local duration = (endTime - startTime) * 0.001
     if left < LagTime then return nil end
+    --print(unit, spell, left, duration, channel, nointerrupt)
     return spell, left, duration, channel, nointerrupt
 end
 ------------------------------------------------------------------------------------------------------------------

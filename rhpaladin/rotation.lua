@@ -4,6 +4,8 @@ local peaceBuff = {"Пища", "Питье"}
 
 function Idle()
 
+
+
   -- Дизамаунт
   if IsAttack() or IsMouse(3) then
       if HasBuff("Парашют") then oexecute('CancelUnitBuff("player", "Парашют")') return end
@@ -21,17 +23,13 @@ function Idle()
 
     TryTarget()
 
-    if not UnitIsPlayer("target") and TryInterrupt("target") then return end
+    if TryInterrupt("target") then return end
 
     if TryDispel(player) then return end
 
-    if AutoAGGRO and IsInGroup() then
-        for i = 1, #TARGETS do
-            local t = TARGETS[i]
-            if UnitAffectingCombat(t) and TryTaunt(t) then return end
-        end
-    end
 
+    if TryTaunt() then return end
+    --if true then return end
     if HasSpell("Удар воина Света") then
         Retribution()
         return
@@ -175,45 +173,4 @@ function TryTarget()
             if UnitExists("target") then omacro("/cleartarget") end
         end
     end
-end
-
-
-function TryTaunt(target)
-
-  if TimerLess("Taunt", 1)  then return false end
-
-  if UnitIsPlayer(target) then return false end
-
-  local tt = UnitName(target .. "-target")
-  if not UnitExists(tt) then return false end
-  if not UnitIsPlayer(tt) then return false end
-  if IsOneUnit("player", tt) then return false end
-
-  if DoSpell("Длань возмездия", target) then
-     TimerStart("Taunt")
-     chat("Длань возмездия на " .. UnitName(target))
-     return true
-  end
-
-  if not IsReadySpell("Длань возмездия") and IsInteractUnit(tt) and DoSpell("Праведная защита", tt) then
-     TimerStart("Taunt")
-     chat("Праведная защита на " .. UnitName(tt))
-     return true
-  end
-  return false
-end
-
-
-function TryDispel(unit)
-   if TimerLess("Dispel", 3)  then return false end
-    if not unit then unit = "player" end
-    for i=1,40 do
-        local name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId = UnitDebuff(unit,i);
-        -- Magic, Disease, Poison, Curse
-        if name and debuffType and (debuffType == 'Magic' or debuffType == 'Disease' or debuffType == 'Poison') and DoSpell("Очищение", unit) then
-            TimerStart("Dispel")
-            return true
-        end
-    end
-    return false
 end

@@ -48,17 +48,17 @@ local groupUnits  = {}
 function GetGroupUnits()
 	wipe(groupUnits)
 	tinsert(groupUnits, "player")
-    if not IsInGroup() then return groupUnits end
+  if not IsInGroup() then return groupUnits end
     local name = "party"
     local size = MAX_PARTY_MEMBERS
 	if IsInRaid() then
 		name = "raid"
 		size = MAX_RAID_MEMBERS
-    end
-    for i = 0, size do
+  end
+  for i = 0, size do
 		tinsert(groupUnits, name..i)
-    end
-    return groupUnits
+  end
+  return groupUnits
 end
 ------------------------------------------------------------------------------------------------------------------
 -- /run DоCommand("cl", GetSameGroupUnit("mouseover"))
@@ -209,19 +209,10 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 local HealComm = LibStub("LibHealComm-4.1")
-
 function UnitGetIncomingHeals(target, s)
-    if not target then
-        target = "player"
-    end
-    if not s then
-        s = 4
-        if UnitThreatAlert(target) == 3 then s = 2 end
-        if UnitHealth100(target) < 40 then return 0 end
-    end
-    local result = HealComm:GetHealAmount(UnitGUID(target), HealComm.ALL_HEALS, GetTime() + s) or 0
-    if HasDebuff("Смертельный удар", 0.1, target) then result = result / 2 end
-    return result
+    if not target then target = "player" end
+    if not s then s = 3 end
+    return HealComm:GetHealAmount(UnitGUID(target), HealComm.ALL_HEALS, GetTime() + s) or 0
 end
 
 ------------------------------------------------------------------------------------------------------------------
