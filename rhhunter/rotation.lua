@@ -1,7 +1,7 @@
 ﻿-- Hunter Rotation Helper by Timofeev Alexey
 print("|cff0055ffRotation Helper|r|cffffe00a > |cffabd473Hunter|r loaded!")
 ------------------------------------------------------------------------------------------------------------------
-local peaceBuff = {"Пища", "Питье"}
+local peaceBuff = {"Пища", "Питье","Притвориться мертвым","Слиться с тенью"}
 
 function Idle()
   -- Дизамаунт
@@ -27,9 +27,10 @@ function Idle()
 end
 
 function TryBuffs()
+    if UnitHealth100("player") < 30 and DoSpell("Сдерживание") then return true end
     if not HasBuff("Аура меткого выстрела") and DoSpell("Аура меткого выстрела")then return true end
     if UnitMana100() < 30 and not HasBuff("Дух гадюки") and DoSpell("Дух гадюки") then return true end
-    if UnitMana100() > 80 and not HasBuff("Дух ястреба") and DoSpell("Дух ястреба") then return true end
+    if UnitMana100() > 90 and not HasBuff("Дух дракондора") and DoSpell("Дух дракондора") then return true end
     return false
 end
 
@@ -52,10 +53,10 @@ function Rotation()
 
     if not IsValidTarget("target") then return end
     if not HasMyDebuff("Метка охотника", 0.5,"target") and DoSpell("Метка охотника", "target") then return end
-    if UnitHealth100("target") < 20 and DoSpell("Убийственный выстрел", "target") then return end 
+    if UnitHealth100("target") < 20 and DoSpell("Убийственный выстрел", "target") then return end
     if not HasMyDebuff("Укус змеи", 0.5,"target") and DoSpell("Укус змеи", "target") then return end
     if DoSpell("Выстрел химеры", "target") then return end
-    --if DoSpell("Контузящий выстрел", "target") then return end
+    if IsCtr() and DoSpell("Контузящий выстрел", "target") then return end
     if DoSpell("Прицельный выстрел", "target") then return end
     if DoSpell("Чародейский выстрел", "target") then return end
     if UnitHealth100("pet") < 50 and not HasBuff("Лечение питомца", 0.5,"pet") and DoSpell("Лечение питомца") then return end
