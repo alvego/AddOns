@@ -30,9 +30,11 @@ function AutoRotationOff()
     if UnitIsCasting() and Paused then
         StopCast("Pause")
     end
-    Paused = true
     oexecute("StopAttack()")
-    oexecute("PetFollow()")
+    if Paused then
+      oexecute("PetFollow()")
+    end
+    Paused = true
     echo("Авто ротация: OFF")
 end
 
@@ -93,6 +95,14 @@ function DebugToggle()
         SetCVar("Sound_EnableErrorSpeech", "0");
         echo("Режим отладки: OFF")
     end
+end
+local _m = ''
+function falseBecause(m)
+  if Debug and IsCtr() and _m ~= m then
+    _m = m
+    print(m)
+  end
+  return false
 end
 
 ------------------------------------------------------------------------------------------------------------------

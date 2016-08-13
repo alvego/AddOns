@@ -40,7 +40,7 @@ if AutoTaunt == nil then AutoTaunt = true end
 
 function AutoTauntToggle()
     AutoTaunt = not AutoTaunt
-    if AutoAGGRO then
+    if AutoTaunt then
         echo("Авто Taunt: ON")
     else
         echo("Авто Taunt: OFF")
@@ -48,38 +48,29 @@ function AutoTauntToggle()
 end
 
 function TryTaunt()
-  if not AutoTaunt then return false end
   if TimerLess("Taunt", 0.5)  then return false end
-  if not (IsReadySpell("Праведная защита") or IsReadySpell("Щит мстителя") or IsReadySpell("Длань возмездия")) then return false end
+  if HasMyBuff("Праведное неистовство", 1, "player") then
+     if not AutoTaunt then omacro("/cancelaura Праведное неистовство") end
+  else
+    if AutoTaunt and DoSpell("Праведное неистовство", player) then return true end
+  end
+  if not AutoTaunt then return false end
   if not IsInGroup() then return false end
+  if not (IsReadySpell("Праведная защита") or IsReadySpell("Щит мстителя") or IsReadySpell("Длань возмездия")) then return false end
+  TimerStart("Taunt")
   for i = 1, #UNITS do
     local u = UNITS[i]
     if UnitAffectingCombat(u) and not IsOneUnit("player", u) then
       local _status = UnitThreatSituation(u)
       if type(_status) == "number" and _status > 1 then
-        if DoSpell("Праведная защита", u) then
-           TimerStart("Taunt")
-           chat("Праведная защита на " .. UnitName(u))
-           return true
-        end
+        if DoSpell("Праведная защита", u) then return true end
         if not (IsReadySpell("Щит мстителя") or IsReadySpell("Длань возмездия")) then return false end
         for j = 1, #TARGETS do
           local t = TARGETS[j]
           local isTanking, status, threatpct, rawthreatpct, threatvalue = UnitDetailedThreatSituation(u, t);
           if isTanking then
-
-            if DoSpell("Щит мстителя", t) then
-               TimerStart("Taunt")
-               chat("Щит мстителя на " .. UnitName(t))
-               return true
-            end
-
-            if DoSpell("Длань возмездия", t) then
-               TimerStart("Taunt")
-               chat("Длань возмездия на " .. UnitName(t))
-               return true
-            end
-
+            if DoSpell("Щит мстителя", t) then return true end
+            if DoSpell("Длань возмездия", t) then return true end
           end
         end
       end

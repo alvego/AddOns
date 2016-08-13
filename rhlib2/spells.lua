@@ -238,7 +238,7 @@ local function updateSpellErrors(event, ...)
         if Debug then
           UIErrorsFrame:Clear()
           UIErrorsFrame:AddMessage(spellName .. ' - ' .. amount, 1.0, 0.2, 0.2);
-        end 
+        end
     end
 end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellErrors)
@@ -246,30 +246,30 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellErrors)
 ------------------------------------------------------------------------------------------------------------------
 local oldSpell = ""
 function UseSpell(spell, target, face)
-  if TimerStarted("InCast") then return false end
+  if TimerStarted("InCast") then return falseBecause("В процессе каста") end
 
-  if not spell then return false end
+  if not spell then return falseBecause("Спелл отсутсвует " .. spell) end
   local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spell)
-  if not name then return false end
-  if IsSpellInUse(name) then return false end
+  if not name then return falseBecause("Спелл неизветсен " .. spell) end
+  if IsSpellInUse(name) then return falseBecause("Спелл уже используется " .. spell) end
 
   local usable, nomana = IsUsableSpell(name)
-  if usable ~= 1 then return false end
-  if nomana == 1 then return false end
+  if usable ~= 1 then return falseBecause("Спелл недоступен " .. spell) end
+  if nomana == 1 then return falseBecause("Спелл требует больше маны " .. spell) end
 
   local start, duration = GetSpellCooldown(name);
   if start and duration then
     local left = start + duration - GetTime()
-    if left > 0 then return false end --LagTime
+    if left > 0 then return false end --LagTime --falseBecause("Спелл не готов " .. spell)
   end
 
   if target ~= nil then
-    if UnitExists(target) ~= 1 then return false end
-    if IsSpellInRange(name, target) == 0 then return false end
-    if UnitInLos and UnitInLos(target) then echo("UnitInLos!") return false end
+    if UnitExists(target) ~= 1 then return falseBecause("Цель не существует " .. target) end
+    if IsSpellInRange(name, target) == 0 then return falseBecause("Цель не в зоне действия " .. spell .. " " .. target) end
+    if UnitInLos and UnitInLos(target) then echo("UnitInLos!") return falseBecause("Цель в лосе " .. target) end
     if FaceSpells[name] ~= nil and not PlayerFacingTarget(target) then
       FaceToTarget(target)
-      return false
+      return falseBecause("Мы не смотрим на цель " .. target)
     end
   end
 
