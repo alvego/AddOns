@@ -105,7 +105,7 @@ function Retribution()
   if DoSpell("Удар воина Света", target) then return end
   if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
   if HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end
-  if DistanceTo(player, target) < 8 and mana > 30 then
+  if IsAOE() and mana > 50 then
      if DoSpell("Освящение") then return end
      if (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
   end
@@ -123,14 +123,12 @@ function Tank()
     if hp < 35 and UseItem("Рунический флакон с лечебным зельем") then return end
     if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
   end
-
   if not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
   if not HasBuff("Святая клятва") and DoSpell("Святая клятва", player) then return end
   if not HasBuff("Щит небес",0.1) and DoSpell("Щит небес", player) then return end
 
   if hp < 20 and DoSpell("Возложение рук", player) then return end
   if hp < 30 and DoSpell("Длань спасения", player) then return end
-
   if (IsAttack() or UnitAffectingCombat(target)) then
       if IsValidTarget(target) and not IsCurrentSpell("Автоматическая атака") then omacro("/startattack") end
   else
@@ -150,6 +148,16 @@ function Tank()
   if DoSpell("Молот праведника", target) then return end
   if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
   if (IsAOE() or mana > 70) and DoSpell("Щит мстителя", target) then return end
+  FaceToTarget(target)
+  if not IsValidTarget(target) then return end
+  if (IsAttack() or (IsAOE() and mana > 70)) and DistanceTo(player, target) < 8 then
+      if DoSpell("Освящение") then return end
+      if (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
+  end
+  if DoSpell("Молот гнева", target) then return end
+  if DoSpell("Молот праведника", target) then return end
+  if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
+  if (IsAttack() or (IsAOE() and mana > 70)) and DoSpell("Щит мстителя", target) then return end
   if DoSpell("Правосудие мудрости", target) then return end
 end
 

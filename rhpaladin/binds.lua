@@ -18,10 +18,11 @@ function UseInterrupt()
 end
 
 function TryInterrupt(target)
+
     if not CanInterrupt then return false end
-    if UnitIsPlayer(target) then return false end
+    if not IsReadySpell("Молот правосудия") then return false end
     if target == nil then target = "target" end
-    --if not CanAttack(target) then return end
+    if UnitIsPlayer(target) then return false end
     local spell, left, duration, channel, nointerrupt = UnitIsCasting(target)
     if not spell then return nil end
     if left < (channel and 0.5 or 0.2) then  return  end -- если уже докастил, нет смысла трепыхаться, тунелинг - нет смысла сбивать последний тик
@@ -48,8 +49,8 @@ end
 
 function TryTaunt()
   if not AutoTaunt then return false end
-  if TimerLess("Taunt", 1)  then return false end
-  
+  if TimerLess("Taunt", 0.5)  then return false end
+  if not (IsReadySpell("Праведная защита") or IsReadySpell("Щит мстителя") or IsReadySpell("Длань возмездия")) then return false end
   if not IsInGroup() then return false end
   for i = 1, #UNITS do
     local u = UNITS[i]
@@ -61,6 +62,7 @@ function TryTaunt()
            chat("Праведная защита на " .. UnitName(u))
            return true
         end
+        if not (IsReadySpell("Щит мстителя") or IsReadySpell("Длань возмездия")) then return false end
         for j = 1, #TARGETS do
           local t = TARGETS[j]
           local isTanking, status, threatpct, rawthreatpct, threatvalue = UnitDetailedThreatSituation(u, t);
