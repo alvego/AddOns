@@ -11,21 +11,24 @@ local function UpdateLagTime()
     LagTime = tonumber((select(3, GetNetStats()) or 0)) / 1000
 end
 AttachUpdate(UpdateLagTime)
-local sendTime = 0
+local sendTime = nil
 local function CastLagTime(event, ...)
     local unit, spell = select(1,...)
     if spell and unit == "player" then
         if event == "UNIT_SPELLCAST_SENT" then
             sendTime = GetTime()
-        end
-        if event == "UNIT_SPELLCAST_START" then
+        else
             if not sendTime then return end
             LagTime = (GetTime() - sendTime) / 2
+            sendTime = nil
         end
     end
 end
-AttachEvent('UNIT_SPELLCAST_START', CastLagTime)
 AttachEvent('UNIT_SPELLCAST_SENT', CastLagTime)
+AttachEvent('UNIT_SPELLCAST_START', CastLagTime)
+AttachEvent('UNIT_SPELLCAST_SUCCEEDED', CastLagTime)
+AttachEvent('UNIT_SPELLCAST_FAILED', CastLagTime)
+
 ------------------------------------------------------------------------------------------------------------------
 function StopCast(info)
     if not info then info = "?" end
@@ -58,24 +61,8 @@ function HasSpell(spellName)
     return false
 end
 ------------------------------------------------------------------------------------------------------------------
-local gcd_starttime, gcd_duration
-local function updateGCD(_, start, dur, enable)
-    if start > 0 and enable > 0 then
-        if dur and dur > 0 and dur <= 1.5 then
-            gcd_starttime = start
-            gcd_duration = dur
-        end
-    end
-end
-hooksecurefunc("CooldownFrame_SetTimer", updateGCD)
-
 function GetGCDLeft()
-    if not gcd_starttime then return 0 end
-    local t = GetTime() - gcd_starttime
-    if  t  > gcd_duration then
-        return 0
-    end
-    return gcd_duration - t
+    return GetSpellCooldownLeft(61304)
 end
 
 function InGCD()
@@ -189,25 +176,28 @@ local function getCastInfo(spell)
 	end
 	return InCast[spell]
 end
-
 local function UpdateIsCast(event, ...)
     local unit, spell, rank, target = select(1,...)
     if spell and unit == "player" then
         local castInfo = getCastInfo(spell)
         if event == "UNIT_SPELLCAST_SUCCEEDED" and castInfo.StartTime > 0 then
             castInfo.LastCastTime = castInfo.StartTime
-            return
         end
         if event == "UNIT_SPELLCAST_SENT" then
            castInfo.StartTime = GetTime()
+           TimerStart('InCast')
         else
             castInfo.StartTime = 0
+            TimerReset('InCast')
         end
     end
 end
 AttachEvent('UNIT_SPELLCAST_SENT', UpdateIsCast)
 AttachEvent('UNIT_SPELLCAST_SUCCEEDED', UpdateIsCast)
 AttachEvent('UNIT_SPELLCAST_FAILED', UpdateIsCast)
+
+
+
 
 function GetSpellLastTime(spell)
     local castInfo = getCastInfo(spell)
@@ -229,43 +219,15 @@ function IsSpellInUse(spell)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-CanTrySpellInfo = ""
-CanTrySpellName = ""
-function CanTrySpell(spell, target)
-  CanTrySpellPrint = ""
-  CanTrySpellInfo = ""
-  CanTrySpellName = ""
-  if not spell then CanTrySpellInfo = "!Spell" return false end
-  local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spell)
-  CanTrySpellName = name
-  if not name then CanTrySpellInfo = "!Info " .. spell return false end
-  if IsSpellInUse(name) then CanTrySpellInfo = "InUse " .. spell return false end
-  local usable, nomana = IsUsableSpell(name)
-  if usable ~= 1 then CanTrySpellInfo = "!Usable " .. spell return false end
-  if nomana == 1 then CanTrySpellInfo = "NoMana " .. spell return false end
-  local start, duration = GetSpellCooldown(name);
-  if start and duration then
-    local left = start + duration - GetTime()
-    if left > LagTime / 2 then CanTrySpellInfo = "!Ready " .. spell return false end
-  end
-  if target == nil then return true end
-  if UnitExists(target) ~= 1 then CanTrySpellInfo = "!UnitExists " .. target .. " ".. spell return false end
-  if IsSpellInRange(name, target) == 0 then CanTrySpellInfo = "!InRange " .. target .. " ".. spell return false end
-  if UnitInLos and UnitInLos(target) then CanTrySpellInfo = "UnitInLos " .. target .. " ".. spell return false end
-  return true
-end
-
-local _spell = nil
-local  _target = nil
-
+FaceSpells = FaceSpells or {}
 local function updateSpellErrors(event, ...)
-    TimerStart("CombatLog")
     local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, info = ...
     if type:match("SPELL_CAST_FAILED") and sourceGUID == UnitGUID("player") then
-        _spell = nil
         --  print(amount)
-        if (amount == "Цель должна быть перед вами." or amount == "Цель вне поля зрения.") then
-          FaceToTarget()
+        if (amount == "Цель должна быть перед вами.") then
+          if FaceSpells[spellName] == nil then
+            FaceSpells[spellName] = true
+          end
         end
         --[[if (amount == "Еще не готово.") or (amount == "Заклинание пока недоступно.")  then
           if Debug then print("Не готово", spellName , " GCD:", InGCD(), " left:", GetSpellCooldownLeft(spellName), " LagTime:", LagTime) end
@@ -281,56 +243,66 @@ local function updateSpellErrors(event, ...)
 end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellErrors)
 
+------------------------------------------------------------------------------------------------------------------
+local oldSpell = ""
+function UseSpell(spell, target, face)
+  if TimerStarted("InCast") then return false end
 
+  if not spell then return false end
+  local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spell)
+  if not name then return false end
+  if IsSpellInUse(name) then return false end
 
-function TrySpell()
-  if InCombatLockdown() and TimerMore("CombatLog", 15) and TimerMore("CombatLogReset", 30) then
-      CombatLogClearEntries()
-      --chat("Reset CombatLog!")
-      TimerStart("CombatLogReset")
+  local usable, nomana = IsUsableSpell(name)
+  if usable ~= 1 then return false end
+  if nomana == 1 then return false end
+
+  local start, duration = GetSpellCooldown(name);
+  if start and duration then
+    local left = start + duration - GetTime()
+    if left > 0 then return false end --LagTime
   end
-  if _spell ~= nil and CanTrySpell(_spell, _target) then
-    local cast = "/cast "
-    -- с учетом цели
-    if _target then  cast = cast .."[@".. _target .."] " end
-    -- пробуем скастовать
-    --print(cast .. "!" .. CanTrySpellName .. '->' .. _spell)
-    omacro(cast .. "!" .. CanTrySpellName)
-    if SpellIsTargeting() then
-          if _target then
-            UnitWorldClick(_target)
-          else
-             local look = IsMouselooking()
-              if look then
-                  oexecute('TurnOrActionStop()')
-              end
-              oexecute('CameraOrSelectOrMoveStart()')
-              oexecute('CameraOrSelectOrMoveStop()')
-              if look then
-                  oexecute('TurnOrActionStart()')
-              end
-          end
-          oexecute('SpellStopTargeting()')
+
+  if target ~= nil then
+    if UnitExists(target) ~= 1 then return false end
+    if IsSpellInRange(name, target) == 0 then return false end
+    if UnitInLos and UnitInLos(target) then echo("UnitInLos!") return false end
+    if FaceSpells[name] ~= nil and not PlayerFacingTarget(target) then
+      FaceToTarget(target)
+      return false
     end
-    return true
   end
-  --print(CanTrySpellInfo)
-  _spell = nil
-  _target = nil
-  return false
-end
 
-function UseSpell(spell, target)
-  if target and UnitExists(target) and UnitInLos and UnitInLos(target) then print("UnitInLos!") end
-  if _spell == nil and CanTrySpell(spell, target) then
-    _spell = spell
-    _target = target
-    return true
+
+  local cast = "/cast "
+  -- с учетом цели
+  if target then  cast = cast .."[@".. target .."] " end
+  -- пробуем скастовать
+
+  if Debug and spell ~= oldSpell then
+    print('|T'..icon ..':16|t |cff71d5ff' .. name .. '|r'.. (target and " |cffcccccc->|r " .. (UnitIsEnemy("player", target) and '|cffff0000' or '|cff00ff00') .. UnitName(target) .. '|r' or ""))
+    oldSpell = spell
   end
-  --if Debug and CanTrySpellInfo then print(CanTrySpellInfo) end
-  if target and UnitExists(target) and UnitInLos and UnitInLos(target) then
-    UIErrorsFrame:Clear()
-    UIErrorsFrame:AddMessage("UnitInLos: " .. target, 1.0, 0.2, 0.2)
+
+  omacro(cast .. "!" .. spell)
+
+  if SpellIsTargeting() then
+        if target then
+          UnitWorldClick(target)
+        else
+           local look = IsMouselooking()
+            if look then
+                oexecute('TurnOrActionStop()')
+            end
+            oexecute('CameraOrSelectOrMoveStart()')
+            oexecute('CameraOrSelectOrMoveStop()')
+            if look then
+                oexecute('TurnOrActionStart()')
+            end
+        end
+        oexecute('SpellStopTargeting()')
   end
-  return false
+
+
+  return true
 end

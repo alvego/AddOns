@@ -27,7 +27,7 @@ function TryInterrupt(target)
     if left < (channel and 0.5 or 0.2) then  return  end -- если уже докастил, нет смысла трепыхаться, тунелинг - нет смысла сбивать последний тик
     local name = UnitName(target)
     name = name or target
-    if not notinterrupt and (channel or left < 0.8) and DoSpell("Молот правосудия", target) then
+    if not notinterrupt and (channel or left < 1.6) and DoSpell("Молот правосудия", target) then
       chat("Молот правосудия в " .. UnitName(target))
       return true
     end
@@ -48,7 +48,8 @@ end
 
 function TryTaunt()
   if not AutoTaunt then return false end
-  if TimerLess("Taunt", 1.5)  then return false end
+  if TimerLess("Taunt", 1)  then return false end
+  
   if not IsInGroup() then return false end
   for i = 1, #UNITS do
     local u = UNITS[i]
@@ -103,6 +104,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function IsAOE()
     if IsShiftKeyDown() == 1 then return true end
+    if GetEnemyCountInRange(8) > 2 then return true end
     return false
 end
 

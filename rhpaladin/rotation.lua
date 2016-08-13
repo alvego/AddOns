@@ -83,7 +83,7 @@ function Retribution()
   if not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
 
   if hp < 90 and HasBuff("Искусство войны") and GetSpellCooldownLeft("Экзорцизм") > 3 then
-     if DoSpell("Вспышка Света") then return end
+     if DoSpell("Вспышка Света", player) then return end
   end
   if hp < 20 and DoSpell("Божественный щит", player) then return end
   if PlayerInPlace() and HasBuff("Божественный щит", 2, player) then
@@ -128,26 +128,29 @@ function Tank()
   if not HasBuff("Святая клятва") and DoSpell("Святая клятва", player) then return end
   if not HasBuff("Щит небес",0.1) and DoSpell("Щит небес", player) then return end
 
-  if hp < 20 and DoSpell("Возложение рук") then return end
-  if hp < 30 and DoSpell("Длань спасения") then return end
+  if hp < 20 and DoSpell("Возложение рук", player) then return end
+  if hp < 30 and DoSpell("Длань спасения", player) then return end
 
   if (IsAttack() or UnitAffectingCombat(target)) then
       if IsValidTarget(target) and not IsCurrentSpell("Автоматическая атака") then omacro("/startattack") end
   else
     if IsCurrentSpell("Автоматическая атака") then  omacro("/stopattack") end
   end
+
+  FaceToTarget(target)
+
   if not IsValidTarget(target) then return end
 
-  if (IsAOE() or mana > 50) and DistanceTo(player, target) < 8 then
+  if (IsAOE() or mana > 70) and DistanceTo(player, target) < 8 then
       if DoSpell("Освящение") then return end
       if (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
   end
 
-  if DoSpell("Молот гнева") then return end
-  if DoSpell("Молот праведника") then return end
-  if IsEquippedItemType("Щит") and DoSpell("Щит праведности") then return end
-  if (IsAOE() or mana > 50) and DoSpell("Щит мстителя") then return end
-  if DoSpell("Правосудие мудрости") then return end
+  if DoSpell("Молот гнева", target) then return end
+  if DoSpell("Молот праведника", target) then return end
+  if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
+  if (IsAOE() or mana > 70) and DoSpell("Щит мстителя", target) then return end
+  if DoSpell("Правосудие мудрости", target) then return end
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -174,3 +177,18 @@ function TryTarget()
         end
     end
 end
+
+
+--[[hooksecurefunc("MoveBackwardStart"	, function() print("MoveBackwardStart",format('SPD: %d%%', GetUnitSpeed("player") / 7 * 100)) end)
+hooksecurefunc("MoveBackwardStop"	, function() print("MoveBackwardStop",format('SPD: %d%%', GetUnitSpeed("player") / 7 * 100)) end)
+
+local function hookPlayerMove(...)
+	print(111,...)
+end
+
+hooksecurefunc("MoveForwardStart"	, hookPlayerMove)
+hooksecurefunc("MoveBackwardStart"	, hookPlayerMove)
+hooksecurefunc("StrafeLeftStart"	, hookPlayerMove)
+hooksecurefunc("StrafeRightStart"	, hookPlayerMove)
+hooksecurefunc("JumpOrAscendStart"	, hookPlayerMove)
+hooksecurefunc("ToggleAutoRun"		, hookPlayerMove)]]

@@ -1,10 +1,12 @@
 -- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
+
+------------------------------------------------------------------------------------------------------------------
 -- l18n
 BINDING_HEADER_RHLIB = "Rotation Helper Library"
-BINDING_NAME_RHLIB_FACE = "Лицом к Цели"
 BINDING_NAME_RHLIB_OFF = "Выкл ротацию"
 BINDING_NAME_RHLIB_DEBUG = "Вкл/Выкл режим отладки"
+BINDING_NAME_RHLIB_LOG = "Вкл/Выкл окно логирования"
 BINDING_NAME_RHLIB_RELOAD = "Перезагрузить интерфейс"
 -----------------------------------------------------------------------------------------------------------------
 -- Условие для включения ротации
@@ -35,15 +37,16 @@ function AutoRotationOff()
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function FaceToTarget(force)
-    if not force and (IsMouselooking() or not PlayerInPlace()) then
-      return
-    end
-    if not force then force = not PlayerFacingTarget("target") end
-    if force and TimerMore("FaceToTarget", 1.5) and UnitExists("target") and FaceToUnit then
-        TimerStart("FaceToTarget")
-        FaceToUnit("target")
-    end
+function FaceToTarget(target)
+    if not target then target = "target" end
+    if not FaceToUnit then return end
+    if TimerLess("FaceToTarget", 0.5) then return end
+    if IsMouselooking() then return end
+    if not PlayerInPlace() then return end
+    if not UnitExists(target) then return end
+    if PlayerFacingTarget(target) then return end
+    TimerStart("FaceToTarget")
+    FaceToUnit(target)
 end
 ------------------------------------------------------------------------------------------------------------------
 if Debug == nil then Debug = false end
@@ -63,14 +66,13 @@ local function updateDebugStats()
         if debugFrame:IsVisible() then debugFrame:Hide() end
         return
     end
-    if TimerLess('DebugFrame', 0.5) then return end
+    if TimerLess('DebugFrame', 1) then return end
     TimerStart('DebugFrame')
     UpdateAddOnMemoryUsage()
-    UpdateAddOnCPUUsage()
     local mem  = GetAddOnMemoryUsage("rhlib2")
     local fps = GetFramerate();
     local speed = GetUnitSpeed("player") / 7 * 100
-    debugFrame.text:SetText(format('MEM: %.1fKB, LAG: %ims, FPS: %i, SPD: %d%%', mem, LagTime * 1000, fps, speed))
+    debugFrame.text:SetText(format('MEM: %.1fKB, LAG: %ims, FPS: %i, SPD: %d%%',  mem, LagTime * 1000, fps, speed))
     if not debugFrame:IsVisible() then debugFrame:Show() end
 end
 
@@ -94,6 +96,19 @@ function DebugToggle()
 end
 
 ------------------------------------------------------------------------------------------------------------------
+local function updateCombatLogTimer()
+  TimerStart("CombatLog")
+end
+local function resetCombatLog()
+  if InCombatLockdown() and TimerMore("CombatLog", 15) and TimerMore("CombatLogReset", 30) then
+      CombatLogClearEntries()
+      --chat("Reset CombatLog!")
+      TimerStart("CombatLogReset")
+  end
+end
+AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateCombatLogTimer)
+AttachUpdate(updateCombatLogTimer)
+------------------------------------------------------------------------------------------------------------------
 -- Вызывает функцию Idle если таковая имеется, с заданным рекомендованным интервалом UpdateInterval,
 -- при включенной Авто-ротации
 
@@ -101,33 +116,56 @@ end
 TARGETS = {}
 UNITS = {}
 ------------------------------------------------------------------------------------------------------------------\
+local objectDist = {}
+local enemyCount = {}
+function GetEnemyCountInRange(range)
+  if not range then range = 8 end
+  if enemyCount[range] == nil then
+   local count = 0
+    for i = 1, #TARGETS do
+      local uid = TARGETS[i]
+      if objectDist[uid] <= range then
+        count = count + 1
+      end
+    end
+    enemyCount[range] = count
+  end
+  return enemyCount[range]
+end
+
 local objectHP = {}
 local function compareMinHP(u1, u2) return objectHP[u1] < objectHP[u2] end
 local function compareMaxHP(u1, u2) return objectHP[u1] > objectHP[u2] end
 
 function UpdateIdle(elapsed)
+  --echo(format('LAG: %ims', LagTime * 1000))
+  --print(max((select(2, GetSpellCooldown(61304)) or 0), 0), InGCD(), GetGCDLeft())
     if nil == oexecute then
-        echo("Требуется активация!")
+        --echo("Требуется активация!")
         return
     end
     if UnitIsDeadOrGhost("player") then return end
     if SpellIsTargeting() then return end
-    if UnitIsCasting() then return end
-    if TrySpell() then return end
     if Paused then return end
 
     if ObjectsCount and not TimerLess("UpdateObjects", 1) then
       TimerStart("UpdateObjects")
       wipe(objectHP)
+      wipe(objectDist)
+      wipe(enemyCount)
       wipe(TARGETS)
       wipe(UNITS)
       local objCount = ObjectsCount()
       for i = 0, objCount - 1 do
         local uid = GUIDByIndex(i)
-        if UnitCanAttack("player", uid) and not UnitInLos(uid) and DistanceTo("player", uid) <= 40 then
+        if UnitCanAttack("player", uid) and not UnitInLos(uid) then
+          local dist = DistanceTo("player", uid)
+          if dist <= 40 then
           --print(UnitName(uid), DistanceTo("player", uid))
             tinsert(TARGETS, uid)
             objectHP[uid] = UnitHealth(uid)
+            objectDist[uid] = dist
+          end
         end
       end
       local groupUnits = GetGroupUnits()

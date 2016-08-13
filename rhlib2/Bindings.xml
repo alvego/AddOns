@@ -1,7 +1,4 @@
 <Bindings>
-  <Binding name="RHLIB_FACE" description="Face to target" header="RHLIB">
-   FaceToTarget(true)
- </Binding>
   <Binding name="RHLIB_OFF" description="Auto rotation OFF" header="RHLIB">
     AutoRotationOff();
   </Binding>
