@@ -96,14 +96,6 @@ function DebugToggle()
         echo("Режим отладки: OFF")
     end
 end
-local _m = ''
-function falseBecause(m)
-  if Debug and IsCtr() and _m ~= m then
-    _m = m
-    print(m)
-  end
-  return false
-end
 
 ------------------------------------------------------------------------------------------------------------------
 local function updateCombatLogTimer()
@@ -151,14 +143,20 @@ function UpdateIdle(elapsed)
   --echo(format('LAG: %ims', LagTime * 1000))
   --print(max((select(2, GetSpellCooldown(61304)) or 0), 0), InGCD(), GetGCDLeft())
     if nil == oexecute then
-        --echo("Требуется активация!")
+        if not TimerStarted('UnlockTimer') then
+          TimerStart('UnlockTimer')
+        end
+        UIErrorsFrame:Clear()
+        UIErrorsFrame:AddMessage('...');
+        UIErrorsFrame:AddMessage(SecondsToTime(TimerElapsed('UnlockTimer')), 1.0, 1.0, 0.0, 53, 2);
+        UIErrorsFrame:AddMessage("|TInterface\\Icons\\INV_Gizmo_Runicmanainjector:32|t Tребуется инъекция.", 0.0, 1.0, 0.0, 53, 2);
         return
     end
     if UnitIsDeadOrGhost("player") then return end
     if SpellIsTargeting() then return end
     if Paused then return end
 
-    if ObjectsCount and not TimerLess("UpdateObjects", 1) then
+    if (IsAttack() or InCombatLockdown()) and ObjectsCount and not TimerLess("UpdateObjects", 1) then
       TimerStart("UpdateObjects")
       wipe(objectHP)
       wipe(objectDist)

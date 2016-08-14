@@ -244,32 +244,52 @@ end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellErrors)
 
 ------------------------------------------------------------------------------------------------------------------
-local oldSpell = ""
-function UseSpell(spell, target, face)
-  if TimerStarted("InCast") then return falseBecause("В процессе каста") end
+local _m = ''
+local function falseBecause(m, spell, icon, target)
+  if m == "Не готов" then return false end -- ignore
+  if m == "Уже используется" then return false end -- ignore
+  if Debug and IsCtr() and _m ~= m then
+    _m = m
+    local s = '|T'.. (icon and icon or 'Interface\\Icons\\INV_Misc_Coin_02') ..':16|t '
+    if spell then
+      s = s .. '|cff71d5ff[' .. spell .. ']|r '
+    end
+    if m and m ~= spell then
+      s = s .. '|cffff5555<' .. m .. '>|r '
+    end
+    if target then
+      s = s .. '|cffcccccc->|r ' .. (UnitIsEnemy("player", target) and '|cffff0000' or '|cff00ff00') .. UnitName(target) .. '|r'
+    end
+    print(s)
+  end
+  return false
+end
 
-  if not spell then return falseBecause("Спелл отсутсвует " .. spell) end
+function UseSpell(spell, target, face)
+  --if TimerStarted("InCast") then return falseBecause("В процессе каста") end
+  if UnitIsCasting("player") then return falseBecause("В процессе каста") end
+  if not spell then return falseBecause("Отсутсвует", spell) end
   local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spell)
-  if not name then return falseBecause("Спелл неизветсен " .. spell) end
-  if IsSpellInUse(name) then return falseBecause("Спелл уже используется " .. spell) end
+  if not name then return falseBecause("Нет в книге заклинаний", spell) end
+  if IsSpellInUse(name) then return falseBecause("Уже используется", name, icon) end
 
   local usable, nomana = IsUsableSpell(name)
-  if usable ~= 1 then return falseBecause("Спелл недоступен " .. spell) end
-  if nomana == 1 then return falseBecause("Спелл требует больше маны " .. spell) end
+  if usable ~= 1 then return falseBecause("Недоступен", name, icon) end
+  if nomana == 1 then return falseBecause("Нужно больше маны", name, icon) end
 
   local start, duration = GetSpellCooldown(name);
   if start and duration then
     local left = start + duration - GetTime()
-    if left > 0 then return false end --LagTime --falseBecause("Спелл не готов " .. spell)
+    if left > LagTime then return falseBecause("Не готов", name, icon)  end --LagTime --falseBecause("Спелл не готов " .. spell)
   end
 
   if target ~= nil then
-    if UnitExists(target) ~= 1 then return falseBecause("Цель не существует " .. target) end
-    if IsSpellInRange(name, target) == 0 then return falseBecause("Цель не в зоне действия " .. spell .. " " .. target) end
-    if UnitInLos and UnitInLos(target) then echo("UnitInLos!") return falseBecause("Цель в лосе " .. target) end
+    if UnitExists(target) ~= 1 then return falseBecause("Цель не существует", name, icon, target) end
+    if IsSpellInRange(name, target) == 0 then return falseBecause("Цель не в зоне действия", name, icon, target) end
+    if UnitInLos and UnitInLos(target) then echo("UnitInLos!") return falseBecause("Цель в лосе", name, icon, target) end
     if FaceSpells[name] ~= nil and not PlayerFacingTarget(target) then
       FaceToTarget(target)
-      return falseBecause("Мы не смотрим на цель " .. target)
+      return falseBecause("Мы не смотрим на цель", name, icon, target)
     end
   end
 
@@ -279,12 +299,8 @@ function UseSpell(spell, target, face)
   if target then  cast = cast .."[@".. target .."] " end
   -- пробуем скастовать
 
-  if Debug and spell ~= oldSpell then
-    print('|T'..icon ..':16|t |cff71d5ff' .. name .. '|r'.. (target and " |cffcccccc->|r " .. (UnitIsEnemy("player", target) and '|cffff0000' or '|cff00ff00') .. UnitName(target) .. '|r' or ""))
-    oldSpell = spell
-  end
-
-  omacro(cast .. "!" .. spell)
+  falseBecause(name, name, icon, target)
+  omacro(cast .. "!" .. name)
 
   if SpellIsTargeting() then
         if target then
