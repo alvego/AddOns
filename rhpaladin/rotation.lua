@@ -116,28 +116,33 @@ function Tank()
   local player = "player"
   local hp = UnitHealth100(player)
   local mana = UnitMana100(player)
+  local valid = IsValidTarget(target)
 
   if InCombatLockdown() then
     if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
     if hp < 35 and UseItem("Рунический флакон с лечебным зельем") then return end
     if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
+
+    if hp < 70 and UseEquippedItem("Гниющий палец Ика") then return end
+    if hp < 50 and UseEquippedItem("Символ неукротимости") then return end
+
+    if hp < 20 and DoSpell("Возложение рук", player) then return end
+    if hp < 30 and DoSpell("Длань спасения", player) then return end
   end
+
   if not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
   if not HasBuff("Святая клятва") and DoSpell("Святая клятва", player) then return end
   if not HasBuff("Щит небес",0.1) and DoSpell("Щит небес", player) then return end
 
-  if hp < 20 and DoSpell("Возложение рук", player) then return end
-  if hp < 30 and DoSpell("Длань спасения", player) then return end
   if (IsAttack() or UnitAffectingCombat(target)) then
-      if IsValidTarget(target) and not IsCurrentSpell("Автоматическая атака") then omacro("/startattack") end
+      if valid and not IsCurrentSpell("Автоматическая атака") then omacro("/startattack") end
   else
     if IsCurrentSpell("Автоматическая атака") then  omacro("/stopattack") end
   end
-  if not IsValidTarget(target) then return end
+  if not valid then return end
   FaceToTarget(target)
 
-  if not IsValidTarget(target) then return end
-  if (IsAttack() or mana > 70) and IsAOE() and DistanceTo(player, target) < 8 then
+  if (IsAttack() or mana > 70) and IsAOE() then
       if DoSpell("Освящение") then return end
       if (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
   end

@@ -48,23 +48,28 @@ function AutoTauntToggle()
 end
 
 function TryTaunt()
-  if TimerLess("Taunt", 0.5)  then return false end
+
   if HasMyBuff("Праведное неистовство", 1, "player") then
      if not AutoTaunt then omacro("/cancelaura Праведное неистовство") end
   else
     if AutoTaunt and DoSpell("Праведное неистовство", player) then return true end
   end
+
   if not AutoTaunt then return false end
+
   if not IsInGroup() then return false end
+
   if not (IsReadySpell("Праведная защита") or IsReadySpell("Щит мстителя") or IsReadySpell("Длань возмездия")) then return false end
-  TimerStart("Taunt")
+
   for i = 1, #UNITS do
     local u = UNITS[i]
     if UnitAffectingCombat(u) and not IsOneUnit("player", u) then
       local _status = UnitThreatSituation(u)
       if type(_status) == "number" and _status > 1 then
         if DoSpell("Праведная защита", u) then return true end
+
         if not (IsReadySpell("Щит мстителя") or IsReadySpell("Длань возмездия")) then return false end
+
         for j = 1, #TARGETS do
           local t = TARGETS[j]
           local isTanking, status, threatpct, rawthreatpct, threatvalue = UnitDetailedThreatSituation(u, t);
@@ -81,7 +86,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function TryDispel(unit)
-   if TimerLess("Dispel", 3)  then return false end
+   if TimerLess("Dispel", 2)  then return false end
     if not unit then unit = "player" end
     for i=1,40 do
         local name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId = UnitDebuff(unit,i);
