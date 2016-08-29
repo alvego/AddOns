@@ -59,16 +59,12 @@ function TryTaunt()
 
   if not IsInGroup() then return false end
 
-  if not (IsReadySpell("Праведная защита") or IsReadySpell("Щит мстителя") or IsReadySpell("Длань возмездия")) then return false end
-
   for i = 1, #UNITS do
     local u = UNITS[i]
     if UnitAffectingCombat(u) and not IsOneUnit("player", u) then
       local _status = UnitThreatSituation(u)
       if type(_status) == "number" and _status > 1 then
         if DoSpell("Праведная защита", u) then return true end
-
-        if not (IsReadySpell("Щит мстителя") or IsReadySpell("Длань возмездия")) then return false end
 
         for j = 1, #TARGETS do
           local t = TARGETS[j]

@@ -55,7 +55,7 @@ function TryBuffs()
         return false
     end
     if HasSpell("Щит мстителя") then
-        if (IsAttack() or InCombatLockdown()) and not HasBuff("Аура") and DoSpell("Аура благочестия", player) then return true end
+        if (IsAttack() or InCombatLockdown()) and not HasMyBuff("Аура", 1, player) and DoSpell("Аура благочестия", player) then return true end
         if not HasMyBuff("Великое благословение неприкосновенности") and DoSpell("Великое благословение неприкосновенности", player) then return true end
         if not HasMyBuff("Печать", 0.1, player) then
           local seal = "Печать мщения"
@@ -150,7 +150,7 @@ function Tank()
   if DoSpell("Молот праведника", target) then return end
   if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
   if (IsAttack() or mana > 70) and IsAOE() and DoSpell("Щит мстителя", target) then return end
-  if DoSpell("Правосудие мудрости", target) then return end
+  if DoSpell(hp < 70 and "Правосудие света" or "Правосудие мудрости", target) then return end
 end
 
 ------------------------------------------------------------------------------------------------------------------
