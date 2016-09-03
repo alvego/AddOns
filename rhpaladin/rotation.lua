@@ -45,8 +45,9 @@ end
 function TryBuffs()
     local player = "player"
     if HasSpell("Удар воина Света") then
-        if HasSpell("Священная жертва") and not InCombatLockdown() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return true end
+        --if HasSpell("Священная жертва") and not InCombatLockdown() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return true end
         if (IsAttack() or InCombatLockdown()) and not HasBuff("Аура") and DoSpell("Аура воздаяния", player) then return true end
+        if IsPvP() and not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
         if not HasBuff("Печать") and DoSpell("Печать мщения") then return true end
         if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
             if not HasBuff("благословение королей") and DoSpell("Великое благословение королей","player") then return true end
@@ -78,7 +79,7 @@ function Retribution()
     if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
   end
 
-  if not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
+  if IsPvP() and not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
 
   if hp < 90 and HasBuff("Искусство войны") and GetSpellCooldownLeft("Экзорцизм") > 3 then
      if DoSpell("Вспышка Света", player) then return end
@@ -98,17 +99,19 @@ function Retribution()
   FaceToTarget(target)
 
   if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
+  if UseItem("Чешуйчатые рукавицы разгневанного гладиатора") then return end
   if UnitHealth100(target) <= 20 and DoSpell("Молот гнева", target) then return end
   if HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end
   if DoSpell("Правосудие мудрости", target) then return end
   if DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
   if DoSpell("Удар воина Света", target) then return end
   if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
-  if (IsAttack() or mana > 70) and IsAOE() then
-     if DoSpell("Освящение") then return end
-     if (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
+  --if (IsAttack() or mana > 70) and IsAOE() then
+  if mana > 60 then
+     if DistanceTo(player, target) < 8 and DoSpell("Освящение") then return end
+     if DistanceTo(player, target) < 8 and (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
   end
-  if mana < 45 and DoSpell("Святая клятва") then return end
+  if mana < 30 and DoSpell("Святая клятва") then return end
 end
 
 function Tank()

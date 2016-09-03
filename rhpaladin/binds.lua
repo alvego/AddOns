@@ -49,11 +49,11 @@ end
 
 function TryTaunt()
 
-  if HasMyBuff("Праведное неистовство", 1, "player") then
+  --[[if HasMyBuff("Праведное неистовство", 1, "player") then
      if not AutoTaunt then omacro("/cancelaura Праведное неистовство") end
   else
     if AutoTaunt and DoSpell("Праведное неистовство", player) then return true end
-  end
+  end]]
 
   if not AutoTaunt then return false end
 
