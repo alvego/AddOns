@@ -12,39 +12,6 @@ oexecute
 
 -- Инициализация скрытого фрейма для обработки событий
 local frame=CreateFrame("Frame","RHLIB2FRAME",UIParent)
-
---[[local function hookUseAction(slot, ...)
-	print("UseAction", slot, ...)
-  local actiontype, id, subtype = GetActionInfo(slot)
-  if actiontype and id then
-      local name = nil
-      if actiontype == "spell" then
-          name = GetSpellName(id, "spell")
-      elseif actiontype == "item" then
-          name = GetItemInfo(id)
-      elseif actiontype == "companion" then
-          name = select(2, GetCompanionInfo(subtype, id))
-      elseif actiontype == "macro" then
-          name = GetMacroInfo(id)
-      end
-      if name then
-          print("UseAction", slot, name, actiontype, ...)
-      end
-  end
-end
-
-hooksecurefunc("UseAction"	, hookUseAction)
-
-function UseAction(slot)
-	local isUsable, notEnoughMana = IsUsableAction(slot)
-	if not isUsable or notEnoughMana then return false end
-	local start, duration = GetActionCooldown(slot)
- 	if start and time - (start + duration) < LagTime then return end
-	if ActionHasRange(slot) and IsActionInRange(slot) == 0 then return false end
-  --use action
-  --UseAction(slot)
-	return true
-end]]
 ------------------------------------------------------------------------------------------------------------------
 -- Список событие -> обработчики
 local EventList = {}

@@ -5,9 +5,9 @@ local peaceBuff = {"Пища", "Питье"}
 function Idle()
   -- Дизамаунт
   if IsAttack() or IsMouse(3) then
-      if HasBuff("Парашют") then oexecute('CancelUnitBuff("player", "Парашют")') return end
+      if HasBuff("Парашют") then oexecute('CancelUnitBuff("player", "Парашют")') end
       if CanExitVehicle() then VehicleExit() end
-      if IsMounted() then Dismount() return end
+      if IsMounted() then Dismount() end
   end
   -- дайте поесть (побегать) спокойно
   if not IsAttack() and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
@@ -49,12 +49,32 @@ function Rotation()
   end
   if not IsValidTarget(target) then return end
   FaceToTarget(target)
-  if not HasBuff("крик", 1, player) and DoSpell("Боевой крик") then return end
-  if not HasDebuff("Кровопускание", 1, target) and DoSpell("Кровопускание", target) then return end
-  if IsAttack() and DoSpell("Рывок", target) then return end
+
+
+
+  if HasBuff("Проклятие хаоса") then oexecute('CancelUnitBuff("player", "Проклятие хаоса")') end
   if DoSpell("Победный раж", target) then return end
   if IsAOE() and DoSpell("Удар грома") then return end
-  if DoSpell("Удар героя") then return end
+
+  if not HasDebuff("Кровопускание", 1, target) and DoSpell("Кровопускание", target) then return end
+
+  if HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
+
+  if DoSpell("Превосходство", target) then return end
+
+  if DoSpell("Смертельный удар", target) then return end
+
+  if not HasBuff("крик", 1, player) and DoSpell("Боевой крик") then return end
+
+  if IsAttack() and DoSpell("Рывок", target) then return end
+
+  if mana > 80 then
+     if UnitHealth100(target) < 20 then
+       if DoSpell("Казнь", target) then return end
+     else
+       if DoSpell("Удар героя", target) then return end
+     end
+  end
 end
 
 

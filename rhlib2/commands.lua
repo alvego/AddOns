@@ -36,7 +36,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 -- навешиваем обработчик с максимальным приоритетом на событие OnUpdate, для обработки вызванных комманд
 function UpdateCommands()
-    if IsPlayerCasting() then return false end
+    if UnitIsCasting("player") then return false end
     local ret = false
     for cmd,_ in pairs(Commands) do
         if not ret then
@@ -61,11 +61,13 @@ end
 -- // /run if IsReadySpell("s") and СanMagicAttack("target") then DoCommand("spell", "s", "target") end
 SetCommand("spell",
     function(spell, target)
+        if not target then target = "target" end
         if DoSpell(spell, target) then
             echo(spell.."!",1)
         end
     end,
     function(spell, target)
+        if not target then target = "target" end
         if not HasSpell(spell) then
             chat(spell .. " - нет спела!")
             return true
@@ -91,4 +93,40 @@ SetCommand("spell",
         return false
     end
 )
+------------------------------------------------------------------------------------------------------------------
+local function hookUseAction(slot, ...)
+	--print("UseAction", slot, ...)
+  local actiontype, id, subtype = GetActionInfo(slot)
+  if actiontype and id then
+      local name = nil
+      if actiontype == "spell" then
+          name = GetSpellName(id, "spell")
+          DoCommand("spell", name, IsAlt() and "focus" or "target")
+      elseif actiontype == "item" then
+          name = GetItemInfo(id)
+      elseif actiontype == "companion" then
+          name = select(2, GetCompanionInfo(subtype, id))
+      elseif actiontype == "macro" then
+          name = GetMacroInfo(id)
+          if Commands[name] then
+            DoCommand(name)
+          end
+      end
+      --[[if name then
+          print("UseAction", slot, name, actiontype, ...)
+      end]]
+  end
+end
+hooksecurefunc("UseAction", hookUseAction)
+
+--[[function UseAction(slot)
+	local isUsable, notEnoughMana = IsUsableAction(slot)
+	if not isUsable or notEnoughMana then return false end
+	local start, duration = GetActionCooldown(slot)
+ 	if start and time - (start + duration) < LagTime then return end
+	if ActionHasRange(slot) and IsActionInRange(slot) == 0 then return false end
+  --use action
+  --UseAction(slot)
+	return true
+end]]
 ------------------------------------------------------------------------------------------------------------------

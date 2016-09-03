@@ -98,18 +98,19 @@ function DebugToggle()
 end
 
 ------------------------------------------------------------------------------------------------------------------
-local function updateCombatLogTimer()
+local function updateCombatLogTimer(...)
   TimerStart("CombatLog")
 end
 local function resetCombatLog()
-  if InCombatLockdown() and TimerMore("CombatLog", 15) and TimerMore("CombatLogReset", 30) then
+  if InCombatLockdown() and TimerMore("CombatLog", 6)  then
       CombatLogClearEntries()
-      --chat("Reset CombatLog!")
-      TimerStart("CombatLogReset")
+      TimerStart("CombatLog")
+      chat("Reset CombatLog!")
+
   end
 end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateCombatLogTimer)
-AttachUpdate(updateCombatLogTimer)
+AttachUpdate(resetCombatLog)
 ------------------------------------------------------------------------------------------------------------------
 -- Вызывает функцию Idle если таковая имеется, с заданным рекомендованным интервалом UpdateInterval,
 -- при включенной Авто-ротации
@@ -153,10 +154,11 @@ function UpdateIdle(elapsed)
         return
     end
     if UnitIsDeadOrGhost("player") then return end
+    if UpdateCommands() then return end
     if SpellIsTargeting() then return end
     if Paused then return end
 
-    if (IsAttack() or InCombatLockdown()) and ObjectsCount and not TimerLess("UpdateObjects", 1) then
+    --[[if (IsAttack() or InCombatLockdown()) and ObjectsCount and not TimerLess("UpdateObjects", 1) then
       TimerStart("UpdateObjects")
       wipe(objectHP)
       wipe(objectDist)
@@ -186,7 +188,7 @@ function UpdateIdle(elapsed)
       end
       sort(TARGETS, compareMaxHP)
       sort(UNITS, compareMinHP)
-    end
+    end]]
 
 
     if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then

@@ -265,7 +265,7 @@ local function falseBecause(m, spell, icon, target)
   return false
 end
 
-function UseSpell(spell, target, face)
+function UseSpell(spell, target)
   --if TimerStarted("InCast") then return falseBecause("В процессе каста") end
   if UnitIsCasting("player") then return falseBecause("В процессе каста") end
   if not spell then return falseBecause("Отсутсвует", spell) end
