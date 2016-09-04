@@ -102,11 +102,12 @@ local function updateCombatLogTimer(...)
   TimerStart("CombatLog")
 end
 local function resetCombatLog()
-  if InCombatLockdown() and TimerMore("CombatLog", 6)  then
+  if InCombatLockdown()
+  and TimerStarted("CombatLog") and TimerMore("CombatLog", 6)
+  and (not TimerStarted("CombatLogReset") or TimerMore("CombatLogReset", 30))  then
       CombatLogClearEntries()
-      TimerStart("CombatLog")
+      TimerStart("CombatLogReset")
       chat("Reset CombatLog!")
-
   end
 end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateCombatLogTimer)

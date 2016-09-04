@@ -166,6 +166,14 @@ function IsInteractUnit(t)
 end
 
 ------------------------------------------------------------------------------------------------------------------
+function Stance(...)
+  local s = GetShapeshiftForm()
+    for i = 1, select('#', ...) do
+        if s == select(i, ...) then return true end
+    end
+    return false
+end
+------------------------------------------------------------------------------------------------------------------
 function GetClass(target)
     if not target then target = "player" end
     local _, class = UnitClass(target)
