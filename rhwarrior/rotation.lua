@@ -5,7 +5,8 @@ local peaceBuff = {"Пища", "Питье"}
 function Idle()
   -- Дизамаунт
   if IsAttack() or IsMouse(3) then
-      if HasBuff("Парашют") then oexecute('CancelUnitBuff("player", "Парашют")') end
+
+      if HasBuff("Парашют") then omacro("/cancelaura Парашют") end
       if CanExitVehicle() then VehicleExit() end
       if IsMounted() then Dismount() end
   end
@@ -51,8 +52,8 @@ function Rotation()
   FaceToTarget(target)
 
 
-
-  if HasBuff("Проклятие хаоса") then oexecute('CancelUnitBuff("player", "Проклятие хаоса")') end
+  if (IsAttack() or hp > 60) and HasBuff("Длань защиты", 1, player) then omacro("/cancelaura Длань защиты") end
+  if HasBuff("Проклятие хаоса") then omacro("/cancelaura Проклятие хаоса") end
   if DoSpell("Победный раж", target) then return end
   if IsAOE() and DoSpell("Удар грома") then return end
 
