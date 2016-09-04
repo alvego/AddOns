@@ -25,7 +25,7 @@ function Idle()
 
     if TryInterrupt("target") then return end
 
-    if TryDispel(player) then return end
+    --if TryDispel(player) then return end
 
     if TryTaunt() then return end
     --if true then return end
@@ -81,14 +81,14 @@ function Retribution()
 
   if IsPvP() and not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
 
-  if hp < 75 and HasBuff("Искусство войны") and GetSpellCooldownLeft("Экзорцизм") > 3 then
+  if hp < 85 and HasBuff("Искусство войны") --[[and GetSpellCooldownLeft("Экзорцизм") > 3]] then
      if DoSpell("Вспышка Света", player) then return end
   end
   if hp < 20 and DoSpell("Божественный щит", player) then return end
-  if PlayerInPlace() and HasBuff("Божественный щит", 2, player) then
+  --[[if PlayerInPlace() and HasBuff("Божественный щит", 2, player) then
       if hp < 50 and DoSpell("Свет небес", player) then return end
       if hp < 80 and DoSpell("Вспышка Света", player) then return end
-  end
+  end]]
 
   if (IsAttack() or UnitAffectingCombat(target)) then
       if IsValidTarget(target) and not IsCurrentSpell("Автоматическая атака") then omacro("/startattack") end
@@ -109,7 +109,7 @@ function Retribution()
   --if (IsAttack() or mana > 70) and IsAOE() then
   if mana > 60 then
     if DistanceTo(player, target) < 8 and (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
-    if DistanceTo(player, target) < 8 and DoSpell("Освящение") then return end
+    if InMelee(target) and DoSpell("Освящение") then return end
   end
   if not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
   if mana < 30 and DoSpell("Святая клятва") then return end
