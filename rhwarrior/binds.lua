@@ -99,7 +99,7 @@ end
 function DoSpell(spellName, target, force)
    if not force and not IsAttack() then
     local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spellName)
-    if name and cost and cost > 0 and powerType == 1 and (UnitPower("player", powerType) or 0) <= cost + 70 then
+    if name and cost and cost > 0 and powerType == 1 and (UnitPower("player", powerType) or 0) <= cost + 20 then
        return false
     end
   end

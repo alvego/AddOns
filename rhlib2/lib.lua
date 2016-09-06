@@ -50,10 +50,16 @@ function AttachUpdate(f)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-
+AdvMode = false;
 local update = 1
 -- Выполняем обработчики события OnUpdate
 local function OnUpdate(frame, elapsed)
+    AdvMode = false;
+    if not TimerStarted("AdvMode") or TimerMore("AdvMode", 0.5) and not InGCD() and not UnitIsCasting("player") then
+      TimerStart("AdvMode")
+      AdvMode = true
+    end
+
 
     if ((IsAttack() or IsMouse(3)) and Paused) then
         echo("Авто ротация: ON")

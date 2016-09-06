@@ -142,6 +142,7 @@ local function compareMinHP(u1, u2) return objectHP[u1] < objectHP[u2] end
 local function compareMaxHP(u1, u2) return objectHP[u1] > objectHP[u2] end
 
 function UpdateIdle(elapsed)
+
   --echo(format('LAG: %ims', LagTime * 1000))
   --print(max((select(2, GetSpellCooldown(61304)) or 0), 0), InGCD(), GetGCDLeft())
     if nil == oexecute then
@@ -158,9 +159,7 @@ function UpdateIdle(elapsed)
     if UpdateCommands() then return end
     if SpellIsTargeting() then return end
     if Paused then return end
-
-    --[[if (IsAttack() or InCombatLockdown()) and ObjectsCount and not TimerLess("UpdateObjects", 1) then
-      TimerStart("UpdateObjects")
+    if AdvMode and (IsAttack() or InCombatLockdown()) and ObjectsCount then
       wipe(objectHP)
       wipe(objectDist)
       wipe(enemyCount)
@@ -169,10 +168,10 @@ function UpdateIdle(elapsed)
       local objCount = ObjectsCount()
       for i = 0, objCount - 1 do
         local uid = GUIDByIndex(i)
-        if UnitCanAttack("player", uid) and not UnitInLos(uid) then
+        if uid and UnitCanAttack("player", uid) and not UnitInLos(uid) then
           local dist = DistanceTo("player", uid)
           if dist <= 40 then
-          --print(UnitName(uid), DistanceTo("player", uid))
+            --print(UnitName(uid), DistanceTo("player", uid))
             tinsert(TARGETS, uid)
             objectHP[uid] = UnitHealth(uid)
             objectDist[uid] = dist
@@ -189,7 +188,7 @@ function UpdateIdle(elapsed)
       end
       sort(TARGETS, compareMaxHP)
       sort(UNITS, compareMinHP)
-    end]]
+    end
 
 
     if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then

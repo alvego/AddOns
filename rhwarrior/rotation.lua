@@ -80,12 +80,13 @@ function Rotation()
       end
   end
 
-  if Stance(1,2) and not HasMyDebuff("Кровопускание", 1, target) and DoSpell("Кровопускание", target) then return end
+  if Stance(1,2) and not HasMyDebuff("Кровопускание", 1, target) and DoSpell("Кровопускание", target, true) then return end
 
-  if Stance(1) and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target) then return end
+  if HasSpell("Смертельный удар") and DoSpell("Смертельный удар", target, not HasMyDebuff("Смертельный удар", 1, target)) then return end --, not HasMyDebuff("Смертельный удар", 3, target)
 
-  if HasSpell("Смертельный удар") and DoSpell("Смертельный удар", target) then return end --, not HasMyDebuff("Смертельный удар", 3, target)
+  if Stance(1) and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
 
+  --if Stance(1,3) and (not HasSpell("Смертельный удар") or GetSpellCooldownLeft("Смертельный удар") > 2) and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
   if Stance(1,3) and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
 
   if HasBuff("Сокрушить!") and DoSpell("Мощный удар", target) then return end

@@ -166,6 +166,32 @@ function IsInteractUnit(t)
 end
 
 ------------------------------------------------------------------------------------------------------------------
+local talentTab = {}
+local talentIdx = {}
+function HasTalent(name)
+  if not name then return 0 end
+  if not talentTab[name] then
+    local numTabs = GetNumTalentTabs();
+    for t=1, numTabs do
+        local numTalents = GetNumTalents(t);
+        for i=1, numTalents do
+            nameTalent, icon, tier, column, currRank, maxRank= GetTalentInfo(t,i);
+            if name == nameTalent then
+              talentTab[name] = t
+              talentIdx[name] = i
+            end
+        end
+    end
+    if not talentTab[name] then
+      chat("Неверное имя таланта " .. name)
+      return 0;
+    end
+  end
+
+	local nameTalent, icon, tier, column, currRank, maxRank = GetTalentInfo(talentTab[name], talentIdx[name])
+	return nameTalent and currRank or 0
+end
+------------------------------------------------------------------------------------------------------------------
 function Stance(...)
   local s = GetShapeshiftForm()
     for i = 1, select('#', ...) do
