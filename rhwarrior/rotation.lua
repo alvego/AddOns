@@ -1,6 +1,7 @@
 -- Paladin Rotation Helper by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
 local peaceBuff = {"Пища", "Питье"}
+local myRootDebuff = {"Подрезать сухожилия", "Пронзительный вой" }
 
 function Idle()
   -- Дизамаунт
@@ -28,6 +29,7 @@ function Idle()
   end
 
 end
+
 
 
 
@@ -69,15 +71,22 @@ function Rotation()
   if IsAOE() and HasSpell("Размашистые удары") and DoSpell("Размашистые удары") then return end
   if IsAOE() and DoSpell("Рассекающий удар") then return end
 
-  if not IsAOE() and Stance(1,3) and not HasMyDebuff("Подрезать сухожилия", 1, target) and DoSpell("Подрезать сухожилия", target) then return end
-  if not IsAOE() and Stance(1,2) and not HasMyDebuff("Кровопускание", 1, target) and DoSpell("Кровопускание", target) then return end
 
-  if Stance(1,3) and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
+  if UnitIsPlayer(target) and not HasMyDebuff(myRootDebuff, 1, target) then
+      if Stance(1,3) and InRange("Подрезать сухожилия", target) then
+        if DoSpell("Подрезать сухожилия", target) then return end
+      elseif DistanceTo(player, target) < 10 then
+        if DoSpell("Пронзительный вой") then return end
+      end
+  end
+
+  if Stance(1,2) and not HasMyDebuff("Кровопускание", 1, target) and DoSpell("Кровопускание", target) then return end
 
   if Stance(1) and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target) then return end
 
   if HasSpell("Смертельный удар") and DoSpell("Смертельный удар", target) then return end --, not HasMyDebuff("Смертельный удар", 3, target)
 
+  if Stance(1,3) and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
 
   if HasBuff("Сокрушить!") and DoSpell("Мощный удар", target) then return end
   if Stance(3) and HasSpell("Вихрь") and (InMelee() or IsAOE()) and DoSpell("Вихрь") then return end
@@ -92,7 +101,7 @@ function Rotation()
   end
 
   if mana < 10 and DoSpell("Кровавая ярость") then return end
-  if (not IsPvP() or IsAttack()) and DoSpell("Ярость берсерка") then return end
+  --if (not IsPvP() or IsAttack()) and DoSpell("Ярость берсерка") then return end
 
 
   if not ( HasMyBuff("крик", 1, player) or HasBuff("благословение могущества", 1, player)) and DoSpell("Боевой крик") then return end
