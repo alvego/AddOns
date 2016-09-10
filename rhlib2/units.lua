@@ -192,13 +192,13 @@ function HasTalent(name)
 	return nameTalent and currRank or 0
 end
 ------------------------------------------------------------------------------------------------------------------
-function Stance(...)
+--[[function Stance(...)
   local s = GetShapeshiftForm()
     for i = 1, select('#', ...) do
         if s == select(i, ...) then return true end
     end
     return false
-end
+end]]
 ------------------------------------------------------------------------------------------------------------------
 function GetClass(target)
     if not target then target = "player" end

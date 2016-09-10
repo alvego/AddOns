@@ -9,6 +9,7 @@
 lib.lua
 misc.lua
 units.lua
+data.lua
 auras.lua
 runes.lua
 totems.lua
