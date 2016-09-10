@@ -14,7 +14,7 @@ function Idle()
   -- дайте поесть (побегать) спокойно
   if not IsAttack() and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
 
-
+  if (IsAttack() or hp > 60) and HasBuff("Длань защиты", 1, player) then omacro("/cancelaura Длань защиты") end
 
   if InCombatMode() then
 
@@ -35,26 +35,32 @@ end
 
 function Rotation()
   local target = "target"
+  local validTarget = IsValidTarget(target)
+  local autoAttack = IsCurrentSpell("Автоматическая атака")
   local player = "player"
   local hp = UnitHealth100(player)
-  local mana = UnitMana100(player)
+  local mana = UnitMana(player)
 
   if InCombatLockdown() then
-    if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
-    if hp < 35 and UseItem("Рунический флакон с лечебным зельем") then return end
+    if not (InDuel() or IsArena()) then
+      if hp < 35 and UseItem("Рунический флакон с лечебным зельем") then return end
+      if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
+    end
+    if hp < 32 and Stance(2) and IsEquippedItemType("Щит") and DoSpell("Глухая оборона") then return end
+    if h < 60 and mana > 15 and HasBuff("Исступление", 0.1, player) and DoSpell("Безудержное восстановление", player, true) then return end
   end
 
 
   if (IsAttack() or UnitAffectingCombat(target)) then
-      if IsValidTarget(target) and not IsCurrentSpell("Автоматическая атака") then omacro("/startattack") end
+    if validTarget and not autoAttack then omacro("/startattack") end
   else
-    if IsCurrentSpell("Автоматическая атака") then  omacro("/stopattack") end
+    if autoAttack then  omacro("/stopattack") end
   end
-  if not IsValidTarget(target) then return end
+  if not validTarget then return end
   FaceToTarget(target)
 
 
-  if (IsAttack() or hp > 60) and HasBuff("Длань защиты", 1, player) then omacro("/cancelaura Длань защиты") end
+
 
 
   if HasBuff("Проклятие хаоса") then omacro("/cancelaura Проклятие хаоса") end
@@ -97,7 +103,7 @@ function Rotation()
      if Stance(1,3) and UnitHealth100(target) < 20 then
        if DoSpell("Казнь", target) then return end
      else
-       if DoSpell("Удар героя", target) then return end
+       if InMelee(target) and DoSpell("Удар героя", target) then return end
      end
   end
 
