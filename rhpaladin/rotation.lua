@@ -5,7 +5,6 @@ local peaceBuff = {"Пища", "Питье"}
 function Idle()
 
 
-
   -- Дизамаунт
   if IsAttack() or IsMouse(3) then
       if HasBuff("Парашют") then oexecute('CancelUnitBuff("player", "Парашют")') return end
@@ -13,7 +12,7 @@ function Idle()
       if IsMounted() then Dismount() return end
   end
   -- дайте поесть (побегать) спокойно
-  if not IsPvP() and (IsMounted() or CanExitVehicle()) and not HasBuff("Аура воина Света") and DoSpell("Аура воина Света", "player") then return
+  if not IsPvP() and (IsMounted() or CanExitVehicle()) and not HasBuff("Аура воина Света") and DoSpell("Аура воина Света", "player") then return end
   if not IsAttack() and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
   if (IsAttack() or InCombatLockdown()) and HasBuff("Аура воина Света") and oexecute('CancelUnitBuff("player", "Аура воина Света")') then return end
 
@@ -75,8 +74,9 @@ function Retribution()
 
   if InCombatLockdown() then
     if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
-    if hp < 35 and UseItem("Рунический флакон с лечебным зельем") then return end
+    if not InDuel() and hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
     if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
+    if IsPvP() and hp < 40 and DoSpell("Длань спасения", player) then return end
   end
 
   if IsPvP() and not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
@@ -84,7 +84,7 @@ function Retribution()
   if hp < 85 and HasBuff("Искусство войны") --[[and GetSpellCooldownLeft("Экзорцизм") > 3]] then
      if DoSpell("Вспышка Света", player) then return end
   end
-  if hp < 20 and DoSpell("Божественный щит", player) then return end
+  if hp < 35 and DoSpell("Божественная защита", player) then return end
   --[[if PlayerInPlace() and HasBuff("Божественный щит", 2, player) then
       if hp < 50 and DoSpell("Свет небес", player) then return end
       if hp < 80 and DoSpell("Вспышка Света", player) then return end
