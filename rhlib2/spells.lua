@@ -301,7 +301,7 @@ function UseSpell(spell, target)
 
   falseBecause(name, name, icon, target)
   omacro(cast .. "!" .. name)
-  print(cast .. "!" .. name)
+  --print(cast .. "!" .. name)
   if SpellIsTargeting() then
         if target then
           UnitWorldClick(target)

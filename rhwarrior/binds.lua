@@ -154,13 +154,22 @@ function TryTaunt()
 end
 
 ------------------------------------------------------------------------------------------------------------------
-
 function DoSpell(spellName, target, force)
-   if not force and not IsAttack() then
-    local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spellName)
-    if name and cost and cost > 0 and powerType == 1 and (UnitPower("player", powerType) or 0) <= cost + 20 then
-       return false
+  local rage = UnitMana("player")
+
+  local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spellName)
+
+  if not name then error(spellName) return false end
+
+  if cost and cost > 0 and powerType == 1 then
+
+    if force then
+      if rage < cost then UseSpell("Кровавая ярость") end
+    else
+      if not IsAttack() and rage <= cost + 20 then return false end
     end
+
   end
+
   return UseSpell(spellName, target)
 end
