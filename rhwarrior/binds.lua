@@ -7,6 +7,23 @@ BINDING_NAME_WRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 BINDING_NAME_WRH_AUTOTAUNT = "Авто Taunt"
 BINDING_NAME_WRH_AUTOAOE = "Вкл/Выкл авто AOE"
 ------------------------------------------------------------------------------------------------------------------
+function Equip1HShield()
+  if not IsEquippedItemType("Щит") then
+    omacro("/equip Тесак разгневанного гладиатора")
+    omacro("/equip Осадный щит разгневанного гладиатора")
+  end
+end
+
+function Equip2H()
+  if not Equiped2H() then
+    omacro("/equip Темная Скорбь")
+  end
+end
+
+function Equiped2H()
+  return IsEquippedItem("Темная Скорбь")
+end
+------------------------------------------------------------------------------------------------------------
 if CanInterrupt == nil then CanInterrupt = true end
 
 function UseInterrupt()
@@ -18,21 +35,63 @@ function UseInterrupt()
     end
 end
 
+
+
+
 function TryInterrupt(target)
 
     if not CanInterrupt then return false end
-    --[[if not IsReadySpell("Молот правосудия") then return false end
+
     if target == nil then target = "target" end
-    if UnitIsPlayer(target) then return false end
+
+
+
     local spell, left, duration, channel, nointerrupt = UnitIsCasting(target)
     if not spell then return nil end
     if left < (channel and 0.5 or 0.2) then  return  end -- если уже докастил, нет смысла трепыхаться, тунелинг - нет смысла сбивать последний тик
-    local name = UnitName(target)
-    name = name or target
-    if not notinterrupt and (channel or left < 1.6) and DoSpell("Молот правосудия", target) then
-      chat("Молот правосудия в " .. UnitName(target))
-      return true
-    end]]
+
+    if IsPvP() and tContains(InterruptList, spell) then return false end
+
+    local name = (UnitName(target)) or target
+    local stance = GetShapeshiftForm()
+
+
+    if (channel or left < 1.6)  then
+
+      local reflect = tContains(ReflectList, spell)
+
+      if reflect and stance ~= 3 and GetSpellCooldownLeft("Отражение заклинания") == 0 then
+        Equip1HShield()
+        if DoSpell("Отражение заклинания", player, true) then
+          chat("Отражение заклинания от " .. spell .. " - " ..name)
+          return true
+        end
+      end
+
+      if reflect and HasBuff("Отражение заклинания", 0.1, player)  then
+        return false;
+      end
+
+      if not notinterrupt  and stance == 3 and DoSpell("Зуботычина", target, true) then
+        chat("Зуботычина в " .. name)
+        return true
+      end
+
+      if not notinterrupt  and stance ~= 3 and GetSpellCooldownLeft("Удар щитом") == 0 and InMelee(target) then
+        Equip1HShield()
+        if IsEquippedItemType("Щит") and DoSpell("Удар щитом", target, true) then
+          chat("Удар щитом в " .. name)
+          return true
+        end
+      end
+
+      if HasSpell("Оглушающий удар") and DoSpell("Оглушающий удар", target, true) then
+        chat("Оглушающий удар в " .. name)
+        return true
+      end
+    end
+
+
     return false
 end
 
