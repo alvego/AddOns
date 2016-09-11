@@ -13,7 +13,7 @@ function Idle()
       if IsMounted() then Dismount() return end
   end
   -- дайте поесть (побегать) спокойно
-  if (IsMounted() or CanExitVehicle()) and not HasBuff("Аура воина Света") and DoSpell("Аура воина Света", "player") then return  end
+  if not IsPvP() and (IsMounted() or CanExitVehicle()) and not HasBuff("Аура воина Света") and DoSpell("Аура воина Света", "player") then return
   if not IsAttack() and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
   if (IsAttack() or InCombatLockdown()) and HasBuff("Аура воина Света") and oexecute('CancelUnitBuff("player", "Аура воина Света")') then return end
 
@@ -45,13 +45,13 @@ end
 function TryBuffs()
     local player = "player"
     if HasSpell("Удар воина Света") then
-        if IsPvP() and HasSpell("Священная жертва") and not InCombatLockdown() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return true end
+        if IsPvP() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return true end
         if (IsAttack() or InCombatLockdown()) and not HasBuff("Аура") and DoSpell("Аура воздаяния", player) then return true end
         if IsPvP() and not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
         if not HasBuff("Печать") and DoSpell("Печать мщения") then return true end
         if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
             if not HasBuff("благословение королей") and DoSpell("Великое благословение королей","player") then return true end
-            if (not HasBuff("Боевой крик") or not HasBuff("благословение могущества")) and DoSpell("Великое благословение могущества","player") then return true end
+            --if (not HasBuff("Боевой крик") or not HasBuff("благословение могущества")) and DoSpell("Великое благословение могущества","player") then return true end
         end
         return false
     end
@@ -98,10 +98,13 @@ function Retribution()
   if not IsValidTarget(target) then return end
   FaceToTarget(target)
 
-  if UnitHealth100(target) <= 20 and DoSpell("Молот гнева", target) then return end
+  if IsCtr() and DoSpell("Очищение", player) then return end
+  if HasBuff("Проклятие хаоса") then oexecute('CancelUnitBuff("player", "Проклятие хаоса")') end
+  if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
   if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
   if UseItem("Чешуйчатые рукавицы разгневанного гладиатора") then return end
   if not IsEquippedItemType("Щит") and HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end
+  if IsAlt() and DoSpell("Правосудие справедливости", target) then return end
   if DoSpell("Правосудие мудрости", target) then return end
   if DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
   if DoSpell("Удар воина Света", target) then return end
