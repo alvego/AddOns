@@ -8,6 +8,12 @@ local burstList = {
     "Гнев карателя",
     "Быстрая стрельба"
 }
+
+local exceptionControlList = { -- > 4
+  "Ошеломление", -- 20s
+  "Покаяние",
+}
+
 function Idle()
   local stance = GetShapeshiftForm()
   local attack = IsAttack()
@@ -29,6 +35,15 @@ function Idle()
   end
 
   if InCombatMode() then
+
+    local debuff = HasDebuff(ControlList, 3, "player")
+    if debuff and (not tContains(exceptionControlList, debuff) or IsAttack()) then
+      if IsReadySpell("Ярость берсерка") then
+        if IsSpellNotUsed("Каждый за себя", 1) and DoSpell("Ярость берсерка") then return end
+      else
+        if IsSpellNotUsed("Ярость берсерка", 1) and DoSpell("Каждый за себя") then return end
+      end
+    end
 
     TryTarget()
 
