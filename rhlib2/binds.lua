@@ -42,7 +42,7 @@ end
 function FaceToTarget(target)
     if not target then target = "target" end
     if not FaceToUnit then return end
-    if TimerLess("FaceToTarget", 0.5) then return end
+    if TimerLess("FaceToTarget", 1) then return end
     if IsMouselooking() then return end
     if not PlayerInPlace() then return end
     if not UnitExists(target) then return end
@@ -168,7 +168,7 @@ function UpdateIdle(elapsed)
       local objCount = ObjectsCount()
       for i = 0, objCount - 1 do
         local uid = GUIDByIndex(i)
-        if uid and UnitCanAttack("player", uid) and not UnitInLos(uid) then
+        if uid and UnitCanAttack("player", uid) and not UnitInLos(uid) and not UnitIsDeadOrGhost(uid) then
           local dist = DistanceTo("player", uid)
           if dist <= 40 then
             --print(UnitName(uid), DistanceTo("player", uid))

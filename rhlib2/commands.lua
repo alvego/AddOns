@@ -97,7 +97,7 @@ SetCommand("spell",
 local function hookUseAction(slot, ...)
 	--print("UseAction", slot, ...)
   local actiontype, id, subtype = GetActionInfo(slot)
-  if actiontype and id then
+  if actiontype and id and id ~= 0 then
       local name = nil
       if actiontype == "spell" then
           name = GetSpellName(id, "spell")

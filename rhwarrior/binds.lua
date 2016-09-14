@@ -8,15 +8,19 @@ BINDING_NAME_WRH_AUTOTAUNT = "Авто Taunt"
 BINDING_NAME_WRH_AUTOAOE = "Вкл/Выкл авто AOE"
 ------------------------------------------------------------------------------------------------------------------
 function Equip1HShield()
-  if not IsEquippedItemType("Щит") then
+  if TimerMore('equipweapon', 2) and not IsEquippedItemType("Щит") then
     omacro("/equip Тесак разгневанного гладиатора")
     omacro("/equip Осадный щит разгневанного гладиатора")
+    TimerStart('equipweapon')
   end
 end
 
+
 function Equip2H()
-  if not Equiped2H() then
+
+  if TimerMore('equipweapon', 2) and not Equiped2H() then
     omacro("/equip Темная Скорбь")
+    TimerStart('equipweapon')
   end
 end
 
@@ -108,9 +112,10 @@ function AutoAOEToggle()
 end
 
 
-function IsAOE()
+function IsAOE(n)
+  if not n then n = 3 end
     if IsShift() then return true end
-    if AutoAOE and GetEnemyCountInRange(8) > 2 then return true end
+    if AutoAOE and GetEnemyCountInRange(6) >= n then return true end
     return false
 end
 ------------------------------------------------------------------------------------------------------------------
