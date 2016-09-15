@@ -118,7 +118,7 @@ function Retribution()
   if mana < 30 and DoSpell("Святая клятва") then return end
 end
 
-function Tank()
+--[[function Tank()
   local target = "target"
   local player = "player"
   local hp = UnitHealth100(player)
@@ -158,7 +158,7 @@ function Tank()
   if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
   if (IsAttack() or mana > 70) and IsAOE() and DoSpell("Щит мстителя", target) then return end
   if DoSpell(hp < 70 and "Правосудие света" or "Правосудие мудрости", target) then return end
-end
+end]]
 
 ------------------------------------------------------------------------------------------------------------------
 function TryTarget()
