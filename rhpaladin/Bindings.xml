@@ -1,8 +1,0 @@
-<Bindings>
-  <Binding name="PRH_INTERRUPT" description="Use cast interrupt" header="PRH">
-    UseInterrupt();
-  </Binding>
-  <Binding name="PRH_AUTOTAUNT" description="Auto Taunt" header="PRH">
-    AutoTauntToggle();
-  </Binding>
-</Bindings>

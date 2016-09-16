@@ -4,7 +4,5 @@
 ## DefaultState: Disabled
 ## Interface: 30300
 ## Dependencies: rhlib2
-## SavedVariables: AutoTaunt, CanInterrupt
-commands.lua
 rotation.lua
 binds.lua
