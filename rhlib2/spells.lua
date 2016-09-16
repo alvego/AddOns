@@ -245,10 +245,11 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellErrors)
 
 ------------------------------------------------------------------------------------------------------------------
 local _m = ''
+local spellDebug = false
 local function falseBecause(m, spell, icon, target)
   if m == "Не готов" then return false end -- ignore
   if m == "Уже используется" then return false end -- ignore
-  if Debug and IsCtr() and _m ~= m then
+  if spellDebug and  _m ~= m then
     _m = m
     local s = '|T'.. (icon and icon or 'Interface\\Icons\\INV_Misc_Coin_02') ..':16|t '
     if spell then
