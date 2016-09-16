@@ -9,6 +9,19 @@ local burstList = {
     "Быстрая стрельба"
 }
 
+local bloodList = {
+  "Сон",
+  "Соблазн",
+  "Страх",
+  "Вой ужаса",
+  "Устрашающий крик",
+  "Контроль над разумом",
+  "Глубинный ужас",
+  "Ментальный крик",
+  "Ослепление",
+  "Ошеломление"
+}
+
 local exceptionControlList = { -- > 4
   "Ошеломление", -- 20s
   "Покаяние",
@@ -36,7 +49,12 @@ function Idle()
 
   if InCombatMode() then
 
-    local debuff = HasDebuff(ControlList, 3, "player")
+    local debuff = HasDebuff(bloodList, 3, "player")
+
+    if not debuff then
+      debuff = HasDebuff(ControlList, 3, "player")
+    end
+
     if debuff and (not tContains(exceptionControlList, debuff) or IsAttack()) then
       if IsReadySpell("Ярость берсерка") then
         if IsSpellNotUsed("Каждый за себя", 1) and DoSpell("Ярость берсерка") then return end

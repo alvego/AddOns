@@ -39,9 +39,6 @@ function UseInterrupt()
     end
 end
 
-
-
-
 function TryInterrupt(target)
 
     if not CanInterrupt then return false end
