@@ -34,9 +34,9 @@ function Idle()
       if CanExitVehicle() then VehicleExit() end
       if IsMounted() then
         if HasBuff("Аура воина Света") then
+           omacro("/cancelaura Аура воина Света")
           if HasSpell("Частица Света") and DoSpell("Аура сосредоточенности") then return end
           if HasSpell("Удар воина Света") and DoSpell("Аура воздаяния")  then return end
-          return
         end
         Dismount()
       end
