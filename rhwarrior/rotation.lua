@@ -81,18 +81,6 @@ function Idle()
 
     local validTarget = IsValidTarget(target)
     local melee = InMelee(target)
-    local target2 = target
-    local melee2 = melee
-    if combat and validTarget and not melee then
-      for i=1, #TARGETS do
-        local t = TARGETS[i]
-        if UnitAffectingCombat(t) and IsValidTarget(t) and InMelee(t) and PlayerFacingTarget(t) then
-          target2 = t
-          melee2 = true
-          if not IsOneUnit("focus", t) then omacro("/focus " .. t) end
-        end
-      end
-    end
 
     if combat then
       if hp < 50 and UseEquippedItem("Проржавевший костяной ключ") then return end
@@ -167,12 +155,12 @@ function Idle()
         end
     end
 
-    if stance ~= 2 and IsUsableSpell("Победный раж") and DoSpell("Победный раж", target2) then return end
-    if stance == 2 and IsUsableSpell("Реванш") and DoSpell("Реванш", target2) then return end
+    if stance ~= 2 and IsUsableSpell("Победный раж") and DoSpell("Победный раж", target) then return end
+    if stance == 2 and IsUsableSpell("Реванш") and DoSpell("Реванш", target) then return end
 
-    if stance == 2 and HasBuff(burstList, 5, target) and DoSpell("Разоружение", target2, true) then return end
+    if stance == 2 and HasBuff(burstList, 5, target) and DoSpell("Разоружение", target, true) then return end
 
-    if aoe3 and melee2 and stance ~= 3 and DoSpell("Удар грома") then return end
+    if aoe3 and melee and stance ~= 3 and DoSpell("Удар грома") then return end
     if aoe2 and HasSpell("Размашистые удары") and DoSpell("Размашистые удары") then return end
     if aoe2 and DoSpell("Рассекающий удар") then return end
 
@@ -189,27 +177,27 @@ function Idle()
 
 
     if melee and HasSpell("Ударная волна") and DoSpell("Ударная волна") then return end
-    if shield and ( IsPvP() and HasBuff("Magic", 3, target2 ) or HasBuff("Щит и меч", 0.1, player) ) and DoSpell("Мощный удар щитом", target2) then return end
-    if HasSpell("Сокрушение") and shield and DoSpell("Сокрушение", target2) then return end
+    if shield and ( IsPvP() and HasBuff("Magic", 3, target ) or HasBuff("Щит и меч", 0.1, player) ) and DoSpell("Мощный удар щитом", target) then return end
+    if HasSpell("Сокрушение") and shield and DoSpell("Сокрушение", target) then return end
 
 
-    if stance ~= 3 and not HasMyDebuff("Кровопускание", 1, target2) and DoSpell("Кровопускание", target2, true) then return end
+    if stance ~= 3 and not HasMyDebuff("Кровопускание", 1, target) and DoSpell("Кровопускание", target, true) then return end
 
-    if HasSpell("Смертельный удар") and DoSpell("Смертельный удар", target2, not HasMyDebuff("Смертельный удар", 1, target2)) then return end --, not HasMyDebuff("Смертельный удар", 3, target)
-    if stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target2, true) then return end
+    if HasSpell("Смертельный удар") and DoSpell("Смертельный удар", target, not HasMyDebuff("Смертельный удар", 1, target)) then return end --, not HasMyDebuff("Смертельный удар", 3, target)
+    if stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
 
     --if stance ~= 2 and (not HasSpell("Смертельный удар") or GetSpellCooldownLeft("Смертельный удар") > 2) and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
-    if stance ~= 2 and HasBuff("Внезапная смерть") and DoSpell("Казнь", target2) then return end
+    if stance ~= 2 and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
 
-    if HasBuff("Сокрушить!") and DoSpell("Мощный удар", target2) then return end
-    if stance == 3 and HasSpell("Вихрь") and (melee2 or aoe2) and DoSpell("Вихрь") then return end
-    if HasSpell("Кровожадность") and DoSpell("Кровожадность", target2) then return end
+    if HasBuff("Сокрушить!") and DoSpell("Мощный удар", target) then return end
+    if stance == 3 and HasSpell("Вихрь") and (melee or aoe2) and DoSpell("Вихрь") then return end
+    if HasSpell("Кровожадность") and DoSpell("Кровожадность", target) then return end
 
     if not aoe2 and rage > 80 then
        if stance ~= 2 and UnitHealth100(target) < 20 then
-         if DoSpell("Казнь", target2) then return end
+         if DoSpell("Казнь", target) then return end
        else
-         if melee2 and DoSpell("Удар героя", target2) then return end
+         if melee and DoSpell("Удар героя", target) then return end
        end
     end
 
