@@ -85,7 +85,7 @@ function Idle()
 
     if IsPvP() and not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
 
-    if HasBuff("Искусство войны") and not (IsValidTarget(target) and IsReadySpell("Экзорцизм")) then
+    if HasBuff("Искусство войны") and (IsEquippedItemType("Щит") or not (IsValidTarget(target) and IsReadySpell("Экзорцизм"))) then
         if hp < 85 and DoSpell("Вспышка Света", player) then return end
         if IsInteractUnit(teammate) and UnitHealth100(teammate) < 50 and DoSpell("Вспышка Света", teammate) then return end
     end
