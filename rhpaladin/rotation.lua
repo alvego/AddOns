@@ -33,10 +33,10 @@ function Idle()
       if HasBuff("Парашют") then omacro("/cancelaura Парашют") end
       if CanExitVehicle() then VehicleExit() end
       if IsMounted() then
-        if HasBuff("Аура воина Света") then
-           omacro("/cancelaura Аура воина Света")
-          if HasSpell("Частица Света") and DoSpell("Аура сосредоточенности") then return end
-          if HasSpell("Удар воина Света") and DoSpell("Аура воздаяния")  then return end
+        if HasMyBuff("Аура воина Света") then
+          omacro("/cancelaura Аура воина Света")
+          if HasSpell("Частица Света") and not HasBuff("Аура сосредоточенности") and DoSpell("Аура сосредоточенности") then return end
+          if HasSpell("Удар воина Света") and not HasBuff("Аура воздаяния") and DoSpell("Аура воздаяния")  then return end
         end
         Dismount()
       end
@@ -50,8 +50,8 @@ function Idle()
 
   if IsPvP() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
 
-
-  if (IsAttack() or InCombatLockdown()) and (not HasBuff("Аура") or HasBuff("Аура воина Света")) and DoSpell("Аура воздаяния", player) then return end
+  if HasMyBuff("Аура воина Света") then omacro("/cancelaura Аура воина Света") end
+  if (IsAttack() or InCombatLockdown()) and not HasBuff("Аура") and DoSpell("Аура воздаяния", player) then return end
   if IsPvP() and not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
   if not HasBuff("Печать") and DoSpell("Печать мщения") then return true end
   if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
