@@ -30,14 +30,6 @@ local exceptionControlList = { -- > 4
 function Idle()
   local stance = GetShapeshiftForm()
   local attack = IsAttack()
-  -- Дизамаунт
-  if attack or IsMouse(3) then
-      if HasBuff("Парашют") then omacro("/cancelaura Парашют") end
-      if CanExitVehicle() then VehicleExit() end
-      if IsMounted() then Dismount() end
-  end
-  -- дайте поесть (побегать) спокойно
-  if not attack and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
 
   if stance ~= 2 and not HasBuff("Отражение заклинания", 0.1, player) then
       Equip2H()
@@ -46,6 +38,15 @@ function Idle()
   if stance == 2 then
       Equip1HShield()
   end
+
+  -- Дизамаунт
+  if attack or IsMouse(3) then
+      if HasBuff("Парашют") then omacro("/cancelaura Парашют") end
+      if CanExitVehicle() then VehicleExit() end
+      if IsMounted() then Dismount() end
+  end
+  -- дайте поесть (побегать) спокойно
+  if not attack and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
 
   if InCombatMode() then
 
@@ -166,7 +167,7 @@ function Idle()
 
 
 
-    if GetUnitSpeed(target) > 4.5 and UnitIsPlayer(target) and not HasMyDebuff(myRootDebuff, 1, target) then
+    if not PlayerInPlace() and UnitIsPlayer(target) and not HasMyDebuff(myRootDebuff, 1, target) then
         if stance ~= 2 and InRange("Подрезать сухожилия", target) then
           if DoSpell("Подрезать сухожилия", target) then return end
         elseif HasSpell("Пронзительный вой") and DistanceTo(player, target) < 10 then

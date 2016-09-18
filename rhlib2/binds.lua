@@ -98,7 +98,7 @@ function DebugToggle()
 end
 
 ------------------------------------------------------------------------------------------------------------------
-local function updateCombatLogTimer(...)
+--[[local function updateCombatLogTimer(...)
   TimerStart("CombatLog")
 end
 local function resetCombatLog()
@@ -111,7 +111,7 @@ local function resetCombatLog()
   end
 end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateCombatLogTimer)
-AttachUpdate(resetCombatLog)
+AttachUpdate(resetCombatLog)]]
 ------------------------------------------------------------------------------------------------------------------
 -- Вызывает функцию Idle если таковая имеется, с заданным рекомендованным интервалом UpdateInterval,
 -- при включенной Авто-ротации

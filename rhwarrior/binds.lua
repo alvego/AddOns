@@ -57,7 +57,7 @@ function TryInterrupt(target)
     local stance = GetShapeshiftForm()
 
 
-    if (channel or left < 1.6)  then
+    if (channel or left < 0.6)  then
 
       local reflect = tContains(ReflectList, spell)
 
