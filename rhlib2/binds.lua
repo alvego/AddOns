@@ -17,9 +17,16 @@ function TryAttack()
     if Paused then return end
     TimerStart('Attack')
 end
+local beginAttack = false
 function IsAttack()
     if IsMouse(4) then
+        if not beginAttack then
+          beginAttack = true
+          AdvMode = true
+        end
         TimerStart('Attack')
+    else
+      beginAttack = false
     end
 
     return TimerLess('Attack', 0.5)
@@ -119,80 +126,62 @@ AttachUpdate(resetCombatLog)]]
 ------------------------------------------------------------------------------------------------------------------
 TARGETS = {}
 UNITS = {}
-------------------------------------------------------------------------------------------------------------------\
-local objectDist = {}
-local enemyCount = {}
+------------------------------------------------------------------------------------------------------------------
 function GetEnemyCountInRange(range)
-  if not range then range = 8 end
-  if enemyCount[range] == nil then
-   local count = 0
-    for i = 1, #TARGETS do
-      local uid = TARGETS[i]
-      if objectDist[uid] <= range then
-        count = count + 1
-      end
+  local count = 0
+  for i = 1, #TARGETS do
+    local uid = TARGETS[i]
+    local dist = DistanceTo("player", uid)
+    if dist <= range then
+      count = count + 1
     end
-    enemyCount[range] = count
   end
-  return enemyCount[range]
+  return count
 end
 
-local objectHP = {}
-local function compareMinHP(u1, u2) return objectHP[u1] < objectHP[u2] end
-local function compareMaxHP(u1, u2) return objectHP[u1] > objectHP[u2] end
-
 function UpdateIdle(elapsed)
-
-  --echo(format('LAG: %ims', LagTime * 1000))
-  --print(max((select(2, GetSpellCooldown(61304)) or 0), 0), InGCD(), GetGCDLeft())
     if nil == oexecute then
         if not TimerStarted('UnlockTimer') then
           TimerStart('UnlockTimer')
         end
-        UIErrorsFrame:Clear()
-        UIErrorsFrame:AddMessage('...');
-        UIErrorsFrame:AddMessage(SecondsToTime(TimerElapsed('UnlockTimer')), 1.0, 1.0, 0.0, 53, 2);
-        UIErrorsFrame:AddMessage("|TInterface\\Icons\\INV_Gizmo_Runicmanainjector:32|t Tребуется инъекция.", 0.0, 1.0, 0.0, 53, 2);
+        if AdvMode then
+          UIErrorsFrame:Clear()
+          UIErrorsFrame:AddMessage("Tребуется инъекция. " .. SecondsToTime(TimerElapsed('UnlockTimer')), 0.0, 1.0, 0.0, 53, 2);
+        end
         return
     end
+
     if UnitIsDeadOrGhost("player") then return end
     if UpdateCommands() then return end
     if SpellIsTargeting() then return end
     if Paused then return end
+
     if AdvMode and (IsAttack() or InCombatLockdown()) and ObjectsCount then
-      wipe(objectHP)
-      wipe(objectDist)
-      wipe(enemyCount)
       wipe(TARGETS)
-      wipe(UNITS)
       local objCount = ObjectsCount()
       for i = 0, objCount - 1 do
         local uid = GUIDByIndex(i)
         if uid and UnitCanAttack("player", uid) and not UnitInLos(uid) and not UnitIsDeadOrGhost(uid) then
           local dist = DistanceTo("player", uid)
           if dist <= 40 then
-            --print(UnitName(uid), DistanceTo("player", uid))
             tinsert(TARGETS, uid)
-            objectHP[uid] = UnitHealth(uid)
-            objectDist[uid] = dist
           end
         end
       end
+
+      wipe(UNITS)
       local groupUnits = GetGroupUnits()
       for i = 1, #groupUnits do
         local u = groupUnits[i]
         if UnitInRange(u) and not UnitIsDeadOrGhost(u) and not UnitIsEnemy("player", u) and not UnitInLos(u) then
           tinsert(UNITS, u)
-          objectHP[u] = UnitHealth(u)
         end
       end
-      sort(TARGETS, compareMaxHP)
-      sort(UNITS, compareMinHP)
     end
 
 
     if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then
-        oexecute('FocusUnit("mouseover")')
+        omacro("/focus mouseover")
     end
 
     if Idle then Idle() end

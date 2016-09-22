@@ -64,24 +64,77 @@ function Idle()
       end
     end
 
-    TryTarget()
-
-    if TryInterrupt("target") then return end
-
     --if TryTaunt() then return end
     local autoAttack = IsCurrentSpell("Автоматическая атака")
     local player = "player"
     local hp = UnitHealth100(player)
     local rage = UnitMana(player)
-    local aoe3 = IsAOE(3)
-    local aoe2 = IsAOE(2)
-    local target = "target"
+
+    -- IsAOE
+    local aoe2 = false
+    local aoe3 = false
+    if IsShift() then
+      aoe2 = true
+      aoe3 = true
+    else
+      if AutoAOE then
+        local enemyCount = GetEnemyCountInRange(6)
+        aoe2 = enemyCount >= 2
+        aoe3 = enemyCount >= 3
+      end
+    end
+
+    local pvp = IsPvP()
     local combat = InCombatLockdown()
     local shield = IsEquippedItemType("Щит")
 
-
+    local target = "target"
     local validTarget = IsValidTarget(target)
+
+    if not validTarget and UnitExists(target) then
+      omacro("/cleartarget")
+      AdvMode = true
+    end
+
+    if AdvMode and not validTarget then
+        local _uid = nil
+        local _face = false
+        local _dist = 100
+        local _combat = false
+        for i = 1, #TARGETS do
+          local uid = TARGETS[i]
+          repeat -- для имитации continue
+            local combat = UnitAffectingCombat(uid)
+            -- уже есть кто-то в бою
+            if _combat and not combat then break end
+            -- автоматически выбераем только цели в бою
+            if not attack and not combat then break end
+            -- в pvp выбираем только игроков
+            if pvp and not UnitIsPlayer(uid) then break end
+            -- только актуальные цели
+            if not IsValidTarget(uid) then break end
+
+            local face = PlayerFacingTarget(uid)
+            local dist = DistanceTo("player", uid)
+
+            if _face and not face and not (dist < 5 and _dist > 8) then break end
+
+            if dist > _dist then break end
+
+            _uid = uid
+            _combat = combat
+            _face = face
+            _dist = dist
+          until true
+        end
+        if _uid then
+          omacro("/target " .. _uid)
+        end
+    end
+
     local melee = InMelee(target)
+
+    if TryInterrupt(target) then return end
 
     if combat then
       if hp < 50 and UseEquippedItem("Проржавевший костяной ключ") then return end
@@ -139,11 +192,6 @@ function Idle()
 
     if HasBuff("Проклятие хаоса") then omacro("/cancelaura Проклятие хаоса") end
 
-
-    --if (not IsPvP() or IsAttack()) and DoSpell("Ярость берсерка") then return end
-
-
-
     if IsCtr() then
         if stance == 3 and DoSpell("Безрассудство") then return end
         if Equiped2H() and HasSpell("Вихрь клинков") and IsReadySpell("Вихрь клинков") and rage >= 25 then
@@ -178,7 +226,7 @@ function Idle()
 
 
     if melee and HasSpell("Ударная волна") and DoSpell("Ударная волна") then return end
-    if shield and ( IsPvP() and HasBuff("Magic", 3, target ) or HasBuff("Щит и меч", 0.1, player) ) and DoSpell("Мощный удар щитом", target) then return end
+    if shield and ( pvp and HasBuff("Magic", 3, target ) or HasBuff("Щит и меч", 0.1, player) ) and DoSpell("Мощный удар щитом", target) then return end
     if HasSpell("Сокрушение") and shield and DoSpell("Сокрушение", target) then return end
 
 
@@ -207,30 +255,4 @@ function Idle()
     --if not aoe2 and PlayerInPlace() and InRange("Выстрел", target) and DoSpell("Выстрел", target) then return end
   end
 
-end
-
-
-------------------------------------------------------------------------------------------------------------------
-function TryTarget()
-    -- помощь в группе
-    if not IsValidTarget("target") then
-        -- если что-то не то есть в цели
-        if UnitExists("target") then omacro("/cleartarget") end
-
-        if IsPvP() then
-            omacro("/targetenemyplayer [nodead]")
-        else
-            omacro("/targetenemy [nodead]")
-        end
-
-        if not IsAttack()  -- если в авторежиме
-            and (
-            not IsValidTarget("target")  -- вообще не цель
-            or (not IsArena() and not (CheckInteractDistance("target", 3) == 1))  -- далековато
-            or (not IsPvP() and not UnitAffectingCombat("target")) -- моб не в бою
-            or (IsPvP() and not UnitIsPlayer("target")) -- не игрок в пвп
-            )  then
-            if UnitExists("target") then omacro("/cleartarget") end
-        end
-    end
 end

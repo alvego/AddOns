@@ -107,14 +107,6 @@ function AutoAOEToggle()
         echo("Авто АОЕ: OFF")
     end
 end
-
-
-function IsAOE(n)
-  if not n then n = 3 end
-    if IsShift() then return true end
-    if AutoAOE and GetEnemyCountInRange(6) >= n then return true end
-    return false
-end
 ------------------------------------------------------------------------------------------------------------------
 if AutoTaunt == nil then AutoTaunt = true end
 
