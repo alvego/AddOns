@@ -33,10 +33,10 @@ function Idle()
       if HasBuff("Парашют") then omacro("/cancelaura Парашют") end
       if CanExitVehicle() then VehicleExit() end
       if IsMounted() then
-        if HasMyBuff("Аура воина Света") then
-          omacro("/cancelaura Аура воина Света")
-          if HasSpell("Частица Света") and not HasBuff("Аура сосредоточенности") and DoSpell("Аура сосредоточенности") then return end
-          if HasSpell("Удар воина Света") and not HasBuff("Аура воздаяния") and DoSpell("Аура воздаяния")  then return end
+        if HasBuff("Аура воина Света") then
+           omacro("/cancelaura Аура воина Света")
+          if HasSpell("Частица Света") and DoSpell("Аура сосредоточенности") then return end
+          if HasSpell("Удар воина Света") and DoSpell("Аура воздаяния")  then return end
         end
         Dismount()
       end
@@ -50,10 +50,10 @@ function Idle()
 
   if IsPvP() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
 
-  if HasMyBuff("Аура воина Света") then omacro("/cancelaura Аура воина Света") end
-  if (IsAttack() or InCombatLockdown()) and not HasBuff("Аура") and DoSpell("Аура воздаяния", player) then return end
-  if IsPvP() and not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
-  if not HasBuff("Печать") and DoSpell("Печать мщения") then return true end
+
+  if (IsAttack() or InCombatLockdown()) and (not HasBuff("Аура") or HasBuff("Аура воина Света")) and DoSpell("Аура воздаяния", player) then return end
+  --if IsPvP() and not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
+  if not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
   if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
       if not HasBuff("благословение королей") and DoSpell("Великое благословение королей", player) then return end
   end
@@ -85,9 +85,9 @@ function Idle()
 
     if IsPvP() and not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
 
-    if HasBuff("Искусство войны") and (IsEquippedItemType("Щит") or not (IsValidTarget(target) and IsReadySpell("Экзорцизм"))) then
-        if hp < 85 and DoSpell("Вспышка Света", player) then return end
-        if IsInteractUnit(teammate) and UnitHealth100(teammate) < 50 and DoSpell("Вспышка Света", teammate) then return end
+    if HasBuff("Искусство войны") and (not IsValidTarget(target) or GetSpellCooldownLeft("Экзорцизм") > 0.5) then
+       if hp < 85 and DoSpell("Вспышка Света", player) then return end
+       if IsInteractUnit(teammate) and UnitHealth100(teammate) < 50 and DoSpell("Вспышка Света", teammate) then return end
     end
 
     if hp < 35 and DoSpell("Божественная защита", player) then return end
