@@ -257,7 +257,7 @@ function Idle()
     else
       if stance ~= 1 and DoSpell("Боевая стойка") then return end
     end
-if true then return end -----------------------------------------------------------------------------------------------------------------------------------------------
+
     local autoAttack = IsCurrentSpell("Автоматическая атака")
     if (attack or UnitAffectingCombat(target)) then
       if validTarget and not autoAttack then omacro("/startattack") end
@@ -323,8 +323,11 @@ if true then return end --------------------------------------------------------
          if melee and DoSpell("Удар героя", target) then return end
        end
     end
-
-    if not ( HasMyBuff("крик", 1, player) or HasBuff("благословение могущества", 1, player)) and DoSpell("Боевой крик") then return end
+    if defence then
+      if not HasMyBuff("крик", 1, player) and DoSpell("Командирский крик") then return end
+    else
+      if not ( HasMyBuff("крик", 1, player) or HasBuff("благословение могущества", 1, player)) and DoSpell("Боевой крик") then return end
+    end
     if not AutoTaunt and DoSpell("Героический бросок", target) then return end
     --if not aoe2 and PlayerInPlace() and InRange("Выстрел", target) and DoSpell("Выстрел", target) then return end
   end

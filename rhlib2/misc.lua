@@ -12,13 +12,12 @@
 -- wow-circle error fix
 local _format = format
 format = function(str, ...)
+  print(str, ...)
   if not str then
     str = ""
     for i = 1, select('#', ...) do
         str = str .. '%s '
     end
-  else
-    str = gsub(str, "% ", "%s ")
   end
   return _format(str, ...)
 end
