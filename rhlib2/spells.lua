@@ -245,7 +245,7 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellErrors)
 
 ------------------------------------------------------------------------------------------------------------------
 local _m = ''
-local spellDebug = false
+local spellDebug = true
 local function falseBecause(m, spell, icon, target)
   if m == "Не готов" then return false end -- ignore
   if m == "Уже используется" then return false end -- ignore
@@ -267,6 +267,8 @@ local function falseBecause(m, spell, icon, target)
 end
 
 function UseSpell(spell, target)
+
+
   --if TimerStarted("InCast") then return falseBecause("В процессе каста") end
   if UnitIsCasting("player") then return falseBecause("В процессе каста") end
   if not spell then return falseBecause("Отсутсвует", spell) end
@@ -293,6 +295,7 @@ function UseSpell(spell, target)
       return falseBecause("Мы не смотрим на цель", name, icon, target)
     end
   end
+
 
 
   local cast = "/cast "

@@ -141,6 +141,5 @@ function DoSpell(spellName, target, force)
     end
 
   end
-
   return UseSpell(spellName, target)
 end

@@ -81,7 +81,6 @@ function Idle()
       and IsSpellNotUsed("Дразнящий удар", 1) then
       local _t = nil
       local _c = 0;
-      local c = 0;
       local _threatpct = 100
       local _isTanking = true
       --------------------------------------------------------------------------
@@ -95,16 +94,14 @@ function Idle()
             _isTanking = isTanking
           end
           if status and status < 2 and DistanceTo(player, t) <= 10 then _c = _c + 1 end
-        else
-          if DistanceTo(player, t) <= 10 then c = c + 1 end
         end
       end
       --------------------------------------------------------------------------
-      if _c > 2 and (attack or c == 0) and DoSpell("Вызывающий крик", nil, true) then return end
+      if _c > 1 and DoSpell("Вызывающий крик", nil, true) then return end
       if _t then
-        print(UnitName(_t), _threatpct, _isTanking, c, _c)
         if not _isTanking and DoSpell("Провокация", _t, true) then return end
         if DoSpell("Героический бросок", _t) then return end
+        if DistanceTo(player, _t) < 8 and DoSpell("Удар грома") then return end
         if shield and DoSpell("Мощный удар щитом", _t, true) then return end
         if DoSpell("Дразнящий удар", _t, true) then return end
       end
@@ -193,7 +190,6 @@ function Idle()
       and IsSpellNotUsed("Перехват", 1)
       and IsSpellNotUsed("Рывок", 1)
       and IsSpellNotUsed("Вмешательство", 1) then
-
       local chargeLeft = GetSpellCooldownLeft("Рывок");
       if validTarget and not UnitInLos(target) and InRange("Рывок", target) and  chargeLeft < 1 then
         if warbringer or stance == 1 then
@@ -203,7 +199,6 @@ function Idle()
         end
         return
       end
-
       local interceptLeft = GetSpellCooldownLeft("Перехват")
       if rage > 10 and validTarget and not UnitInLos(target) and InRange("Перехват", target) and chargeLeft > 2 and interceptLeft < 1 then
         if warbringer or stance == 3 then
@@ -213,13 +208,12 @@ function Idle()
         end
         return
       end
-
       local interveneLeft = GetSpellCooldownLeft("Вмешательство")
-      if IsInGroup() and rage > 10 and (not validTarget or UnitInLos(target) or (chargeLeft > 2 and interceptLeft > 2)) and interveneLeft < 1 then
+      if IsInGroup() and rage > 10 and (not validTarget or UnitInLos(target) or  (DistanceTo("player", target) > 25) or (chargeLeft > 2 and interceptLeft > 2) ) and interveneLeft < 1 then
         local _u = nil
         if validTarget then
             -- Ищем ближайшего к цели из группы
-            local _dist = 100
+            local _dist = 8
             for i = 1, #UNITS do
               local u = UNITS[i]
               repeat -- для имитации continue
@@ -246,9 +240,10 @@ function Idle()
             until true
           end
         end
+
         if _u then
           if warbringer or stance == 2 then
-            if DoSpell("Перехват", _u, true) then return end
+            if DoSpell("Вмешательство", _u, true) then return end
           else
             if DoSpell("Оборонительная стойка") then return end
           end
@@ -262,7 +257,7 @@ function Idle()
     else
       if stance ~= 1 and DoSpell("Боевая стойка") then return end
     end
-
+if true then return end -----------------------------------------------------------------------------------------------------------------------------------------------
     local autoAttack = IsCurrentSpell("Автоматическая атака")
     if (attack or UnitAffectingCombat(target)) then
       if validTarget and not autoAttack then omacro("/startattack") end
