@@ -12,7 +12,6 @@
 -- wow-circle error fix
 local _format = format
 format = function(str, ...)
-  print(str, ...)
   if not str then
     str = ""
     for i = 1, select('#', ...) do
