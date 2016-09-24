@@ -54,19 +54,21 @@ AdvMode = false;
 local update = 1
 -- Выполняем обработчики события OnUpdate
 local function OnUpdate(frame, elapsed)
-    AdvMode = false;
-    if not TimerStarted("AdvMode") or TimerMore("AdvMode", 0.5) then
-      TimerStart("AdvMode")
-      AdvMode = true
-    end
     if ((IsAttack() or IsMouse(3)) and Paused) then
         echo("Авто ротация: ON")
         Paused = false
         AdvMode = true
     end
-    local throttle = 1 / GetFramerate()
+    local throttle =  1 / GetFramerate()
+    if throttle < 0.025 then throttle = 0.025 end
     update = update + elapsed
     if update > throttle then
+        AdvMode = false;
+        if not TimerStarted("AdvMode") or TimerMore("AdvMode", 0.5) then
+          TimerStart("AdvMode")
+          AdvMode = true
+        end
+
         UpdateIdle(update)
         for i=1, #UpdateList do
             UpdateList[i](update)

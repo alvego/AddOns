@@ -7,10 +7,15 @@ BINDING_NAME_WRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 BINDING_NAME_WRH_AUTOTAUNT = "Авто Taunt"
 BINDING_NAME_WRH_AUTOAOE = "Вкл/Выкл авто AOE"
 ------------------------------------------------------------------------------------------------------------------
-function Equip1HShield()
+function Equip1HShield(pvp)
   if TimerMore('equipweapon', 2) and not IsEquippedItemType("Щит") then
-    omacro("/equip Тесак разгневанного гладиатора")
-    omacro("/equip Осадный щит разгневанного гладиатора")
+    if pvp then
+      omacro("/equip Тесак разгневанного гладиатора")
+      omacro("/equip Осадный щит разгневанного гладиатора")
+    else
+      omacro("/equip Последнее желание")
+      omacro("/equip Мерзлая стена ледяной цитадели")
+    end
     TimerStart('equipweapon')
   end
 end
@@ -39,11 +44,11 @@ function UseInterrupt()
     end
 end
 
-function TryInterrupt(target)
+function TryInterrupt(pvp)
 
     if not CanInterrupt then return false end
 
-    if target == nil then target = "target" end
+    local target = "target"
 
 
 
@@ -51,7 +56,7 @@ function TryInterrupt(target)
     if not spell then return nil end
     if left < (channel and 0.5 or 0.2) then  return  end -- если уже докастил, нет смысла трепыхаться, тунелинг - нет смысла сбивать последний тик
 
-    if IsPvP() and tContains(InterruptList, spell) then return false end
+    if pvp and tContains(InterruptList, spell) then return false end
 
     local name = (UnitName(target)) or target
     local stance = GetShapeshiftForm()
@@ -62,7 +67,7 @@ function TryInterrupt(target)
       local reflect = tContains(ReflectList, spell)
 
       if reflect and stance ~= 3 and GetSpellCooldownLeft("Отражение заклинания") == 0 then
-        Equip1HShield()
+        Equip1HShield(pvp)
         if DoSpell("Отражение заклинания", player, true) then
           chat("Отражение заклинания от " .. spell .. " - " ..name)
           return true
@@ -73,13 +78,13 @@ function TryInterrupt(target)
         return false;
       end
 
-      if not notinterrupt  and stance == 3 and DoSpell("Зуботычина", target, true) then
+      if not notinterrupt and stance == 3 and DoSpell("Зуботычина", target, true) then
         chat("Зуботычина в " .. name)
         return true
       end
 
       if not notinterrupt  and stance ~= 3 and GetSpellCooldownLeft("Удар щитом") == 0 and InMelee(target) then
-        Equip1HShield()
+        Equip1HShield(pvp)
         if IsEquippedItemType("Щит") and DoSpell("Удар щитом", target, true) then
           chat("Удар щитом в " .. name)
           return true
@@ -117,34 +122,6 @@ function AutoTauntToggle()
     else
         echo("Авто Taunt: OFF")
     end
-end
-
-function TryTaunt()
-
-  if not AutoTaunt then return false end
-
-  --[[if not IsInGroup() then return false end
-
-  for i = 1, #UNITS do
-    local u = UNITS[i]
-    if UnitAffectingCombat(u) and not IsOneUnit("player", u) then
-      local _status = UnitThreatSituation(u)
-      if type(_status) == "number" and _status > 1 then
-        --if DoSpell("Праведная защита", u) then return true end
-
-        for j = 1, #TARGETS do
-          local t = TARGETS[j]
-          local isTanking, status, threatpct, rawthreatpct, threatvalue = UnitDetailedThreatSituation(u, t);
-          if isTanking then
-
-            --if DoSpell("Щит мстителя", t) then return true end
-
-          end
-        end
-      end
-    end
-  end]]
-  return false
 end
 
 ------------------------------------------------------------------------------------------------------------------

@@ -289,14 +289,15 @@ function PlayerInPlace()
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function PlayerFacingTarget(unit)
+function PlayerFacingTarget(unit, angle) -- angle 1 .. 90, default 90
     if not UnitExists(unit) or IsOneUnit("player",unit) then return false end
     local facing = GetPlayerFacing()
     local x1,y1 = UnitPosition("player")
     local x2,y2 = UnitPosition(unit)
     local yawAngle = atan2(y1 - y2, x1 - x2) - deg(facing)
     if yawAngle < 0 then yawAngle = yawAngle + 360 end
-    return yawAngle > 90 and yawAngle < 270
+    if not angle then angle = 90 end
+    return yawAngle > (180 - angle) and yawAngle < (180 + angle)
 end
 ------------------------------------------------------------------------------------------------------------------
 function InCombatMode()
