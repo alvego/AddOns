@@ -164,7 +164,8 @@ function Idle()
           validTarget = true
         end
     end
-      ----------------------------------------------------------------------------
+    ----------------------------------------------------------------------------
+    local canAttack = CanAttack(target)
     local melee = InMelee(target)
     if TryInterrupt(pvp) then return end
     -- TryProtect -----------------------------------------------------------------
@@ -272,6 +273,11 @@ function Idle()
 
 
     if HasBuff("Проклятие хаоса") then omacro("/cancelaura Проклятие хаоса") end
+
+    if not canAttack and not attack then
+      if HasBuff("Сдерживание",1,target) stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
+      return
+    end
 
     if IsCtr() then
         if stance == 3 and DoSpell("Безрассудство") then return end

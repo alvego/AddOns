@@ -48,6 +48,18 @@ function Idle()
 
   -- Heal Rotation ------------------------------------------------------------------------------------------------------------------------------
   if HasSpell("Частица Света") then
+
+    if IsPvP() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
+
+
+      if (IsAttack() or InCombatLockdown()) and (not HasBuff("Аура") or HasBuff("Аура воина Света")) and DoSpell("Аура сосредоточенности", player) then return end
+      --if IsPvP() and not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
+      if not HasBuff("Печать") and DoSpell("Печать Света", player) then return end
+      --if not HasBuff("Печать") and DoSpell("Печать мудрости","player") then return end
+      if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
+          if not HasBuff("благословение королей") and DoSpell("Великое благословение королей", player) then return end
+      end
+
       local hp = UnitHealth100(player)
       local mana = UnitMana100(player)
 
@@ -61,8 +73,8 @@ function Idle()
       end
 
       local u = "player"
-      local hasShield = HasMyBuff("Священный щит",1, player)
-      local hasLight = HasMyBuff("Частица Света",1, player)
+      local hasShield = HasMyBuff("Священный щит",1, player) and true or false
+      local hasLight = HasMyBuff("Частица Света",1, player) and true or false
       local h = UnitHealth100(u)
       for i = 1, #UNITS do
         local _u = UNITS[i]
@@ -77,19 +89,26 @@ function Idle()
 
       if not u then return end
 
-      if IsInGroup() and IsSpellNotUsed("Частица Света", 10) and not hasLight and DoSpell("Частица Света", player) then return end
+      if InCombatLockdown() and IsInGroup() and IsSpellNotUsed("Частица Света", 10) and not hasLight and DoSpell("Частица Света", player) then return end
 
-      --local l = UnitLostHP(u)
-
+      local l = UnitLostHP(u)
+      if mana > 90 then l = l * 2 end
       if HasBuff("Божественное одобрение") and DoSpell("Шок небес", u) then return end
-      if h < 95 and UseEquippedItem("Украшенные перчатки разгневанного гладиатора") then return end
-      if mana < 90 and UseEquippedItem("Осколок чистейшего льда") then return end
-      if IsSpellNotUsed("Священный щит", 5) and (not hasShield or h < 50) and DoSpell("Священный щит", u) then return end
+      if InCombatMode() and h < 95 and UseEquippedItem("Украшенные перчатки разгневанного гладиатора") then return end
+      if InCombatMode() and mana < 90 and UseEquippedItem("Осколок чистейшего льда") then return end
+      if InCombatMode() and IsSpellNotUsed("Священный щит", 5) and (not hasShield or (h < 50 and not HasMyBuff("Священный щит", 1, u))) and DoSpell("Священный щит", u) then return end
       if (h < 35) and UseEquippedItem("Подвеска истинной крови", u) then return end
       if (h < 35) and not IsReadyItem("Подвеска истинной крови") and GetSpellCooldownLeft("Шок небес") < 0.1 and DoSpell("Божественное одобрение") then return end
-      if (h < 95) and DoSpell("Шок небес", u) then return end
-      if (HasBuff("Прилив Света") or PlayerInPlace()) and (h < 50) and DoSpell("Вспышка Света", u) then return end
+      if (h < 95 or l > 5000) and DoSpell("Шок небес", u) then return end
+      if (HasBuff("Прилив Света") or PlayerInPlace()) and (h < 50 or l > 4000) and DoSpell("Вспышка Света", u) then return end
       if IsSpellNotUsed("Очищение", 2) and HasDebuff(dispelTypes, 1, u) and not HasDebuff("Нестабильное колдовство", 0.1, u) and DoSpell("Очищение", u) then return end
+
+      if InCombatMode() then
+        TryTarget()
+        if IsValidTarget(target) and DoSpell("Правосудие света", target) then return end
+        if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
+      end
+
       return
    end
    ----------------------------------------------------------------------------------------------------------------------------------------------

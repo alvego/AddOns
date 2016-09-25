@@ -12,7 +12,7 @@
 -- wow-circle error fix
 local _format = format
 format = function(str, ...)
-  if not str then
+  if str == nil then
     str = ""
     for i = 1, select('#', ...) do
         str = str .. '%s '
