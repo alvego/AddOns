@@ -99,11 +99,11 @@ function Idle()
       --------------------------------------------------------------------------
       if _c > 1 and DoSpell("Вызывающий крик", nil, true) then return end
       if _t then
-        if not _isTanking and DoSpell("Провокация", _t, true) then return end
+        if stance == 2 and not _isTanking and DoSpell("Провокация", _t, true) then return end
         if DoSpell("Героический бросок", _t) then return end
-        if DistanceTo(player, _t) < 8 and DoSpell("Удар грома") then return end
+        if stance ~= 3 and DistanceTo(player, _t) < 8 and DoSpell("Удар грома") then return end
         if shield and DoSpell("Мощный удар щитом", _t, true) then return end
-        if DoSpell("Дразнящий удар", _t, true) then return end
+        if stance ~= 3 and DoSpell("Дразнящий удар", _t, true) then return end
       end
     end
     -- IsAOE -------------------------------------------------------------------
@@ -165,7 +165,6 @@ function Idle()
         end
     end
     ----------------------------------------------------------------------------
-    local canAttack = CanAttack(target)
     local melee = InMelee(target)
     if TryInterrupt(pvp) then return end
     -- TryProtect -----------------------------------------------------------------
@@ -274,8 +273,8 @@ function Idle()
 
     if HasBuff("Проклятие хаоса") then omacro("/cancelaura Проклятие хаоса") end
 
-    if not canAttack and not attack then
-      if HasBuff("Сдерживание",1,target) stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
+    if not CanAttack(target) and not attack then
+      if HasBuff("Сдерживание",1,target) and stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
       return
     end
 
