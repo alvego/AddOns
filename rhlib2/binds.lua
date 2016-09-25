@@ -75,7 +75,7 @@ local function updateDebugStats()
         if debugFrame:IsVisible() then debugFrame:Hide() end
         return
     end
-    if TimerLess('DebugFrame', 1) then return end
+    if TimerLess('DebugFrame', 5) then return end
     TimerStart('DebugFrame')
     UpdateAddOnMemoryUsage()
     local mem  = GetAddOnMemoryUsage("rhlib2")

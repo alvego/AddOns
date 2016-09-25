@@ -137,7 +137,7 @@ function DoSpell(spellName, target, force)
     if force then
       if rage < cost then UseSpell("Кровавая ярость") end
     else
-      if not IsAttack() and rage <= cost + 20 then return false end
+      if not IsAttack() and rage <= cost + (IsCtr() and 40 or 20) then return false end
     end
 
   end

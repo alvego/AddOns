@@ -245,7 +245,7 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellErrors)
 
 ------------------------------------------------------------------------------------------------------------------
 local _m = ''
-local spellDebug = true
+local spellDebug = false
 local function falseBecause(m, spell, icon, target)
   if m == "Не готов" then return false end -- ignore
   if m == "Уже используется" then return false end -- ignore

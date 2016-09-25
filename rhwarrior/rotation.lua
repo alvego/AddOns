@@ -133,6 +133,7 @@ function Idle()
         local _face = false
         local _dist = 100
         local _combat = false
+        local look = IsMouselooking()
         for i = 1, #TARGETS do
           local uid = TARGETS[i]
           repeat -- для имитации continue
@@ -146,13 +147,12 @@ function Idle()
             -- только актуальные цели
             if not IsValidTarget(uid) then break end
 
-            local face = PlayerFacingTarget(uid)
+            local face = PlayerFacingTarget(uid, look and 15 or 90)
+            -- если смотрим, то только впереди
+            if look and not face then break end
             local dist = DistanceTo("player", uid)
-
             if _face and not face and not (dist < 5 and _dist > 8) then break end
-
             if dist > _dist then break end
-
             _uid = uid
             _combat = combat
             _face = face
@@ -184,12 +184,14 @@ function Idle()
     end
     ----------------------------------------------------------------------------
     if (attack or hp > 60) and HasBuff("Длань защиты", 1, player) then omacro("/cancelaura Длань защиты") end
+    if attack and HasBuff("Вихрь клинков", 1, player) then omacro("/cancelaura Вихрь клинков") end
 
     -- Rotation ----------------------------------------------------------------
     if attack --and not UnitInLos(target)
       and IsSpellNotUsed("Перехват", 1)
-      and IsSpellNotUsed("Рывок", 1)
-      and IsSpellNotUsed("Вмешательство", 1) then
+      and IsSpellNotUsed("Рывок", 1)  then
+      --and IsSpellNotUsed("Вмешательство", 1)
+
       local chargeLeft = GetSpellCooldownLeft("Рывок");
       if validTarget and not UnitInLos(target) and InRange("Рывок", target) and  chargeLeft < 1 then
         if warbringer or stance == 1 then
@@ -208,10 +210,12 @@ function Idle()
         end
         return
       end
+
       local interveneLeft = GetSpellCooldownLeft("Вмешательство")
-      if IsInGroup() and rage > 10 and (not validTarget or UnitInLos(target) or  (DistanceTo("player", target) > 25) or (chargeLeft > 2 and interceptLeft > 2) ) and interveneLeft < 1 then
+      local toTarget = validTarget and not UnitInLos(target) and (DistanceTo("player", target) < 30)
+      if IsInGroup() and rage > 10 and (not toTarget or (chargeLeft > 2 and interceptLeft > 2) ) and interveneLeft < 1 then
         local _u = nil
-        if validTarget then
+        if toTarget then
             -- Ищем ближайшего к цели из группы
             local _dist = 8
             for i = 1, #UNITS do
