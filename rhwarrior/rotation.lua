@@ -174,7 +174,6 @@ function Idle()
         if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
         if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
       end
-      if hp < 50 and UseEquippedItem("Проржавевший костяной ключ") then return end
       if stance == 2 and shield then
         if hp < 32 and DoSpell("Глухая оборона") then return end
         if hp < 60 and DoSpell("Блок щитом") then return end

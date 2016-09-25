@@ -46,6 +46,54 @@ function Idle()
 
   if not IsAttack() and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
 
+  -- Heal Rotation ------------------------------------------------------------------------------------------------------------------------------
+  if HasSpell("Частица Света") then
+      local hp = UnitHealth100(player)
+      local mana = UnitMana100(player)
+
+      if InCombatLockdown() then
+        if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
+        if not (InDuel() or IsArena()) then
+          if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
+          if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
+        end
+        if IsPvP() and hp < 40 and DoSpell("Длань спасения", player) then return end
+      end
+
+      local u = "player"
+      local hasShield = HasMyBuff("Священный щит",1, player)
+      local hasLight = HasMyBuff("Частица Света",1, player)
+      local h = UnitHealth100(u)
+      for i = 1, #UNITS do
+        local _u = UNITS[i]
+        local _h = UnitHealth100(_u)
+        if not hasShield and HasMyBuff("Священный щит",1,_u) then hasShield = true end
+        if not hasLight and HasMyBuff("Частица Света",1,_u) then hasLight = true end
+        if _h < h then
+          u = _u
+          h = _h
+        end
+      end
+
+      if not u then return end
+
+      if IsInGroup() and IsSpellNotUsed("Частица Света", 10) and not hasLight and DoSpell("Частица Света", player) then return end
+
+      --local l = UnitLostHP(u)
+
+      if HasBuff("Божественное одобрение") and DoSpell("Шок небес", u) then return end
+      if h < 95 and UseEquippedItem("Украшенные перчатки разгневанного гладиатора") then return end
+      if mana < 90 and UseEquippedItem("Осколок чистейшего льда") then return end
+      if IsSpellNotUsed("Священный щит", 5) and (not hasShield or h < 50) and DoSpell("Священный щит", u) then return end
+      if (h < 35) and UseEquippedItem("Подвеска истинной крови", u) then return end
+      if (h < 35) and not IsReadyItem("Подвеска истинной крови") and GetSpellCooldownLeft("Шок небес") < 0.1 and DoSpell("Божественное одобрение") then return end
+      if (h < 95) and DoSpell("Шок небес", u) then return end
+      if (HasBuff("Прилив Света") or PlayerInPlace()) and (h < 50) and DoSpell("Вспышка Света", u) then return end
+      if IsSpellNotUsed("Очищение", 2) and HasDebuff(dispelTypes, 1, u) and not HasDebuff("Нестабильное колдовство", 0.1, u) and DoSpell("Очищение", u) then return end
+      return
+   end
+   ----------------------------------------------------------------------------------------------------------------------------------------------
+
   if not HasSpell("Удар воина Света") then return end
 
   if IsPvP() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end

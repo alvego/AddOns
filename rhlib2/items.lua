@@ -72,23 +72,28 @@ function EquipItem(itemName)
 end
 ------------------------------------------------------------------------------------------------------------------
 
-function UseItem(itemName)
+function UseItem(itemName, target)
     if UnitIsCasting() then return false end
     if not ItemExists(itemName) then return false end
     if not IsEquippedItem(itemName) and not IsUsableItem(itemName) then return false end
     if IsCurrentItem(itemName) then return false end
     if not IsReadyItem(itemName) then return false end
-    if not IsReadyItem(itemName, true) then return true end
     local itemSpell = GetItemSpell(itemName)
     if itemSpell and IsSpellInUse(itemSpell) then return false end
-    omacro("/use " .. itemName)
+    if target then
+      if not UnitExists(target) then return false end
+      if not InRange(itemSpell, target) then return false end
+      omacro("/cast [@".. target .. "] "  .. itemName)
+    else
+        omacro("/use " .. itemName)
+    end
     if SpellIsTargeting() then
         UnitWorldClick("target")
     end
     return true
 end
 ------------------------------------------------------------------------------------------------------------------
-function UseEquippedItem(item)
-    if IsEquippedItem(item) and UseItem(item) then return true end
+function UseEquippedItem(item, target)
+    if IsEquippedItem(item) and UseItem(item, target) then return true end
     return false
 end
