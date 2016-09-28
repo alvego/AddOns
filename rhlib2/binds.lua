@@ -154,6 +154,11 @@ function UpdateIdle(elapsed)
     if UnitIsDeadOrGhost("player") then return end
     if UpdateCommands() then return end
     if SpellIsTargeting() then return end
+    --local autoloog
+    if LootFrame:IsVisible()  then
+
+      return
+    end
     if Paused then return end
 
     if AdvMode and (IsAttack() or InCombatLockdown()) and ObjectsCount then

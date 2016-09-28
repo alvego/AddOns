@@ -101,7 +101,7 @@ local function hookUseAction(slot, ...)
       local name = nil
       if actiontype == "spell" then
           name = GetSpellName(id, "spell")
-          DoCommand("spell", name, IsAlt() and "focus" or "target")
+          DoCommand("spell", name) --, IsAlt() and "focus" or "target"
       elseif actiontype == "item" then
           name = GetItemInfo(id)
       elseif actiontype == "companion" then

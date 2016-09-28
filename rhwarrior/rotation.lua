@@ -188,8 +188,8 @@ function Idle()
     -- Rotation ----------------------------------------------------------------
     if attack --and not UnitInLos(target)
       and IsSpellNotUsed("Перехват", 1)
+      and IsSpellNotUsed("Вмешательство", 1)
       and IsSpellNotUsed("Рывок", 1)  then
-      --and IsSpellNotUsed("Вмешательство", 1)
 
       local chargeLeft = GetSpellCooldownLeft("Рывок");
       if validTarget and not UnitInLos(target) and InRange("Рывок", target) and  chargeLeft < 1 then
@@ -209,7 +209,8 @@ function Idle()
         end
         return
       end
-
+    end
+    if IsAlt() then ------[[TODO: Need fix]]
       local interveneLeft = GetSpellCooldownLeft("Вмешательство")
       local toTarget = validTarget and not UnitInLos(target) and (DistanceTo("player", target) < 30)
       if IsInGroup() and rage > 10 and (not toTarget or (chargeLeft > 2 and interceptLeft > 2) ) and interveneLeft < 1 then
