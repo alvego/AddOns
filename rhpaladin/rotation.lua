@@ -32,7 +32,7 @@ function Idle()
   if IsAttack() or IsMouse(3) then
       if HasBuff("Парашют") then omacro("/cancelaura Парашют") end
       if CanExitVehicle() then VehicleExit() end
-      if IsMounted() then
+      if IsMounted() and not IsPvP() then
         if HasBuff("Аура воина Света") then
            omacro("/cancelaura Аура воина Света")
           if HasSpell("Частица Света") and DoSpell("Аура сосредоточенности") then return end
@@ -54,7 +54,7 @@ function Idle()
 
       if (IsAttack() or InCombatLockdown()) and (not HasBuff("Аура") or HasBuff("Аура воина Света")) and DoSpell("Аура сосредоточенности", player) then return end
       --if IsPvP() and not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
-      if not HasBuff("Печать") and DoSpell("Печать Света", player) then return end
+      if not HasBuff("Печать") and DoSpell("Печать мудрости", player) then return end
       --if not HasBuff("Печать") and DoSpell("Печать мудрости","player") then return end
       if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
           if not HasBuff("благословение королей") and DoSpell("Великое благословение королей", player) then return end
@@ -111,15 +111,11 @@ function Idle()
 
       return
    end
-   ----------------------------------------------------------------------------------------------------------------------------------------------
+   --DD_rotation--------------------------------------------------------------------------------------------------------------------------------------------
 
   if not HasSpell("Удар воина Света") then return end
 
   if IsPvP() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
-
-
-  if (IsAttack() or InCombatLockdown()) and (not HasBuff("Аура") or HasBuff("Аура воина Света")) and DoSpell("Аура воздаяния", player) then return end
-  --if IsPvP() and not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
   if not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
   if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
       if not HasBuff("благословение королей") and DoSpell("Великое благословение королей", player) then return end
@@ -147,33 +143,35 @@ function Idle()
         if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
         if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
       end
-      if IsPvP() and hp < 40 and DoSpell("Длань спасения", player) then return end
     end
-
-    if IsPvP() and not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
 
     if HasBuff("Искусство войны") and (not IsValidTarget(target) or GetSpellCooldownLeft("Экзорцизм") > 0.5) then
        if hp < 85 and DoSpell("Вспышка Света", player) then return end
        if IsInteractUnit(teammate) and UnitHealth100(teammate) < 50 and DoSpell("Вспышка Света", teammate) then return end
     end
 
-    if hp < 35 and DoSpell("Божественная защита", player) then return end
-
     if (IsAttack() or UnitAffectingCombat(target)) then
         if IsValidTarget(target) and not IsCurrentSpell("Автоматическая атака") then omacro("/startattack") end
     else
       if IsCurrentSpell("Автоматическая атака") then  omacro("/stopattack") end
     end
+
+    if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
+    if IsAlt() and DoSpell("Правосудие справедливости", target) then return end
+    if DoSpell("Правосудие мудрости", target) then return end
+
+    if IsPvP() and not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
+
+    if not IsArena() and hp < 30 and DoSpell("Возложение рук", player) then return end
+    if hp < 25 and DoSpell("Божественный щит", player) then return end
+
     if not IsValidTarget(target) then return end
     FaceToTarget(target)
     if IsCtr() and DoSpell("Очищение", player) then return end
     if HasBuff("Проклятие хаоса") then omacro("/cancelaura Проклятие хаоса") end
-    if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
     if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
     if UseItem("Чешуйчатые рукавицы разгневанного гладиатора") then return end
     if not IsEquippedItemType("Щит") and HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end
-    if IsAlt() and DoSpell("Правосудие справедливости", target) then return end
-    if DoSpell("Правосудие мудрости", target) then return end
     if DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
     if DoSpell("Удар воина Света", target) then return end
     if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
@@ -184,7 +182,6 @@ function Idle()
     if not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
     if mana < 30 and DoSpell("Святая клятва") then return end
 
-    if IsSpellNotUsed("Очищение", 5) and HasDebuff(dispelTypes, 1, player) and not HasDebuff("Нестабильное колдовство", 0.1, player) and DoSpell("Очищение", player) then return end
   end
 
 end
