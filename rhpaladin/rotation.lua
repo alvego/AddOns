@@ -127,13 +127,17 @@ function Idle()
 
     local hp = UnitHealth100(player)
     local mana = UnitMana100(player)
-    if mana > 10 and IsSpellNotUsed("Очищение", 2) then
+
+    if not IsArena() and hp < 30 and DoSpell("Возложение рук", player) then return end
+    if hp < 25 and DoSpell("Божественный щит", player) then return end
+
+    if mana > 30 and IsSpellNotUsed("Очищение", 2) then
       if HasDebuff(redDispelList, 1, player) and HasDebuff(dispelTypes, 1, player) and not HasDebuff("Нестабильное колдовство", 0.1, player) and DoSpell("Очищение", player) then return end
       if IsInteractUnit(teammate) and HasDebuff(redDispelList, 1, teammate) and not HasDebuff("Нестабильное колдовство", 0.1, teammate) and DoSpell("Очищение", teammate) then return end
     end
 
     if IsReadySpell("Длань возмездия") and UnitIsPlayer(target) and (
-      (tContains(steathClass, GetClass(t)) and not InRange("Покаяние", t)) or HasBuff(reflectBuff, 1, target)
+      (tContains(steathClass, GetClass(target)) and not InRange("Покаяние", target)) or HasBuff(reflectBuff, 1, target)
     ) and not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
 
 
@@ -162,9 +166,6 @@ function Idle()
 
     if IsPvP() and not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
 
-    if not IsArena() and hp < 30 and DoSpell("Возложение рук", player) then return end
-    if hp < 25 and DoSpell("Божественный щит", player) then return end
-
     if not IsValidTarget(target) then return end
     FaceToTarget(target)
     if IsCtr() and DoSpell("Очищение", player) then return end
@@ -172,10 +173,11 @@ function Idle()
     if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
     if UseItem("Чешуйчатые рукавицы разгневанного гладиатора") then return end
     if not IsEquippedItemType("Щит") and HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end
+    if (UnitCreatureType(target) == "Нежить") and mana > 30 and DistanceTo(player, target) < 8 and DoSpell("Гнев небес") then return end
     if DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
     if DoSpell("Удар воина Света", target) then return end
     if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
-    if mana > 60 then
+    if mana > 50 then
       if DistanceTo(player, target) < 8 and (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
       if InMelee(target) and DoSpell("Освящение") then return end
     end
