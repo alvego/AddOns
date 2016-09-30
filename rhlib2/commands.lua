@@ -80,7 +80,7 @@ SetCommand("spell",
             chat(spell .. " - успешно сработало!")
             return true
         end
-        if not IsReadySpell(spell) then
+        if GetSpellCooldownLeft(spell) > 0.25 then
             chat(spell .. " - не готово!")
             return true
         end

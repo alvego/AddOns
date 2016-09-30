@@ -30,6 +30,7 @@ local exceptionControlList = { -- > 4
 
 function Idle()
 
+
   local stance = GetShapeshiftForm()
   local attack = IsAttack()
 
