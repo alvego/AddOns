@@ -29,7 +29,7 @@ function IsAttack()
       beginAttack = false
     end
 
-    return TimerLess('Attack', 0.5)
+    return TimerLess('Attack', 0.05)
 end
 
 -- Отключаем авторотацию, при повторном нажатии останавливаем каст (если есть)
@@ -153,9 +153,16 @@ function UpdateIdle(elapsed)
 
     if UnitIsDeadOrGhost("player") then return end
     if UpdateCommands() then return end
-    if SpellIsTargeting() then return end
+    if SpellIsTargeting() then
+      if IsAttack() then
+        oexecute('SpellStopTargeting()')
+      else
+          return
+      end
+    end
     --local autoloog
     if LootFrame:IsVisible()  then
+      if IsAttack() then  CloseLoot() end
       return
     end
     if Paused then return end

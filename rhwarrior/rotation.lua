@@ -173,7 +173,7 @@ function Idle()
     if TryInterrupt(pvp) then return end
     -- TryProtect -----------------------------------------------------------------
     if combat then
-      if hp < 50 and UseEquippedItem("Проржавевший костяной ключ") then return end
+      --if hp < 50 and UseEquippedItem("Проржавевший костяной ключ") then return end
       if not (InDuel() or IsArena()) then
         if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
         if hp < 50 and UseItem("Камень здоровья из Скверны") then return end

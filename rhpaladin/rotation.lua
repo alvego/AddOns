@@ -138,7 +138,7 @@ function Idle()
       if IsInteractUnit(teammate) and HasDebuff(redDispelList, 1, teammate) and not HasDebuff("Нестабильное колдовство", 0.1, teammate) and DoSpell("Очищение", teammate) then return end
     end
 
-    not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
+    if not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
 
 
     if InCombatLockdown() then
