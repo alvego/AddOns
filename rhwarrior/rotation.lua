@@ -53,7 +53,9 @@ function Idle()
 
   -- Дизамаунт -----------------------------------------------------------------
   if attack or IsMouse(3) then
-      if HasBuff("Парашют") then omacro("/cancelaura Парашют") end
+      if HasBuff("Парашют") then
+        oexecute('CancelUnitBuff("player", "Парашют")')
+      end
       if CanExitVehicle() then VehicleExit() end
       if IsMounted() then Dismount() end
   end
@@ -68,7 +70,7 @@ function Idle()
     if not debuff then
       debuff = HasDebuff(ControlList, 3, "player")
     end
-    if debuff and (not tContains(exceptionControlList, debuff) or IsAttack()) then
+    if debuff and (not tContains(exceptionControlList, debuff) or attack) then
       if IsReadySpell("Ярость берсерка") then
         if IsSpellNotUsed("Каждый за себя", 1) and DoSpell("Ярость берсерка") then return end
       else
@@ -124,12 +126,11 @@ function Idle()
     local target = "target"
     local validTarget = IsValidTarget(target)
 
-    if not validTarget and UnitExists(target) then
-      omacro("/cleartarget")
-      AdvMode = true
-    end
+    --[[if not validTarget and UnitExists(target) then
+      oexecute("ClearTarget()")
+    end]]
     -- TryTarget ---------------------------------------------------------------
-    if AdvMode and not validTarget then
+    if not validTarget then
         local _uid = nil
         local _face = false
         local _dist = 100
@@ -138,21 +139,23 @@ function Idle()
         for i = 1, #TARGETS do
           local uid = TARGETS[i]
           repeat -- для имитации continue
+            if not IsValidTarget(uid) then break end
             local combat = UnitAffectingCombat(uid)
             -- уже есть кто-то в бою
             if _combat and not combat then break end
             -- автоматически выбераем только цели в бою
             if not attack and not combat then break end
+            -- не будет лута
+            if (UnitIsTapped(uid)) and (not UnitIsTappedByPlayer(uid)) then break end
+            if UnitIsPossessed(uid) then break end
             -- в pvp выбираем только игроков
             if pvp and not UnitIsPlayer(uid) then break end
             -- только актуальные цели
-            if not IsValidTarget(uid) then break end
-
             local face = PlayerFacingTarget(uid, look and 15 or 90)
             -- если смотрим, то только впереди
             if look and not face then break end
             local dist = DistanceTo("player", uid)
-            if _face and not face and not (dist < 5 and _dist > 8) then break end
+            if _face and not face and dist > 8 then break end
             if dist > _dist then break end
             _uid = uid
             _combat = combat
@@ -161,7 +164,7 @@ function Idle()
           until true
         end
         if _uid then
-          omacro("/target " .. _uid)
+          oexecute("TargetUnit('".. _uid .."')")
           validTarget = true
         end
     end
@@ -183,8 +186,12 @@ function Idle()
 
     end
     ----------------------------------------------------------------------------
-    if (attack or hp > 60) and HasBuff("Длань защиты", 1, player) then omacro("/cancelaura Длань защиты") end
-    if attack and HasBuff("Вихрь клинков", 1, player) then omacro("/cancelaura Вихрь клинков") end
+    if (attack or hp > 60) and HasBuff("Длань защиты", 1, player) then
+      oexecute('CancelUnitBuff("player", "Длань защиты")')
+    end
+    if attack and HasBuff("Вихрь клинков", 1, player) then
+      oexecute('CancelUnitBuff("player", "Вихрь клинков")')
+    end
 
     -- Rotation ----------------------------------------------------------------
     if attack --and not UnitInLos(target)
@@ -265,15 +272,17 @@ function Idle()
 
     local autoAttack = IsCurrentSpell("Автоматическая атака")
     if (attack or UnitAffectingCombat(target)) then
-      if validTarget and not autoAttack then omacro("/startattack") end
+      if validTarget and not autoAttack then oexecute("StartAttack()") end
     else
-      if autoAttack then  omacro("/stopattack") end
+      if autoAttack then  oexecute("StopAttack()") end
     end
     if not validTarget then return end
     FaceToTarget(target)
 
 
-    if HasBuff("Проклятие хаоса") then omacro("/cancelaura Проклятие хаоса") end
+    if HasBuff("Проклятие хаоса") then
+      oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
+    end
 
     if not CanAttack(target) and not attack then
       if HasBuff("Сдерживание",1,target) and stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
@@ -283,11 +292,10 @@ function Idle()
     if IsCtr() then
         if stance == 3 and DoSpell("Безрассудство") then return end
         if Equiped2H() and HasSpell("Вихрь клинков") and IsReadySpell("Вихрь клинков") and rage >= 25 then
-          omacro("/cast Размашистые удары")
-          omacro("/cast Вихрь клинков")
-          omacro("/cleartarget")
-          omacro("/targetenemyplayer")
-          omacro("/startattack")
+          DoSpell("Размашистые удары")
+          DoSpell("Вихрь клинков", nil, true)
+          oexecute("TargetNearestEnemy" .. (pvp and "Player" or "" ) .. "()")
+          oexecute("StartAttack()")
           return
         end
     end

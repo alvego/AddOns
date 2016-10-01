@@ -10,11 +10,11 @@ BINDING_NAME_WRH_AUTOAOE = "Вкл/Выкл авто AOE"
 function Equip1HShield(pvp)
   if TimerMore('equipweapon', 2) and not IsEquippedItemType("Щит") then
     if pvp then
-      omacro("/equip Тесак разгневанного гладиатора")
-      omacro("/equip Осадный щит разгневанного гладиатора")
+      oexecute("EquipItemByName('Тесак разгневанного гладиатора')")
+      oexecute("EquipItemByName('Осадный щит разгневанного гладиатора')")
     else
-      omacro("/equip Последнее желание")
-      omacro("/equip Мерзлая стена ледяной цитадели")
+      oexecute("EquipItemByName('Последнее желание')")
+      oexecute("EquipItemByName('Мерзлая стена ледяной цитадели')")
     end
     TimerStart('equipweapon')
   end
@@ -24,7 +24,7 @@ end
 function Equip2H()
 
   if TimerMore('equipweapon', 2) and not Equiped2H() then
-    omacro("/equip Темная Скорбь")
+    oexecute("EquipItemByName('Темная Скорбь')")
     TimerStart('equipweapon')
   end
 end

@@ -115,20 +115,14 @@ IsValidTargetInfo = ""
 function IsValidTarget(t)
     IsValidTargetInfo = ""
     if t == nil then t = "target" end
-    if not UnitName(t) then
-        IsValidTargetInfo = "Нет цели"
-        return false
-    end
-    if UnitIsDeadOrGhost(t) and not HasBuff("Притвориться мертвым", 0.1,t) then
-        IsValidTargetInfo = "Цель дохлая"
-        return false
-    end
-
     if not UnitCanAttack("player", t) then
         IsValidTargetInfo = "Невозможно атаковать"
         return false
     end
-
+    if UnitIsDeadOrGhost(t) and not HasBuff("Притвориться мертвым", 0.1, t) then
+        IsValidTargetInfo = "Цель дохлая"
+        return false
+    end
     return true
 end
 
@@ -136,32 +130,14 @@ end
 IsInteractUnitInfo = ""
 function IsInteractUnit(t)
     if t == nil then t = "player" end
-    if not UnitExists(t) then
-    	IsInteractUnitInfo = "Нет юнита " .. t
-    	return false
-    end
-    if UnitIsDeadOrGhost(t) and not HasBuff("Притвориться мертвым", 0.1, t)  then
-    	IsInteractUnitInfo = "Труп или призрак " .. t
-    	return false
-    end
-    if UnitCanAttack("player", t) then
-        IsValidTargetInfo = "Можно атаковать"
-        return false
-    end
-    if UnitIsCharmed(t) then
-    	IsInteractUnitInfo = "Околдован " .. t
-    	return false
-    end
-    if UnitIsEnemy("player",t) then
-    	IsInteractUnitInfo = "Враждебен "  .. t
-    	return false
-    end
-
-   if not InInteractRange(t) then
+    if not InInteractRange(t) then
         IsInteractUnitInfo = "Не в радиусе взаимодействия"
         return false
     end
-
+    if UnitIsDeadOrGhost(t) then
+    	IsInteractUnitInfo = "Труп " .. t
+    	return false
+    end
     return true
 end
 

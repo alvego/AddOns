@@ -60,7 +60,7 @@ local function OnUpdate(frame, elapsed)
         AdvMode = true
     end
     local throttle =  1 / GetFramerate()
-    if throttle < 0.025 then throttle = 0.025 end
+    if throttle < 0.02 then throttle = 0.02 end
     update = update + elapsed
     if update > throttle then
         AdvMode = false;
@@ -79,9 +79,6 @@ end
 frame:SetScript("OnUpdate", OnUpdate)
 ------------------------------------------------------------------------------------------------------------------
 function omacro(macro)
-    if Debug then
-      chat(macro, 0.5, 0.9, 0.5)
-    end
     oexecute("RunMacroText('"..macro.."')")
 end
 ------------------------------------------------------------------------------------------------------------------

@@ -156,7 +156,6 @@ function UpdateIdle(elapsed)
     if SpellIsTargeting() then return end
     --local autoloog
     if LootFrame:IsVisible()  then
-
       return
     end
     if Paused then return end
@@ -166,19 +165,15 @@ function UpdateIdle(elapsed)
       local objCount = ObjectsCount()
       for i = 0, objCount - 1 do
         local uid = GUIDByIndex(i)
-        if uid and UnitCanAttack("player", uid) and not UnitInLos(uid) and not UnitIsDeadOrGhost(uid) then
-          local dist = DistanceTo("player", uid)
-          if dist <= 40 then
+        if uid and UnitCanAttack("player", uid) and DistanceTo("player", uid) < 25 and not UnitIsDeadOrGhost(uid) and not UnitInLos(uid) then
             tinsert(TARGETS, uid)
-          end
         end
       end
-
       wipe(UNITS)
       local groupUnits = GetGroupUnits()
       for i = 1, #groupUnits do
         local u = groupUnits[i]
-        if UnitInRange(u) and not UnitIsDeadOrGhost(u) and not UnitIsEnemy("player", u) and not UnitInLos(u) then
+        if UnitIsFriend("player", u) and UnitInRange(u) and not UnitIsDeadOrGhost(u) and not UnitInLos(u) then
           tinsert(UNITS, u)
         end
       end
@@ -186,7 +181,7 @@ function UpdateIdle(elapsed)
 
 
     if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then
-        omacro("/focus mouseover")
+        oexecute("FocusUnit('mouseover')")
     end
 
     if Idle then Idle() end

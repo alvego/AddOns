@@ -17,7 +17,7 @@ function UseSlot(slot)
     if UnitIsCasting() then return false end
     if not IsReadySlot(slot) then return false end
     if not IsReadySlot(slot, true) then return true end
-    omacro("/use " .. slot)
+    oexecute("UseInventoryItem(" .. slot .. ")")
     if SpellIsTargeting() then
         UnitWorldClick("target")
     end
@@ -62,12 +62,17 @@ function IsReadyItem(name)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function EquipItem(itemName)
+function EquipItem(itemName, slot)
     if IsEquippedItem(itemName) then return false end
     if Debug then
         print(itemName)
     end
-    omacro("/equip  " .. itemName)
+    local cmd = "EquipItemByName('".. itemName .."'"
+    if slot then
+      cmd = cmd ..", ".. slot
+    end
+    cmd = cmd ..")"
+    oexecute(cmd)
     return IsEquippedItem(itemName)
 end
 ------------------------------------------------------------------------------------------------------------------
@@ -80,15 +85,17 @@ function UseItem(itemName, target)
     if not IsReadyItem(itemName) then return false end
     local itemSpell = GetItemSpell(itemName)
     if itemSpell and IsSpellInUse(itemSpell) then return false end
+    local cmd  = "UseItemByName('"..itemSpell.."'"
     if target then
       if not UnitExists(target) then return false end
       if not InRange(itemSpell, target) then return false end
-      omacro("/cast [@".. target .. "] "  .. itemName)
-    else
-        omacro("/use " .. itemName)
+      cmd = cmd .. ", '"..target.."'"
     end
+    cmd = cmd .. ")"
+    oexecute(cmd)
     if SpellIsTargeting() then
-        UnitWorldClick("target")
+        UnitWorldClick(target or "player")
+        oexecute('SpellStopTargeting()')
     end
     return true
 end

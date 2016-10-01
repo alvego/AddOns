@@ -93,8 +93,10 @@ function InInteractRange(unit)
     -- need test and review
     if (unit == nil) then unit = "target" end
     if not UnitIsFriend("player", unit) then return false end
-    if interactRangeSpell then return IsSpellInRange(interactRangeSpell, unit) == 1 end
-    --UnitInRange("target")
+    if interactRangeSpell then
+      return IsSpellInRange(interactRangeSpell, unit) == 1
+    end
+    --UnitInRange("target") only party
     return DistanceTo and DistanceTo("player", unit) < 40
 end
 ------------------------------------------------------------------------------------------------------------------
@@ -134,10 +136,19 @@ function UseMount(mountName)
     if UnitIsCasting() then return false end
     if InGCD() then return false end
     if IsMounted() then return false end
-    --[[if Debug then
-        print(mountName)
-    end]]
-    omacro("/use " .. mountName)
+    local idx = nil
+    for i = 1, GetNumCompanions("MOUNT") do
+      local creatureID, creatureName, creatureSpellID, icon  = GetCompanionInfo("MOUNT", i)
+      if creatureName == mountName then
+        idx = i
+        break
+      end
+    end
+    if idx == nil then
+      print("Нет маунта", mountName)
+      return false
+    end
+    CallCompanion("MOUNT", idx)
     return true
 end
 ------------------------------------------------------------------------------------------------------------------
@@ -245,8 +256,8 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellErrors)
 
 ------------------------------------------------------------------------------------------------------------------
 local _m = ''
-local spellDebug = false
 local function falseBecause(m, spell, icon, target)
+  local spellDebug = false -- spell == "Удар героя"
   if m == "Не готов" then return false end -- ignore
   if m == "Уже используется" then return false end -- ignore
   if spellDebug and  _m ~= m then
@@ -267,8 +278,6 @@ local function falseBecause(m, spell, icon, target)
 end
 
 function UseSpell(spell, target)
-
-
   --if TimerStarted("InCast") then return falseBecause("В процессе каста") end
   if UnitIsCasting("player") then return falseBecause("В процессе каста") end
   if not spell then return falseBecause("Отсутсвует", spell) end
@@ -295,34 +304,18 @@ function UseSpell(spell, target)
       return falseBecause("Мы не смотрим на цель", name, icon, target)
     end
   end
-
-
-
-  local cast = "/cast "
-  -- с учетом цели
-  if target then  cast = cast .."[@".. target .."] " end
-  -- пробуем скастовать
-
-  falseBecause(name, name, icon, target)
-  omacro(cast .. "!" .. name)
-  --print(cast .. "!" .. name)
-  if SpellIsTargeting() then
-        if target then
-          UnitWorldClick(target)
-        else
-           local look = IsMouselooking()
-            if look then
-                oexecute('TurnOrActionStop()')
-            end
-            oexecute('CameraOrSelectOrMoveStart()')
-            oexecute('CameraOrSelectOrMoveStop()')
-            if look then
-                oexecute('TurnOrActionStart()')
-            end
-        end
-        oexecute('SpellStopTargeting()')
+  local cmd = "CastSpellByName('" .. name .."'"
+    -- с учетом цели
+  if target then  cmd = cmd ..",'".. target .."'" end
+  cmd = cmd .. ")"
+  if Debug then
+    chat("> " ..  name .. (target and (" @" .. target) or "") , 0.9, 0.5, 0.5)
   end
-
-
+  -- пробуем скастовать
+  oexecute(cmd)
+  if SpellIsTargeting() then
+      UnitWorldClick(target or "player")
+      oexecute('SpellStopTargeting()')
+  end
   return true
 end

@@ -30,11 +30,13 @@ function Idle()
   local player = "player"
   -- Дизамаунт
   if IsAttack() or IsMouse(3) then
-      if HasBuff("Парашют") then omacro("/cancelaura Парашют") end
+      if HasBuff("Парашют") then
+        oexecute('CancelUnitBuff("player", "Парашют")')
+      end
       if CanExitVehicle() then VehicleExit() end
       if IsMounted() and not IsPvP() then
         if HasBuff("Аура воина Света") then
-           omacro("/cancelaura Аура воина Света")
+           oexecute('CancelUnitBuff("player", "Аура воина Света")')
           if HasSpell("Частица Света") and DoSpell("Аура сосредоточенности") then return end
           if HasSpell("Удар воина Света") and DoSpell("Аура воздаяния")  then return end
         end
@@ -123,7 +125,7 @@ function Idle()
 
   if InCombatMode() then
 
-    TryTarget()
+
 
     local hp = UnitHealth100(player)
     local mana = UnitMana100(player)
@@ -136,9 +138,7 @@ function Idle()
       if IsInteractUnit(teammate) and HasDebuff(redDispelList, 1, teammate) and not HasDebuff("Нестабильное колдовство", 0.1, teammate) and DoSpell("Очищение", teammate) then return end
     end
 
-    if IsReadySpell("Длань возмездия") and UnitIsPlayer(target) and (
-      (tContains(steathClass, GetClass(target)) and not InRange("Покаяние", target)) or HasBuff(reflectBuff, 1, target)
-    ) and not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
+    not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
 
 
     if InCombatLockdown() then
@@ -154,11 +154,17 @@ function Idle()
        if IsInteractUnit(teammate) and UnitHealth100(teammate) < 50 and DoSpell("Вспышка Света", teammate) then return end
     end
 
+
+    if TryTarget() then return end
     if (IsAttack() or UnitAffectingCombat(target)) then
-        if IsValidTarget(target) and not IsCurrentSpell("Автоматическая атака") then omacro("/startattack") end
+        if IsValidTarget(target) and not IsCurrentSpell("Автоматическая атака") then oexecute("StartAttack()") end
     else
-      if IsCurrentSpell("Автоматическая атака") then  omacro("/stopattack") end
+      if IsCurrentSpell("Автоматическая атака") then  oexecute("StopAttack()") end
     end
+
+    if IsReadySpell("Длань возмездия") and UnitIsPlayer(target) and (
+      (tContains(steathClass, GetClass(target)) and not InRange("Покаяние", target)) or HasBuff(reflectBuff, 1, target)
+    ) and
 
     if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
     if IsAlt() and DoSpell("Правосудие справедливости", target) then return end
@@ -169,7 +175,9 @@ function Idle()
     if not IsValidTarget(target) then return end
     FaceToTarget(target)
     if IsCtr() and DoSpell("Очищение", player) then return end
-    if HasBuff("Проклятие хаоса") then omacro("/cancelaura Проклятие хаоса") end
+    if HasBuff("Проклятие хаоса") then
+       oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
+    end
     if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
     if UseItem("Чешуйчатые рукавицы разгневанного гладиатора") then return end
     if not IsEquippedItemType("Щит") and HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end
@@ -191,25 +199,12 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function TryTarget()
-    -- помощь в группе
     if not IsValidTarget("target") then
-        -- если что-то не то есть в цели
-        if UnitExists("target") then omacro("/cleartarget") end
-
-        if IsPvP() then
-            omacro("/targetenemyplayer [nodead]")
-        else
-            omacro("/targetenemy [nodead]")
-        end
-
-        if not IsAttack()  -- если в авторежиме
-            and (
-            not IsValidTarget("target")  -- вообще не цель
-            or (not IsArena() and not (CheckInteractDistance("target", 3) == 1))  -- далековато
-            or (not IsPvP() and not UnitAffectingCombat("target")) -- моб не в бою
-            or (IsPvP() and not UnitIsPlayer("target")) -- не игрок в пвп
-            )  then
-            if UnitExists("target") then omacro("/cleartarget") end
-        end
+      oexecute("TargetNearestEnemy" .. (IsPvP() and "Player" or "" ) .. "()")
     end
+    if UnitExists("target") and (not IsValidTarget("target") or (not IsAttack() and not UnitIsPlayer("target") and not UnitAffectingCombat("target"))) then
+      --oexecute("ClearTarget()")
+      return true
+    end
+    return false
 end
