@@ -54,7 +54,7 @@ function Idle()
     if IsPvP() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
 
 
-      if (IsAttack() or InCombatLockdown()) and (not HasBuff("Аура") or HasBuff("Аура воина Света")) and DoSpell("Аура сосредоточенности", player) then return end
+      if (IsAttack() or InCombatLockdown()) and not HasBuff("Аура сосредоточенности") and DoSpell("Аура сосредоточенности", player) then return end
       --if IsPvP() and not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
       if not HasBuff("Печать") and DoSpell("Печать мудрости", player) then return end
       --if not HasBuff("Печать") and DoSpell("Печать мудрости","player") then return end

@@ -82,3 +82,49 @@ SetCommand("mount",
     end
 )]]
 ----------------------------------------------------------------------------------------------------------------
+--and IsSpellNotUsed("Вмешательство", 1)
+--[[if IsAlt() then TODO: Need fix
+  local interveneLeft = GetSpellCooldownLeft("Вмешательство")
+  local toTarget = validTarget and not UnitInLos(target) and (DistanceTo("player", target) < 30)
+  if IsInGroup() and rage > 10 and (not toTarget or (chargeLeft > 2 and interceptLeft > 2) ) and interveneLeft < 1 then
+    local _u = nil
+    if toTarget then
+        -- Ищем ближайшего к цели из группы
+        local _dist = 8
+        for i = 1, #UNITS do
+          local u = UNITS[i]
+          repeat -- для имитации continue
+            if not InRange("Вмешательство", u) or UnitInLos(u) then break end
+            local dist = DistanceTo(target, u)
+            if dist > _dist then break end
+            _u = u
+            _dist = dist
+          until true
+        end
+    else
+      -- Ищем из группы подальше в области видемости 30 градусов
+      local _dist = 0
+      for i = 1, #UNITS do
+        local u = UNITS[i]
+        repeat -- для имитации continue
+          if not InRange("Вмешательство", u) or UnitInLos(u) then break end
+          local face = PlayerFacingTarget(u, 15)
+          if not face then break end
+          local dist = DistanceTo("player", u)
+          if dist < _dist then break end
+          _u = u
+          _dist = dist
+        until true
+      end
+    end
+
+    if _u then
+      if warbringer or stance == 2 then
+        if DoSpell("Вмешательство", _u, true) then return end
+      else
+        if DoSpell("Оборонительная стойка") then return end
+      end
+      return
+    end
+  end
+end]]
