@@ -138,9 +138,6 @@ function Idle()
       if IsInteractUnit(teammate) and HasDebuff(redDispelList, 1, teammate) and not HasDebuff("Нестабильное колдовство", 0.1, teammate) and DoSpell("Очищение", teammate) then return end
     end
 
-    if not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
-
-
     if InCombatLockdown() then
       if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
       if not (InDuel() or IsArena()) then
@@ -164,7 +161,7 @@ function Idle()
 
     if IsReadySpell("Длань возмездия") and UnitIsPlayer(target) and (
       (tContains(steathClass, GetClass(target)) and not InRange("Покаяние", target)) or HasBuff(reflectBuff, 1, target)
-    ) and
+    ) and not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
 
     if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
     if IsAlt() and DoSpell("Правосудие справедливости", target) then return end
