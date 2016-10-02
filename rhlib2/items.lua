@@ -85,7 +85,7 @@ function UseItem(itemName, target)
     if not IsReadyItem(itemName) then return false end
     local itemSpell = GetItemSpell(itemName)
     if itemSpell and IsSpellInUse(itemSpell) then return false end
-    local cmd  = "UseItemByName('"..itemSpell.."'"
+    local cmd  = "UseItemByName('" .. itemName .. "'"
     if target then
       if not UnitExists(target) then return false end
       if not InRange(itemSpell, target) then return false end

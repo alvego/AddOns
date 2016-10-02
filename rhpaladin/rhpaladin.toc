@@ -4,5 +4,6 @@
 ## DefaultState: Disabled
 ## Interface: 30300
 ## Dependencies: rhlib2
+commands.lua
 rotation.lua
 binds.lua

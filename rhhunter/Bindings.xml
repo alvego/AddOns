@@ -1,5 +1,0 @@
-<Bindings>
-  <Binding name="HRH_INTERRUPT" description="Toggle cast interrupt" header="HRH">
-    UseInterrupt();
-  </Binding>
-</Bindings>

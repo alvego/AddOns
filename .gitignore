@@ -2,9 +2,6 @@
 /*/
 # except foo
 !.gitignore
-!/LibHealComm-4.0/
 !/rhlib2/
-!/rhshaman/
 !/rhpaladin/
-!/rhhunter/
 !/rhwarrior/

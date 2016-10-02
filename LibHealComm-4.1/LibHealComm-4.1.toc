@@ -1,8 +1,0 @@
-## Interface: 30300
-## Title: Lib: HealComm-4.1
-## Notes: Library for showing incoming heals and hots
-## Author: Shadowed
-LibStub.lua
-CallbackHandler-1.0.lua
-LibHealComm-4.1.lua
-LibHealComm-4.1.xml

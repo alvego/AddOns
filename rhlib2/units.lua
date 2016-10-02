@@ -216,30 +216,14 @@ function UnitMana100(target)
     if target == nil then target = "player" end
     return UnitMana(target) * 100 / UnitManaMax(target)
 end
-
-------------------------------------------------------------------------------------------------------------------
-local HealComm = LibStub("LibHealComm-4.1")
-function UnitGetIncomingHeals(target, s)
-    if not target then target = "player" end
-    if not s then s = 3 end
-    return HealComm:GetHealAmount(UnitGUID(target), HealComm.ALL_HEALS, GetTime() + s) or 0
-end
-
 ------------------------------------------------------------------------------------------------------------------
 function UnitLostHP(unit)
-    local hp = UnitHP(unit)
+    local hp = UnitHealth(unit)
     local maxhp = UnitHealthMax(unit)
     local lost = maxhp - hp
     return lost
 end
 
-------------------------------------------------------------------------------------------------------------------
-function UnitHP(t)
-  local incomingheals = UnitGetIncomingHeals(t)
-  local hp = UnitHealth(t) + incomingheals
-  if hp > UnitHealthMax(t) then hp = UnitHealthMax(t) end
-  return hp
-end
 ------------------------------------------------------------------------------------------------------------------
 function IsBattleground()
     local inInstance, instanceType = IsInInstance()
@@ -286,7 +270,7 @@ function InCombatMode()
     if IsAttack() then
       return true
     end
-    if TimerLess('CombatLock', 1) and TimerLess('CombatTarget', 3) then return true end
+    if TimerLess('CombatLock', 0.01) and TimerLess('CombatTarget', 3) then return true end
     return false
 end
 ------------------------------------------------------------------------------------------------------------------

@@ -27,6 +27,7 @@ local exceptionControlList = { -- > 4
   "Покаяние",
 }
 
+local immuneList = {"Божественный щит", "Ледяная глыба", "Длань защиты" }
 
 function Idle()
 
@@ -185,6 +186,7 @@ function Idle()
       if hp < 60 and rage > 15 and HasBuff("Исступление", 0.1, player) and DoSpell("Безудержное восстановление", player, true) then return end
 
     end
+
     ----------------------------------------------------------------------------
     if (attack or hp > 60) and HasBuff("Длань защиты", 1, player) then
       oexecute('CancelUnitBuff("player", "Длань защиты")')
@@ -225,6 +227,8 @@ function Idle()
       if stance ~= 1 and DoSpell("Боевая стойка") then return end
     end
 
+
+
     local autoAttack = IsCurrentSpell("Автоматическая атака")
     if (attack or UnitAffectingCombat(target)) then
       if validTarget and not autoAttack then oexecute("StartAttack()") end
@@ -234,6 +238,7 @@ function Idle()
     if not validTarget then return end
     FaceToTarget(target)
 
+    if PlayerInPlace() and HasBuff(immuneList, 3, target) and stance == 1 and DoSpell("Сокрушительный бросок", target, true) then return end
 
     if HasBuff("Проклятие хаоса") then
       oexecute('CancelUnitBuff("player", "Проклятие хаоса")')

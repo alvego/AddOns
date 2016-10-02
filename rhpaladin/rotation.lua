@@ -51,7 +51,7 @@ function Idle()
   -- Heal Rotation ------------------------------------------------------------------------------------------------------------------------------
   if HasSpell("Частица Света") then
 
-    if IsPvP() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
+    if not InCombatLockdown() and IsPvP() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
 
 
       if (IsAttack() or InCombatLockdown()) and not HasBuff("Аура сосредоточенности") and DoSpell("Аура сосредоточенности", player) then return end
@@ -78,12 +78,24 @@ function Idle()
       local hasShield = HasMyBuff("Священный щит",1, player) and true or false
       local hasLight = HasMyBuff("Частица Света",1, player) and true or false
       local h = UnitHealth100(u)
+      local fatUnit = nil
+      local fatHP = 0
       for i = 1, #UNITS do
         local _u = UNITS[i]
+
         local _h = UnitHealth100(_u)
+        local _h_mult = 1
+        local _maxHP  = UnitHealthMax(_u)
+        if _maxHP > fatHP then
+          fatHP = _maxHP
+          fatUnit = _u
+        end
         if not hasShield and HasMyBuff("Священный щит",1,_u) then hasShield = true end
-        if not hasLight and HasMyBuff("Частица Света",1,_u) then hasLight = true end
-        if _h < h then
+        if not hasLight and HasMyBuff("Частица Света",1,_u) then
+          hasLight = true
+           _h_mult = 1.5
+        end
+        if (_h * _h_mult) < h then
           u = _u
           h = _h
         end
@@ -91,26 +103,37 @@ function Idle()
 
       if not u then return end
 
-      if InCombatLockdown() and IsInGroup() and IsSpellNotUsed("Частица Света", 10) and not hasLight and DoSpell("Частица Света", player) then return end
+
 
       local l = UnitLostHP(u)
+      if InCombatLockdown() and IsInGroup() and IsSpellNotUsed("Частица Света", 10) and not hasLight and  DoSpell("Частица Света", IsInteractUnit(teammate) and teammate or fatUnit) then return end
+
+      --[[if IsShift() then
+        h = 20
+        l = 25000
+      end]]
+
       if mana > 90 then l = l * 2 end
       if HasBuff("Божественное одобрение") and DoSpell("Шок небес", u) then return end
+      if (h < 35) and not IsReadyItem("Подвеска истинной крови") and GetSpellCooldownLeft("Шок небес") < 0.1 and DoSpell("Божественное одобрение") then return end
+
       if InCombatMode() and h < 95 and UseEquippedItem("Украшенные перчатки разгневанного гладиатора") then return end
       if InCombatMode() and mana < 90 and UseEquippedItem("Осколок чистейшего льда") then return end
       if InCombatMode() and IsSpellNotUsed("Священный щит", 5) and (not hasShield or (h < 50 and not HasMyBuff("Священный щит", 1, u))) and DoSpell("Священный щит", u) then return end
       if (h < 35) and UseEquippedItem("Подвеска истинной крови", u) then return end
-      if (h < 35) and not IsReadyItem("Подвеска истинной крови") and GetSpellCooldownLeft("Шок небес") < 0.1 and DoSpell("Божественное одобрение") then return end
+
+
+
       if (h < 95 or l > 5000) and DoSpell("Шок небес", u) then return end
       if (HasBuff("Прилив Света") or PlayerInPlace()) and (h < 50 or l > 4000) and DoSpell("Вспышка Света", u) then return end
       if IsSpellNotUsed("Очищение", 2) and HasDebuff(dispelTypes, 1, u) and not HasDebuff("Нестабильное колдовство", 0.1, u) and DoSpell("Очищение", u) then return end
 
       if InCombatMode() then
         TryTarget()
-        if IsValidTarget(target) and DoSpell("Правосудие света", target) then return end
+        if not IsValidTarget(target) then return end
+        if DoSpell("Правосудие света", target) then return end
         if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
       end
-
       return
    end
    --DD_rotation--------------------------------------------------------------------------------------------------------------------------------------------
@@ -152,21 +175,26 @@ function Idle()
     end
 
 
-    if TryTarget() then return end
+    TryTarget()
+
+
+    if not CanAttack(target) then return end
+
     if (IsAttack() or UnitAffectingCombat(target)) then
         if IsValidTarget(target) and not IsCurrentSpell("Автоматическая атака") then oexecute("StartAttack()") end
     else
       if IsCurrentSpell("Автоматическая атака") then  oexecute("StopAttack()") end
     end
 
+    if IsShift() and UseEquippedItem("Ремень триумфа разгневанного гладиатора", target) then return end
+
     if IsReadySpell("Длань возмездия") and UnitIsPlayer(target) and (
       (tContains(steathClass, GetClass(target)) and not InRange("Покаяние", target)) or HasBuff(reflectBuff, 1, target)
     ) and not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
 
     if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
-    if IsAlt() and DoSpell("Правосудие справедливости", target) then return end
-    if DoSpell("Правосудие мудрости", target) then return end
 
+    if CanMagicAttack(target) and DoSpell(IsAlt() and "Правосудие справедливости" or "Правосудие мудрости", target) then return end
     if IsPvP() and not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
 
     if not IsValidTarget(target) then return end
@@ -176,8 +204,8 @@ function Idle()
        oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
     end
     if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
-    if UseSlot(10) then return end
-    if not IsEquippedItemType("Щит") and HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end
+    if UseItem("Чешуйчатые рукавицы разгневанного гладиатора") then return end
+    if not IsEquippedItemType("Щит") and HasBuff("Искусство войны") and CanMagicAttack(target) and DoSpell("Экзорцизм", target) then return end
     if (UnitCreatureType(target) == "Нежить") and mana > 30 and DistanceTo(player, target) < 8 and DoSpell("Гнев небес") then return end
     if DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
     if DoSpell("Удар воина Света", target) then return end
@@ -196,12 +224,41 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function TryTarget()
-    if not IsValidTarget("target") then
-      oexecute("TargetNearestEnemy" .. (IsPvP() and "Player" or "" ) .. "()")
-    end
-    if UnitExists("target") and (not IsValidTarget("target") or (not IsAttack() and not UnitIsPlayer("target") and not UnitAffectingCombat("target"))) then
-      --oexecute("ClearTarget()")
-      return true
-    end
-    return false
+  if not IsValidTarget("target") then
+      local _uid = nil
+      local _face = false
+      local _dist = 100
+      local _combat = false
+      local look = IsMouselooking()
+      for i = 1, #TARGETS do
+        local uid = TARGETS[i]
+        repeat -- для имитации continue
+          if not IsValidTarget(uid) then break end
+          local combat = UnitAffectingCombat(uid)
+          -- уже есть кто-то в бою
+          if _combat and not combat then break end
+          -- автоматически выбераем только цели в бою
+          if not attack and not combat then break end
+          -- не будет лута
+          if (UnitIsTapped(uid)) and (not UnitIsTappedByPlayer(uid)) then break end
+          if UnitIsPossessed(uid) then break end
+          -- в pvp выбираем только игроков
+          if pvp and not UnitIsPlayer(uid) then break end
+          -- только актуальные цели
+          local face = PlayerFacingTarget(uid, look and 15 or 90)
+          -- если смотрим, то только впереди
+          if look and not face then break end
+          local dist = DistanceTo("player", uid)
+          if _face and not face and dist > 8 then break end
+          if dist > _dist then break end
+          _uid = uid
+          _combat = combat
+          _face = face
+          _dist = dist
+        until true
+      end
+      if _uid then
+        oexecute("TargetUnit('".. _uid .."')")
+      end
+  end
 end

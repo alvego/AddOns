@@ -1,9 +1,0 @@
-## Author: Timofeev Alvexey
-## Title:|cff0055ffRotation Helper|r|cffffe00a > |cff0000ffShaman|r
-## Version: 2.0
-## DefaultState: Disabled
-## Interface: 30300
-## Dependencies: rhlib2
-## SavedVariables: CanInterrupt, AutoAOE
-rotation.lua
-binds.lua

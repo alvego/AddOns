@@ -257,7 +257,7 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellErrors)
 ------------------------------------------------------------------------------------------------------------------
 local _m = ''
 local function falseBecause(m, spell, icon, target)
-  local spellDebug = false -- spell == "Удар героя"
+  local spellDebug = true --spell == "Шок небес"
   if m == "Не готов" then return false end -- ignore
   if m == "Уже используется" then return false end -- ignore
   if spellDebug and  _m ~= m then
@@ -270,7 +270,7 @@ local function falseBecause(m, spell, icon, target)
       s = s .. '|cffff5555<' .. m .. '>|r '
     end
     if target then
-      s = s .. '|cffcccccc->|r ' .. (UnitIsEnemy("player", target) and '|cffff0000' or '|cff00ff00') .. UnitName(target) .. '|r'
+      s = s .. '|cffcccccc->|r ' .. (UnitIsEnemy("player", target) and '|cffff0000' or '|cff00ff00') .. (UnitName(target) or target) .. '|r'
     end
     print(s)
   end
