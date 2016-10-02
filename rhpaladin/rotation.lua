@@ -176,7 +176,7 @@ function Idle()
        oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
     end
     if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
-    if UseItem("Чешуйчатые рукавицы разгневанного гладиатора") then return end
+    if UseSlot(10) then return end
     if not IsEquippedItemType("Щит") and HasBuff("Искусство войны") and DoSpell("Экзорцизм", target) then return end
     if (UnitCreatureType(target) == "Нежить") and mana > 30 and DistanceTo(player, target) < 8 and DoSpell("Гнев небес") then return end
     if DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
