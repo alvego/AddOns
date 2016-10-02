@@ -300,7 +300,7 @@ function UseSpell(spell, target)
     if UnitExists(target) ~= 1 then return falseBecause("Цель не существует", name, icon, target) end
     if IsSpellInRange(name, target) == 0 then return falseBecause("Цель не в зоне действия", name, icon, target) end
     if UnitInLos and UnitInLos(target) then echo("UnitInLos!") return falseBecause("Цель в лосе", name, icon, target) end
-    if UnitCanAttack("player", u) and FaceSpells[name] ~= nil and not PlayerFacingTarget(target) then
+    if UnitCanAttack("player", target) and FaceSpells[name] ~= nil and not PlayerFacingTarget(target) then
       FaceToTarget(target)
       return falseBecause("Мы не смотрим на цель", name, icon, target)
     end
