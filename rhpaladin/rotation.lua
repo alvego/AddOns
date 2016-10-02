@@ -106,7 +106,13 @@ function Idle()
 
 
       local l = UnitLostHP(u)
-      if InCombatLockdown() and IsInGroup() and IsSpellNotUsed("Частица Света", 10) and not hasLight and  DoSpell("Частица Света", IsInteractUnit(teammate) and teammate or fatUnit) then return end
+      if InCombatLockdown() and IsInGroup() and IsSpellNotUsed("Частица Света", 10) and not hasLight then
+        if IsInteractUnit(teammate) then
+          if DoSpell("Частица Света",  teammate) then return end
+        else
+          if not IsOneUnit(player, fatUnit) and DoSpell("Частица Света",  fatUnit) then return end
+        end
+      end
 
       --[[if IsShift() then
         h = 20
