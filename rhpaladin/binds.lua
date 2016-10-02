@@ -9,6 +9,8 @@ end
 ------------------------------------------------------------------------------------------------------------------
 local forbearanceSpells = {"Гнев карателя", "Божественный щит", "Возложение рук", "Божественная защита", "Длань защиты"}
 function DoSpell(spellName, target)
+
     if tContains(forbearanceSpells, spellName) and InForbearance(target) then return false end
+    
     return UseSpell(spellName, target)
 end

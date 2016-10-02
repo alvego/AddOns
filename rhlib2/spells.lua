@@ -278,6 +278,7 @@ local function falseBecause(m, spell, icon, target)
 end
 
 function UseSpell(spell, target)
+
   --if TimerStarted("InCast") then return falseBecause("В процессе каста") end
   if UnitIsCasting("player") then return falseBecause("В процессе каста") end
   if not spell then return falseBecause("Отсутсвует", spell) end
@@ -311,6 +312,7 @@ function UseSpell(spell, target)
   if Debug then
     chat("> " ..  name .. (target and (" @" .. target) or "") , 0.9, 0.5, 0.5)
   end
+
   -- пробуем скастовать
   oexecute(cmd)
   if SpellIsTargeting() then

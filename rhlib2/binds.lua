@@ -139,6 +139,28 @@ function GetEnemyCountInRange(range)
   return count
 end
 
+function UpdateObjects(force)
+  if not ObjectsCount then return end
+  if not force and TimerLess("UpdateObjects", 0.5) then return end
+  TimerStart("UpdateObjects")
+  wipe(TARGETS)
+  local objCount = ObjectsCount()
+  for i = 0, objCount - 1 do
+    local uid = GUIDByIndex(i)
+    if uid and UnitCanAttack("player", uid) and DistanceTo("player", uid) < 25 and not UnitIsDeadOrGhost(uid) and not UnitInLos(uid) then
+        tinsert(TARGETS, uid)
+    end
+  end
+  wipe(UNITS)
+  local groupUnits = GetGroupUnits()
+  for i = 1, #groupUnits do
+    local u = groupUnits[i]
+    if UnitIsFriend("player", u) and UnitInRange(u) and not UnitIsDeadOrGhost(u) and not UnitInLos(u) then
+      tinsert(UNITS, u)
+    end
+  end
+end
+
 function UpdateIdle(elapsed)
     if nil == oexecute then
         if not TimerStarted('UnlockTimer') then
@@ -167,25 +189,7 @@ function UpdateIdle(elapsed)
     end
     if Paused then return end
 
-    if AdvMode and (IsAttack() or InCombatLockdown()) and ObjectsCount then
-      wipe(TARGETS)
-      local objCount = ObjectsCount()
-      for i = 0, objCount - 1 do
-        local uid = GUIDByIndex(i)
-        if uid and UnitCanAttack("player", uid) and DistanceTo("player", uid) < 25 and not UnitIsDeadOrGhost(uid) and not UnitInLos(uid) then
-            tinsert(TARGETS, uid)
-        end
-      end
-      wipe(UNITS)
-      local groupUnits = GetGroupUnits()
-      for i = 1, #groupUnits do
-        local u = groupUnits[i]
-        if UnitIsFriend("player", u) and UnitInRange(u) and not UnitIsDeadOrGhost(u) and not UnitInLos(u) then
-          tinsert(UNITS, u)
-        end
-      end
-    end
-
+    if AdvMode and (IsAttack() or InCombatLockdown()) then UpdateObjects(true) end
 
     if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then
         oexecute("FocusUnit('mouseover')")
