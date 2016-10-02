@@ -155,7 +155,7 @@ function UpdateObjects(force)
   local groupUnits = GetGroupUnits()
   for i = 1, #groupUnits do
     local u = groupUnits[i]
-    if UnitIsFriend("player", u) and UnitInRange(u) and not UnitIsDeadOrGhost(u) and not UnitInLos(u) then
+    if  UnitIsFriend("player", u) and not UnitCanAttack("player", u) and UnitInRange(u) and not UnitIsDeadOrGhost(u) and not UnitInLos(u) then
       tinsert(UNITS, u)
     end
   end
