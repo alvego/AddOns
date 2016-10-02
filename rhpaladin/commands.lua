@@ -8,9 +8,7 @@ SetCommand("fear",
           local t = TARGETS[i]
           if IsValidTarget(t) then
              local ctype = UnitCreatureType(t)
-
              if ctype =="Нежить" or ctype == "Демон" then
-
                 target = t
                 if UnitName(t) == "Вороная горгулья" then  break end
              end

@@ -8,7 +8,7 @@ BINDING_NAME_WRH_AUTOTAUNT = "Авто Taunt"
 BINDING_NAME_WRH_AUTOAOE = "Вкл/Выкл авто AOE"
 ------------------------------------------------------------------------------------------------------------------
 function Equip1HShield(pvp)
-  if TimerMore('equipweapon', 2) and not IsEquippedItemType("Щит") then
+  if TimerMore('equipweapon', 2) and not IsEquippedItemType("Щит") and not HasBuff("Вихрь клинков", 0.01, "player") then
     if pvp then
       oexecute("EquipItemByName('Тесак разгневанного гладиатора')")
       oexecute("EquipItemByName('Осадный щит разгневанного гладиатора')")
@@ -55,9 +55,7 @@ function TryInterrupt(pvp)
     local spell, left, duration, channel, nointerrupt = UnitIsCasting(target)
     if not spell then return nil end
     if left < (channel and 0.5 or 0.2) then  return  end -- если уже докастил, нет смысла трепыхаться, тунелинг - нет смысла сбивать последний тик
-
-    if pvp and tContains(InterruptList, spell) then return false end
-
+    if pvp and not tContains(InterruptList, spell) then return false end
     local name = (UnitName(target)) or target
     local stance = GetShapeshiftForm()
 
