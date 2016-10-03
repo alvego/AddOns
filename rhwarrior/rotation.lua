@@ -28,10 +28,8 @@ local exceptionControlList = { -- > 4
 }
 
 local immuneList = {"Божественный щит", "Ледяная глыба", "Длань защиты" }
-
+Defence = false
 function Idle()
-
-
   local stance = GetShapeshiftForm()
   local attack = IsAttack()
 
@@ -39,12 +37,24 @@ function Idle()
   local hp = UnitHealth100(player)
   local rage = UnitMana(player)
   local warbringer = HasTalent("Вестник войны") > 0
-  local defence = warbringer or (not attack and hp < 45)
+
+  if warbringer then
+    Defence = true
+  else
+    if attack then
+      Defence = false
+    else
+      if hp < 35 then
+        Defence = true
+      end
+    end
+  end
+
   local pvp = IsPvP()
   local combat = InCombatLockdown()
   local shield = IsEquippedItemType("Щит")
 
-  if defence then
+  if Defence then
       Equip1HShield(pvp)
   else
     if not HasBuff("Отражение заклинания", 0.1, player) then
@@ -79,7 +89,7 @@ function Idle()
       end
     end
     --AutoTaunt-----------------------------------------------------------------
-    if not pvp and AdvMode and defence and AutoTaunt and IsInGroup()
+    if not pvp and AdvMode and Defence and AutoTaunt and IsInGroup()
       and IsSpellNotUsed("Вызывающий крик", 1)
       and IsSpellNotUsed("Провокация", 1)
       and IsSpellNotUsed("Дразнящий удар", 1) then
@@ -191,17 +201,13 @@ function Idle()
     if (attack or hp > 60) and HasBuff("Длань защиты", 1, player) then
       oexecute('CancelUnitBuff("player", "Длань защиты")')
     end
-    if attack and HasBuff("Вихрь клинков", 1, player) then
-      oexecute('CancelUnitBuff("player", "Вихрь клинков")')
-    end
 
     -- Rotation ----------------------------------------------------------------
-    if attack and not UnitInLos(target)
+    if attack and IsVisible(target)
       and IsSpellNotUsed("Перехват", 1)
       and IsSpellNotUsed("Рывок", 1)  then
-
       local chargeLeft = GetSpellCooldownLeft("Рывок");
-      if validTarget and not UnitInLos(target) and InRange("Рывок", target) and  chargeLeft < 1 then
+      if validTarget and InRange("Рывок", target) and  chargeLeft < 1 then
         if warbringer or stance == 1 then
           if DoSpell("Рывок", target) then return end
         else
@@ -210,7 +216,7 @@ function Idle()
         return
       end
       local interceptLeft = GetSpellCooldownLeft("Перехват")
-      if rage > 10 and validTarget and not UnitInLos(target) and InRange("Перехват", target) and chargeLeft > 2 and interceptLeft < 1 then
+      if rage > 10 and validTarget and InRange("Перехват", target) and chargeLeft > 2 and interceptLeft < 1 then
         if warbringer or stance == 3 then
           if DoSpell("Перехват", target, true) then return end
         else
@@ -221,7 +227,7 @@ function Idle()
     end
 
 
-    if defence then
+    if Defence then
       if stance ~= 2 and DoSpell("Оборонительная стойка") then return end
     else
       if stance ~= 1 and DoSpell("Боевая стойка") then return end
@@ -254,10 +260,9 @@ function Idle()
         if Equiped2H() and HasSpell("Вихрь клинков") and IsReadySpell("Вихрь клинков") and rage >= 25 then
           DoSpell("Размашистые удары")
           DoSpell("Вихрь клинков", nil, true)
-          oexecute("TargetNearestEnemy" .. (pvp and "Player" or "" ) .. "()")
-          oexecute("StartAttack()")
           return
         end
+        if not IsSpellNotUsed("Вихрь клинков", 0.1) and UnitExists(target) then oexecute("ClearTarget()") end
     end
 
     if stance ~= 2 and IsUsableSpell("Победный раж") and DoSpell("Победный раж", target) then return end
@@ -301,12 +306,12 @@ function Idle()
          if melee and DoSpell("Удар героя", target) then return end
        end
     end
-    if defence then
-      if not HasMyBuff("крик", 1, player) and DoSpell("Командирский крик") then return end
+    if warbringer or HasBuff("благословение могущества", 1, player) then
+      if not HasBuff("Командирский крик", 1, player) and DoSpell("Командирский крик") then return end
     else
-      if not ( HasMyBuff("крик", 1, player) or HasBuff("благословение могущества", 1, player)) and DoSpell("Боевой крик") then return end
+      if not HasBuff("Боевой крик", 1, player)  and DoSpell("Боевой крик") then return end
     end
-    if not AutoTaunt and DoSpell("Героический бросок", target) then return end
+    if (pvp or UnitAffectingCombat(target)) and DoSpell("Героический бросок", target) then return end
     --if not aoe2 and PlayerInPlace() and InRange("Выстрел", target) and DoSpell("Выстрел", target) then return end
   end
 

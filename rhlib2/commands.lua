@@ -18,7 +18,7 @@ function DoCommand(cmd, ...)
         print("DoCommand: Ошибка! Нет такой комманды ".. cmd)
         return
     end
-    local d = 1.85
+    local d = 1.55
     local t = GetTime() + d
     local spell, _, _, _, _, endTime  = UnitCastingInfo("player")
     if not spell then spell, _, _, _, _, endTime, _, nointerrupt = UnitChannelInfo("player") end
@@ -43,14 +43,19 @@ function UpdateCommands()
             if (Commands[cmd].Timer  - GetTime() > 0) then
                 ret = true
                 if Commands[cmd].Check(unpack(Commands[cmd].Params)) then
+                    --print(cmd, 'Check True')
                    Commands[cmd].Timer = 0
                 else
-                   if GetTime() - Commands[cmd].Last > 0.2 and Commands[cmd].Apply(unpack(Commands[cmd].Params)) then
+                   if GetTime() - Commands[cmd].Last > 0.1 and Commands[cmd].Apply(unpack(Commands[cmd].Params)) then
+                        --print(cmd, 'Apply true')
                         Commands[cmd].Last = GetTime()
                    end
                 end
             else
+              if Commands[cmd].Timer > 0 then
+                --print(cmd, 'Time')
                 Commands[cmd].Timer = 0
+              end
             end
         end
     end
@@ -64,6 +69,7 @@ SetCommand("spell",
         if not target then target = "target" end
         if DoSpell(spell, target) then
             echo(spell.."!",1)
+            return true
         end
     end,
     function(spell, target)
@@ -72,7 +78,7 @@ SetCommand("spell",
             chat(spell .. " - нет спела!")
             return true
         end
-        if not InRange(spell, target) then
+        if target and not InRange(spell, target) then
             chat(spell .. " - неверная дистанция!")
             return true
         end
@@ -80,7 +86,7 @@ SetCommand("spell",
             chat(spell .. " - успешно сработало!")
             return true
         end
-        if GetSpellCooldownLeft(spell) > 0.25 then
+        if not IsReadySpell(spell) then
             chat(spell .. " - не готово!")
             return true
         end
@@ -95,13 +101,12 @@ SetCommand("spell",
 )
 ------------------------------------------------------------------------------------------------------------------
 local function hookUseAction(slot, ...)
-	--print("UseAction", slot, ...)
   local actiontype, id, subtype = GetActionInfo(slot)
   if actiontype and id and id ~= 0 then
       local name = nil
       if actiontype == "spell" then
           name = GetSpellName(id, "spell")
-          DoCommand("spell", name) --, IsAlt() and "focus" or "target"
+          DoCommand("spell", name)
       elseif actiontype == "item" then
           name = GetItemInfo(id)
       elseif actiontype == "companion" then
@@ -112,21 +117,8 @@ local function hookUseAction(slot, ...)
             DoCommand(name)
           end
       end
-      --[[if name then
-          print("UseAction", slot, name, actiontype, ...)
-      end]]
+      --if name then print("UseAction", slot, name, actiontype, ...) end
   end
 end
 hooksecurefunc("UseAction", hookUseAction)
-
---[[function UseAction(slot)
-	local isUsable, notEnoughMana = IsUsableAction(slot)
-	if not isUsable or notEnoughMana then return false end
-	local start, duration = GetActionCooldown(slot)
- 	if start and time - (start + duration) < LagTime then return end
-	if ActionHasRange(slot) and IsActionInRange(slot) == 0 then return false end
-  --use action
-  --UseAction(slot)
-	return true
-end]]
 ------------------------------------------------------------------------------------------------------------------

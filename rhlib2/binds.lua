@@ -28,18 +28,19 @@ function IsAttack()
     else
       beginAttack = false
     end
-
     return TimerLess('Attack', 0.05)
 end
 
 -- Отключаем авторотацию, при повторном нажатии останавливаем каст (если есть)
 function AutoRotationOff()
-    if UnitIsCasting() and Paused then
-        StopCast("Pause")
-    end
-    oexecute("StopAttack()")
-    if Paused then
-      oexecute("PetFollow()")
+    if oexecute then
+      if UnitIsCasting() and Paused then
+          StopCast("Pause")
+      end
+      oexecute("StopAttack()")
+      if Paused then
+        oexecute("PetFollow()")
+      end
     end
     Paused = true
     echo("Авто ротация: OFF")
@@ -147,7 +148,7 @@ function UpdateObjects(force)
   local objCount = ObjectsCount()
   for i = 0, objCount - 1 do
     local uid = GUIDByIndex(i)
-    if uid and UnitCanAttack("player", uid) and DistanceTo("player", uid) < 25 and not UnitIsDeadOrGhost(uid) and not UnitInLos(uid) then
+    if uid and UnitCanAttack("player", uid) and DistanceTo("player", uid) < 25 and not UnitIsDeadOrGhost(uid) then
         tinsert(TARGETS, uid)
     end
   end
@@ -155,7 +156,7 @@ function UpdateObjects(force)
   local groupUnits = GetGroupUnits()
   for i = 1, #groupUnits do
     local u = groupUnits[i]
-    if  UnitIsFriend("player", u) and not UnitCanAttack("player", u) and UnitInRange(u) and not UnitIsDeadOrGhost(u) and not UnitInLos(u) then
+    if  UnitIsFriend("player", u) and not UnitCanAttack("player", u) and UnitInRange(u) and not UnitIsDeadOrGhost(u) then
       tinsert(UNITS, u)
     end
   end

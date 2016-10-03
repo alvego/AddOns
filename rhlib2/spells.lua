@@ -116,10 +116,8 @@ end
 ------------------------------------------------------------------------------------------------------------------
 
 function IsReadySpell(name, checkGCD)
-    local usable, nomana = IsUsableSpell(name)
-    if not usable then return false end
     local left = GetSpellCooldownLeft(name)
-    return IsSpellNotUsed(name, 0.5) and IsReady(left, checkGCD)
+    return IsSpellNotUsed(name, 0.25) and IsReady(left, checkGCD)
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -231,6 +229,20 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 FaceSpells = FaceSpells or {}
+local notVisible = {}
+local function resetNotVisible()
+  wipe(notVisible)
+end
+AttachEvent("PLAYER_REGEN_ENABLED", resetNotVisible)
+
+function IsVisible(target)
+  if not UnitExists(target) then return false end
+  --return UnitInLos and not UnitInLos(target)
+  local t = notVisible[UnitGUID(target)]
+  if t and GetTime() - t < 1.2 then return false end
+  return true;
+end
+
 local function updateSpellErrors(event, ...)
     local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, info = ...
     if type:match("SPELL_CAST_FAILED") and sourceGUID == UnitGUID("player") then
@@ -239,6 +251,9 @@ local function updateSpellErrors(event, ...)
           if FaceSpells[spellName] == nil then
             FaceSpells[spellName] = true
           end
+        end
+        if amount == "Цель вне поля зрения." then
+          notVisible[destGUID] = GetTime()
         end
         --[[if (amount == "Еще не готово.") or (amount == "Заклинание пока недоступно.")  then
           if Debug then print("Не готово", spellName , " GCD:", InGCD(), " left:", GetSpellCooldownLeft(spellName), " LagTime:", LagTime) end
@@ -289,17 +304,11 @@ function UseSpell(spell, target)
   local usable, nomana = IsUsableSpell(name)
   if usable ~= 1 then return falseBecause("Недоступен", name, icon) end
   if nomana == 1 then return falseBecause("Нужно больше маны", name, icon) end
-
-  local start, duration = GetSpellCooldown(name);
-  if start and duration then
-    local left = start + duration - GetTime()
-    if left > LagTime then return falseBecause("Не готов", name, icon)  end --LagTime --falseBecause("Спелл не готов " .. spell)
-  end
-
+  if not IsReadySpell(name, true) then return falseBecause("Не готов", name, icon)  end
   if target ~= nil then
     if UnitExists(target) ~= 1 then return falseBecause("Цель не существует", name, icon, target) end
     if IsSpellInRange(name, target) == 0 then return falseBecause("Цель не в зоне действия", name, icon, target) end
-    if UnitInLos and UnitInLos(target) then echo("UnitInLos!") return falseBecause("Цель в лосе", name, icon, target) end
+    if not IsVisible(target) then echo("UnitInLos!") return falseBecause("Цель в лосе", name, icon, target) end
     if UnitCanAttack("player", target) and FaceSpells[name] ~= nil and not PlayerFacingTarget(target) then
       FaceToTarget(target)
       return falseBecause("Мы не смотрим на цель", name, icon, target)
