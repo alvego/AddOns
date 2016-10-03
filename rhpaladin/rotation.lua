@@ -14,10 +14,10 @@ local redDispelList = {
     "Замедление",
     "Эффект ледяной ловушки",
     "Эффект замораживающей стрелы",
-    "Удушение",
-    "Антимагия - немота",
-    "Безмолвие",
-    "Волшебный поток",
+    --"Удушение",
+    --"Антимагия - немота",
+    --"Безмолвие",
+    --"Волшебный поток",
     "Вой ужаса",
     "Ментальный крик",
     "Успокаивающий поцелуй"
@@ -146,7 +146,7 @@ function Idle()
 
   if not HasSpell("Удар воина Света") then return end
 
-  if IsPvP() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
+  if not InCombatLockdown() and IsPvP() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
   if not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
   if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
       if not HasBuff("благословение королей") and DoSpell("Великое благословение королей", player) then return end
@@ -175,7 +175,7 @@ function Idle()
       end
     end
 
-    if HasBuff("Искусство войны") and (not IsValidTarget(target) or GetSpellCooldownLeft("Экзорцизм") > 0.5) then
+    if HasBuff("Искусство войны") --[[and (not IsValidTarget(target) or GetSpellCooldownLeft("Экзорцизм") > 0.5)]] then
        if hp < 85 and DoSpell("Вспышка Света", player) then return end
        if IsInteractUnit(teammate) and UnitHealth100(teammate) < 50 and DoSpell("Вспышка Света", teammate) then return end
     end

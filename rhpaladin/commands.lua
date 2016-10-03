@@ -24,3 +24,40 @@ SetCommand("fear",
     end
 )
 ----------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------
+SetCommand("free",
+  function(target) 
+    UseSpell("Длань свободы", target)
+  end,
+  function(target)
+    if not InGCD() and not IsReadySpell("Длань свободы") then return true end
+    return false
+  end
+)
+
+------------------------------------------------------------------------------------------------------------------
+SetCommand("repentance",
+  function(target)
+    UseSpell("Покаяние", target)
+  end,
+  function(target)
+    if target == nil then target = "target" end
+    if (not InGCD() and not IsReadySpell("Покаяние")) or not CanMagicAttack(target) or HasDebuff(ControlList, 3, target) then return true end
+    return false
+  end
+)
+
+
+------------------------------------------------------------------------------------------------------------------
+SetCommand("stun",
+  function(target)
+    UseSpell("Молот правосудия", target)
+  end,
+  function(target)
+    if target == nil then target = "target" end
+    if (not InGCD() and not IsReadySpell("Молот правосудия")) or not CanControl(target) or HasBuff("Незыблемость льда", 0.1 , target) then return true end
+    return false
+  end
+)
+
+------------------------------------------------------------------------------------------------------------------
