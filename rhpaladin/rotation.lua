@@ -152,9 +152,9 @@ function Idle()
       if not HasBuff("благословение королей") and DoSpell("Великое благословение королей", player) then return end
   end
 
+  if IsCtr() and DoSpell("Очищение", player) then return end
+
   if InCombatMode() then
-
-
 
     local hp = UnitHealth100(player)
     local mana = UnitMana100(player)
@@ -175,7 +175,7 @@ function Idle()
       end
     end
 
-    if HasBuff("Искусство войны") --[[and (not IsValidTarget(target) or GetSpellCooldownLeft("Экзорцизм") > 0.5)]] then
+    if HasBuff("Искусство войны") and IsEquippedItemType("Щит") or ((not IsValidTarget(target) or GetSpellCooldownLeft("Экзорцизм") > 0.5)) then
        if hp < 85 and DoSpell("Вспышка Света", player) then return end
        if IsInteractUnit(teammate) and UnitHealth100(teammate) < 50 and DoSpell("Вспышка Света", teammate) then return end
     end
@@ -205,7 +205,6 @@ function Idle()
 
     if not IsValidTarget(target) then return end
     FaceToTarget(target)
-    if IsCtr() and DoSpell("Очищение", player) then return end
     if HasBuff("Проклятие хаоса") then
        oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
     end
