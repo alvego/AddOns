@@ -205,7 +205,7 @@ function Idle()
 
     if not IsValidTarget(target) then return end
     FaceToTarget(target)
-    
+    if IsCtr() and DoSpell("Очищение", player) then return end
     if HasBuff("Проклятие хаоса") then
        oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
     end
