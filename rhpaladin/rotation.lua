@@ -163,7 +163,7 @@ function Idle()
     if hp < 25 and DoSpell("Божественный щит", player) then return end
 
     if mana > 30 and IsSpellNotUsed("Очищение", 2) then
-      if HasDebuff(redDispelList, 1, player) and HasDebuff(dispelTypes, 1, player) and not HasDebuff("Нестабильное колдовство", 0.1, player) and DoSpell("Очищение", player) then return end
+      if HasDebuff(redDispelList, 1, player) and not HasDebuff("Нестабильное колдовство", 0.1, player) and DoSpell("Очищение", player) then return end
       if IsInteractUnit(teammate) and HasDebuff(redDispelList, 1, teammate) and not HasDebuff("Нестабильное колдовство", 0.1, teammate) and DoSpell("Очищение", teammate) then return end
     end
 
@@ -205,7 +205,7 @@ function Idle()
 
     if not IsValidTarget(target) then return end
     FaceToTarget(target)
-    if IsCtr() and DoSpell("Очищение", player) then return end
+    
     if HasBuff("Проклятие хаоса") then
        oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
     end
