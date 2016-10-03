@@ -18,7 +18,7 @@ format = function(str, ...)
         str = str .. '%s '
     end
   end
-  return _format(str, ...)
+  return _format( gsub(str, "%%%s", "%%s "), ...)
 end
 ------------------------------------------------------------------------------------------------------------------
 local GetTime = GetTime
