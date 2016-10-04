@@ -68,11 +68,26 @@ SetCommand("intervene",
         end
     end,
     function(unit)
-        if UnitMana("player") < 10 and not IsReadySpell("Кровавая ярость") then print("intervene - !rage") return true end
-        if not IsInGroup() then  print("intervene - !group, player") return true end
-        if not IsReadySpell("Вмешательство") then  print("intervene, !ready") return true end
-        if not UnitInRange(unit) then print("intervene - !group", unit) return true end
-        if not InRange("Вмешательство", unit) then print("intervene, !range", unit) return true end
+        if UnitMana("player") < 10 and not IsReadySpell("Кровавая ярость") then
+          print("intervene - !rage")
+          return true
+        end
+        if not IsInGroup() then
+          print("intervene - !group, player")
+          return true
+        end
+        if not IsReadySpell("Вмешательство") then
+          print("intervene, !ready")
+          return true
+        end
+        if not UnitInRange(unit) then
+          print("intervene - !group", unit)
+          return true
+        end
+        if not InRange("Вмешательство", unit) then
+          print("intervene, !range", unit)
+          return true
+        end
         return false
     end
 )
@@ -86,6 +101,7 @@ SetCommand("run",
           if IsSwimming() then mount = "Морская черепаха" end
           DoCommand("mount", mount)
         else
+          chat("Вмешательство")
           if IsInGroup() and IsReadySpell("Вмешательство") then
             local look = IsMouselooking()
             if not look and IsInteractUnit(Teammate) and UnitInRange(Teammate) and InRange("Вмешательство", Teammate) then
@@ -109,8 +125,8 @@ SetCommand("run",
                   _face = face
                 until true
               end
+              if _u then DoCommand("intervene", _u) end
             end
-            if _u then DoCommand("intervene", _u) end
           end
         end
         return true
