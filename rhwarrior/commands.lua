@@ -13,7 +13,6 @@ local groundMounts = {
     "Большой кодо Хмельного фестиваля",
     "Анжинерский чоппер",
     "Повелитель воронов",
-    "Черный киражский боевой танк",
     "Штормградский скакун",
     "Скакун Всадника без головы",
     "Черный боевой баран",
@@ -40,6 +39,8 @@ _mount = false
 SetCommand("mount",
     function(mount)
         if HasBuff("Вихрь клинков", 0.01, player) then oexecute('CancelUnitBuff("player", "Вихрь клинков")') end
+        if HasBuff("Целеустремленность железного дворфа", 0.01, player) then oexecute('CancelUnitBuff("player", "Целеустремленность железного дворфа")') end
+        if HasBuff("Сила таунка", 0.01, player) then oexecute('CancelUnitBuff("player", "Сила таунка")') end
         if HasBuff("Мощь таунка", 0.01, player) then oexecute('CancelUnitBuff("player", "Мощь таунка")') end
         if HasBuff("Скорость врайкулов", 0.01, player) then oexecute('CancelUnitBuff("player", "Скорость врайкулов")') end
         if HasBuff("Ловкость врайкула", 0.01, player) then oexecute('CancelUnitBuff("player", "Ловкость врайкула")') end
