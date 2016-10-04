@@ -20,6 +20,7 @@ function DoCommand(cmd, ...)
     end
     local d = 1.55
     local t = GetTime() + d
+
     local spell, _, _, _, _, endTime  = UnitCastingInfo("player")
     if not spell then spell, _, _, _, _, endTime, _, nointerrupt = UnitChannelInfo("player") end
     if spell and endTime then
@@ -29,6 +30,7 @@ function DoCommand(cmd, ...)
             t = GetTime() + d
         end
     end
+
     Commands[cmd].Timer = t
     Commands[cmd].Params = { ... }
 end
@@ -36,7 +38,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 -- навешиваем обработчик с максимальным приоритетом на событие OnUpdate, для обработки вызванных комманд
 function UpdateCommands()
-    if UnitIsCasting("player") then return false end
+    if InCombatMode() and UnitIsCasting("player") then return false end
     local ret = false
     for cmd,_ in pairs(Commands) do
         if not ret then

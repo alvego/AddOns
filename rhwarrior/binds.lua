@@ -8,7 +8,8 @@ BINDING_NAME_WRH_AUTOTAUNT = "Авто Taunt"
 BINDING_NAME_WRH_AUTOAOE = "Вкл/Выкл авто AOE"
 ------------------------------------------------------------------------------------------------------------------
 function Equip1HShield(pvp)
-  if TimerMore('equipweapon', 2) and not IsEquippedItemType("Щит") and not HasBuff("Вихрь клинков", 0.01, "player") then
+  if not InCombatMode() and IsEquippedItemType("Удочка") then return end
+  if TimerMore('equipweapon', 0.5) and not IsEquippedItemType("Щит") and not HasBuff("Вихрь клинков", 0.01, "player") then
     if pvp then
       oexecute("EquipItemByName('Тесак разгневанного гладиатора')")
       oexecute("EquipItemByName('Осадный щит разгневанного гладиатора')")
@@ -22,8 +23,8 @@ end
 
 
 function Equip2H()
-
-  if TimerMore('equipweapon', 2) and not Equiped2H() then
+  if not InCombatMode() and IsEquippedItemType("Удочка") then return end
+  if TimerMore('equipweapon', 0.5) and not Equiped2H() then
     oexecute("EquipItemByName('Темная Скорбь')")
     TimerStart('equipweapon')
   end

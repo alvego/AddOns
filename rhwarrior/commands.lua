@@ -181,3 +181,74 @@ SetCommand("spell",
         return false
     end
 )
+
+---------------------------------------------------------------------------------------------------------------
+local bobberGUID = nil
+local function updateSpellCreate(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, info = ...
+    if type:match("SPELL_CREATE") and sourceGUID == UnitGUID("player") and spellName == "Рыбная ловля" then
+        bobberGUID = destGUID
+    end
+end
+AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellCreate)
+
+SetCommand("tryFishLoot",
+    function()
+      if LootFrame:IsVisible() and IsFishingLoot() then
+          for i=1, GetNumLootItems() do
+            LootSlot(i)
+          end
+          CloseLoot()
+       end
+    end,
+    function()
+        if not TimerStarted("fishLoot") then
+          TimerStart("fishLoot")
+          return false
+        end
+        if TimerMore("fishLoot", 1) then
+          TimerReset("fishLoot")
+          return true
+        end
+        return false
+    end
+)
+
+SetCommand("fish",
+    function()
+      if LootFrame:IsVisible() and IsFishingLoot() then return false end
+      if not IsEquippedItemType("Удочка") then
+        if TimerMore('equipweapon', 0.5) then
+          oexecute("EquipItemByName('Мастерски сделанная калуакская удочка')")
+          TimerStart('equipweapon')
+        end
+        return
+      end
+      if not UnitIsCasting("player") == "Рыбная ловля" and UseSpell("Рыбная ловля") then return true end
+    end,
+    function()
+
+      if InCombatMode() then return true end
+      if UnitIsCasting("player") == "Рыбная ловля" then
+        local objCount = ObjectsCount()
+        for i = 0, objCount - 1 do
+          local uid = GUIDByIndex(i)
+          if uid and bobberGUID then
+            if UnitGUID(uid) == bobberGUID then
+              oexecute('InteractUnit("' ..uid .. '")')
+              DoCommand('tryFishLoot')
+              return true
+            end
+          end
+        end
+      else
+          if not IsEquippedItemType("Удочка") then
+            oexecute("EquipItemByName('Мастерски сделанная калуакская удочка')")
+          end
+          UseSpell("Рыбная ловля")
+      end
+      return true
+    end
+)
+
+---------------------------------------------------------------------------------------------------------------
