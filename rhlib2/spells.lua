@@ -93,10 +93,10 @@ function InInteractRange(unit)
     -- need test and review
     if (unit == nil) then unit = "target" end
     if not UnitIsFriend("player", unit) then return false end
+    if UnitInRange(unit) then return true end --only party
     if interactRangeSpell then
       return IsSpellInRange(interactRangeSpell, unit) == 1
     end
-    --UnitInRange("target") only party
     return DistanceTo and DistanceTo("player", unit) < 40
 end
 ------------------------------------------------------------------------------------------------------------------
