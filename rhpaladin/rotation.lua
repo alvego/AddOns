@@ -146,6 +146,7 @@ function Idle()
 
   if not HasSpell("Удар воина Света") then return end
 
+  if IsPvP() and not HasBuff("Аура воздаяния") and DoSpell("Аура воздаяния")  then return end
   if not InCombatLockdown() and IsPvP() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
   if not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
   if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
@@ -175,7 +176,7 @@ function Idle()
       end
     end
 
-    if HasBuff("Искусство войны") and IsEquippedItemType("Щит") or ((not IsValidTarget(target) or GetSpellCooldownLeft("Экзорцизм") > 0.5)) then
+    if HasBuff("Искусство войны") and (IsEquippedItemType("Щит") or ((not IsValidTarget(target) or GetSpellCooldownLeft("Экзорцизм") > 0.5))) then
        if hp < 85 and DoSpell("Вспышка Света", player) then return end
        if IsInteractUnit(teammate) and UnitHealth100(teammate) < 50 and DoSpell("Вспышка Света", teammate) then return end
     end
