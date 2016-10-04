@@ -61,17 +61,16 @@ SetCommand("mount",
 ---------------------------------------------------------------------------------------------------------------
 SetCommand("intervene",
     function(unit)
-        local warbringer = HasTalent("Вестник войны") > 0
-        if warbringer or stance == 2 then
+        if GetShapeshiftForm() == 2 or (HasTalent("Вестник войны") > 0) then
           if DoSpell("Вмешательство", unit, true) then return end
         else
           if DoSpell("Оборонительная стойка") then return end
         end
     end,
     function(unit)
-        if UnitMana(player) < 10 and not UseSpell("Кровавая ярость") then print("intervene - !rage") return true end
+        if UnitMana("player") < 10 and not IsReadySpell("Кровавая ярость") then print("intervene - !rage") return true end
         if not IsInGroup() then  print("intervene - !group, player") return true end
-        if not IsReadySpell("Вмешательство") then  print("intervene, !group") return true end
+        if not IsReadySpell("Вмешательство") then  print("intervene, !ready") return true end
         if not UnitInRange(unit) then print("intervene - !group", unit) return true end
         if not InRange("Вмешательство", unit) then print("intervene, !range", unit) return true end
         return false
