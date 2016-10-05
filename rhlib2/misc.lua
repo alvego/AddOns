@@ -107,15 +107,15 @@ if ExcludeItemsList == nil then ExcludeItemsList = {} end
 ------------------------------------------------------------------------------------------------------------------
 
 function GetMinEquippedItemLevel()
-local minItemLevel = nil
-  if Farm then
-    for i = 1, 18 do
-      local itemID = GetInventoryItemID("player",i)
-      if itemID then
-        local name, _, _, itemLevel, _, itemType = GetItemInfo(itemID)
-        if itemType == "Доспехи" and (not minItemLevel or itemLevel < minItemLevel) then
-          minItemLevel = itemLevel
-        end
+  local minItemLevel = nil
+  for i = 1, 18 do
+    local itemID = GetInventoryItemID("player",i)
+    if itemID then
+      local name, _, _, itemLevel, _, itemType, itemSubType = GetItemInfo(itemID)
+      --print(name, itemLevel, itemType, itemSubType)
+      if itemType == "Доспехи" and itemSubType ~= "Разное" and (not minItemLevel or (itemLevel < minItemLevel)) then
+
+        minItemLevel = itemLevel
       end
     end
   end
@@ -138,9 +138,10 @@ local function IsTrash(n, minItemLevel)
       --print(n, " - Выкидываем эскизы, ларецы и сейфы в режиме фарма")
       return "Ящик"
     end
-    if minItemLevel and itemSellPrice > 0 and #itemEquipLoc > 0 and itemLevel and itemLevel < minItemLevel and not (itemType == "Оружие" and itemSubType == "Разное") then
+    local m = 0.67
+    if minItemLevel and itemSellPrice > 0 and #itemEquipLoc > 0 and itemLevel and itemLevel < math.floor(minItemLevel * m)  and not (itemType == "Оружие" and itemSubType == "Разное") then
       --print(n, " - низкий уровень предмета ", itemLevel, " min: " .. minItemLevel)
-      return "ilvl < " .. minItemLevel
+      return "ilvl < " .. math.floor(minItemLevel * m)
     end
     return nil
 end
@@ -224,8 +225,10 @@ local money = 0
 local function SellGrayAndRepair()
     money = GetMoney()
     TimerStart('Sell')
-    RepairAllItems(1) -- сперва пробуем за счет ги банка
-    RepairAllItems()
+    if CanMerchantRepair() then
+      RepairAllItems(1) -- сперва пробуем за счет ги банка
+      RepairAllItems()
+    end
     SellGray()
 end
 AttachEvent('MERCHANT_SHOW', SellGrayAndRepair)
@@ -234,7 +237,7 @@ local function StopSell()
   local m = GetMoney() - money
   if not (math.abs(m) < 1) then
     m =  (m > 0 and "+" or '-') .. GetCoinTextureString(math.abs(m))
-    print(("Итого: %s, за %s"):format(m , SecondsToTime(TimerElapsed('Sell'))));
+    chat(("Итого: %s, за %s"):format(m , SecondsToTime(TimerElapsed('Sell'))), 1, 1, 1);
   end
 end
 AttachEvent('MERCHANT_CLOSED', StopSell)

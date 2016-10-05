@@ -267,10 +267,10 @@ function InCombatMode()
     if InCombatLockdown() then
       TimerStart('CombatLock')
     end
-    if IsAttack() then
+    if IsAttack() or (TimerLess('CombatLock', 0.01) and TimerLess('CombatTarget', 3)) then
+      TimerStart('InCombatMode')
       return true
     end
-    if TimerLess('CombatLock', 0.01) and TimerLess('CombatTarget', 3) then return true end
     return false
 end
 ------------------------------------------------------------------------------------------------------------------

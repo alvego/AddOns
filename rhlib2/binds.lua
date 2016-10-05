@@ -140,6 +140,7 @@ AttachUpdate(death_update_handler)
 ------------------------------------------------------------------------------------------------------------------
 TARGETS = {}
 UNITS = {}
+local lootedList = {}
 ------------------------------------------------------------------------------------------------------------------
 function GetEnemyCountInRange(range)
   local count = 0
@@ -187,10 +188,10 @@ function UpdateIdle(elapsed)
         return
     end
 
-    if StaticPopup1Button2:IsVisible() == 1 and StaticPopup1Button2:IsEnabled() == 1 and StaticPopup1Button2:GetText() == "Пропустить" then
+    --[[if StaticPopup1Button2:IsVisible() == 1 and StaticPopup1Button2:IsEnabled() == 1 and StaticPopup1Button2:GetText() == "Пропустить" then
        chat(StaticPopup1.text:GetText())
        StaticPopup1Button2:Click()
-    end
+    end]]
     if InExecQueue() then return end
     if UpdateCommands() then return end
     if UnitIsDeadOrGhost("player") then return end
@@ -202,19 +203,43 @@ function UpdateIdle(elapsed)
       end
     end
     --local autoloog
-    if LootFrame:IsVisible()  then
+    if LootFrame:IsVisible() then
+      if IsFishingLoot() or not IsInGroup() or (GetLootMethod() == 'freeforall') then
+        for i=1, GetNumLootItems() do
+          LootSlot(i)
+        end
+        CloseLoot()
+      end
       if IsAttack() then  CloseLoot() end
       return
-    end
+     end
+
     if Paused then return end
 
-    if AdvMode and (IsAttack() or InCombatLockdown()) then UpdateObjects(true) end
+    if AdvMode and InCombatMode() then
+      UpdateObjects(true)
+      if #lootedList > 100 then wipe(lootedList) end
+    end
 
     if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then
         oexecute("FocusUnit('mouseover')")
     end
 
     if Idle then Idle() end
+
+    if AdvMode and not InCombatMode() and not TimerMore('InCombatMode', 10) and not IsPvP() and (not IsInGroup() or (GetLootMethod() == 'freeforall')) and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0 then
+      local objCount = ObjectsCount()
+      for i = 0, objCount - 1 do
+        local uid = GUIDByIndex(i)
+        if uid and UnitIsDead(uid) and not tContains(lootedList, uid) and DistanceTo("player", uid) <= 5 and not UnitIsPlayer(uid) and UnitIsTappedByPlayer(uid)  then
+            print('Лутаем: ' .. UnitName(uid))
+            oexecute('InteractUnit("' ..uid .. '")')
+            tinsert(lootedList, uid)
+            break
+        end
+      end
+    end
+
     isAttack = false
 end
 ------------------------------------------------------------------------------------------------------------------

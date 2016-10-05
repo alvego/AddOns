@@ -192,27 +192,6 @@ local function updateSpellCreate(event, ...)
 end
 AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellCreate)
 
-SetCommand("tryFishLoot",
-    function()
-      if LootFrame:IsVisible() and IsFishingLoot() then
-          for i=1, GetNumLootItems() do
-            LootSlot(i)
-          end
-          CloseLoot()
-       end
-    end,
-    function()
-        if not TimerStarted("fishLoot") then
-          TimerStart("fishLoot")
-          return false
-        end
-        if TimerMore("fishLoot", 1) then
-          TimerReset("fishLoot")
-          return true
-        end
-        return false
-    end
-)
 
 SetCommand("fish",
     function()
@@ -227,7 +206,6 @@ SetCommand("fish",
       if not UnitIsCasting("player") == "Рыбная ловля" and UseSpell("Рыбная ловля") then return true end
     end,
     function()
-
       if InCombatMode() then return true end
       if UnitIsCasting("player") == "Рыбная ловля" then
         local objCount = ObjectsCount()
@@ -236,7 +214,6 @@ SetCommand("fish",
           if uid and bobberGUID then
             if UnitGUID(uid) == bobberGUID then
               oexecute('InteractUnit("' ..uid .. '")')
-              DoCommand('tryFishLoot')
               return true
             end
           end
@@ -244,6 +221,7 @@ SetCommand("fish",
       else
           if not IsEquippedItemType("Удочка") then
             oexecute("EquipItemByName('Мастерски сделанная калуакская удочка')")
+            return true
           end
           UseSpell("Рыбная ловля")
       end
