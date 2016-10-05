@@ -76,7 +76,7 @@ local function updateDebugStats()
         if debugFrame:IsVisible() then debugFrame:Hide() end
         return
     end
-    if TimerLess('DebugFrame', 5) then return end
+    if TimerLess('DebugFrame', 2) then return end
     TimerStart('DebugFrame')
     UpdateAddOnMemoryUsage()
     local mem  = GetAddOnMemoryUsage("rhlib2")
@@ -125,38 +125,14 @@ AttachUpdate(resetCombatLog)]]
 -- при включенной Авто-ротации
 
 ------------------------------------------------------------------------------------------------------------------
-local function corpse_in_range_handler(...)
-  if IsAlt() and GetCorpseRecoveryDelay() == 0 then
-    oexecute('RetrieveCorpse()')
-  else
-    print('CORPSE_IN_RANGE: Alt - RetrieveCorpse')
-  end
-end
-AttachEvent('CORPSE_IN_RANGE', corpse_in_range_handler)
-
-local function player_dead_handler(...)
-  if IsAlt() then
-    oexecute('RepopMe()')
-  else
-    print('PLAYER_DEAD: Alt - RepopMe')
-  end
-end
-AttachEvent('PLAYER_DEAD', player_dead_handler)
-
-local function resurrect_request_handler(...)
-  print(...)
-  oexecute('AcceptResurrect()')
-end
-AttachEvent('RESURRECT_REQUEST', resurrect_request_handler)
-
 local function death_update_handler()
   if not UnitIsDeadOrGhost("player") then return end
   oexecute('AcceptResurrect()')
-  if not IsAlt() then return end
+  if not (IsCtr() or IsBattleground()) then return end
   if UnitIsDead("player") then
       oexecute("RepopMe()")
   end
-  if UnitIsGhost("player")  and GetCorpseRecoveryDelay() == 0 then
+  if UnitIsGhost("player") and GetCorpseRecoveryDelay() == 0 then
     oexecute("RetrieveCorpse()")
   end
 end
@@ -215,7 +191,7 @@ function UpdateIdle(elapsed)
        chat(StaticPopup1.text:GetText())
        StaticPopup1Button2:Click()
     end
-
+    if InExecQueue() then return end
     if UpdateCommands() then return end
     if UnitIsDeadOrGhost("player") then return end
     if SpellIsTargeting() then
