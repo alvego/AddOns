@@ -70,8 +70,10 @@ local function OnUpdate(frame, elapsed)
         end
 
         UpdateIdle(update)
-        for i=1, #UpdateList do
-            UpdateList[i](update)
+        if AdvMode then
+          for i=1, #UpdateList do
+              UpdateList[i](update)
+          end
         end
         update = 0
     end
