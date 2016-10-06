@@ -96,9 +96,9 @@ SetCommand("run",
     function() return true end,
     function()
         if not InCombatLockdown() and PlayerInPlace() and IsOutdoors() then
-          local mount = (IsShift() or IsBattleground() or not IsFlyableArea()) and getRandomMount(groundMounts) or getRandomMount(flyMounts)
+          local mount = (IsShift() or IsBattleground() or not IsFlyableArea()) and ( GetFreeBagSlotCount() < 3 and "Тундровый мамонт путешественника" or getRandomMount(groundMounts)) or getRandomMount(flyMounts)
           if IsAlt() then mount = "Тундровый мамонт путешественника" end
-          if IsSwimming() then mount = "Морская черепаха" end
+          --if IsSwimming() then mount = "Морская черепаха" end
           DoCommand("mount", mount)
         else
           chat("Вмешательство")

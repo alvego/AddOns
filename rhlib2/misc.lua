@@ -140,6 +140,7 @@ local function IsTrash(n, minItemLevel)
       return "Ящик"
     end]]
     local m = 0.67
+    --print(itemType, itemSubType)
     if minItemLevel and itemSellPrice > 0 and #itemEquipLoc > 0 and itemLevel and itemLevel < math.floor(minItemLevel * m) and itemSubType ~= "Разное" then
       --print(n, " - низкий уровень предмета ", itemLevel, " min: " .. minItemLevel)
       return "ilvl < " .. math.floor(minItemLevel * m)
@@ -149,7 +150,7 @@ end
 
 
 local tipHook = function (self, ...)
-  local itemLink = select(2, self:GetItem())
+  local itemName, itemLink = self:GetItem()
   if not itemLink or not GetItemInfo(itemLink) then return end
   local auto = (ExcludeItemsList[itemName] == nil)
   local info = IsTrash(ItemLink, Farm and GetMinEquippedItemLevel() or nil)

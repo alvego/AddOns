@@ -253,7 +253,7 @@ function UpdateIdle(elapsed)
 
     if Idle then Idle() end
 
-    if Farm and AdvMode and not IsValidTarget("target") and (not IsInGroup() or (GetLootMethod() == 'freeforall')) and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0 then
+    if Farm and AdvMode and not InCombatMode() and (not IsInGroup() or (GetLootMethod() == 'freeforall')) and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0 then
       UpdateObjects()
       ResetQueue(0.5)
       for i = 1, #OBJECTS do
@@ -265,7 +265,7 @@ function UpdateIdle(elapsed)
         end
       end
     end
-
+  
     isAttack = false
 end
 ------------------------------------------------------------------------------------------------------------------
