@@ -104,7 +104,25 @@ function DebugToggle()
         echo("Режим отладки: OFF")
     end
 end
-
+-------------------------------------------------------------------------------------------------------------------
+ if Farm == nil then Farm = false end
+ function FarmToggle()
+     Farm = not Farm
+     if Farm then
+         echo("Режим фарма: ON",true)
+         --chat("Автолут ON")
+         --omacro("/console autoLootDefault 1")
+     else
+         echo("Режим фарма: OFF",true)
+         --chat("Автолут OFF")
+         --omacro("/console autoLootDefault 0")
+     end 
+ end
+  
+ 
+ --[[function IsFarm()
+     return Farm and not IsMouselooking() and PlayerInPlace()
+ end]]
 ------------------------------------------------------------------------------------------------------------------
 --[[local function updateCombatLogTimer(...)
   TimerStart("CombatLog")
@@ -204,13 +222,13 @@ function UpdateIdle(elapsed)
     end
     --local autoloog
     if LootFrame:IsVisible() then
-      if IsFishingLoot() or not IsInGroup() or (GetLootMethod() == 'freeforall') then
+      if (Farm or IsFishingLoot()) and (not IsInGroup() or (GetLootMethod() == 'freeforall')) then
         for i=1, GetNumLootItems() do
           LootSlot(i)
         end
-        CloseLoot()
+        --CloseLoot()
       end
-      if IsAttack() then  CloseLoot() end
+      if IsAttack() then CloseLoot() end
       return
      end
 
@@ -218,7 +236,7 @@ function UpdateIdle(elapsed)
 
     if AdvMode and InCombatMode() then
       UpdateObjects(true)
-      if #lootedList > 100 then wipe(lootedList) end
+      if Farm and #lootedList > 100 then wipe(lootedList) end
     end
 
     if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then
@@ -227,7 +245,7 @@ function UpdateIdle(elapsed)
 
     if Idle then Idle() end
 
-    if AdvMode and not InCombatMode() and not TimerMore('InCombatMode', 10) and not IsPvP() and (not IsInGroup() or (GetLootMethod() == 'freeforall')) and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0 then
+    if Farm and AdvMode and not InCombatMode() and not TimerMore('InCombatMode', 10) and not IsPvP() and (not IsInGroup() or (GetLootMethod() == 'freeforall')) and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0 then
       local objCount = ObjectsCount()
       for i = 0, objCount - 1 do
         local uid = GUIDByIndex(i)
