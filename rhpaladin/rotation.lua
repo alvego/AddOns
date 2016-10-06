@@ -236,6 +236,7 @@ function TryTarget()
       local _dist = 100
       local _combat = false
       local look = IsMouselooking()
+      local attack = IsAttack()
       for i = 1, #TARGETS do
         local uid = TARGETS[i]
         repeat -- для имитации continue
