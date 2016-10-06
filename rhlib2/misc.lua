@@ -134,6 +134,7 @@ local function IsTrash(n, minItemLevel)
       end
     end
     if string.find(n, "ff9d9d9d") then return "Мусор" end
+    if not Farm then return nil end
     if sContains(itemName, "Эскиз:") or sContains(itemName, "ларец") or sContains(itemName, "сейф") then
       --print(n, " - Выкидываем эскизы, ларецы и сейфы в режиме фарма")
       return "Ящик"
@@ -151,7 +152,7 @@ local tipHook = function (self, ...)
   local itemLink = select(2, self:GetItem())
   if not itemLink or not GetItemInfo(itemLink) then return end
   local auto = (ExcludeItemsList[itemName] == nil)
-  local info = IsTrash(ItemLink, GetMinEquippedItemLevel())
+  local info = IsTrash(ItemLink, Farm and GetMinEquippedItemLevel() or nil)
   if info or not auto then
     local line1 = (info == nil and format('|cff55ff55%s|r', "Нужный предмет!") or format('|cffff5555%s|r', "Будет продан!"))
     local line2 = format('|cff00ff9a( %s )|r', info and info or (auto and "Авто" or "Список"))
@@ -178,7 +179,7 @@ function TrashToggle()
 end
 ------------------------------------------------------------------------------------------------------------------
 local execQueueList = {}
-local execQueueDelay = 0.1
+local execQueueDelay = 0.01
 local function updateMacroFromList()
     if TimerLess('execQueue', execQueueDelay) then return end
     TimerStart('execQueue')
@@ -200,8 +201,8 @@ end
 function SellGray()
   ClearCursor()
   wipe(execQueueList)
-  execQueueDelay = 0.1
-  local minItemLevel = GetMinEquippedItemLevel()
+  execQueueDelay = 0.01
+  local minItemLevel = Farm and GetMinEquippedItemLevel() or nil
   for bag=0,NUM_BAG_SLOTS do
        for slot=1,GetContainerNumSlots(bag) do
            local link = GetContainerItemLink(bag,slot)
@@ -244,7 +245,7 @@ AttachEvent('MERCHANT_CLOSED', StopSell)
 ------------------------------------------------------------------------------------------------------------------
 function SellItem(name)
     wipe(execQueueList)
-    execQueueDelay = 0.1
+    execQueueDelay = 0.01
     if not name then name = "" end
     for bag=0,NUM_BAG_SLOTS do
          for slot=1,GetContainerNumSlots(bag) do
@@ -260,7 +261,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function OpenContainers()
   wipe(execQueueList)
-  execQueueDelay = 0.1
+  execQueueDelay = 0.01
   for bag=0,NUM_BAG_SLOTS do
        for slot=1,GetContainerNumSlots(bag) do
            local link = GetContainerItemLink(bag,slot)
@@ -302,7 +303,7 @@ end
 -- Автоматическая покупка предметов
 function BuyItem(name, count)
     wipe(execQueueList)
-    execQueueDelay = 0.1
+    execQueueDelay = 0.01
     if count == nil then count = 1 end
     local idx, maxStack
     for i=1,100 do
