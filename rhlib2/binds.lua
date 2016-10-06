@@ -8,6 +8,7 @@ BINDING_NAME_RHLIB_OFF = "Выкл ротацию"
 BINDING_NAME_RHLIB_DEBUG = "Вкл/Выкл режим отладки"
 BINDING_NAME_RHLIB_LOG = "Вкл/Выкл окно логирования"
 BINDING_NAME_RHLIB_RELOAD = "Перезагрузить интерфейс"
+BINDING_NAME_RHLIB_FARM = "Режим фарминга"
 -----------------------------------------------------------------------------------------------------------------
 -- Условие для включения ротации
 ------------------------------------------------------------------------------------------------------------------
@@ -116,10 +117,10 @@ end
          echo("Режим фарма: OFF",true)
          --chat("Автолут OFF")
          --omacro("/console autoLootDefault 0")
-     end 
+     end
  end
-  
- 
+
+
  --[[function IsFarm()
      return Farm and not IsMouselooking() and PlayerInPlace()
  end]]
@@ -158,6 +159,7 @@ AttachUpdate(death_update_handler)
 ------------------------------------------------------------------------------------------------------------------
 TARGETS = {}
 UNITS = {}
+OBJECTS = {}
 local lootedList = {}
 ------------------------------------------------------------------------------------------------------------------
 function GetEnemyCountInRange(range)
@@ -176,19 +178,23 @@ function UpdateObjects(force)
   if not ObjectsCount then return end
   if not force and TimerLess("UpdateObjects", 0.5) then return end
   TimerStart("UpdateObjects")
+  wipe(OBJECTS)
   wipe(TARGETS)
   local objCount = ObjectsCount()
   for i = 0, objCount - 1 do
     local uid = GUIDByIndex(i)
-    if uid and UnitCanAttack("player", uid) and DistanceTo("player", uid) < 25 and not UnitIsDeadOrGhost(uid) then
-        tinsert(TARGETS, uid)
+    if uid then
+      tinsert(OBJECTS, uid)
+      if UnitCanAttack("player", uid) and DistanceTo("player", uid) < 25 and not UnitIsDeadOrGhost(uid) then
+          tinsert(TARGETS, uid)
+      end
     end
   end
   wipe(UNITS)
   local groupUnits = GetGroupUnits()
   for i = 1, #groupUnits do
     local u = groupUnits[i]
-    if  UnitIsFriend("player", u) and not UnitCanAttack("player", u) and UnitInRange(u) and not UnitIsDeadOrGhost(u) then
+    if UnitIsFriend("player", u) and not UnitCanAttack("player", u) and UnitInRange(u) and not UnitIsDeadOrGhost(u) then
       tinsert(UNITS, u)
     end
   end
@@ -210,6 +216,19 @@ function UpdateIdle(elapsed)
        chat(StaticPopup1.text:GetText())
        StaticPopup1Button2:Click()
     end]]
+
+    --local autoloog
+    if LootFrame:IsVisible() then
+      if (Farm or IsFishingLoot()) and (not IsInGroup() or (GetLootMethod() == 'freeforall')) then
+        for i=1, GetNumLootItems() do
+          LootSlot(i)
+        end
+        CloseLoot()
+      end
+      if IsAttack() then CloseLoot() end
+      return
+     end
+
     if InExecQueue() then return end
     if UpdateCommands() then return end
     if UnitIsDeadOrGhost("player") then return end
@@ -220,23 +239,12 @@ function UpdateIdle(elapsed)
           return
       end
     end
-    --local autoloog
-    if LootFrame:IsVisible() then
-      if (Farm or IsFishingLoot()) and (not IsInGroup() or (GetLootMethod() == 'freeforall')) then
-        for i=1, GetNumLootItems() do
-          LootSlot(i)
-        end
-        --CloseLoot()
-      end
-      if IsAttack() then CloseLoot() end
-      return
-     end
 
     if Paused then return end
 
     if AdvMode and InCombatMode() then
       UpdateObjects(true)
-      if Farm and #lootedList > 100 then wipe(lootedList) end
+      if Farm and #lootedList > 0 then wipe(lootedList) end
     end
 
     if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then
@@ -245,15 +253,15 @@ function UpdateIdle(elapsed)
 
     if Idle then Idle() end
 
-    if Farm and AdvMode and not InCombatMode() and not TimerMore('InCombatMode', 10) and not IsPvP() and (not IsInGroup() or (GetLootMethod() == 'freeforall')) and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0 then
-      local objCount = ObjectsCount()
-      for i = 0, objCount - 1 do
-        local uid = GUIDByIndex(i)
-        if uid and UnitIsDead(uid) and not tContains(lootedList, uid) and DistanceTo("player", uid) <= 5 and not UnitIsPlayer(uid) and UnitIsTappedByPlayer(uid)  then
-            print('Лутаем: ' .. UnitName(uid))
-            oexecute('InteractUnit("' ..uid .. '")')
-            tinsert(lootedList, uid)
-            break
+    if Farm and AdvMode and not IsValidTarget("target") and (not IsInGroup() or (GetLootMethod() == 'freeforall')) and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0 then
+      UpdateObjects()
+      ResetQueue(0.5)
+      for i = 1, #OBJECTS do
+        local uid = OBJECTS[i]
+        if uid and UnitIsDead(uid) and not tContains(lootedList, UnitGUID(uid)) and DistanceTo("player", uid) <= 5 and UnitIsTappedByPlayer(uid) then --not UnitIsPlayer(uid)
+            --print('Лутаем: ' .. UnitName(uid))
+            AddToQueue(format("InteractUnit('%s')", uid))
+			      tinsert(lootedList, UnitGUID(uid))
         end
       end
     end

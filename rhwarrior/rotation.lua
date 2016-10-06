@@ -27,15 +27,6 @@ local exceptionControlList = { -- > 4
   "Покаяние",
 }
 
-local bobberGUID = nil
-local function updateSpellCreate(event, ...)
-    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, info = ...
-    if type:match("SPELL_CREATE") and sourceGUID == UnitGUID("player") and spellName == "Рыбная ловля" then
-        bobberGUID = destGUID
-    end
-end
-AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellCreate)
-
 local immuneList = {"Божественный щит", "Ледяная глыба", "Длань защиты" }
 Defence = false
 function Idle()

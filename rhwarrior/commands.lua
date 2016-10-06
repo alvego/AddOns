@@ -208,9 +208,9 @@ SetCommand("fish",
     function()
       if InCombatMode() then return true end
       if UnitIsCasting("player") == "Рыбная ловля" then
-        local objCount = ObjectsCount()
-        for i = 0, objCount - 1 do
-          local uid = GUIDByIndex(i)
+        UpdateObjects()
+        for i = 1, #OBJECTS do
+          local uid = OBJECTS[i]
           if uid and bobberGUID then
             if UnitGUID(uid) == bobberGUID then
               oexecute('InteractUnit("' ..uid .. '")')

@@ -135,12 +135,12 @@ local function IsTrash(n, minItemLevel)
     end
     if string.find(n, "ff9d9d9d") then return "Мусор" end
     if not Farm then return nil end
-    if sContains(itemName, "Эскиз:") or sContains(itemName, "ларец") or sContains(itemName, "сейф") then
+    --[[if sContains(itemName, "Эскиз:") or sContains(itemName, "ларец") or sContains(itemName, "сейф") then
       --print(n, " - Выкидываем эскизы, ларецы и сейфы в режиме фарма")
       return "Ящик"
-    end
+    end]]
     local m = 0.67
-    if minItemLevel and itemSellPrice > 0 and #itemEquipLoc > 0 and itemLevel and itemLevel < math.floor(minItemLevel * m)  and not (itemType == "Оружие" and itemSubType == "Разное") then
+    if minItemLevel and itemSellPrice > 0 and #itemEquipLoc > 0 and itemLevel and itemLevel < math.floor(minItemLevel * m) and itemSubType ~= "Разное" then
       --print(n, " - низкий уровень предмета ", itemLevel, " min: " .. minItemLevel)
       return "ilvl < " .. math.floor(minItemLevel * m)
     end
@@ -169,10 +169,13 @@ function TrashToggle()
     local status = ExcludeItemsList[itemName]
     if status == nil then
       status = true
+      print(itemName, '- в списке как нужная вещь ')
     elseif status then
       status = false
+      print(itemName, '- в списке как хлам')
     else
       status = nil
+      print(itemName, '- удален из списка')
     end
     ExcludeItemsList[itemName] = status
     print('ExcludeItemsList[',itemName,'] = ', status)
@@ -197,11 +200,21 @@ AttachUpdate(updateMacroFromList, 0.1)
 function InExecQueue()
   return #execQueueList > 0
 end
+
+function ResetQueue(delay)
+  execQueueDelay = delay or 0.01
+  if #execQueueList > 0 then
+    wipe(execQueueList)
+  end
+end
+
+function AddToQueue(item)
+  tinsert(execQueueList, item)
+end
 ------------------------------------------------------------------------------------------------------------------
 function SellGray()
   ClearCursor()
-  wipe(execQueueList)
-  execQueueDelay = 0.01
+  ResetQueue()
   local minItemLevel = Farm and GetMinEquippedItemLevel() or nil
   for bag=0,NUM_BAG_SLOTS do
        for slot=1,GetContainerNumSlots(bag) do
@@ -210,7 +223,7 @@ function SellGray()
              if IsTrash(link, minItemLevel) then
                local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(link)
                if itemSellPrice > 0 then
-                 tinsert(execQueueList, format("RunMacroText('/use %s %s')", bag, slot))
+                 AddToQueue(format("RunMacroText('/use %s %s')", bag, slot))
                else
                  PickupContainerItem(bag, slot)
                  DeleteCursorItem()
@@ -234,7 +247,7 @@ local function SellGrayAndRepair()
 end
 AttachEvent('MERCHANT_SHOW', SellGrayAndRepair)
 local function StopSell()
-  wipe(execQueueList)
+  ResetQueue()
   local m = GetMoney() - money
   if not (math.abs(m) < 1) then
     m =  (m > 0 and "+" or '-') .. GetCoinTextureString(math.abs(m))
@@ -244,15 +257,14 @@ end
 AttachEvent('MERCHANT_CLOSED', StopSell)
 ------------------------------------------------------------------------------------------------------------------
 function SellItem(name)
-    wipe(execQueueList)
-    execQueueDelay = 0.01
+    ResetQueue()
     if not name then name = "" end
     for bag=0,NUM_BAG_SLOTS do
          for slot=1,GetContainerNumSlots(bag) do
              local link = GetContainerItemLink(bag,slot)
              if link then
                if string.find(link, name) then
-                 tinsert(execQueueList, format("RunMacroText('/use %s %s')", bag, slot))
+                 AddToQueue(format("RunMacroText('/use %s %s')", bag, slot))
                end
              end
          end
@@ -260,15 +272,14 @@ function SellItem(name)
 end
 ------------------------------------------------------------------------------------------------------------------
 function OpenContainers()
-  wipe(execQueueList)
-  execQueueDelay = 0.01
+  ResetQueue()
   for bag=0,NUM_BAG_SLOTS do
        for slot=1,GetContainerNumSlots(bag) do
            local link = GetContainerItemLink(bag,slot)
            if link then
              local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(link)
              if not IsTrash(link) and (sContains(itemName, "сунд") or sContains(itemName, "ларец") or sContains(itemName, "сейф")) then
-                 tinsert(execQueueList, format("RunMacroText('/use %s %s')", bag, slot))
+                 AddToQueue(format("RunMacroText('/use %s %s')", bag, slot))
              end
            end
        end
@@ -302,8 +313,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 -- Автоматическая покупка предметов
 function BuyItem(name, count)
-    wipe(execQueueList)
-    execQueueDelay = 0.01
+    ResetQueue()
     if count == nil then count = 1 end
     local idx, maxStack
     for i=1,100 do
@@ -325,7 +335,7 @@ function BuyItem(name, count)
     while q > 0 do
       local c = (q > 255 and 255 or q)
       q = q - c
-      tinsert(execQueueList, format("BuyMerchantItem(%s, %s)", idx, c))
+      AddToQueue(format("BuyMerchantItem(%s, %s)", idx, c))
     end
 end
 ------------------------------------------------------------------------------------------------------------------
