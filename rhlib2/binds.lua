@@ -9,6 +9,7 @@ BINDING_NAME_RHLIB_DEBUG = "Вкл/Выкл режим отладки"
 BINDING_NAME_RHLIB_LOG = "Вкл/Выкл окно логирования"
 BINDING_NAME_RHLIB_RELOAD = "Перезагрузить интерфейс"
 BINDING_NAME_RHLIB_FARM = "Режим фарминга"
+BINDING_NAME_RHLIB_FISH = "Режим рыбалки"
 -----------------------------------------------------------------------------------------------------------------
 -- Условие для включения ротации
 ------------------------------------------------------------------------------------------------------------------
@@ -125,6 +126,20 @@ end
      return Farm and not IsMouselooking() and PlayerInPlace()
  end]]
 ------------------------------------------------------------------------------------------------------------------
+if Fish == nil then Fish = false end
+function FishToggle()
+    Fish = not Fish
+    if Fish then
+        echo("Режим рыбалки: ON",true)
+    else
+        echo("Режим рыбалки: OFF",true)
+    end
+end
+
+function IsFishingMode()
+    return Fish and not IsMouselooking() and PlayerInPlace() and IsEquippedItemType("Удочка") and not InCombatMode()
+end
+------------------------------------------------------------------------------------------------------------------
 --[[local function updateCombatLogTimer(...)
   TimerStart("CombatLog")
 end
@@ -144,6 +159,15 @@ AttachUpdate(resetCombatLog)]]
 -- при включенной Авто-ротации
 
 ------------------------------------------------------------------------------------------------------------------
+--[[local bobberGUID = nil
+local function updateSpellCreate(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, info = ...
+    if type:match("SPELL_CREATE") and sourceGUID == UnitGUID("player") and spellName == "Рыбная ловля" then
+        bobberGUID = destGUID
+    end
+end
+AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellCreate)]]
+------------------------------------------------------------------------------------------------------------------
 local function death_update_handler()
   if not UnitIsDeadOrGhost("player") then return end
   oexecute('AcceptResurrect()')
@@ -161,6 +185,9 @@ TARGETS = {}
 UNITS = {}
 OBJECTS = {}
 local lootedList = {}
+
+--local offsets = {}
+
 ------------------------------------------------------------------------------------------------------------------
 function GetEnemyCountInRange(range)
   local count = 0
@@ -219,7 +246,7 @@ function UpdateIdle(elapsed)
 
     --local autoloog
     if LootFrame:IsVisible() then
-      if (Farm or IsFishingLoot()) and (not IsInGroup() or (GetLootMethod() == 'freeforall')) then
+      if (IsFishingMode() and IsFishingLoot()) or Farm and (not IsInGroup() or (GetLootMethod() == 'freeforall')) then
         for i=1, GetNumLootItems() do
           LootSlot(i)
         end
@@ -253,6 +280,44 @@ function UpdateIdle(elapsed)
 
     if Idle then Idle() end
 
+    --and IsFishingMode() and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0
+    --[[if AdvMode then
+      if UnitIsCasting("player") == "Рыбная ловля" then
+        UpdateObjects()
+
+        for i = 1, #OBJECTS do
+          local uid = OBJECTS[i]
+          print(UnitPtr(uid), uid, UnitName(uid))
+          if uid and bobberGUID then
+            if UnitGUID(uid) == bobberGUID then
+              local ptr = UnitPtr(uid)
+
+              local sum = 0
+              for i = 1000, 2000 do
+                local data = ReadByte(i, ptr)
+                print(i, data)
+                --sum = sum + data
+                if offsets[i] == nil then
+                  offsets[i] = data
+                end
+                if offsets[i] ~= data then
+                    print(i, offsets[i], data, 'alarm!!!!!!!!!!!!!!!!!!!')
+                    break
+                end
+                --print(i, offsets[i], data)
+              end
+              --print(UnitName(uid), uid, ptr, sum)
+
+              --oexecute('InteractUnit("' ..uid .. '")')
+              break
+            end
+          end
+        end
+      else
+
+      end
+    end]]
+
     if Farm and AdvMode and not InCombatMode() and (not IsInGroup() or (GetLootMethod() == 'freeforall')) and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0 then
       UpdateObjects()
       ResetQueue(0.5)
@@ -265,7 +330,7 @@ function UpdateIdle(elapsed)
         end
       end
     end
-  
+
     isAttack = false
 end
 ------------------------------------------------------------------------------------------------------------------

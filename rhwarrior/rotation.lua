@@ -27,6 +27,8 @@ local exceptionControlList = { -- > 4
   "Покаяние",
 }
 
+local procList = {"Целеустремленность железного дворфа", "Сила таунка", "Мощь таунка", "Скорость врайкулов", "Ловкость врайкула", "Пронзающая тьма"}
+
 local immuneList = {"Божественный щит", "Ледяная глыба", "Длань защиты" }
 Defence = false
 function Idle()
@@ -37,8 +39,9 @@ function Idle()
   local hp = UnitHealth100(player)
   local rage = UnitMana(player)
   local warbringer = HasTalent("Вестник войны") > 0
+  local titansGrip = HasTalent("Хватка титана") > 0
 
-  if warbringer then
+  if AutoTaunt or warbringer then
     Defence = true
   else
     if attack then
@@ -73,7 +76,7 @@ function Idle()
   ------------------------------------------------------------------------------
   -- дайте поесть (побегать) спокойно
   if not attack and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
-
+  if IsCtr() then AddRage() end
   if InCombatMode() then
 
     -- Auto AntiControl --------------------------------------------------------
@@ -162,7 +165,7 @@ function Idle()
             -- в pvp выбираем только игроков
             if pvp and not UnitIsPlayer(uid) then break end
             -- только актуальные цели
-            local face = PlayerFacingTarget(uid, look and 15 or 90)
+            local face = PlayerFacingTarget(uid, look and 30 or 90)
             -- если смотрим, то только впереди
             if look and not face then break end
             local dist = DistanceTo("player", uid)
@@ -190,8 +193,8 @@ function Idle()
         if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
       end
       if stance == 2 and shield then
-        if hp < 32 and DoSpell("Глухая оборона") then return end
-        if hp < 60 and DoSpell("Блок щитом") then return end
+        if hp < 52 and DoSpell("Глухая оборона") then return end
+        if hp < 80 and DoSpell("Блок щитом") then return end
       end
       if hp < 60 and rage > 15 and HasBuff("Исступление", 0.1, player) and DoSpell("Безудержное восстановление", player, true) then return end
 
@@ -206,8 +209,12 @@ function Idle()
     if attack and IsVisible(target)
       and IsSpellNotUsed("Перехват", 1)
       and IsSpellNotUsed("Рывок", 1)  then
+
       local chargeLeft = GetSpellCooldownLeft("Рывок");
-      if validTarget and InRange("Рывок", target) and  chargeLeft < 1 then
+      local unstoppable = (HasTalent("Неудержимость") > 0)
+      local chargeUsable = chargeLeft < 1 and (not combat or warbringer or unstoppable)
+
+      if validTarget and InRange("Рывок", target) and chargeUsable then
         if warbringer or stance == 1 then
           if DoSpell("Рывок", target) then return end
         else
@@ -215,8 +222,14 @@ function Idle()
         end
         return
       end
+
+
       local interceptLeft = GetSpellCooldownLeft("Перехват")
-      if rage > 10 and validTarget and InRange("Перехват", target) and chargeLeft > 2 and interceptLeft < 1 then
+      if interceptLeft > 3 and (HasTalent("Неистовство героя") > 0) and DoSpell("Неистовство героя") then
+        interceptLeft = 0
+      end
+
+      if (rage > 10 or  stance == 3) and validTarget and InRange("Перехват", target) and not chargeUsable then
         if warbringer or stance == 3 then
           if DoSpell("Перехват", target, true) then return end
         else
@@ -230,7 +243,11 @@ function Idle()
     if Defence then
       if stance ~= 2 and DoSpell("Оборонительная стойка") then return end
     else
-      if stance ~= 1 and DoSpell("Боевая стойка") then return end
+      if titansGrip then
+        if stance ~= 3 and DoSpell("Стойка берсерка") then return end
+      else
+        if stance ~= 1 and DoSpell("Боевая стойка") then return end
+      end
     end
 
 
@@ -255,8 +272,18 @@ function Idle()
       return
     end
 
+    if HasBuff("Сокрушить!") then
+      local spell, left =  UnitIsCasting("player")
+      if spell == "Мощный удар" and left > 1 then
+        StopCast("Мощный удар - Сокрушить!")
+      end
+    end
+
+    if (IsCtr() or pvp or (UnitClassification(target) == "worldboss") or aoe3) and HasBuff(procList, 10, player) then
+      if stance == 3 then DoSpell("Безрассудство") end
+      if HasSpell("Жажда смерти") then DoSpell("Жажда смерти", nil, true) end
+    end
     if IsCtr() then
-        if stance == 3 and DoSpell("Безрассудство") then return end
         if Equiped2H() and HasSpell("Вихрь клинков") and IsReadySpell("Вихрь клинков") and rage >= 25 then
           DoSpell("Размашистые удары")
           DoSpell("Вихрь клинков", nil, true)
@@ -295,11 +322,13 @@ function Idle()
     --if stance ~= 2 and (not HasSpell("Смертельный удар") or GetSpellCooldownLeft("Смертельный удар") > 2) and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
     if stance ~= 2 and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
 
-    if HasBuff("Сокрушить!") and DoSpell("Мощный удар", target) then return end
-    if stance == 3 and HasSpell("Вихрь") and (melee or aoe2) and DoSpell("Вихрь") then return end
-    if HasSpell("Кровожадность") and DoSpell("Кровожадность", target) then return end
 
-    if not aoe2 and rage > 80 then
+
+    if HasSpell("Кровожадность") and DoSpell("Кровожадность", target, true) then return end
+    if stance == 3 and HasSpell("Вихрь") and (melee or aoe2) and DoSpell("Вихрь", nil, true) then return end
+    if HasBuff("Сокрушить!") and DoSpell("Мощный удар", target, true) then return end
+
+    if not aoe2 and rage > 70 then
        if stance ~= 2 and UnitHealth100(target) < 20 then
          if DoSpell("Казнь", target) then return end
        else
@@ -313,6 +342,9 @@ function Idle()
     end
     if (pvp or UnitAffectingCombat(target)) and DoSpell("Героический бросок", target) then return end
     --if not aoe2 and PlayerInPlace() and InRange("Выстрел", target) and DoSpell("Выстрел", target) then return end
+    if HasSpell("Вихрь") and GetSpellCooldownLeft("Вихрь") > 1.5 and HasSpell("Кровожадность")  and GetSpellCooldownLeft("Кровожадность") > 1.5 then
+      if UnitClassification(target) == "worldboss"  and (select(4, UnitDebuff("Раскол брони", 5, target)) or 0) < 5 and DoSpell("Раскол брони", target) then return end
+      if PlayerInPlace() and DoSpell("Мощный удар", target) then return end
+    end
   end
-
 end

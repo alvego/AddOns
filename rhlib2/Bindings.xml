@@ -11,4 +11,7 @@
   <Binding name="RHLIB_FARM" description="Toggle Farm Mode" header="RHLIB">
     FarmToggle();
   </Binding>
+  <Binding name="RHLIB_FISH" description="Toggle Fish Mode" header="RHLIB">
+    FishToggle();
+  </Binding>
 </Bindings>

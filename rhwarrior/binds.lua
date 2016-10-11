@@ -10,27 +10,44 @@ BINDING_NAME_WRH_AUTOAOE = "Вкл/Выкл авто AOE"
 function Equip1HShield(pvp)
   if not InCombatMode() and IsEquippedItemType("Удочка") then return end
   if TimerMore('equipweapon', 0.5) and not IsEquippedItemType("Щит") and not HasBuff("Вихрь клинков", 0.01, "player") then
+    local titansGrip = HasTalent("Хватка титана") > 0
     if pvp then
-      oexecute("EquipItemByName('Тесак разгневанного гладиатора')")
-      oexecute("EquipItemByName('Осадный щит разгневанного гладиатора')")
+      if titansGrip then
+        oexecute("EquipItemByName('Темная Скорбь', 16)")
+      else
+        oexecute("EquipItemByName('Тесак разгневанного гладиатора', 16)")
+      end
+      oexecute("EquipItemByName('Осадный щит разгневанного гладиатора', 17)")
     else
-      oexecute("EquipItemByName('Последнее желание')")
-      oexecute("EquipItemByName('Мерзлая стена ледяной цитадели')")
+      if titansGrip then
+        oexecute("EquipItemByName('Темная Скорбь', 16)")
+      else
+        oexecute("EquipItemByName('Последнее желание', 16)")
+      end
+      oexecute("EquipItemByName('Мерзлая стена ледяной цитадели', 17)")
     end
     TimerStart('equipweapon')
   end
 end
 
 
-function Equip2H()
+function Equip2H(titansGrip)
   if not InCombatMode() and IsEquippedItemType("Удочка") then return end
   if TimerMore('equipweapon', 0.5) and not Equiped2H() then
-    oexecute("EquipItemByName('Темная Скорбь')")
+    local titansGrip = HasTalent("Хватка титана") > 0
+    oexecute("EquipItemByName('Темная Скорбь', 16)")
+    if titansGrip then
+      oexecute("EquipItemByName('Глоренцельг, священный клинок Серебряной Длани', 17)")
+    end
     TimerStart('equipweapon')
   end
 end
 
 function Equiped2H()
+  local titansGrip = HasTalent("Хватка титана") > 0
+  if titansGrip then
+    return IsEquippedItem("Темная Скорбь") and IsEquippedItem("Глоренцельг, священный клинок Серебряной Длани")
+  end
   return IsEquippedItem("Темная Скорбь")
 end
 ------------------------------------------------------------------------------------------------------------
@@ -123,6 +140,17 @@ function AutoTauntToggle()
     end
 end
 
+function AddRage()
+  if (HasTalent("Улучшенная ярость берсерка") > 0) then
+    if IsSpellNotUsed("Кровавая ярость", 1) and IsSpellNotUsed("Ярость берсерка", 1) then
+      if UseSpell("Кровавая ярость") then return end
+      if UseSpell("Ярость берсерка") then return end
+    end
+  else
+    UseSpell("Кровавая ярость")
+  end
+end
+
 ------------------------------------------------------------------------------------------------------------------
 function DoSpell(spellName, target, force)
   local rage = UnitMana("player")
@@ -134,7 +162,9 @@ function DoSpell(spellName, target, force)
   if cost and cost > 0 and powerType == 1 then
 
     if force then
-      if rage < cost then UseSpell("Кровавая ярость") end
+      if rage < cost then
+        AddRage()
+      end
     else
       if not IsAttack() and rage <= cost + 25 then return false end
     end

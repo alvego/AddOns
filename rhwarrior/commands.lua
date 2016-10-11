@@ -38,7 +38,6 @@ end
 _mount = false
 SetCommand("mount",
     function(mount)
-        if HasBuff("Вихрь клинков", 0.01, player) then oexecute('CancelUnitBuff("player", "Вихрь клинков")') end
         if HasBuff("Целеустремленность железного дворфа", 0.01, player) then oexecute('CancelUnitBuff("player", "Целеустремленность железного дворфа")') end
         if HasBuff("Сила таунка", 0.01, player) then oexecute('CancelUnitBuff("player", "Сила таунка")') end
         if HasBuff("Мощь таунка", 0.01, player) then oexecute('CancelUnitBuff("player", "Мощь таунка")') end
@@ -68,6 +67,8 @@ SetCommand("intervene",
         end
     end,
     function(unit)
+        if HasBuff("Вихрь клинков", 0.01, player) then oexecute('CancelUnitBuff("player", "Вихрь клинков")') return true end
+
         if UnitMana("player") < 10 and not IsReadySpell("Кровавая ярость") then
           print("intervene - !rage")
           return true
@@ -145,6 +146,42 @@ SetCommand("defence",
         Defence = true
         chat('Защищаемся')
         return GetShapeshiftForm() == 2
+    end
+)
+---------------------------------------------------------------------------------------------------------------
+SetCommand("shatter",
+    function()
+      local stance = GetShapeshiftForm()
+      if stance ~= 1 and  DoSpell("Боевая стойка") then
+        return true
+      end
+      return DoSpell("Сокрушительный бросок", "target", true)
+    end,
+    function()
+        if not IsValidTarget("target") then return true end
+        if not InRange("Сокрушительный бросок", "target") then return true end
+        if IsReadySpell("Сокрушительный бросок") then return false end
+        local stance = GetShapeshiftForm()
+        if stance ~= 1 then return false end
+        chat('Сокрушительный бросок')
+        return not IsSpellNotUsed('Сокрушительный бросок', 1)
+    end
+)
+
+SetCommand("retaliation",
+    function()
+      local stance = GetShapeshiftForm()
+      if stance ~= 1 and  DoSpell("Боевая стойка") then
+        return true
+      end
+      return UseSpell("Возмездие")
+    end,
+    function()
+        if IsReadySpell("Возмездие") then return false end
+        local stance = GetShapeshiftForm()
+        if stance ~= 1 then return false end
+        chat('Возмездие ')
+        return not IsSpellNotUsed('Возмездие', 1)
     end
 )
 ---------------------------------------------------------------------------------------------------------------
