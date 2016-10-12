@@ -303,6 +303,7 @@ function UpdateIdle(elapsed)
 
         if bobber_guid and not bobber_uid then
           --chat("Ищем, bobber_uid")
+          UpdateObjects()
           for i = 1, #OBJECTS do
             local uid = OBJECTS[i]
             if uid and bobber_guid and UnitGUID(uid) == bobber_guid then
