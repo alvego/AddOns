@@ -267,11 +267,11 @@ function UpdateIdle(elapsed)
         for i=1, GetNumLootItems() do
           LootSlot(i)
         end
-        CloseLoot()
+        --CloseLoot()
       end
       if IsAttack() then CloseLoot() end
       return
-     end
+    end
 
     if InExecQueue() then return end
     if UpdateCommands() then return end

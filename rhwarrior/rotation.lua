@@ -259,6 +259,7 @@ function Idle()
       if autoAttack then  oexecute("StopAttack()") end
     end
     if not validTarget then return end
+
     FaceToTarget(target)
 
     if PlayerInPlace() and HasBuff(immuneList, 3, target) and stance == 1 and DoSpell("Сокрушительный бросок", target, true) then return end
