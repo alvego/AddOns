@@ -338,6 +338,7 @@ function UpdateIdle(elapsed)
             local ptr = UnitPtr(uid)
             if ReadByte(ptr, 168) ~= 0 then
               oexecute(format("InteractUnit('%s')", uid))
+              break
             end
         end
       end
