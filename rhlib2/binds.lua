@@ -9,7 +9,6 @@ BINDING_NAME_RHLIB_DEBUG = "Вкл/Выкл режим отладки"
 BINDING_NAME_RHLIB_LOG = "Вкл/Выкл окно логирования"
 BINDING_NAME_RHLIB_RELOAD = "Перезагрузить интерфейс"
 BINDING_NAME_RHLIB_FARM = "Режим фарминга"
-BINDING_NAME_RHLIB_FISH = "Режим рыбалки"
 -----------------------------------------------------------------------------------------------------------------
 -- Условие для включения ротации
 ------------------------------------------------------------------------------------------------------------------
@@ -126,18 +125,8 @@ end
      return Farm and not IsMouselooking() and PlayerInPlace()
  end]]
 ------------------------------------------------------------------------------------------------------------------
-if Fish == nil then Fish = false end
-function FishToggle()
-    Fish = not Fish
-    if Fish then
-        echo("Режим рыбалки: ON",true)
-    else
-        echo("Режим рыбалки: OFF",true)
-    end
-end
-
 function IsFishingMode()
-    return Fish and not IsMouselooking() and PlayerInPlace() and IsEquippedItemType("Удочка") and not InCombatMode()
+    return Farm and not IsMouselooking() and PlayerInPlace() and IsEquippedItemType("Удочка") and not InCombatMode() and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0
 end
 ------------------------------------------------------------------------------------------------------------------
 --[[local function updateCombatLogTimer(...)
@@ -159,14 +148,20 @@ AttachUpdate(resetCombatLog)]]
 -- при включенной Авто-ротации
 
 ------------------------------------------------------------------------------------------------------------------
---[[local bobberGUID = nil
+local bobber_guid = nil
+local bobber_uid = nil
+local isBobbing = false
 local function updateSpellCreate(event, ...)
+    if not IsFishingMode() then return true end
     local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, info = ...
     if type:match("SPELL_CREATE") and sourceGUID == UnitGUID("player") and spellName == "Рыбная ловля" then
-        bobberGUID = destGUID
+        bobber_uid = nil
+        bobber_guid = destGUID
+        isBobbing = false
+        --print("Закинули удочку, bobber_guid = ", bobber_guid)
     end
 end
-AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellCreate)]]
+AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellCreate)
 ------------------------------------------------------------------------------------------------------------------
 local function death_update_handler()
   if not UnitIsDeadOrGhost("player") then return end
@@ -184,10 +179,6 @@ AttachUpdate(death_update_handler)
 TARGETS = {}
 UNITS = {}
 OBJECTS = {}
-local lootedList = {}
-
---local offsets = {}
-
 ------------------------------------------------------------------------------------------------------------------
 function GetEnemyCountInRange(range)
   local count = 0
@@ -227,7 +218,33 @@ function UpdateObjects(force)
   end
 end
 
+
+--local offsets = {}
+--local ignored = {191, 171,168,169,170}
 function UpdateIdle(elapsed)
+
+    --[[if AdvMode  then
+      if UnitExists('target') and UnitIsDead('target') then
+        local ptr = UnitPtr('target')
+
+        print('test', ReadByte(ptr, 168))--171
+        for i = 1, 250 do
+          if not tContains(ignored, i) then
+          local data = ReadByte(ptr, i)
+
+          if offsets[i] ~= data then
+            if offsets[i] ~= nil then
+                print(i, offsets[i], data, 'alarm!!!!!!!!!!!!!!!!!!!')
+            end
+
+            offsets[i] = data
+              --break
+          end
+          end
+        end
+      end
+    end]]
+
     if nil == oexecute then
         if not TimerStarted('UnlockTimer') then
           TimerStart('UnlockTimer')
@@ -271,7 +288,6 @@ function UpdateIdle(elapsed)
 
     if AdvMode and InCombatMode() then
       UpdateObjects(true)
-      if Farm and #lootedList > 0 then wipe(lootedList) end
     end
 
     if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then
@@ -280,53 +296,49 @@ function UpdateIdle(elapsed)
 
     if Idle then Idle() end
 
-    --and IsFishingMode() and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0
-    --[[if AdvMode then
+
+    if AdvMode and IsFishingMode() then
+
       if UnitIsCasting("player") == "Рыбная ловля" then
-        UpdateObjects()
 
-        for i = 1, #OBJECTS do
-          local uid = OBJECTS[i]
-          print(UnitPtr(uid), uid, UnitName(uid))
-          if uid and bobberGUID then
-            if UnitGUID(uid) == bobberGUID then
-              local ptr = UnitPtr(uid)
-
-              local sum = 0
-              for i = 1000, 2000 do
-                local data = ReadByte(i, ptr)
-                print(i, data)
-                --sum = sum + data
-                if offsets[i] == nil then
-                  offsets[i] = data
-                end
-                if offsets[i] ~= data then
-                    print(i, offsets[i], data, 'alarm!!!!!!!!!!!!!!!!!!!')
-                    break
-                end
-                --print(i, offsets[i], data)
-              end
-              --print(UnitName(uid), uid, ptr, sum)
-
-              --oexecute('InteractUnit("' ..uid .. '")')
+        if bobber_guid and not bobber_uid then
+          --chat("Ищем, bobber_uid")
+          for i = 1, #OBJECTS do
+            local uid = OBJECTS[i]
+            if uid and bobber_guid and UnitGUID(uid) == bobber_guid then
+              bobber_uid = uid
+              --print("bobber_uid = ", bobber_uid)
               break
             end
           end
         end
-      else
 
+        if bobber_uid and UnitName(bobber_uid) then
+          local ptr = UnitPtr(bobber_uid)
+          if not isBobbing and ReadByte(ptr, 188) == 1 then
+              --chat("Клюнуло")
+              isBobbing = true
+          end
+          if isBobbing then
+            --chat("Подсекаем")
+            oexecute('InteractUnit("' ..bobber_uid .. '")')
+          end
+        end
+      else
+        if UseSpell("Рыбная ловля") then return end
       end
-    end]]
+    end
 
     if Farm and AdvMode and not InCombatMode() and (not IsInGroup() or (GetLootMethod() == 'freeforall')) and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0 then
       UpdateObjects()
-      ResetQueue(0.5)
       for i = 1, #OBJECTS do
         local uid = OBJECTS[i]
-        if uid and UnitIsDead(uid) and not tContains(lootedList, UnitGUID(uid)) and DistanceTo("player", uid) <= 5 and UnitIsTappedByPlayer(uid) then --not UnitIsPlayer(uid)
+        if uid and UnitIsDead(uid) and DistanceTo("player", uid) <= 5 and UnitIsTappedByPlayer(uid) then --not UnitIsPlayer(uid)
             --print('Лутаем: ' .. UnitName(uid))
-            AddToQueue(format("InteractUnit('%s')", uid))
-			      tinsert(lootedList, UnitGUID(uid))
+            local ptr = UnitPtr(uid)
+            if ReadByte(ptr, 168) ~= 0 then
+              oexecute(format("InteractUnit('%s')", uid))
+            end
         end
       end
     end

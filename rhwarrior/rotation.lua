@@ -206,7 +206,7 @@ function Idle()
     end
 
     -- Rotation ----------------------------------------------------------------
-    if attack and IsVisible(target)
+    if attack and validTarget and IsVisible(target)
       and IsSpellNotUsed("Перехват", 1)
       and IsSpellNotUsed("Рывок", 1)  then
 
@@ -214,7 +214,7 @@ function Idle()
       local unstoppable = (HasTalent("Неудержимость") > 0)
       local chargeUsable = chargeLeft < 1 and (not combat or warbringer or unstoppable)
 
-      if validTarget and InRange("Рывок", target) and chargeUsable then
+      if InRange("Рывок", target) and chargeUsable then
         if warbringer or stance == 1 then
           if DoSpell("Рывок", target) then return end
         else
@@ -229,7 +229,7 @@ function Idle()
         interceptLeft = 0
       end
 
-      if (rage > 10 or  stance == 3) and validTarget and InRange("Перехват", target) and not chargeUsable then
+      if (rage > 10 or stance == 3) and interceptLeft < 1 and InRange("Перехват", target) and not chargeUsable then
         if warbringer or stance == 3 then
           if DoSpell("Перехват", target, true) then return end
         else
