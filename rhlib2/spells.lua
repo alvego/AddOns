@@ -76,7 +76,8 @@ function IsReady(left, checkGCD)
         local gcdLeft = GetGCDLeft()
         if (abs(left - gcdLeft) < 0.01) then return true end
     end
-    if left > LagTime then return false end
+    --if left > LagTime then return false end
+    if left ~= 0 then return false end
     return true
 end
 ------------------------------------------------------------------------------------------------------------------
@@ -117,7 +118,8 @@ end
 
 function IsReadySpell(name, checkGCD)
     local left = GetSpellCooldownLeft(name)
-    return IsSpellNotUsed(name, 0.25) and IsReady(left, checkGCD)
+    --return IsSpellNotUsed(name, 0.25) and IsReady(left, checkGCD)
+    return IsReady(left, checkGCD)
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -221,8 +223,8 @@ end
 
 function IsSpellInUse(spell)
     if not spell then return false end
-    local castInfo = getCastInfo(spell)
-    if (GetTime() - castInfo.StartTime <= LagTime) then return true end
+    --local castInfo = getCastInfo(spell)
+    --if (GetTime() - castInfo.StartTime <= LagTime) then return true end
     if IsCurrentSpell(spell) == 1 then return true end
     return false
 end
@@ -239,12 +241,12 @@ function IsVisible(target)
   if not UnitExists(target) then return false end
   local guid = UnitGUID(target)
   local t = notVisible[guid]
-  if t and GetTime() - t < 1.2 then 
+  if t and GetTime() - t < 1.2 then
     if UnitInLos and not UnitInLos(target) then
 	notVisible[guid] = nil;
-	return true;		
+	return true;
     end
-    return false 
+    return false
   end
   return true;
 end

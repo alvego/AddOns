@@ -221,7 +221,10 @@ end
 
 --local offsets = {}
 --local ignored = {191, 171,168,169,170}
+
 function UpdateIdle(elapsed)
+
+
 
     --[[if AdvMode  then
       if UnitExists('target') and UnitIsDead('target') then
@@ -323,6 +326,7 @@ function UpdateIdle(elapsed)
           if isBobbing then
             --chat("Подсекаем")
             oexecute('InteractUnit("' ..bobber_uid .. '")')
+            StopCast("Подсекли рыбку")
           end
         end
       else
@@ -330,7 +334,7 @@ function UpdateIdle(elapsed)
       end
     end
 
-    if Farm and AdvMode and not InCombatMode() and (not IsInGroup() or (GetLootMethod() == 'freeforall')) and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0 then
+    if Farm and AdvMode and not InCombatMode()  and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0 then --and (not IsInGroup() or (GetLootMethod() == 'freeforall'))
       UpdateObjects()
       for i = 1, #OBJECTS do
         local uid = OBJECTS[i]
