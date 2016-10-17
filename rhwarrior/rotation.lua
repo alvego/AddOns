@@ -343,7 +343,7 @@ function Idle()
     end
     if (pvp or UnitAffectingCombat(target)) and DoSpell("Героический бросок", target) then return end
     --if not aoe2 and PlayerInPlace() and InRange("Выстрел", target) and DoSpell("Выстрел", target) then return end
-    if HasSpell("Вихрь") and GetSpellCooldownLeft("Вихрь") > 1.5 and HasSpell("Кровожадность")  and GetSpellCooldownLeft("Кровожадность") > 1.5 then
+    if not aoe2 and HasSpell("Вихрь") and GetSpellCooldownLeft("Вихрь") > 1.5 and HasSpell("Кровожадность")  and GetSpellCooldownLeft("Кровожадность") > 1.5 then
       if UnitClassification(target) == "worldboss"  and (select(4, UnitDebuff("Раскол брони", 10, target)) or 0) < 5 and DoSpell("Раскол брони", target) then return end
       if PlayerInPlace() and DoSpell("Мощный удар", target) then return end
     end
