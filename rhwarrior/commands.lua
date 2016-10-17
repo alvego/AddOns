@@ -142,7 +142,7 @@ SetCommand("defence",
       return DoSpell("Оборонительная стойка")
     end,
     function()
-        if HasBuff("Вихрь клинков", 0.01, player) then
+        if HasBuff("Вихрь клинков", 0.01, "player") then
           oexecute('CancelUnitBuff("player", "Вихрь клинков")')
           return true
         end
@@ -161,6 +161,10 @@ SetCommand("shatter",
       return DoSpell("Сокрушительный бросок", "target", true)
     end,
     function()
+		if HasBuff("Вихрь клинков", 0.01, "player") then
+          oexecute('CancelUnitBuff("player", "Вихрь клинков")')
+          return true
+        end
         if not IsValidTarget("target") then return true end
         if not InRange("Сокрушительный бросок", "target") then return true end
         if IsReadySpell("Сокрушительный бросок") then return false end
