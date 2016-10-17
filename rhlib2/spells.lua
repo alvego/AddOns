@@ -272,6 +272,7 @@ local function updateSpellErrors(event, ...)
         if Debug then
           UIErrorsFrame:Clear()
           UIErrorsFrame:AddMessage(spellName .. ' - ' .. amount, 1.0, 0.2, 0.2);
+          chat(spellName .. ' - ' .. amount, 1.0, 0.2, 0.2)
         end
     end
 end
