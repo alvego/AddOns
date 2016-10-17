@@ -256,7 +256,17 @@ function Idle()
 
     FaceToTarget(target)
 
-    if PlayerInPlace() and HasBuff(immuneList, 3, target) and stance == 1 and DoSpell("Сокрушительный бросок", target, true) then return end
+    if HasBuff(immuneList, 3, target) and stance == 1 and IsReadySpell("Сокрушительный бросок") and mana >= 25  then 
+		if HasBuff("Вихрь клинков", 0.01, "player") then
+          oexecute('CancelUnitBuff("player", "Вихрь клинков")')
+	    end
+		if PlayerInPlace() then
+			if DoSpell("Сокрушительный бросок", target, true) then return end
+		else
+			echo('Стой!!!')
+		end
+    end
+    
 
     if HasBuff("Проклятие хаоса") then
       oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
