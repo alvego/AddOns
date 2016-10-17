@@ -23,10 +23,6 @@ local bloodList = {
   "Покаяние"
 }
 
-local exceptionControlList = { -- > 4
-  "Ошеломление", -- 20s
-  "Покаяние",
-}
 
 local procList = {"Целеустремленность железного дворфа", "Сила таунка", "Мощь таунка", "Скорость врайкулов", "Ловкость врайкула", "Пронзающая тьма"}
 
@@ -85,12 +81,9 @@ function Idle()
     if not debuff then
       debuff = HasDebuff(ControlList, 3, "player")
     end
-    if debuff and (not tContains(exceptionControlList, debuff) or attack) then
-      if IsReadySpell("Ярость берсерка") then
-        if IsSpellNotUsed("Каждый за себя", 1) and DoSpell("Ярость берсерка") then return end
-      else
-        if IsSpellNotUsed("Ярость берсерка", 1) and DoSpell("Каждый за себя") then return end
-      end
+    if debuff then
+        if IsReadySpell("Ярость берсерка") and IsSpellNotUsed("Каждый за себя", 1) and DoSpell("Ярость берсерка") then return end
+		if IsSpellNotUsed("Ярость берсерка", 1) and DoSpell("Каждый за себя") then return end
     end
     --AutoTaunt-----------------------------------------------------------------
     if not pvp and AdvMode and AutoTaunt and IsInGroup() --and Defence
@@ -318,9 +311,9 @@ function Idle()
 
     if stance ~= 3 and not HasMyDebuff("Кровопускание", 1, target) and DoSpell("Кровопускание", target, true) then return end
 
-    if HasSpell("Смертельный удар") and DoSpell("Смертельный удар", target, not HasMyDebuff("Смертельный удар", 1, target)) then return end --, not HasMyDebuff("Смертельный удар", 3, target)
+    if HasSpell("Смертельный удар") and DoSpell("Смертельный удар", target, true) then return end --, not HasMyDebuff("Смертельный удар", 3, target) --not HasMyDebuff("Смертельный удар", 1, target)
     if stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
-
+	if pvp and melee and HasSpell("Смертельный удар") and GetSpellCooldownLeft("Смертельный удар")  < 1 and not HasMyDebuff("Смертельный удар", 0.5, target) then return end
     --if stance ~= 2 and (not HasSpell("Смертельный удар") or GetSpellCooldownLeft("Смертельный удар") > 2) and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
     if stance ~= 2 and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
 
@@ -330,7 +323,7 @@ function Idle()
     if stance == 3 and HasSpell("Вихрь") and (melee or aoe2) and DoSpell("Вихрь", nil, true) then return end
     if HasBuff("Сокрушить!") and DoSpell("Мощный удар", target, true) then return end
 
-    if not aoe2 and rage > (pvp and 70 or 40) then
+    if not aoe2 and rage > (pvp and 90 or 50) then
        if stance ~= 2 and UnitHealth100(target) < 20 then
          if DoSpell("Казнь", target) then return end
        else
