@@ -107,7 +107,7 @@ function Idle()
 
       local l = UnitLostHP(u)
       if InCombatLockdown() and IsInGroup() and IsSpellNotUsed("Частица Света", 10) and not hasLight then
-        if IsInteractUnit(teammate) then
+        if not UnitCanAttack("player", teammate) and IsInteractUnit(teammate) then
           if DoSpell("Частица Света",  teammate) then return end
         else
           if not IsOneUnit(player, fatUnit) and DoSpell("Частица Света",  fatUnit) then return end
@@ -148,7 +148,7 @@ function Idle()
 
   if IsPvP() and not HasBuff("Аура воздаяния") and DoSpell("Аура воздаяния")  then return end
   if not InCombatLockdown() and IsPvP() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
-  if not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
+  if not HasBuff("Печать") and DoSpell("Печать праведности", player) then return true end
   if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
       if not HasBuff("благословение королей") and DoSpell("Великое благословение королей", player) then return end
   end
@@ -163,9 +163,11 @@ function Idle()
     if not IsArena() and hp < 30 and DoSpell("Возложение рук", player) then return end
     if hp < 25 and DoSpell("Божественный щит", player) then return end
 
+    if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
+
     if mana > 30 and IsSpellNotUsed("Очищение", 2) then
       if HasDebuff(redDispelList, 1, player) and not HasDebuff("Нестабильное колдовство", 0.1, player) and DoSpell("Очищение", player) then return end
-      if IsInteractUnit(teammate) and HasDebuff(redDispelList, 1, teammate) and not HasDebuff("Нестабильное колдовство", 0.1, teammate) and DoSpell("Очищение", teammate) then return end
+      if not UnitCanAttack("player", teammate) and IsInteractUnit(teammate) and HasDebuff(redDispelList, 1, teammate) and not HasDebuff("Нестабильное колдовство", 0.1, teammate) and DoSpell("Очищение", teammate) then return end
     end
 
     if InCombatLockdown() then
@@ -199,9 +201,7 @@ function Idle()
       (tContains(steathClass, GetClass(target)) and not InRange("Покаяние", target)) or HasBuff(reflectBuff, 1, target)
     ) and not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
 
-    if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
-
-    if CanMagicAttack(target) and DoSpell(IsAlt() and "Правосудие справедливости" or "Правосудие мудрости", target) then return end
+    if CanMagicAttack(target) and DoSpell((IsAlt() and "Правосудие справедливости" or "Правосудие мудрости"), target) then return end
     if IsPvP() and not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
 
     if not IsValidTarget(target) then return end
@@ -215,12 +215,13 @@ function Idle()
     if (UnitCreatureType(target) == "Нежить") and mana > 30 and DistanceTo(player, target) < 8 and DoSpell("Гнев небес") then return end
     if DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
     if DoSpell("Удар воина Света", target) then return end
+            --if true then return end
     if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
     if mana > 50 then
       if DistanceTo(player, target) < 8 and (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
       if InMelee(target) and DoSpell("Освящение") then return end
     end
-    if not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
+    --if not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
     if mana < 30 and DoSpell("Святая клятва") then return end
 
   end
