@@ -161,16 +161,15 @@ SetCommand("shatter",
       return DoSpell("Сокрушительный бросок", "target", true)
     end,
     function()
-		if HasBuff("Вихрь клинков", 0.01, "player") then
-          oexecute('CancelUnitBuff("player", "Вихрь клинков")')
-          return true
-        end
         if not IsValidTarget("target") then return true end
         if not InRange("Сокрушительный бросок", "target") then return true end
         if IsReadySpell("Сокрушительный бросок") then return false end
         local stance = GetShapeshiftForm()
         if stance ~= 1 then return false end
         chat('Сокрушительный бросок')
+        if UnitMana100('player') >= 25 and HasBuff("Вихрь клинков", 0.01, "player") then
+          oexecute('CancelUnitBuff("player", "Вихрь клинков")')
+        end
         return not IsSpellNotUsed('Сокрушительный бросок', 1)
     end
 )

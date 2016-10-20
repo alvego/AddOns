@@ -13,18 +13,23 @@ function Equip1HShield(pvp)
     local titansGrip = HasTalent("Хватка титана") > 0
     if pvp then
       if titansGrip then
-        oexecute("EquipItemByName('Темная Скорбь', 16)")
+		oexecute("UseEquipmentSet('2H1P')")
+        --oexecute("EquipItemByName('Темная Скорбь', 16)")
+        --oexecute("EquipItemByName('Осадный щит разгневанного гладиатора', 17)")
       else
-        oexecute("EquipItemByName('Тесак разгневанного гладиатора', 16)")
+        oexecute("UseEquipmentSet('1H')")
       end
-      oexecute("EquipItemByName('Осадный щит разгневанного гладиатора', 17)")
     else
       if titansGrip then
-        oexecute("EquipItemByName('Темная Скорбь', 16)")
+		oexecute("UseEquipmentSet('2H1E')")
+        --oexecute("EquipItemByName('Темная Скорбь', 16)")
+        --oexecute("EquipItemByName('Мерзлая стена ледяной цитадели', 17)")
       else
+		oexecute("UseEquipmentSet('1HE')")
         oexecute("EquipItemByName('Последнее желание', 16)")
+        oexecute("EquipItemByName('Мерзлая стена ледяной цитадели', 17)")
       end
-      oexecute("EquipItemByName('Мерзлая стена ледяной цитадели', 17)")
+      
     end
     TimerStart('equipweapon')
   end
@@ -35,9 +40,12 @@ function Equip2H(titansGrip)
   if not InCombatMode() and IsEquippedItemType("Удочка") then return end
   if TimerMore('equipweapon', 0.5) and not Equiped2H() then
     local titansGrip = HasTalent("Хватка титана") > 0
-    oexecute("EquipItemByName('Темная Скорбь', 16)")
     if titansGrip then
-      oexecute("EquipItemByName('Глоренцельг, священный клинок Серебряной Длани', 17)")
+	  oexecute("UseEquipmentSet('4H')")
+	  --oexecute("EquipItemByName('Темная Скорбь', 16)")
+      --oexecute("EquipItemByName('Глоренцельг, священный клинок Серебряной Длани', 17)")
+    else
+	  oexecute("UseEquipmentSet('2H')")
     end
     TimerStart('equipweapon')
   end
