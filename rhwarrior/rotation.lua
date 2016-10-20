@@ -246,11 +246,13 @@ function Idle()
 
 
 
-    local autoAttack = IsCurrentSpell("Автоматическая атака")
+    --local autoAttack = IsCurrentSpell("Автоматическая атака")
     if (attack or UnitAffectingCombat(target)) then
-      if validTarget and not autoAttack then oexecute("StartAttack()") end
+      --if validTarget and not autoAttack then oexecute("StartAttack()") end
+      if validTarget then oexecute("StartAttack()") end
     else
-      if autoAttack then  oexecute("StopAttack()") end
+      --if autoAttack then  oexecute("StopAttack()") end
+      oexecute("StopAttack()")
     end
     if not validTarget then return end
 
@@ -320,10 +322,10 @@ function Idle()
     
     if stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
     
-	if rage >= 30 and pvp and melee and HasSpell("Смертельный удар") and IsReadySpell("Смертельный удар") and not HasMyDebuff("Смертельный удар", 0.5, target) then 
+	--[[if rage >= 30 and pvp and melee and HasSpell("Смертельный удар") and IsReadySpell("Смертельный удар") and not HasMyDebuff("Смертельный удар", 0.5, target) then 
 		print('Ждем Смертельный удар')
 		return 
-	end
+	end]]
     
     --if stance ~= 2 and (not HasSpell("Смертельный удар") or GetSpellCooldownLeft("Смертельный удар") > 2) and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
     if stance ~= 2 and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
