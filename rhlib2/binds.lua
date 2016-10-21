@@ -203,7 +203,7 @@ function UpdateObjects(force)
     local uid = GUIDByIndex(i)
     if uid then
       tinsert(OBJECTS, uid)
-      if UnitCanAttack("player", uid) and DistanceTo("player", uid) < 25 and not UnitIsDeadOrGhost(uid) then
+      if UnitCanAttack("player", uid) and DistanceTo("player", uid) <= 30 and not UnitIsDeadOrGhost(uid) then
           tinsert(TARGETS, uid)
       end
     end

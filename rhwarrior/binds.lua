@@ -75,8 +75,7 @@ function TryInterrupt(pvp)
     if not CanInterrupt then return false end
 
     local target = "target"
-
-
+	
 
     local spell, left, duration, channel, nointerrupt = UnitIsCasting(target)
     if not spell then return nil end
@@ -86,7 +85,7 @@ function TryInterrupt(pvp)
     local stance = GetShapeshiftForm()
 
 
-    if (channel or left < 0.6)  then
+    if (channel or left < 0.8)  then
 
       local reflect = tContains(ReflectList, spell)
 
