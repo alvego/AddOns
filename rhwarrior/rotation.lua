@@ -83,7 +83,7 @@ function Idle()
 		debuff = HasDebuff(ControlList, 3, "player")
     end
     if debuff and  IsSpellNotUsed("Ярость берсерка", 1) and DoSpell("Каждый за себя") then return end
-    
+
     --AutoTaunt-----------------------------------------------------------------
     if not pvp and AdvMode and AutoTaunt and IsInGroup() --and Defence
       and IsSpellNotUsed("Вызывающий крик", 1)
@@ -119,7 +119,7 @@ function Idle()
     -- IsAOE -------------------------------------------------------------------
     local aoe2 = false
     local aoe3 = false
-    
+
     if IsShift() then
       aoe2 = true
       aoe3 = true
@@ -258,13 +258,13 @@ function Idle()
 
     FaceToTarget(target)
 
-    if HasBuff(immuneList, 3, target) and IsReadySpell("Сокрушительный бросок") and rage >= 25  then 
+    if HasBuff(immuneList, 3, target) and IsReadySpell("Сокрушительный бросок") and rage >= 25  then
 		if not PlayerInPlace() then
 			echo('Стой!!!')
 		end
 		if not UnitIsCasting('player') then  DoCommand('shatter') end
     end
-    
+
 
     if HasBuff("Проклятие хаоса") then
       oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
@@ -300,11 +300,12 @@ function Idle()
 
     if stance == 2 and HasBuff(burstList, 5, target) and DoSpell("Разоружение", target, true) then return end
 
-    if aoe3 and melee and stance ~= 3 and DoSpell("Удар грома") then return end
-    if aoe2 and HasSpell("Размашистые удары") and DoSpell("Размашистые удары") then return end
-    if aoe2 and DoSpell("Рассекающий удар") then return end
 
-    if not PlayerInPlace() and UnitIsPlayer(target) and not HasMyDebuff(myRootDebuff, 1, target) then
+    if aoe2 and HasSpell("Размашистые удары") then  DoSpell("Размашистые удары") end
+    if aoe2 then DoSpell("Рассекающий удар", nil, not pvp) end
+    if aoe3 and melee and stance ~= 3 and DoSpell("Удар грома") then return end
+    
+    if not PlayerInPlace() and UnitIsPlayer(target) and not HasDebuff(myRootDebuff, 1, target) then
         if stance ~= 2 and InRange("Подрезать сухожилия", target) then
           if DoSpell("Подрезать сухожилия", target) then return end
         elseif HasSpell("Пронзительный вой") and DistanceTo(player, target) < 10 then
@@ -317,16 +318,16 @@ function Idle()
     if HasSpell("Сокрушение") and shield and DoSpell("Сокрушение", target) then return end
 
 	if HasSpell("Смертельный удар") and DoSpell("Смертельный удар", target, true) then return end --, not HasMyDebuff("Смертельный удар", 3, target) --not HasMyDebuff("Смертельный удар", 1, target)
-	
+
     if stance ~= 3 and not HasMyDebuff("Кровопускание", 1, target) and DoSpell("Кровопускание", target, true) then return end
-    
+
     if stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
-    
-	--[[if rage >= 30 and pvp and melee and HasSpell("Смертельный удар") and IsReadySpell("Смертельный удар") and not HasMyDebuff("Смертельный удар", 0.5, target) then 
+
+	--[[if rage >= 30 and pvp and melee and HasSpell("Смертельный удар") and IsReadySpell("Смертельный удар") and not HasMyDebuff("Смертельный удар", 0.5, target) then
 		print('Ждем Смертельный удар')
-		return 
+		return
 	end]]
-    
+
     --if stance ~= 2 and (not HasSpell("Смертельный удар") or GetSpellCooldownLeft("Смертельный удар") > 2) and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
     if stance ~= 2 and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
 
@@ -335,20 +336,20 @@ function Idle()
     if HasSpell("Кровожадность") and DoSpell("Кровожадность", target, true) then return end
     if stance == 3 and HasSpell("Вихрь") and (melee or aoe2) and DoSpell("Вихрь", nil, true) then return end
     if HasBuff("Сокрушить!") and DoSpell("Мощный удар", target, true) then return end
-    if not aoe2 and rage > (pvp and 95 or 50) then
+    if not aoe2 and rage > ( HasSpell("Кровожадность") and 30 or 90) then --TODO символ на удар героя, когторый возвращает рагу
        if stance ~= 2 and UnitHealth100(target) < 20 then
          if DoSpell("Казнь", target) then return end
        else
          if melee and DoSpell("Удар героя", target) then return end
        end
     end
-    
+
     if warbringer or HasBuff("благословение могущества", 5, player) then
       if not HasBuff("Командирский крик", 5, player) and DoSpell("Командирский крик") then return end
     else
       if not HasBuff("Боевой крик", 5, player)  and DoSpell("Боевой крик") then return end
     end
-    
+
     if (pvp or UnitAffectingCombat(target)) and DoSpell("Героический бросок", target) then return end
     --if not aoe2 and PlayerInPlace() and InRange("Выстрел", target) and DoSpell("Выстрел", target) then return end
     if not aoe2 and HasSpell("Вихрь") and GetSpellCooldownLeft("Вихрь") > 1.5 and HasSpell("Кровожадность")  and GetSpellCooldownLeft("Кровожадность") > 1.5 then
