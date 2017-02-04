@@ -336,12 +336,15 @@ function Idle()
     if HasSpell("Кровожадность") and DoSpell("Кровожадность", target, true) then return end
     if stance == 3 and HasSpell("Вихрь") and (melee or aoe2) and DoSpell("Вихрь", nil, true) then return end
     if HasBuff("Сокрушить!") and DoSpell("Мощный удар", target, true) then return end
-    if not aoe2 and rage > ( HasSpell("Кровожадность") and 30 or 90) then --TODO символ на удар героя, когторый возвращает рагу
+    --[[if not aoe2 and rage > ( HasSpell("Кровожадность") and 30 or 90) then --TODO символ на удар героя, когторый возвращает рагу
        if stance ~= 2 and UnitHealth100(target) < 20 then
          if DoSpell("Казнь", target) then return end
        else
          if melee and DoSpell("Удар героя", target) then return end
        end
+    end]]
+    if not aoe2 and rage > ( HasSpell("Кровожадность") and 30 or 90) then --TODO символ на удар героя, когторый возвращает рагу
+	   if melee and DoSpell("Удар героя", target) then return end
     end
 
     if warbringer or HasBuff("благословение могущества", 5, player) then
@@ -354,7 +357,10 @@ function Idle()
     --if not aoe2 and PlayerInPlace() and InRange("Выстрел", target) and DoSpell("Выстрел", target) then return end
     if not aoe2 and HasSpell("Вихрь") and GetSpellCooldownLeft("Вихрь") > 1.5 and HasSpell("Кровожадность")  and GetSpellCooldownLeft("Кровожадность") > 1.5 then
       if UnitClassification(target) == "worldboss"  and (select(4, UnitDebuff("Раскол брони", 10, target)) or 0) < 5 and DoSpell("Раскол брони", target) then return end
-      if PlayerInPlace() and DoSpell("Мощный удар", target) then return end
+      --if PlayerInPlace() and DoSpell("Мощный удар", target) then return end
+      if stance ~= 2 and UnitHealth100(target) < 20 then
+         if DoSpell("Казнь", target) then return end
+       end
     end
   end
 end
