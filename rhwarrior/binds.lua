@@ -150,11 +150,14 @@ end
 function AddRage()
   if (HasTalent("Улучшенная ярость берсерка") > 0) then
     if IsSpellNotUsed("Кровавая ярость", 1) and IsSpellNotUsed("Ярость берсерка", 1) then
-      if UseSpell("Кровавая ярость") then return end
-      if UseSpell("Ярость берсерка") then return end
+		omacro("/cast Кровавая ярость")
+		omacro("/cast Ярость берсерка")
+      --if UseSpell("Кровавая ярость") then return end
+      --if UseSpell("Ярость берсерка") then return end
     end
   else
-    UseSpell("Кровавая ярость")
+    --UseSpell("Кровавая ярость")
+    omacro("/cast Кровавая ярость")
   end
 end
 
