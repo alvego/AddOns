@@ -29,7 +29,7 @@ function Idle()
   local target = "target"
   local player = "player"
   -- Дизамаунт
-  if IsAttack() or IsMouse(3) then
+  if IsAttack() then
       if HasBuff("Парашют") then
         oexecute('CancelUnitBuff("player", "Парашют")')
       end

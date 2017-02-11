@@ -54,7 +54,7 @@ AdvMode = false;
 local update = 1
 -- Выполняем обработчики события OnUpdate
 local function OnUpdate(frame, elapsed)
-    if ((IsAttack() or IsMouse(3)) and Paused) then
+    if Paused and IsAttack() then
         echo("Авто ротация: ON")
         Paused = false
         AdvMode = true

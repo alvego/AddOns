@@ -174,6 +174,8 @@ function Idle()
         if _uid then
           oexecute("TargetUnit('".. _uid .."')")
           validTarget = true
+        else
+          print('нет нормальной цели')
         end
     end
     ----------------------------------------------------------------------------

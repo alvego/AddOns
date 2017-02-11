@@ -1,10 +1,20 @@
 -- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
-
+function test()
+  print("CanAttack", CanAttack("target"))
+  print("IsValidTarget", IsValidTarget("target"))
+  print("UnitAffectingCombat", UnitAffectingCombat("target"))
+  print("UnitCanAttack", UnitCanAttack("player","target"))
+  print("InMelee", InMelee("target"))
+  print("DistanceTo", DistanceTo("player", "target"))
+  print("InCombatMode", InCombatMode())
+  print("InCombatLockdown", InCombatLockdown())
+end
 ------------------------------------------------------------------------------------------------------------------
 -- l18n
 BINDING_HEADER_RHLIB = "Rotation Helper Library"
 BINDING_NAME_RHLIB_OFF = "Выкл ротацию"
+BINDING_NAME_RHLIB_ON = "Вкл ротацию"
 BINDING_NAME_RHLIB_DEBUG = "Вкл/Выкл режим отладки"
 BINDING_NAME_RHLIB_LOG = "Вкл/Выкл окно логирования"
 BINDING_NAME_RHLIB_RELOAD = "Перезагрузить интерфейс"
@@ -14,10 +24,6 @@ BINDING_NAME_RHLIB_FARM = "Режим фарминга"
 ------------------------------------------------------------------------------------------------------------------
 if Paused == nil then Paused = false end
 -- Условие для включения ротации
-function TryAttack()
-    if Paused then return end
-    TimerStart('Attack')
-end
 local beginAttack = false
 function IsAttack()
     if IsMouse(4) then
@@ -30,6 +36,12 @@ function IsAttack()
       beginAttack = false
     end
     return TimerLess('Attack', 0.05)
+end
+
+-- Включаем авторотацию
+function AutoRotationOn()
+    Paused = false
+    echo("Авто ротация: ON")
 end
 
 -- Отключаем авторотацию, при повторном нажатии останавливаем каст (если есть)
@@ -223,9 +235,6 @@ end
 --local ignored = {191, 171,168,169,170}
 
 function UpdateIdle(elapsed)
-
-
-
     --[[if AdvMode  then
       if UnitExists('target') and UnitIsDead('target') then
         local ptr = UnitPtr('target')
@@ -283,6 +292,7 @@ function UpdateIdle(elapsed)
       if IsAttack() then
         oexecute('SpellStopTargeting()')
       else
+          echo("Нужно выбрать цель")
           return
       end
     end
@@ -348,7 +358,5 @@ function UpdateIdle(elapsed)
         end
       end
     end
-
-    isAttack = false
 end
 ------------------------------------------------------------------------------------------------------------------
