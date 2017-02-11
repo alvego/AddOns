@@ -148,7 +148,7 @@ function Idle()
       if not HasBuff("благословение королей") and DoSpell("Великое благословение королей", player) then return end
   end
 
-  if IsCtr() and DoSpell("Очищение", player) then return end
+  if IsCtr() and HasDebuff(dispelTypes, 1, player) and DoSpell("Очищение", player) then return end
   if InCombatMode() then
 
     local hp = UnitHealth100(player)
@@ -195,6 +195,7 @@ function Idle()
     ) and not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
 
     if not IsPvP() and DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
+    if not IsPvP() and DoSpell("Удар воина Света") then return end
 
     if CanMagicAttack(target) and DoSpell((IsAlt() and "Правосудие справедливости" or "Правосудие мудрости"), target) then return end
     if IsPvP() and not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
