@@ -118,19 +118,16 @@ function Idle()
         l = 25000
       end]]
 
-      if mana > 90 then l = l * 2 end
+      if mana > 50 then l = l * 2 end
       if HasBuff("Божественное одобрение") and DoSpell("Шок небес", u) then return end
       if (h < 35) and not IsReadyItem("Подвеска истинной крови") and GetSpellCooldownLeft("Шок небес") < 0.1 and DoSpell("Божественное одобрение") then return end
-
+      if (h < 35) and UseEquippedItem("Подвеска истинной крови", u) then return end
       if InCombatMode() and h < 95 and UseEquippedItem("Украшенные перчатки разгневанного гладиатора") then return end
       if InCombatMode() and mana < 90 and UseEquippedItem("Осколок чистейшего льда") then return end
       if InCombatMode() and IsSpellNotUsed("Священный щит", 5) and (not hasShield or (h < 50 and not HasMyBuff("Священный щит", 1, u))) and DoSpell("Священный щит", u) then return end
-      if (h < 35) and UseEquippedItem("Подвеска истинной крови", u) then return end
 
-
-
-      if (h < 95 or l > 5000) and DoSpell("Шок небес", u) then return end
-      if (HasBuff("Прилив Света") or PlayerInPlace()) and (h < 50 or l > 4000) and DoSpell("Вспышка Света", u) then return end
+      if (h < 98 or l > 3000) and DoSpell("Шок небес", u) then return end
+      if (HasBuff("Прилив Света") or PlayerInPlace()) and (h < 50 or l > 2000) and DoSpell("Вспышка Света", u) then return end
       if IsSpellNotUsed("Очищение", 2) and HasDebuff(dispelTypes, 1, u) and not HasDebuff("Нестабильное колдовство", 0.1, u) and DoSpell("Очищение", u) then return end
 
       if InCombatMode() then
