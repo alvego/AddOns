@@ -25,7 +25,7 @@ local redDispelList = {
 
 teammate = "Qo"
 function Idle()
-  print(1)
+
   local target = "target"
   local player = "player"
   -- Дизамаунт
@@ -47,10 +47,10 @@ function Idle()
   if not IsPvP() and IsMounted() and not HasBuff("Аура воина Света") and DoSpell("Аура воина Света") then return end
 
   if not IsAttack() and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
-  print(2)
+
   -- Heal Rotation ------------------------------------------------------------------------------------------------------------------------------
   if HasSpell("Частица Света") then
-  print(3)
+
     if not InCombatLockdown() and IsPvP() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
 
       if (IsAttack() or InCombatLockdown()) and not HasBuff("Аура сосредоточенности") and DoSpell("Аура сосредоточенности", player) then return end
@@ -142,7 +142,6 @@ function Idle()
       return
    end
    --DD_rotation--------------------------------------------------------------------------------------------------------------------------------------------
-   print(4)
   if not HasSpell("Удар воина Света") then return end
 
   if IsPvP() and not HasBuff("Аура воздаяния") and DoSpell("Аура воздаяния")  then return end
@@ -153,7 +152,6 @@ function Idle()
   end
 
   if IsCtr() and DoSpell("Очищение", player) then return end
-  print(5)
   if InCombatMode() then
 
     local hp = UnitHealth100(player)
@@ -185,7 +183,6 @@ function Idle()
 
     TryTarget()
 
-    print(6)
     if not CanAttack(target) then return end
 
     if (IsAttack() or UnitAffectingCombat(target)) then
@@ -204,7 +201,7 @@ function Idle()
 
     if CanMagicAttack(target) and DoSpell((IsAlt() and "Правосудие справедливости" or "Правосудие мудрости"), target) then return end
     if IsPvP() and not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
-    print(7)
+
     if not IsValidTarget(target) then return end
     FaceToTarget(target)
     if HasBuff("Проклятие хаоса") then
