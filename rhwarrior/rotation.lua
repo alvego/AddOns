@@ -175,7 +175,7 @@ function Idle()
           oexecute("TargetUnit('".. _uid .."')")
           validTarget = true
         else
-          print('нет нормальной цели')
+          --print('нет нормальной цели')
         end
     end
     ----------------------------------------------------------------------------
@@ -258,7 +258,7 @@ function Idle()
       oexecute("StopAttack()")
     end
     if not validTarget then
-		  print(IsValidTargetInfo)
+		  --print(IsValidTargetInfo)
 		  return
     end
 

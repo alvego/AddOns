@@ -1,7 +1,7 @@
 -- Rotation Helper Library by Timofeev Alexey
 ------------------------------------------------------------------------------------------------------------------
 function test()
-  print("CanAttack", CanAttack("target"))
+  print("CanAttack", CanAttack("target"), CanAttackInfo)
   print("IsValidTarget", IsValidTarget("target"))
   print("UnitAffectingCombat", UnitAffectingCombat("target"))
   print("UnitCanAttack", UnitCanAttack("player","target"))
@@ -40,8 +40,10 @@ end
 
 -- Включаем авторотацию
 function AutoRotationOn()
-    Paused = false
-    echo("Авто ротация: ON")
+    if Paused then
+      echo("Авто ротация: ON")
+      Paused = false
+    end
 end
 
 -- Отключаем авторотацию, при повторном нажатии останавливаем каст (если есть)
@@ -55,8 +57,11 @@ function AutoRotationOff()
         oexecute("PetFollow()")
       end
     end
-    Paused = true
-    echo("Авто ротация: OFF")
+    if not Paused then
+      echo("Авто ротация: OFF")
+      Paused = true
+    end
+
 end
 
 ------------------------------------------------------------------------------------------------------------------

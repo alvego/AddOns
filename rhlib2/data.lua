@@ -44,12 +44,25 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 -- можно атаковать игрока (в противном случае не имеет смысла просаживать кд))
+CanAttackInfo = ""
 local immuneList = {"Божественный щит", "Ледяная глыба", "Сдерживание"}
 function CanAttack(target)
+    CanAttackInfo = ""
     if nil == target then target = "target" end
-    return IsValidTarget(target)
-        and not HasBuff(immuneList, 0.01, target)
-        and not HasDebuff("Смерч", 0.01, target)
+    if not IsValidTarget(target) then
+      CanAttackInfo = IsValidTargetInfo
+      return false
+    end
+    if not UnitIsPlayer(target) then return true end
+    local aura = HasBuff(immuneList, 0.01, target)
+    if not aura then
+      aura = HasDebuff("Смерч", 0.01, target)
+    end
+    if aura then
+      CanAttackInfo = aura
+      return false
+    end
+    return true
 end
 
 ------------------------------------------------------------------------------------------------------------------
