@@ -349,7 +349,7 @@ function UpdateIdle(elapsed)
       end
     end
 
-    if Farm and AdvMode and not InCombatMode()  and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0 then --and (not IsInGroup() or (GetLootMethod() == 'freeforall'))
+    if Farm and AdvMode and not InCombatMode() and TimerLess('CombatLock', 5) and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0 then --and (not IsInGroup() or (GetLootMethod() == 'freeforall'))
       UpdateObjects()
       for i = 1, #OBJECTS do
         local uid = OBJECTS[i]
