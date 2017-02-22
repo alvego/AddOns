@@ -92,11 +92,11 @@ function Idle()
         if not hasShield and HasMyBuff("Священный щит",1,_u) then hasShield = true end
         if not hasLight and HasMyBuff("Частица Света",1,_u) then
           hasLight = true
-           _h_mult = 1.5
+           _h_mult = 1.1
         end
         if (_h * _h_mult) < h then
           u = _u
-          h = _h
+          h = _h * _h_mult
         end
       end
 
@@ -118,7 +118,7 @@ function Idle()
         l = 25000
       end]]
 
-      if mana > 50 then l = l * 2 end
+      if mana > 50 then l = l * 1.5 end
       if HasBuff("Божественное одобрение") and DoSpell("Шок небес", u) then return end
       if (h < 35) and not IsReadyItem("Подвеска истинной крови") and GetSpellCooldownLeft("Шок небес") < 0.1 and DoSpell("Божественное одобрение") then return end
       if (h < 35) and UseEquippedItem("Подвеска истинной крови", u) then return end
@@ -194,10 +194,10 @@ function Idle()
       (tContains(steathClass, GetClass(target)) and not InRange("Покаяние", target)) or HasBuff(reflectBuff, 1, target)
     ) and not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
 
+    if CanMagicAttack(target) and DoSpell((IsAlt() and "Правосудие справедливости" or "Правосудие мудрости"), target) then return end
     if not IsPvP() and DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
     if not IsPvP() and DoSpell("Удар воина Света") then return end
 
-    if CanMagicAttack(target) and DoSpell((IsAlt() and "Правосудие справедливости" or "Правосудие мудрости"), target) then return end
     if IsPvP() and not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
 
     if not IsValidTarget(target) then return end
