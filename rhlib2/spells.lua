@@ -241,13 +241,7 @@ function IsVisible(target)
   if not UnitExists(target) then return false end
   local guid = UnitGUID(target)
   local t = notVisible[guid]
-  if t and GetTime() - t < 1.2 then
-    if UnitInLos and not UnitInLos(target) then
-	notVisible[guid] = nil;
-	return true;
-    end
-    return false
-  end
+  if t and GetTime() - t < 1.2 then return false end
   return true;
 end
 
