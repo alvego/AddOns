@@ -266,7 +266,7 @@ function UpdateIdle(elapsed)
         if not TimerStarted('UnlockTimer') then
           TimerStart('UnlockTimer')
         end
-        if AdvMode then
+        if AdvMode and not Paused then
           UIErrorsFrame:Clear()
           UIErrorsFrame:AddMessage("Tребуется инъекция. " .. SecondsToTime(TimerElapsed('UnlockTimer')), 0.0, 1.0, 0.0, 53, 2);
         end
@@ -349,7 +349,7 @@ function UpdateIdle(elapsed)
       end
     end
 
-    if Farm and AdvMode and not InCombatMode() and TimerLess('CombatLock', 5) and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0 then --and (not IsInGroup() or (GetLootMethod() == 'freeforall'))
+    if Farm and AdvMode and not InCombatMode() and TimerLess('CombatLock', 15) and not (IsMounted() or CanExitVehicle()) and GetFreeBagSlotCount() > 0 then --and (not IsInGroup() or (GetLootMethod() == 'freeforall'))
       UpdateObjects()
       for i = 1, #OBJECTS do
         local uid = OBJECTS[i]

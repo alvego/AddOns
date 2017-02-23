@@ -324,6 +324,7 @@ function BuyItem(name, count)
         break
       end
     end
+    --print('idx', idx)
     if not idx then return end
     -- необходимо докупить
     local q = count - GetItemCount(name)
@@ -336,6 +337,7 @@ function BuyItem(name, count)
     while q > 0 do
       local c = (q > 255 and 255 or q)
       q = q - c
+      --print(format("BuyMerchantItem(%s, %s)", idx, c))
       AddToQueue(format("BuyMerchantItem(%s, %s)", idx, c))
     end
 end
