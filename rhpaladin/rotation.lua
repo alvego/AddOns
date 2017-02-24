@@ -124,7 +124,14 @@ function Idle()
       if (h < 35) and UseEquippedItem("Подвеска истинной крови", u) then return end
       if InCombatMode() and h < 95 and UseEquippedItem("Украшенные перчатки разгневанного гладиатора") then return end
       if InCombatMode() and mana < 90 and UseEquippedItem("Осколок чистейшего льда") then return end
-      if InCombatMode() and IsSpellNotUsed("Священный щит", 5) and (not hasShield or (h < 50 and not HasMyBuff("Священный щит", 1, u))) and DoSpell("Священный щит", u) then return end
+
+      if InCombatMode() and IsSpellNotUsed("Священный щит", 5) and not hasShield then
+        if not UnitCanAttack("player", teammate) and IsInteractUnit(teammate) then
+          if DoSpell("Священный щит",  teammate) then return end
+        else
+          if h < 60 and not HasMyBuff("Священный щит", 1, u) and DoSpell("Священный щит", u) then return end
+        end
+      end
 
       if (h < 98 or l > 3000) and DoSpell("Шок небес", u) then return end
       if (HasBuff("Прилив Света") or PlayerInPlace()) and (h < 50 or l > 2000) and DoSpell("Вспышка Света", u) then return end
