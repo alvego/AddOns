@@ -311,7 +311,6 @@ local function falseBecause(m, spell, icon, target)
   return false
 end
 
-local badSpellTarget = {}
 function UseSpell(spell, target)
   --if TimerStarted("InCast") then return falseBecause("В процессе каста") end
   if UnitIsCasting("player") then return falseBecause("В процессе каста") end
@@ -333,13 +332,6 @@ function UseSpell(spell, target)
       return falseBecause("Мы не смотрим на цель", name, icon, target)
     end
 
-    if badSpellTarget[name] then
-        local badTargetTime = badSpellTarget[spell][UnitGUID(target)]
-        if badTargetTime and (GetTime() - badTargetTime < 5) then
-            return falseBecause("Цель не подходящая, не можем прожать", name, icon, target)
-        end
-    end
-
     -- данные о кастах
     local castInfo = getCastInfo(name)
     castInfo.Target = target
@@ -358,26 +350,6 @@ function UseSpell(spell, target)
   if SpellIsTargeting() then
       UnitWorldClick(target or "player")
       oexecute('SpellStopTargeting()')
-  end
-
-  local castInfo = getCastInfo(name)
-    -- проверка на успешное начало кд
-  if target and UnitExists(target) and castInfo.StartTime and (GetTime() - castInfo.StartTime < 0.01) then
-
-      -- проверяем цель на соответствие реальной
-      if castInfo.TargetName and castInfo.TargetName ~= "" and castInfo.TargetName ~= UnitName(target) then
-          falseBecause("Цели не совпали, не можем прожать", name, icon, target)
-          StopCast("Цели не совпали")
-          --chat("bad target", target, spellName)
-          if nil == badSpellTarget[name] then
-              badSpellTarget[name] = {}
-          end
-          local badTargets = badSpellTarget[name]
-          badTargets[UnitGUID(target)] = GetTime()
-          castInfo.Target = nil
-          castInfo.TargetName = nil
-          castInfo.TargetGUID = nil
-      end
   end
   return true
 end
