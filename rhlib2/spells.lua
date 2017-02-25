@@ -179,11 +179,31 @@ function UnitIsCasting(unit)
     return spell, left, duration, channel, nointerrupt
 end
 ------------------------------------------------------------------------------------------------------------------
+local function resetNotVisible()
+  wipe(notVisible)
+end
+------------------------------------------------------------------------------------------------------------------
+AttachEvent("PLAYER_REGEN_ENABLED", resetNotVisible)
+local notVisible = {}
+function IsVisible(target)
+  if not UnitExists(target) then return false end
+  local guid = UnitGUID(target)
+  local t = notVisible[guid]
+  if t and GetTime() - t < 1.2 then
+    if UnitInLos and not UnitInLos(target) then
+        notVisible[guid] = nil;
+        return true;
+    end
+    return false
+  end
+  return true;
+end
+------------------------------------------------------------------------------------------------------------------
 local InCast = {}
 
 local function getCastInfo(spell)
-	if not InCast[spell] then
-		InCast[spell] = {StartTime = 0, LastCastTime = 0 }
+	if spell and not InCast[spell] then
+		InCast[spell] = {StartTime = 0, LastCastTime = 0, Target = nil, TargetName = nil, TargetGUID = nil, LastError = nil }
 	end
 	return InCast[spell]
 end
@@ -193,13 +213,21 @@ local function UpdateIsCast(event, ...)
         local castInfo = getCastInfo(spell)
         if event == "UNIT_SPELLCAST_SUCCEEDED" and castInfo.StartTime > 0 then
             castInfo.LastCastTime = castInfo.StartTime
+            castInfo.LastError = nil
         end
         if event == "UNIT_SPELLCAST_SENT" then
            castInfo.StartTime = GetTime()
+           castInfo.TargetName = target
            TimerStart('InCast')
         else
             castInfo.StartTime = 0
             TimerReset('InCast')
+        end
+        if event == "UNIT_SPELLCAST_FAILED" then
+            local error = castInfo.LastError
+            if error == "Цель вне поля зрения."  and  castInfo.TargetGUID then
+                notVisible[castInfo.TargetGUID] = GetTime()
+            end
         end
     end
 end
@@ -207,8 +235,10 @@ AttachEvent('UNIT_SPELLCAST_SENT', UpdateIsCast)
 AttachEvent('UNIT_SPELLCAST_SUCCEEDED', UpdateIsCast)
 AttachEvent('UNIT_SPELLCAST_FAILED', UpdateIsCast)
 
-
-
+function GetLastSpellTarget(spell)
+    local castInfo = getCastInfo(spell)
+    return (castInfo.Target and castInfo.TargetGUID and UnitExists(castInfo.Target) and UnitGUID(castInfo.Target) == castInfo.TargetGUID) and castInfo.Target or nil
+end
 
 function GetSpellLastTime(spell)
     local castInfo = getCastInfo(spell)
@@ -231,31 +261,18 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 FaceSpells = FaceSpells or {}
-local notVisible = {}
-local function resetNotVisible()
-  wipe(notVisible)
-end
-AttachEvent("PLAYER_REGEN_ENABLED", resetNotVisible)
-
-function IsVisible(target)
-  if not UnitExists(target) then return false end
-  local guid = UnitGUID(target)
-  local t = notVisible[guid]
-  if t and GetTime() - t < 1.2 then return false end
-  return true;
-end
-
 local function updateSpellErrors(event, ...)
     local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, spellSchool, amount, info = ...
     if type:match("SPELL_CAST_FAILED") and sourceGUID == UnitGUID("player") then
         --  print(amount)
+
+        local castInfo = getCastInfo(spellName)
+        castInfo.LastError = amount
+
         if (amount == "Цель должна быть перед вами.") then
           if FaceSpells[spellName] == nil then
             FaceSpells[spellName] = true
           end
-        end
-        if amount == "Цель вне поля зрения." then
-          notVisible[destGUID] = GetTime()
         end
         --[[if (amount == "Еще не готово.") or (amount == "Заклинание пока недоступно.")  then
           if Debug then print("Не готово", spellName , " GCD:", InGCD(), " left:", GetSpellCooldownLeft(spellName), " LagTime:", LagTime) end
@@ -295,8 +312,8 @@ local function falseBecause(m, spell, icon, target)
   return false
 end
 
+local badSpellTarget = {}
 function UseSpell(spell, target)
-
   --if TimerStarted("InCast") then return falseBecause("В процессе каста") end
   if UnitIsCasting("player") then return falseBecause("В процессе каста") end
   if not spell then return falseBecause("Отсутсвует", spell) end
@@ -316,6 +333,19 @@ function UseSpell(spell, target)
       FaceToTarget(target)
       return falseBecause("Мы не смотрим на цель", name, icon, target)
     end
+
+    if badSpellTarget[name] then
+        local badTargetTime = badSpellTarget[spell][UnitGUID(target)]
+        if badTargetTime and (GetTime() - badTargetTime < 5) then
+            return falseBecause("Цель не подходящая, не можем прожать", name, icon, target)
+        end
+    end
+
+    -- данные о кастах
+    local castInfo = getCastInfo(name)
+    castInfo.Target = target
+    castInfo.TargetName = UnitName(target)
+    castInfo.TargetGUID = UnitGUID(target)
   end
   local cmd = "CastSpellByName('" .. name .."'"
     -- с учетом цели
@@ -324,12 +354,31 @@ function UseSpell(spell, target)
   if Debug then
     chat("> " ..  name .. (target and (" @" .. target) or "") , 0.9, 0.5, 0.5)
   end
-
   -- пробуем скастовать
   oexecute(cmd)
   if SpellIsTargeting() then
       UnitWorldClick(target or "player")
       oexecute('SpellStopTargeting()')
+  end
+
+  local castInfo = getCastInfo(name)
+    -- проверка на успешное начало кд
+  if target and UnitExists(target) and castInfo.StartTime and (GetTime() - castInfo.StartTime < 0.01) then
+
+      -- проверяем цель на соответствие реальной
+      if castInfo.TargetName and castInfo.TargetName ~= "" and castInfo.TargetName ~= UnitName(target) then
+          falseBecause("Цели не совпали, не можем прожать", name, icon, target)
+          StopCast("Цели не совпали")
+          --chat("bad target", target, spellName)
+          if nil == badSpellTarget[name] then
+              badSpellTarget[name] = {}
+          end
+          local badTargets = badSpellTarget[name]
+          badTargets[UnitGUID(target)] = GetTime()
+          castInfo.Target = nil
+          castInfo.TargetName = nil
+          castInfo.TargetGUID = nil
+      end
   end
   return true
 end
