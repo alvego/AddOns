@@ -179,12 +179,11 @@ function UnitIsCasting(unit)
     return spell, left, duration, channel, nointerrupt
 end
 ------------------------------------------------------------------------------------------------------------------
+local notVisible = {}
 local function resetNotVisible()
   wipe(notVisible)
 end
-------------------------------------------------------------------------------------------------------------------
 AttachEvent("PLAYER_REGEN_ENABLED", resetNotVisible)
-local notVisible = {}
 function IsVisible(target)
   if not UnitExists(target) then return false end
   local guid = UnitGUID(target)
