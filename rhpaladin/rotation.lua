@@ -81,7 +81,7 @@ function Idle()
       local fatHP = 0
       for i = 1, #UNITS do
         local _u = UNITS[i]
-
+        if IsVisible(_u) then
         local _h = UnitHealth100(_u)
         local _h_mult = 1
         local _maxHP  = UnitHealthMax(_u)
@@ -99,7 +99,7 @@ function Idle()
           h = _h * _h_mult
         end
       end
-
+      end
       if not u then return end
 
 
