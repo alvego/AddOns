@@ -93,8 +93,12 @@ local interactRangeSpell = interactSpells[GetClass()]
 function InInteractRange(unit)
     -- need test and review
     if (unit == nil) then unit = "target" end
+    --if not UnitExists(unit) then return false end
+    if UnitIsDeadOrGhost(unit) then return false end
     if not UnitIsFriend("player", unit) then return false end
+    if UnitCanAttack("player", unit) then return false end
     if UnitInRange(unit) then return true end --only party
+    if not IsVisible(unit)  then return false end
     if interactRangeSpell then
       return IsSpellInRange(interactRangeSpell, unit) == 1
     end

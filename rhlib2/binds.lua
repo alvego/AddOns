@@ -182,8 +182,8 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellCreate)
 ------------------------------------------------------------------------------------------------------------------
 local function death_update_handler()
   if not UnitIsDeadOrGhost("player") then return end
-  oexecute('AcceptResurrect()')
   if not (IsCtr() or IsBattleground()) then return end
+  oexecute('AcceptResurrect()')
   if UnitIsDead("player") then
       oexecute("RepopMe()")
   end
@@ -220,7 +220,7 @@ function UpdateObjects(force)
     local uid = GUIDByIndex(i)
     if uid then
       tinsert(OBJECTS, uid)
-      if UnitCanAttack("player", uid) and DistanceTo("player", uid) <= 30 and not UnitIsDeadOrGhost(uid) then
+      if UnitCanAttack("player", uid) and DistanceTo("player", uid) <= 30 and IsValidTarget(uid) then
           tinsert(TARGETS, uid)
       end
     end
@@ -229,7 +229,7 @@ function UpdateObjects(force)
   local groupUnits = GetGroupUnits()
   for i = 1, #groupUnits do
     local u = groupUnits[i]
-    if UnitIsFriend("player", u) and not UnitCanAttack("player", u) and UnitInRange(u) and not UnitIsDeadOrGhost(u) and IsVisible(u) then
+    if InInteractRange(u) then
       tinsert(UNITS, u)
     end
   end

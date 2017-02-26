@@ -24,6 +24,11 @@ local redDispelList = {
 }
 
 teammate = "Qo"
+
+local function canDispel(u)
+  return HasDebuff(dispelTypes, 1, u) and not HasDebuff("Нестабильное колдовство", 0.1, u)
+end
+
 function Idle()
 
   local target = "target"
@@ -74,6 +79,9 @@ function Idle()
       end
 
       local u = "player"
+      local du = nil
+      if InInteractRange(teammate) and canDispel(teammate) then du = teammate end
+      if not du and canDispel(u) then du = u end
       local hasShield = HasMyBuff("Священный щит",1, player) and true or false
       local hasLight = HasMyBuff("Частица Света",1, player) and true or false
       local h = UnitHealth100(u)
@@ -97,6 +105,7 @@ function Idle()
         if (_h * _h_mult) < h then
           u = _u
           h = _h * _h_mult
+          if not du and canDispel(u) then du = u end
         end
       end
       end
@@ -106,7 +115,7 @@ function Idle()
 
       local l = UnitLostHP(u)
       if InCombatLockdown() and IsInGroup() and IsSpellNotUsed("Частица Света", 10) and not hasLight then
-        if not UnitCanAttack("player", teammate) and IsInteractUnit(teammate) then
+        if InInteractRange(teammate) then
           if DoSpell("Частица Света",  teammate) then return end
         else
           if not IsOneUnit(player, fatUnit) and DoSpell("Частица Света",  fatUnit) then return end
@@ -126,16 +135,16 @@ function Idle()
       if InCombatMode() and mana < 90 and UseEquippedItem("Осколок чистейшего льда") then return end
 
       if InCombatMode() and IsSpellNotUsed("Священный щит", 5) and not hasShield then
-        if not UnitCanAttack("player", teammate) and IsInteractUnit(teammate) then
+        if InInteractRange(teammate) then
           if DoSpell("Священный щит",  teammate) then return end
         else
           if h < 60 and not HasMyBuff("Священный щит", 1, u) and DoSpell("Священный щит", u) then return end
         end
       end
 
+      if du and (IsCtr() or HasDebuff(redDispelList, 1, du) or (h > 45 and IsSpellNotUsed("Очищение", 2)))  and DoSpell("Очищение", du) then return end
       if (h < 98 or l > 3000) and DoSpell("Шок небес", u) then return end
       if (HasBuff("Прилив Света") or PlayerInPlace()) and (h < 50 or l > 2000) and DoSpell("Вспышка Света", u) then return end
-      if IsSpellNotUsed("Очищение", 2) and HasDebuff(dispelTypes, 1, u) and not HasDebuff("Нестабильное колдовство", 0.1, u) and DoSpell("Очищение", u) then return end
 
       if InCombatMode() then
         TryTarget()
@@ -168,7 +177,7 @@ function Idle()
 
     if mana > 30 and IsSpellNotUsed("Очищение", 4) then
       --if HasDebuff(redDispelList, 1, player) and not HasDebuff("Нестабильное колдовство", 0.1, player) and DoSpell("Очищение", player) then return end
-      if not UnitCanAttack("player", teammate) and IsInteractUnit(teammate) and HasDebuff(redDispelList, 1, teammate) and not HasDebuff("Нестабильное колдовство", 0.1, teammate) and DoSpell("Очищение", teammate) then return end
+      if InInteractRange(teammate) and HasDebuff(redDispelList, 1, teammate) and not HasDebuff("Нестабильное колдовство", 0.1, teammate) and DoSpell("Очищение", teammate) then return end
     end
 
     if InCombatLockdown() then
