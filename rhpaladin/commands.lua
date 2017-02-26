@@ -24,9 +24,45 @@ SetCommand("fear",
     end
 )
 ----------------------------------------------------------------------------------------------------------------
+SetCommand("freeQo",
+  function(target)
+    if not UnitCanAttack("player", teammate) and IsInteractUnit(teammate) then
+      UseSpell("Длань свободы", teammate)
+    end
+  end,
+  function(target)
+    if not InGCD() and not IsReadySpell("Длань свободы") then return true end
+    return false
+  end
+)
+
+------------------------------------------------------------------------------------------------------------------
+SetCommand("Lay",
+  function(target)
+    if not UnitCanAttack("player", teammate) and IsInteractUnit(teammate) then
+      UseSpell("Возложение рук", teammate)
+    end
+  end,
+  function(target)
+    if not InGCD() and not IsReadySpell("Возложение рук") then return true end
+    return false
+  end
+)
+------------------------------------------------------------------------------------------------------------------
+SetCommand("sacra",
+  function(target)
+    if not UnitCanAttack("player", teammate) and IsInteractUnit(teammate) then
+      UseSpell("Длань жертвенности", teammate)
+    end
+  end,
+  function(target)
+    if not InGCD() and not IsReadySpell("Длань жертвенности") then return true end
+    return false
+  end
+)
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("free",
-  function(target) 
+  function(target)
     UseSpell("Длань свободы", target)
   end,
   function(target)
