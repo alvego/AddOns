@@ -142,7 +142,7 @@ function Idle()
         end
       end
 
-      if du and (IsCtr() or HasDebuff(redDispelList, 1, du) or (h > 45 and IsSpellNotUsed("Очищение", 2)))  and DoSpell("Очищение", du) then return end
+      if du and (IsCtr() or (h > 45 and (IsSpellNotUsed("Очищение", 2) or HasDebuff(redDispelList, 1, du)))) and DoSpell("Очищение", du) then return end
       if (h < 98 or l > 3000) and DoSpell("Шок небес", u) then return end
       if (HasBuff("Прилив Света") or PlayerInPlace()) and (h < 50 or l > 2000) and DoSpell("Вспышка Света", u) then return end
 
