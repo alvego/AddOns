@@ -241,7 +241,7 @@ function IsPvP()
     if InDuel() then return true end
     if IsValidTarget("target") and UnitIsPlayer("target") then return true end
     local inInstance, instanceType = IsInInstance()
-    return (inInstance ~= nil and (instanceType =="arena" or instanceType =="pvp")) or (IsValidTarget("target") and UnitIsPlayer("target"))
+    return inInstance ~= nil and (instanceType =="arena" or instanceType =="pvp")
 end
 ------------------------------------------------------------------------------------------------------------------
 function PlayerInPlace()

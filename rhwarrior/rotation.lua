@@ -265,10 +265,10 @@ function Idle()
     FaceToTarget(target)
 
     if HasBuff(immuneList, 3, target) and IsReadySpell("Сокрушительный бросок") and rage >= 25  then
-		if not PlayerInPlace() then
-			echo('Стой!!!')
-		end
-		if not UnitIsCasting('player') then  DoCommand('shatter') end
+  		if not PlayerInPlace() then
+  			echo('Стой!!!')
+  		end
+  		if not UnitIsCasting('player') then  DoCommand('shatter') end
     end
 
 
@@ -324,29 +324,16 @@ function Idle()
     if shield and ( pvp and HasBuff("Magic", 3, target ) or HasBuff("Щит и меч", 0.1, player) ) and DoSpell("Мощный удар щитом", target) then return end
     if HasSpell("Сокрушение") and shield and DoSpell("Сокрушение", target) then return end
 
-	if HasSpell("Смертельный удар") and DoSpell("Смертельный удар", target, true) then return end --, not HasMyDebuff("Смертельный удар", 3, target) --not HasMyDebuff("Смертельный удар", 1, target)
+    if HasSpell("Смертельный удар") and DoSpell("Смертельный удар", target, true) then return end
 
     if stance ~= 3 and not HasMyDebuff("Кровопускание", 1, target) and DoSpell("Кровопускание", target, true) then return end
 
     if stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
 
-	--[[if rage >= 30 and pvp and melee and HasSpell("Смертельный удар") and IsReadySpell("Смертельный удар") and not HasMyDebuff("Смертельный удар", 0.5, target) then
-		print('Ждем Смертельный удар')
-		return
-	end]]
-
-    --if stance ~= 2 and (not HasSpell("Смертельный удар") or GetSpellCooldownLeft("Смертельный удар") > 2) and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
     if stance ~= 2 and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
     if HasSpell("Кровожадность") and DoSpell("Кровожадность", target, true) then return end
     if stance == 3 and HasSpell("Вихрь") and (melee or aoe2) and DoSpell("Вихрь", nil, true) then return end
     if HasBuff("Сокрушить!") and DoSpell("Мощный удар", target, true) then return end
-    --[[if not aoe2 and rage > ( HasSpell("Кровожадность") and 30 or 90) then --TODO символ на удар героя, когторый возвращает рагу
-       if stance ~= 2 and UnitHealth100(target) < 20 then
-         if DoSpell("Казнь", target) then return end
-       else
-         if melee and DoSpell("Удар героя", target) then return end
-       end
-    end]]
     if not aoe2 and rage > ( HasSpell("Кровожадность") and 50 or 90) then --TODO символ на удар героя, когторый возвращает рагу
 	   if melee and DoSpell("Удар героя", target) then return end
     end
@@ -358,12 +345,9 @@ function Idle()
 		if not HasBuff("Боевой крик", 3, player) and DoSpell("Боевой крик") then return end
      end
     end
-
     if (pvp or UnitAffectingCombat(target)) and DoSpell("Героический бросок", target) then return end
-    --if not aoe2 and PlayerInPlace() and InRange("Выстрел", target) and DoSpell("Выстрел", target) then return end
     if not aoe2 and HasSpell("Вихрь") and GetSpellCooldownLeft("Вихрь") > 1.5 and HasSpell("Кровожадность")  and GetSpellCooldownLeft("Кровожадность") > 1.5 then
-      --if PlayerInPlace() and DoSpell("Мощный удар", target) then return end
-      if stance ~= 2 and UnitHealth100(target) < 20 then
+       if stance ~= 2 and UnitHealth100(target) < 20 then
          if DoSpell("Казнь", target) then return end
        end
     end

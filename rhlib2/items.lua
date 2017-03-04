@@ -2,26 +2,10 @@
 ------------------------------------------------------------------------------------------------------------------
 local GetTime = GetTime
 ------------------------------------------------------------------------------------------------------------------
-
-function IsReadySlot(slot, checkGCD)
-    if not HasAction(slot) then return false end
-    local itemID = GetInventoryItemID("player",slot)
-    if not itemID or (IsItemInRange(itemID, "target") == 0) then return false end
-    if not IsReadyItem(itemID, checkGCD) then return false end
-    return true
-end
-
-------------------------------------------------------------------------------------------------------------------
-
-function UseSlot(slot)
-    if UnitIsCasting() then return false end
-    if not IsReadySlot(slot) then return false end
-    if not IsReadySlot(slot, true) then return true end
-    oexecute("UseInventoryItem(" .. slot .. ")")
-    if SpellIsTargeting() then
-        UnitWorldClick("target")
-    end
-    return true
+function GetSlotItemName(slot)
+    if not HasAction(slot) then return nil end
+    local itemName = GetItemInfo(GetInventoryItemID("player", slot))
+    return itemName
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -67,7 +51,7 @@ function EquipItem(itemName, slot)
     if Debug then
         print(itemName)
     end
-    local cmd = "EquipItemByName('".. itemName .."'"
+    local cmd = 'EquipItemByName("'.. itemName ..'"'
     if slot then
       cmd = cmd ..", ".. slot
     end
@@ -80,12 +64,12 @@ end
 function UseItem(itemName, target)
     if UnitIsCasting() then return false end
     if not ItemExists(itemName) then return false end
-    if not IsEquippedItem(itemName) and not IsUsableItem(itemName) then return false end
+    if not IsUsableItem(itemName) then return false end
     if IsCurrentItem(itemName) then return false end
     if not IsReadyItem(itemName) then return false end
     local itemSpell = GetItemSpell(itemName)
     if itemSpell and IsSpellInUse(itemSpell) then return false end
-    local cmd  = "UseItemByName('" .. itemName .. "'"
+    local cmd  = 'UseItemByName("' .. itemName .. '"'
     if target then
       if not UnitExists(target) then return false end
       if not InRange(itemSpell, target) then return false end

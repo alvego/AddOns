@@ -14,10 +14,10 @@ local redDispelList = {
     "Замедление",
     "Эффект ледяной ловушки",
     "Эффект замораживающей стрелы",
-    --"Удушение",
-    --"Антимагия - немота",
-    --"Безмолвие",
-    --"Волшебный поток",
+    "Удушение",
+    "Антимагия - немота",
+    "Безмолвие",
+    "Волшебный поток",
     "Вой ужаса",
     "Ментальный крик",
     "Успокаивающий поцелуй"
@@ -30,7 +30,6 @@ local function canDispel(u)
 end
 
 function Idle()
-
   local target = "target"
   local player = "player"
   -- Дизамаунт
@@ -55,130 +54,32 @@ function Idle()
 
   -- Heal Rotation ------------------------------------------------------------------------------------------------------------------------------
   if HasSpell("Частица Света") then
-
-    if not InCombatLockdown() and IsPvP() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
-
-      if (IsAttack() or InCombatLockdown()) and not HasBuff("Аура сосредоточенности") and DoSpell("Аура сосредоточенности", player) then return end
-      --if IsPvP() and not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
-      if not HasBuff("Печать") and DoSpell("Печать мудрости", player) then return end
-      --if not HasBuff("Печать") and DoSpell("Печать мудрости","player") then return end
-      if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
-          if not HasBuff("благословение королей") and DoSpell("Великое благословение королей", player) then return end
-      end
-
-      local hp = UnitHealth100(player)
-      local mana = UnitMana100(player)
-
-      if InCombatLockdown() then
-        if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
-        if not (InDuel() or IsArena()) then
-          if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
-          if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
-        end
-        if IsPvP() and hp < 40 and DoSpell("Длань спасения", player) then return end
-      end
-
-      local u = "player"
-      local du = nil
-      if InInteractRange(teammate) and canDispel(teammate) then du = teammate end
-      if not du and canDispel(u) then du = u end
-      local hasShield = HasMyBuff("Священный щит",1, player) and true or false
-      local hasLight = HasMyBuff("Частица Света",1, player) and true or false
-      local h = UnitHealth100(u)
-      local fatUnit = nil
-      local fatHP = 0
-      for i = 1, #UNITS do
-        local _u = UNITS[i]
-        if IsVisible(_u) then
-        local _h = UnitHealth100(_u)
-        local _h_mult = 1
-        local _maxHP  = UnitHealthMax(_u)
-        if _maxHP > fatHP then
-          fatHP = _maxHP
-          fatUnit = _u
-        end
-        if not hasShield and HasMyBuff("Священный щит",1,_u) then hasShield = true end
-        if not hasLight and HasMyBuff("Частица Света",1,_u) then
-          hasLight = true
-           _h_mult = 1.1
-        end
-        if (_h * _h_mult) < h then
-          u = _u
-          h = _h * _h_mult
-          if not du and canDispel(u) then du = u end
-        end
-      end
-      end
-      if not u then return end
-
-
-
-      local l = UnitLostHP(u)
-      if InCombatLockdown() and IsInGroup() and IsSpellNotUsed("Частица Света", 10) and not hasLight then
-        if InInteractRange(teammate) then
-          if DoSpell("Частица Света",  teammate) then return end
-        else
-          if not IsOneUnit(player, fatUnit) and DoSpell("Частица Света",  fatUnit) then return end
-        end
-      end
-
-      --[[if IsShift() then
-        h = 20
-        l = 25000
-      end]]
-
-      if mana > 50 then l = l * 1.5 end
-      if HasBuff("Божественное одобрение") and DoSpell("Шок небес", u) then return end
-      if (h < 35) and not IsReadyItem("Подвеска истинной крови") and GetSpellCooldownLeft("Шок небес") < 0.1 and DoSpell("Божественное одобрение") then return end
-      if (h < 35) and UseEquippedItem("Подвеска истинной крови", u) then return end
-      if InCombatMode() and h < 95 and UseEquippedItem("Украшенные перчатки разгневанного гладиатора") then return end
-      if InCombatMode() and mana < 90 and UseEquippedItem("Осколок чистейшего льда") then return end
-
-      if InCombatMode() and IsSpellNotUsed("Священный щит", 5) and not hasShield then
-        if InInteractRange(teammate) then
-          if DoSpell("Священный щит",  teammate) then return end
-        else
-          if h < 60 and not HasMyBuff("Священный щит", 1, u) and DoSpell("Священный щит", u) then return end
-        end
-      end
-
-      if du and IsCtr()--[[(IsCtr() or (h > 45 and (IsSpellNotUsed("Очищение", 2) or HasDebuff(redDispelList, 1, du))))]] and DoSpell("Очищение", du) then return end
-      if (h < 98 or l > 3000) and DoSpell("Шок небес", u) then return end
-      if (HasBuff("Прилив Света") or PlayerInPlace()) and (h < 50 or l > 2000) and DoSpell("Вспышка Света", u) then return end
-
-      if InCombatMode() then
-        TryTarget()
-        if not IsValidTarget(target) then return end
-        if DoSpell("Правосудие света", target) then return end
-        if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
-      end
+      Heal()
       return
    end
    --DD_rotation--------------------------------------------------------------------------------------------------------------------------------------------
   if not HasSpell("Удар воина Света") then return end
-
-  if IsPvP() and not HasBuff("Аура воздаяния") and DoSpell("Аура воздаяния")  then return end
-  if not InCombatLockdown() and IsPvP() and not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
-  if not HasBuff("Печать") and DoSpell("Печать праведности", player) then return true end
-  if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
-      if not HasBuff("благословение королей") and DoSpell("Великое благословение королей", player) then return end
+  if IsPvP() then
+      PvP()
+    else
+      PvE()
   end
-
-  if IsCtr() and HasDebuff(dispelTypes, 1, player) and DoSpell("Очищение", player) then return end
-  if InCombatMode() then
+end
+------------------------------------------------------------------------------------------------------------------
+function Heal()
+    local target = "target"
+    local player = "player"
+    if IsPvP() and not HasBuff("Праведное неистовство") and IsSpellNotUsed("Праведное неистовство", 5) and DoSpell("Праведное неистовство") then return end
+    if (IsAttack() or InCombatLockdown()) and not HasBuff("Аура сосредоточенности") and DoSpell("Аура сосредоточенности", player) then return end
+    --if IsPvP() and not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
+    if not HasBuff("Печать") and DoSpell("Печать мудрости", player) then return end
+    --if not HasBuff("Печать") and DoSpell("Печать мудрости","player") then return end
+    if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
+        if not HasBuff("благословение королей") and DoSpell("Великое благословение королей", player) then return end
+    end
 
     local hp = UnitHealth100(player)
     local mana = UnitMana100(player)
-
-    if not InDuel() and not IsArena() and hp < 30 and DoSpell("Возложение рук", player) then return end
-    if not InDuel() and hp < 25 and DoSpell("Божественный щит", player) then return end
-
-    if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
-
-    if mana > 30 and IsSpellNotUsed("Очищение", 4) then
-      --if HasDebuff(redDispelList, 1, player) and not HasDebuff("Нестабильное колдовство", 0.1, player) and DoSpell("Очищение", player) then return end
-      if InInteractRange(teammate) and HasDebuff(redDispelList, 1, teammate) and not HasDebuff("Нестабильное колдовство", 0.1, teammate) and DoSpell("Очищение", teammate) then return end
-    end
 
     if InCombatLockdown() then
       if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
@@ -186,61 +87,201 @@ function Idle()
         if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
         if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
       end
+      if IsPvP() and hp < 40 and DoSpell("Длань спасения", player) then return end
     end
 
-    if HasBuff("Искусство войны") --[[and (IsEquippedItemType("Щит") or ((not IsValidTarget(target) or GetSpellCooldownLeft("Экзорцизм") > 0.5)))]] then
-       if hp < 80 and DoSpell("Вспышка Света", player) then return end
-       if IsInteractUnit(teammate) and UnitHealth100(teammate) < 50 and DoSpell("Вспышка Света", teammate) then return end
+    local u = "player"
+    local du = nil
+    if InInteractRange(teammate) and canDispel(teammate) then du = teammate end
+    if not du and canDispel(u) then du = u end
+    local hasShield = HasMyBuff("Священный щит",1, player) and true or false
+    local hasLight = HasMyBuff("Частица Света",1, player) and true or false
+    local h = UnitHealth100(u)
+    local fatUnit = nil
+    local fatHP = 0
+    for i = 1, #UNITS do
+      local _u = UNITS[i]
+      if IsVisible(_u) then
+      local _h = UnitHealth100(_u)
+      local _h_mult = 1
+      local _maxHP  = UnitHealthMax(_u)
+      if _maxHP > fatHP then
+        fatHP = _maxHP
+        fatUnit = _u
+      end
+      if not hasShield and HasMyBuff("Священный щит",1,_u) then hasShield = true end
+      if not hasLight and HasMyBuff("Частица Света",1,_u) then
+        hasLight = true
+         _h_mult = 1.1
+      end
+      if (_h * _h_mult) < h then
+        u = _u
+        h = _h * _h_mult
+        if not du and canDispel(u) then du = u end
+      end
+    end
+    end
+    if not u then return end
+    local l = UnitLostHP(u)
+    if InCombatLockdown() and IsInGroup() and IsSpellNotUsed("Частица Света", 10) and not hasLight then
+      if InInteractRange(teammate) then
+        if DoSpell("Частица Света",  teammate) then return end
+      else
+        if not IsOneUnit(player, fatUnit) and DoSpell("Частица Света",  fatUnit) then return end
+      end
     end
 
+    if mana > 50 then l = l * 1.5 end
+    if HasBuff("Божественное одобрение") and DoSpell("Шок небес", u) then return end
+    if (h < 35) and not IsReadyItem("Подвеска истинной крови") and GetSpellCooldownLeft("Шок небес") < 0.1 and DoSpell("Божественное одобрение") then return end
+    if (h < 35) and UseEquippedItem("Подвеска истинной крови", u) then return end
+    if InCombatMode() and h < 95 and UseEquippedItem("Украшенные перчатки разгневанного гладиатора") then return end
+    if InCombatMode() and mana < 90 and UseEquippedItem("Осколок чистейшего льда") then return end
 
-    TryTarget()
-
-    if not CanAttack(target) then return end
-
-    if (IsAttack() or UnitAffectingCombat(target)) then
-        if IsValidTarget(target) and not IsCurrentSpell("Автоматическая атака") then oexecute("StartAttack()") end
-    else
-      if IsCurrentSpell("Автоматическая атака") then  oexecute("StopAttack()") end
+    if InCombatMode() and IsSpellNotUsed("Священный щит", 5) and not hasShield then
+      if InInteractRange(teammate) then
+        if DoSpell("Священный щит",  teammate) then return end
+      else
+        if h < 60 and not HasMyBuff("Священный щит", 1, u) and DoSpell("Священный щит", u) then return end
+      end
     end
 
-    if IsShift() and UseEquippedItem("Ремень триумфа разгневанного гладиатора", target) then return end
+    if du and IsCtr()--[[(IsCtr() or (h > 45 and (IsSpellNotUsed("Очищение", 2) or HasDebuff(redDispelList, 1, du))))]] and DoSpell("Очищение", du) then return end
+    if (h < 98 or l > 3000) and DoSpell("Шок небес", u) then return end
+    if (HasBuff("Прилив Света") or PlayerInPlace()) and (h < 50 or l > 2000) and DoSpell("Вспышка Света", u) then return end
 
-    if IsReadySpell("Длань возмездия") and UnitIsPlayer(target) and (
-      (tContains(steathClass, GetClass(target)) and not InRange("Покаяние", target)) or HasBuff(reflectBuff, 1, target)
-    ) and not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
-
-    if CanMagicAttack(target) and DoSpell((IsAlt() and "Правосудие справедливости" or "Правосудие мудрости"), target) then return end
-    if not IsPvP() and DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
-    if not IsPvP() and DoSpell("Удар воина Света") then return end
-
-    if IsPvP() and not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
-
-    if not IsValidTarget(target) then return end
-    FaceToTarget(target)
-    if HasBuff("Проклятие хаоса") then
-       oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
+    if InCombatMode() then
+      TryTarget()
+      if not IsValidTarget(target) then return end
+      if DoSpell("Правосудие света", target) then return end
+      if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
     end
-    if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
-    if UseItem("Чешуйчатые рукавицы разгневанного гладиатора") then return end
-    if not IsEquippedItemType("Щит") and HasBuff("Искусство войны") and CanMagicAttack(target) and DoSpell("Экзорцизм", target) then return end
-    if (UnitCreatureType(target) == "Нежить") and mana > 30 and DistanceTo(player, target) < 8 and DoSpell("Гнев небес") then return end
-    if IsPvP() and  DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
-    if DoSpell("Удар воина Света", target) then return end
-            --if true then return end
-    if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
-    if mana > 50 then
-      if DistanceTo(player, target) < 8 and (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
-      if not InDuel() and InMelee(target) and DoSpell("Освящение") then return end
-    end
-    --if not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
-    if mana < 30 and DoSpell("Святая клятва") then return end
-
+end
+------------------------------------------------------------------------------------------------------------------
+function PvE()
+  local target = "target"
+  local player = "player"
+  if HasBuff("Праведное неистовство") then oexecute('CancelUnitBuff("player", "Праведное неистовство")') end
+  if not HasBuff("Печать") and DoSpell("Печать мщения", player) then return  end
+  local hp = UnitHealth100(player)
+  local mana = UnitMana100(player)
+  if hp < 30 and DoSpell("Возложение рук", player) then return end
+  if hp < 25 and DoSpell("Божественный щит", player) then return end
+  if InCombatLockdown() then
+    if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
+    if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
+    if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
   end
-
+  if HasBuff("Искусство войны") then
+     if hp < 50 and DoSpell("Вспышка Света", player) then return end
+     if IsInteractUnit(teammate) and UnitHealth100(teammate) < 30 and DoSpell("Вспышка Света", teammate) then return end
+  end
+  TryTarget()
+  if not CanAttack(target) then return end
+  if (IsAttack() or UnitAffectingCombat(target)) then oexecute("StartAttack()") end
+  if not IsValidTarget(target) then return end
+  if HasBuff("Проклятие хаоса") then oexecute('CancelUnitBuff("player", "Проклятие хаоса")') end
+  if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
+  FaceToTarget(target)
+  if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
+  if DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
+  if DoSpell("Удар воина Света") then return end
+  if CanMagicAttack(target) and DoSpell((IsAlt() and "Правосудие справедливости" or "Правосудие мудрости"), target) then return end
+  if UseEquippedItem(GetSlotItemName(10), target) then return end
+  if (UnitCreatureType(target) == "Нежить") and mana > 30 and DistanceTo(player, target) < 8 and DoSpell("Гнев небес") then return end
+  if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
+  if mana > 50 and InMelee(target) and DoSpell("Освящение") then return end
+  --if not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
+  if mana < 30 and DoSpell("Святая клятва") then return end
 end
 
-
+------------------------------------------------------------------------------------------------------------------
+local last2H
+function PvP()
+  local target = "target"
+  local player = "player"
+  local isFinishHim = CanAttack(target) and UnitHealth100(target) < 35
+  if not isFinishHim and not HasBuff("Аура") and DoSpell("Аура воздаяния")  then return end
+  if not HasBuff("Печать") and DoSpell("Печать праведности", player) then return  end
+  if IsCtr() and HasDebuff(dispelTypes, 1, player) and DoSpell("Очищение", player) then return end
+  if not isFinishHim and not HasBuff("Праведное неистовство") and IsSpellNotUsed("Праведное неистовство", 5) and DoSpell("Праведное неистовство") then return end
+  if not isFinishHim and not InCombatMode() then
+    if not HasMyBuff("благословение королей")
+        and not HasMyBuff("благословение могущества")
+        and not HasBuff("благословение королей")
+        and DoSpell("Великое благословение королей", player) then return end
+    return
+  end
+  local hp = UnitHealth100(player)
+  local mana = UnitMana100(player)
+  local shield = IsEquippedItemType("Щит")
+  if TimerMore('equipweapon', 0.5) then
+    if hp < 40 and not shield then
+      last2H = GetSlotItemName(16)
+      -- одеваем одноручку и цит
+      oexecute("UseEquipmentSet('upheal')")
+      TimerStart('equipweapon')
+      return
+    end
+    if hp > 80 and shield then
+      -- одеваем двуручку
+      EquipItem(last2H or 'Темная Скорбь', 16)
+      TimerStart('equipweapon')
+      return
+    end
+  end
+  if not InDuel() then
+    if not IsArena() and hp < 30 and DoSpell("Возложение рук", player) then return end
+    if hp < 25 and DoSpell("Божественный щит", player) then return end
+  end
+  if not isFinishHim and mana > 30 and IsSpellNotUsed("Очищение", 5) and InInteractRange(teammate) and HasDebuff(redDispelList, 3, teammate)
+    and not HasDebuff("Нестабильное колдовство", 0.1, teammate) and DoSpell("Очищение", teammate) then return end
+  if InCombatLockdown() then
+    if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
+    if not (InDuel() or IsArena()) then
+      if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
+      if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
+    end
+  end
+  if HasBuff("Искусство войны") then
+     if hp < (shield and 90 or 50) and DoSpell("Вспышка Света", player) then return end
+     if IsInteractUnit(teammate) and UnitHealth100(teammate) < 50 and DoSpell("Вспышка Света", teammate) then return end
+  end
+  if AdvMode then
+    for i = 1, #TARGETS do
+      local t = TARGETS[i]
+      if CanMagicAttack(t) and UnitHealth100(t) < 19.99 and DoSpell("Молот гнева", t) then return end
+    end
+  end
+  TryTarget()
+  if not CanAttack(target) then return end
+  if (IsAttack() or UnitAffectingCombat(target)) then oexecute("StartAttack()") end
+  if not IsValidTarget(target) then return end
+  FaceToTarget(target)
+  if HasBuff("Проклятие хаоса") then oexecute('CancelUnitBuff("player", "Проклятие хаоса")') end
+  if UnitHealth100(target) < 19.99 and DoSpell("Молот гнева", target) then return end
+  if IsShift() and UseEquippedItem("Ремень триумфа разгневанного гладиатора", target) then return end
+  if IsReadySpell("Длань возмездия") and UnitIsPlayer(target) and (
+    (tContains(steathClass, GetClass(target)) and not InRange("Покаяние", target)) or HasBuff(reflectBuff, 1, target)
+  ) and not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
+  if CanMagicAttack(target) and DoSpell((IsAlt() and "Правосудие справедливости" or "Правосудие мудрости"), target) then return end
+  if not isFinishHim and not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
+  if UseEquippedItem(GetSlotItemName(10), target) then return end
+  if (UnitCreatureType(target) == "Нежить") and mana > 30 and DistanceTo(player, target) < 8 and DoSpell("Гнев небес") then return end
+  if DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
+  if DoSpell("Удар воина Света", target) then return end
+  if shield then
+    if DoSpell("Щит праведности", target) then return end
+  else
+    if HasBuff("Искусство войны") and CanMagicAttack(target) and DoSpell("Экзорцизм", target) then return end
+  end
+  if mana > 50 then
+    if DistanceTo(player, target) < 8 and (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
+    if not InDuel() and InMelee(target) and DoSpell("Освящение") then return end
+  end
+  --if not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
+  if mana < 30 and DoSpell("Святая клятва") then return end
+end
 ------------------------------------------------------------------------------------------------------------------
 function TryTarget()
   if not IsValidTarget("target") then

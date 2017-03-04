@@ -13,7 +13,7 @@ function Equip1HShield(pvp)
     local titansGrip = HasTalent("Хватка титана") > 0
     if pvp then
       if titansGrip then
-		oexecute("UseEquipmentSet('2H1P')")
+		    oexecute("UseEquipmentSet('2H1P')")
         --oexecute("EquipItemByName('Темная Скорбь', 16)")
         --oexecute("EquipItemByName('Осадный щит разгневанного гладиатора', 17)")
       else
@@ -21,15 +21,15 @@ function Equip1HShield(pvp)
       end
     else
       if titansGrip then
-		oexecute("UseEquipmentSet('2H1E')")
+		    oexecute("UseEquipmentSet('2H1E')")
         --oexecute("EquipItemByName('Темная Скорбь', 16)")
         --oexecute("EquipItemByName('Мерзлая стена ледяной цитадели', 17)")
       else
-		oexecute("UseEquipmentSet('1HE')")
-        oexecute("EquipItemByName('Последнее желание', 16)")
-        oexecute("EquipItemByName('Мерзлая стена ледяной цитадели', 17)")
+		    oexecute("UseEquipmentSet('1HE')")
+        --oexecute("EquipItemByName('Последнее желание', 16)")
+        --oexecute("EquipItemByName('Мерзлая стена ледяной цитадели', 17)")
       end
-      
+
     end
     TimerStart('equipweapon')
   end
@@ -75,7 +75,7 @@ function TryInterrupt(pvp)
     if not CanInterrupt then return false end
 
     local target = "target"
-	
+
 
     local spell, left, duration, channel, nointerrupt = UnitIsCasting(target)
     if not spell then return nil end
