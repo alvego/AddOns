@@ -148,19 +148,27 @@ function AutoTauntToggle()
 end
 
 function AddRage()
-  if (HasTalent("Улучшенная ярость берсерка") > 0) then
-    if IsSpellNotUsed("Кровавая ярость", 1) and IsSpellNotUsed("Ярость берсерка", 1) then
-		omacro("/cast Кровавая ярость")
-		omacro("/cast Ярость берсерка")
-      --if UseSpell("Кровавая ярость") then return end
-      --if UseSpell("Ярость берсерка") then return end
-    end
+  if (HasTalent("Улучшенная ярость берсерка") > 0) or TimerLess("Damage", 2) then
+    --if IsSpellNotUsed("Кровавая ярость", 1) and IsSpellNotUsed("Ярость берсерка", 1) then
+		--omacro("/cast Кровавая ярость")
+		--omacro("/cast Ярость берсерка")
+      if UseSpell("Кровавая ярость") then return end
+      if UseSpell("Ярость берсерка") then return end
+    --end
   else
-    --UseSpell("Кровавая ярость")
-    omacro("/cast Кровавая ярость")
+    UseSpell("Кровавая ярость")
+    --omacro("/cast Кровавая ярость")
   end
 end
 
+------------------------------------------------------------------------------------------------------------------
+local function updateDamage(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, damage = ...
+    if type:match("_DAMAGE") and destGUID == UnitGUID("player") then --SWING_DAMAGE
+        TimerStart("Damage")
+    end
+end
+AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateDamage)
 ------------------------------------------------------------------------------------------------------------------
 function DoSpell(spellName, target, force)
   local rage = UnitMana("player")
