@@ -1,4 +1,4 @@
--- Paladin Rotation Helper by Timofeev Alexey
+-- Warrior Rotation Helper by Alex Tim & Co
 ------------------------------------------------------------------------------------------------------------------
 local peaceBuff = {"Пища", "Питье"}
 local myRootDebuff = {"Подрезать сухожилия", "Пронзительный вой" }

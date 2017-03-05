@@ -1,6 +1,6 @@
 ## Interface: 30300
 ## Title: |cff0055ffRotation Helper|r|cffffe00a > |r|c00ff00ffLibrary 2|r
-## Author: Timofeev Alvexey
+## Author: Alex Tim
 ## Version: 2.0
 ## DefaultState: Disabled
 ## LoadOnDemand: 1

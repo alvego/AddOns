@@ -1,4 +1,4 @@
--- Rotation Helper Library by Timofeev Alexey
+-- Rotation Helper Library by Alex Tim
 ------------------------------------------------------------------------------------------------------------------
 function test()
   print("CanAttack", CanAttack("target"), CanAttackInfo)

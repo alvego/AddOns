@@ -1,9 +1,11 @@
--- Rotation Helper Library by Timofeev Alexey
+-- Rotation Helper Library by Alex Tim
 ------------------------------------------------------------------------------------------------------------------
 local UnitAura = UnitAura
 local UnitBuff = UnitBuff
 local UnitDebuff = UnitDebuff
 local GetTime = GetTime
+------------------------------------------------------------------------------------------------------------------
+-- local stack = select(4, HasMyBuff("Жизнецвет", 0.01, u))
 ------------------------------------------------------------------------------------------------------------------
 -- Универсальный внутренний метод, для работы с бафами и дебафами
 -- HasAura('auraName' or {'aura1', ...}, minExpiresTime(s), 'target' or {'target', 'focus', ...}, UnitDebuff or UnitBuff or UnitAura, bool AuraCaster = player)

@@ -1,4 +1,4 @@
--- Paladin Rotation Helper by Timofeev Alexey & Co
+-- Paladin Rotation Helper by Alex Tim & Co
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("fear",
     function() --Apply true if done

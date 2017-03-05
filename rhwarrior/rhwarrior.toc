@@ -1,5 +1,5 @@
-## Author: Timofeev Alvexey & Co
-## Title:|cff0055ffRotation Helper|r|cffffe00a > |r|cff804000Warrior|r
+## Author: Alex Tim & Co
+## Title:|cff0055ffRotation Helper|r|cffffe00a > |r|cffC79C6EWarrior|r
 ## Version: 2.0
 ## DefaultState: Disabled
 ## Interface: 30300

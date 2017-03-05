@@ -1,4 +1,4 @@
--- Rotation Helper Library by Timofeev Alexey
+-- Rotation Helper Library by Alex Tim
 ------------------------------------------------------------------------------------------------------------------
 local inDuel = false
 local startDuel = StartDuel
@@ -200,9 +200,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function UnitThreat(u, t)
     if not UnitIsPlayer(u) then return 0 end
-    local threat = UnitThreatSituation(u, t)
-    if threat == nil then threat = 0 end
-    return threat
+    return UnitThreatSituation(u, t) or 0
 end
 
 ------------------------------------------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-﻿-- Paladin Rotation Helper by Timofeev Alexey & Co
+﻿-- Paladin Rotation Helper by Alex Tim & Co
 ------------------------------------------------------------------------------------------------------------------
 print("|cff0055ffRotation Helper|r|cffffe00a > |cffff4080Paladin|r loaded!")
 ------------------------------------------------------------------------------------------------------------------
@@ -11,6 +11,6 @@ local forbearanceSpells = {"Гнев карателя", "Божественны�
 function DoSpell(spellName, target)
 
     if tContains(forbearanceSpells, spellName) and InForbearance(target) then return false end
-    
+
     return UseSpell(spellName, target)
 end

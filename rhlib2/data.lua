@@ -1,4 +1,4 @@
-﻿-- Rotation Helper Library by Timofeev Alexey
+﻿-- Rotation Helper Library by Alex Tim
 ------------------------------------------------------------------------------------------------------------------
 -- TODO: need review
 ControlList = { -- > 4

@@ -1,6 +1,6 @@
-﻿-- Warrior Rotation Helper by Timofeev Alexey & Co
+﻿-- Warrior Rotation Helper by Alex Tim & Co
 ------------------------------------------------------------------------------------------------------------------
-print("|cff0055ffRotation Helper|r|cffffe00a > |r|cff804000Warrior|r loaded")
+print("|cff0055ffRotation Helper|r|cffffe00a > |r|cffC79C6EWarrior|r loaded")
 -- Binding
 BINDING_HEADER_WRH = "Warrior Rotation Helper"
 BINDING_NAME_WRH_INTERRUPT = "Вкл/Выкл сбивание кастов"

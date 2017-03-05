@@ -1,0 +1,168 @@
+-- Druid Rotation Helper by Alex Tim
+------------------------------------------------------------------------------------------------------------------
+local peaceBuff = {"Пища", "Питье"}
+local player = "player"
+local target = "target"
+local stance, attack, pvp, combat, combatMode, validTarget, inPlace
+function Idle()
+  stance = GetShapeshiftForm()
+  attack = IsAttack()
+  pvp = IsPvP()
+  combat = InCombatLockdown()
+  combatMode = InCombatMode()
+  validTarget = IsValidTarget(target)
+  inPlace = PlayerInPlace()
+  local mouse3 = IsMouse(3)
+  -- Дизамаунт -----------------------------------------------------------------
+  if attack or mouse3 then
+      if HasBuff("Парашют") then
+        oexecute('CancelUnitBuff("player", "Парашют")')
+      end
+      if CanExitVehicle() then VehicleExit() end
+      if IsMounted() then Dismount() end
+      if mouse3 and stance ~= 0 then omacro("/cancelform") end
+  end
+  ------------------------------------------------------------------------------
+  -- дайте поесть (побегать) спокойно
+  if not attack and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
+  if HasTalent("Древо Жизни") > 0 then
+    HealRotation()
+    return
+  end
+  if HasTalent("Облик лунного совуха") > 0 then
+    MonkRotation()
+    return
+  end
+end
+------------------------------------------------------------------------------------------------------------------
+function HealRotation()
+  if not (attack or combat) then return end
+  if not HasBuff("Древо Жизни") and DoSpell("Древо Жизни") then return end
+  if not HasBuff("дикой природы") and DoSpell("Знак дикой природы") then return end
+  ------------------------------------------------------------------------------
+  local hp = UnitHealth100(player)
+  local mana = UnitMana100(player)
+  if combat then
+    if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
+    if hp < 40 and DoSpell("Дубовая кожа", player) then return end
+    if not (InDuel() or IsArena()) then
+      if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
+      if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
+      if mana < 40 and DoSpell("Озарение", player) then return end
+      if mana < 80 and UseEquippedItem("Осколок чистейшего льда", player) then return end
+    end
+  end
+  local u = "player"
+  local h = UnitHealth100(u)
+  for i = 1, #UNITS do
+    local _u = UNITS[i]
+    if IsVisible(_u) then
+    local _h = UnitHealth100(_u)
+    if _h < h then
+      u = _u
+      h = _h
+    end
+  end
+  end
+  if not u then return end
+  local l = UnitLostHP(u)
+  if mana > 50 then l = l * 1.2 end -- оверхил
+  --if IsAlt() then h = 30  l = 16000 end
+  if HasBuff("Природная стремительность") then
+     DoSpell("Целительное прикосновение", u)
+     return
+  end
+
+  if HasBuff("Ясность мысли") and (select(4, HasMyBuff("Жизнецвет", 1, u)) or 0) < 3 then
+   DoSpell("Жизнецвет", u)
+   return
+  end
+  if (h < 35 and l > 15000) and not IsReadyItem("Подвеска истинной крови") and HasSpell("Природная стремительность") and DoSpell("Природная стремительность") then  return end
+  if (h < 35 and l > 15000) and UseEquippedItem("Подвеска истинной крови", u) then return end
+  if (h < 45 and l > 10000) and (HasMyBuff("Омоложение", 1, u) or HasMyBuff("Восстановление", 1, u)) and HasSpell("Быстрое восстановление") and DoSpell("Быстрое восстановление", u) then return end
+  if (h < 95 or l > 1000) and not HasMyBuff("Омоложение", 1, u) and DoSpell("Омоложение", u) then return end
+  if inPlace then
+     if (h < 60 or l > 8000) and HasMyBuff("Благоволение природы") and not HasMyBuff("Восстановление", 3, u) and DoSpell("Восстановление", u) then return end
+     if (h < 55 or l > 11000) and (HasMyBuff("Омоложение", 2, u) or HasMyBuff("Восстановление", 2, u) or HasMyBuff("Жизнецвет", 2, u) or HasMyBuff("Буйный рост", 2, u)) and DoSpell("Покровительство Природы", u) then return end
+  end
+end
+------------------------------------------------------------------------------------------------------------------
+local l = 0
+function MonkRotation()
+  if not combatMode then return end
+  if not HasBuff("дикой природы") and DoSpell("Знак дикой природы") then return end
+  if not HasBuff("Облик лунного совуха") and DoSpell("Облик лунного совуха") then return end
+  if UnitMana100() < 30 and UseItem("Рунический флакон с зельем маны") then return end
+    if UnitMana100(player) < 50 and DoSpell("Озарение", player) then return end
+  TryTarget()
+  if CantAttack() then return end
+  if UnitHealth(target) > 200000 and not HasDebuff("Волшебный огонь") and DoSpell("Волшебный огонь", target) then return end
+  --if not HasDebuff("Земля и луна") and DoSpell("Гнев", target) then end
+  if not HasMyDebuff("Рой насекомых", 1, target) and DoSpell("Рой насекомых", target) then return end
+  if not HasMyDebuff("Лунный огонь", 1, target) and DoSpell("Лунный огонь", target) then return end
+  if not HasBuff("Солнечное") and (HasBuff("Лунное") or GetTime() - l < 4.6) and DoSpell("Звездный огонь", target) then l = GetTime() return end
+  if DoSpell("Гнев", target) then return end
+end
+------------------------------------------------------------------------------------------------------------------
+function CantAttack()
+  if not CanAttack(target) then
+    if IsValidTargetInfo then chat('!attack: ' .. CanAttackInfo ) end
+    return true
+  end
+  local autoAttack = IsCurrentSpell("Автоматическая атака")
+  if not attack and not UnitAffectingCombat(target) then -- TODO: Не бить в сапы и имуны, писать почему не бьем
+    chat('!attack: !combat target' )
+    if autoAttack then
+      chat('attack: stop!')
+      oexecute("StopAttack()")
+    end
+    return true
+  end
+  if not autoAttack then
+      FaceToTarget(target)
+      chat('attack: start!')
+      oexecute("StartAttack()")
+  end
+  return false
+end
+------------------------------------------------------------------------------------------------------------------
+function TryTarget()
+  if validTarget then return end
+  local _uid = nil
+  local _face = false
+  local _dist = 100
+  local _combat = false
+  local look = IsMouselooking()
+  for i = 1, #TARGETS do
+    local uid = TARGETS[i]
+    repeat -- для имитации continue
+      if not IsValidTarget(uid) then break end
+      local combat = UnitAffectingCombat(uid)
+      -- уже есть кто-то в бою
+      if _combat and not combat then break end
+      -- автоматически выбераем только цели в бою
+      if not attack and not combat then break end
+      -- не будет лута
+      if (UnitIsTapped(uid)) and (not UnitIsTappedByPlayer(uid)) then break end
+      -- Призванный юнит
+      if UnitIsPossessed(uid) then break end
+      -- в pvp выбираем только игроков
+      if pvp and not UnitIsPlayer(uid) then break end
+      -- только актуальные цели
+      local face = PlayerFacingTarget(uid, look and 30 or 90)
+      -- если смотрим, то только впереди
+      if look and not face then break end
+      local dist = DistanceTo("player", uid)
+      if _face and not face and dist > 8 then break end
+      if dist > _dist then break end
+      _uid = uid
+      _combat = combat
+      _face = face
+      _dist = dist
+    until true
+  end
+  if _uid then
+    oexecute("TargetUnit('".. _uid .."')")
+    validTarget = true
+  end
+end

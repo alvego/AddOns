@@ -1,0 +1,5 @@
+<Bindings>
+  <Binding name="DRH_AUTOAOE" description="Toggle Auto AOE" header="DRH">
+    AutoAOEToggle();
+  </Binding>
+</Bindings>

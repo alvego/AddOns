@@ -1,4 +1,4 @@
--- Warrior Rotation Helper by Timofeev Alexey
+-- Warrior Rotation Helper by Alex Tim & Co
 ------------------------------------------------------------------------------------------------------------------
 Teammate = "Nau"
 local flyMounts = {

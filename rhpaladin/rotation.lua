@@ -1,4 +1,4 @@
--- Paladin Rotation Helper by Timofeev Alexey
+-- Paladin Rotation Helper by Alex Tim & Co
 ------------------------------------------------------------------------------------------------------------------
 local peaceBuff = {"Пища", "Питье"}
 local dispelTypes = {'Magic', 'Disease', 'Poison'}
