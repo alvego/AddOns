@@ -214,17 +214,31 @@ function UpdateObjects(force)
   if not force and TimerLess("UpdateObjects", 0.5) then return end
   TimerStart("UpdateObjects")
   wipe(OBJECTS)
-  wipe(TARGETS)
   local objCount = ObjectsCount()
   for i = 0, objCount - 1 do
     local uid = GUIDByIndex(i)
     if uid then
       tinsert(OBJECTS, uid)
-      if UnitCanAttack("player", uid) and DistanceTo("player", uid) <= 30 and IsValidTarget(uid) then
-          tinsert(TARGETS, uid)
-      end
     end
   end
+end
+
+function UpdateTargets(force)
+  if not force and TimerLess("UpdateTargets", 0.5) then return end
+  TimerStart("UpdateTargets")
+  wipe(TARGETS)
+  for i = 1, #OBJECTS do
+    local uid = OBJECTS[i]
+    if UnitCanAttack("player", uid) and DistanceTo("player", uid) <= 30 and IsValidTarget(uid) then
+        tinsert(TARGETS, uid)
+    end
+  end
+end
+
+function UpdateUnits(force)
+  if not ObjectsCount then return end
+  if not force and TimerLess("UpdateUnits", 0.5) then return end
+  TimerStart("UpdateUnits")
   wipe(UNITS)
   local groupUnits = GetGroupUnits()
   for i = 1, #groupUnits do
@@ -282,9 +296,9 @@ function UpdateIdle(elapsed)
     if LootFrame:IsVisible() then
       if (IsFishingMode() and IsFishingLoot()) or Farm and (not IsInGroup() or (GetLootMethod() == 'freeforall')) then
         for i=1, GetNumLootItems() do
-          LootSlot(i)
+          if not select(4, GetLootSlotInfo(i)) then LootSlot(i) end
         end
-        --CloseLoot()
+        if InCombatMode() then CloseLoot() return end
       end
       if IsAttack() then CloseLoot() end
       return
@@ -306,11 +320,13 @@ function UpdateIdle(elapsed)
 
     if AdvMode and InCombatMode() then
       UpdateObjects(true)
+      UpdateTargets(true)
+      UpdateUnits(true)
     end
 
-    if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then
+    --[[if IsMouse(3) and UnitExists("mouseover") and not IsOneUnit("target", "mouseover") then
         oexecute("FocusUnit('mouseover')")
-    end
+    end]]
 
     if Idle then Idle() end
 

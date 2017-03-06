@@ -120,7 +120,7 @@ SetCommand("run",
             if not look and IsInteractUnit(Teammate) and UnitInRange(Teammate) and InRange("Вмешательство", Teammate) then
                 DoCommand("intervene", Teammate)
             else
-              UpdateObjects()
+              UpdateUnits()
               local _u = nil
               local _dist = 0
               local _face = false

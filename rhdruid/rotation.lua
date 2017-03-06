@@ -12,15 +12,15 @@ function Idle()
   combatMode = InCombatMode()
   validTarget = IsValidTarget(target)
   inPlace = PlayerInPlace()
-  local mouse3 = IsMouse(3)
+  local mouse5 = IsMouse(5)
   -- Дизамаунт -----------------------------------------------------------------
-  if attack or mouse3 then
+  if attack or mouse5 then
       if HasBuff("Парашют") then
         oexecute('CancelUnitBuff("player", "Парашют")')
       end
       if CanExitVehicle() then VehicleExit() end
       if IsMounted() then Dismount() end
-      if mouse3 and stance ~= 0 then omacro("/cancelform") end
+      if mouse5 and stance ~= 0 then omacro("/cancelform") end
   end
   ------------------------------------------------------------------------------
   -- дайте поесть (побегать) спокойно
@@ -36,7 +36,7 @@ function Idle()
 end
 ------------------------------------------------------------------------------------------------------------------
 function HealRotation()
-  if not (attack or combat) then return end
+  if not (attack or combat or AutoHeal) then return end
   if not HasBuff("Древо Жизни") and DoSpell("Древо Жизни") then return end
   if not HasBuff("дикой природы") and DoSpell("Знак дикой природы") then return end
   ------------------------------------------------------------------------------
@@ -53,37 +53,70 @@ function HealRotation()
     end
   end
   local u = "player"
-  local h = UnitHealth100(u)
+  local h = nil
+  local curse_u = nil
+  local curse_h = nil
+
+  local potion_u = nil
+  local potion_h = nil
+
+  local lifebloom_u = nil
+  local lifebloom_h = nil
+  ------------------------------------------------------------------------------
+  UpdateUnits()
   for i = 1, #UNITS do
     local _u = UNITS[i]
     if IsVisible(_u) then
-    local _h = UnitHealth100(_u)
-    if _h < h then
-      u = _u
-      h = _h
+      local _h = UnitHealth100(_u)
+
+      if HasDebuff("Curse", 2, _u) and (not curse_h or _h < curse_h) then
+        curse_u = _u
+        curse_h = _h
+      end
+
+      if HasDebuff("Poison", 2, _u) and not HasBuff("Устранение яда", 0.5, _u) and (not potion_h or _h < potion_h) then
+        potion_u = _u
+        potion_h = _h
+      end
+
+      if (select(4, HasMyBuff("Жизнецвет", 0.01, u)) or 0) < 3 and (not lifebloom_h or _h < lifebloom_h) then
+        lifebloom_u = _u
+        lifebloom_h = _h
+      end
+
+      if not h or _h < h then
+        u = _u
+        h = _h
+      end
     end
-  end
   end
   if not u then return end
   local l = UnitLostHP(u)
   if mana > 50 then l = l * 1.2 end -- оверхил
-  --if IsAlt() then h = 30  l = 16000 end
+  --if IsAlt() then h = 60  l = 8000 end
   if HasBuff("Природная стремительность") then
      DoSpell("Целительное прикосновение", u)
      return
   end
 
-  if HasBuff("Ясность мысли") and (select(4, HasMyBuff("Жизнецвет", 1, u)) or 0) < 3 then
-   DoSpell("Жизнецвет", u)
+  if lifebloom_u and HasBuff("Ясность мысли") then
+   DoSpell("Жизнецвет", lifebloom_u)
    return
   end
-  if (h < 35 and l > 15000) and not IsReadyItem("Подвеска истинной крови") and HasSpell("Природная стремительность") and DoSpell("Природная стремительность") then  return end
-  if (h < 35 and l > 15000) and UseEquippedItem("Подвеска истинной крови", u) then return end
+
+  if IsAlt() or (mana > 50 and h > 60) then
+    if potion_u and  IsSpellNotUsed("Устранение яда", 3) and DoSpell("Устранение яда", potion_u) then return end
+    if curse_u and IsSpellNotUsed("Снятие проклятия", 3) and DoSpell("Снятие проклятия", curse_u) then return end
+  end
+
+  if (h < 35 and l > 12000) and not IsReadyItem("Подвеска истинной крови") and HasSpell("Природная стремительность") and DoSpell("Природная стремительность") then  return end
+  if (h < 35 and l > 12000) and UseEquippedItem("Подвеска истинной крови", u) then return end
   if (h < 45 and l > 10000) and (HasMyBuff("Омоложение", 1, u) or HasMyBuff("Восстановление", 1, u)) and HasSpell("Быстрое восстановление") and DoSpell("Быстрое восстановление", u) then return end
-  if (h < 95 or l > 1000) and not HasMyBuff("Омоложение", 1, u) and DoSpell("Омоложение", u) then return end
+  if (h < 98 or l > 500) and not HasMyBuff("Омоложение", 1, u) and DoSpell("Омоложение", u) then return end
+  if mana > 50 and h < 99 and h > 50 and (select(4, HasMyBuff("Жизнецвет", 0.01, u)) or 0) < 3 and DoSpell("Жизнецвет", u) then return end
   if inPlace then
-     if (h < 60 or l > 8000) and HasMyBuff("Благоволение природы") and not HasMyBuff("Восстановление", 3, u) and DoSpell("Восстановление", u) then return end
-     if (h < 55 or l > 11000) and (HasMyBuff("Омоложение", 2, u) or HasMyBuff("Восстановление", 2, u) or HasMyBuff("Жизнецвет", 2, u) or HasMyBuff("Буйный рост", 2, u)) and DoSpell("Покровительство Природы", u) then return end
+     if (h < 65 or l > 6000) and HasMyBuff("Благоволение природы") and not HasMyBuff("Восстановление", 3, u) and DoSpell("Восстановление", u) then return end
+     if (h < 55 or l > 8000) and (HasMyBuff("Омоложение", 2, u) or HasMyBuff("Восстановление", 2, u) or HasMyBuff("Жизнецвет", 2, u) or HasMyBuff("Буйный рост", 2, u)) and DoSpell("Покровительство Природы", u) then return end
   end
 end
 ------------------------------------------------------------------------------------------------------------------
@@ -166,3 +199,4 @@ function TryTarget()
     validTarget = true
   end
 end
+------------------------------------------------------------------------------------------------------------------

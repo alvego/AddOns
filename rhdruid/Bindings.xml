@@ -1,5 +1,5 @@
 <Bindings>
-  <Binding name="DRH_AUTOAOE" description="Toggle Auto AOE" header="DRH">
-    AutoAOEToggle();
+  <Binding name="DRH_AUTOHEAL" description="Toggle Auto HEAL" header="DRH">
+    AutoHealToggle();
   </Binding>
 </Bindings>

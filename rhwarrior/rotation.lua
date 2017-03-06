@@ -63,7 +63,7 @@ function Idle()
   end
 
   -- Дизамаунт -----------------------------------------------------------------
-  if attack or IsMouse(3) then
+  if attack or IsMouse(5) then
       if HasBuff("Парашют") then
         oexecute('CancelUnitBuff("player", "Парашют")')
       end
