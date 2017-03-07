@@ -24,7 +24,7 @@ function Idle()
   end
   ------------------------------------------------------------------------------
   -- дайте поесть (побегать) спокойно
-  if not attack and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
+  if not attack and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) or stance == 4 or stance == 6 then return end
   if HasTalent("Древо Жизни") > 0 then
     HealRotation()
     return
@@ -44,13 +44,13 @@ function HealRotation()
   local mana = UnitMana100(player)
   if combat then
     if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
-    if hp < 40 and DoSpell("Дубовая кожа", player) then return end
+    if hp < 70 and DoSpell("Дубовая кожа", player) then return end
     if not (InDuel() or IsArena()) then
       if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
       if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
-      if mana < 40 and DoSpell("Озарение", player) then return end
-      if mana < 80 and UseEquippedItem("Осколок чистейшего льда", player) then return end
     end
+    if mana < 60 and DoSpell("Озарение", player) then return end
+    if mana < 80 and UseEquippedItem("Осколок чистейшего льда", player) then return end
   end
   local u = "player"
   local h = nil
@@ -109,14 +109,19 @@ function HealRotation()
     if curse_u and IsSpellNotUsed("Снятие проклятия", 3) and DoSpell("Снятие проклятия", curse_u) then return end
   end
 
-  if (h < 35 and l > 12000) and not IsReadyItem("Подвеска истинной крови") and HasSpell("Природная стремительность") and DoSpell("Природная стремительность") then  return end
-  if (h < 35 and l > 12000) and UseEquippedItem("Подвеска истинной крови", u) then return end
-  if (h < 45 and l > 10000) and (HasMyBuff("Омоложение", 1, u) or HasMyBuff("Восстановление", 1, u)) and HasSpell("Быстрое восстановление") and DoSpell("Быстрое восстановление", u) then return end
-  if (h < 98 or l > 500) and not HasMyBuff("Омоложение", 1, u) and DoSpell("Омоложение", u) then return end
-  if mana > 50 and h < 99 and h > 50 and (select(4, HasMyBuff("Жизнецвет", 0.01, u)) or 0) < 3 and DoSpell("Жизнецвет", u) then return end
+  local tanking = (UnitThreat(u) > 1) or (combat and pvp and IsOneUnit(u, player))
+
+  if (h < 70 and l > 10000) and (HasMyBuff("Омоложение", 1, u) or HasMyBuff("Восстановление", 1, u)) and HasSpell("Быстрое восстановление") and DoSpell("Быстрое восстановление", u) then return end
+  if (h < 50 and l > 12000) and not IsReadyItem("Подвеска истинной крови") and HasSpell("Природная стремительность") and DoSpell("Природная стремительность") then  return end
+  if (h < 45 and l > 12000) and UseEquippedItem("Подвеска истинной крови", u) then return end
+  if (h < 98 or l > 500 or tanking) and not HasMyBuff("Омоложение", 1, u) and DoSpell("Омоложение", u) then return end
+
+  local count, _, _, last = select(4, HasMyBuff("Жизнецвет", 0.01, u))
+  if mana > 30 and h > 35 and (((tanking or h < 90) and (count or 0) < 3) or (tanking and last < 2 and h > 95)) and DoSpell("Жизнецвет", u) then return end
+
   if inPlace then
-     if (h < 65 or l > 6000) and HasMyBuff("Благоволение природы") and not HasMyBuff("Восстановление", 3, u) and DoSpell("Восстановление", u) then return end
-     if (h < 55 or l > 8000) and (HasMyBuff("Омоложение", 2, u) or HasMyBuff("Восстановление", 2, u) or HasMyBuff("Жизнецвет", 2, u) or HasMyBuff("Буйный рост", 2, u)) and DoSpell("Покровительство Природы", u) then return end
+     if (h < 65 and l > 6000) and HasMyBuff("Благоволение природы") and not HasMyBuff("Восстановление", 3, u) and DoSpell("Восстановление", u) then return end
+     if (h < 55 and l > 8000) and (HasMyBuff("Омоложение", 2, u) or HasMyBuff("Восстановление", 2, u) or HasMyBuff("Жизнецвет", 2, u) or HasMyBuff("Буйный рост", 2, u)) and DoSpell("Покровительство Природы", u) then return end
   end
 end
 ------------------------------------------------------------------------------------------------------------------
