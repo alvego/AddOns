@@ -23,7 +23,39 @@ end
 ------------------------------------------------------------------------------------------------------------------
 local GetTime = GetTime
 ------------------------------------------------------------------------------------------------------------------
+-- Update Debug Frame
+local notifyFrame
+local notifyFrameTime = 0
+local function notifyFrame_OnUpdate()
+  if (notifyFrameTime > 0 and notifyFrameTime < GetTime() - 1) then
+    local alpha = notifyFrame:GetAlpha()
+    if alpha ~= 0 then notifyFrame:SetAlpha(alpha - .02) end
+    if aplha == 0 then
+      notifyFrame:Hide()
+      notifyFrameTime = 0
+    end
+  end
+end
+-- Debug & Notification Frame
+notifyFrame = CreateFrame('Frame')
+notifyFrame:ClearAllPoints()
+notifyFrame:SetHeight(300)
+notifyFrame:SetWidth(800)
+notifyFrame:SetScript('OnUpdate', notifyFrame_OnUpdate)
+notifyFrame:Hide()
+notifyFrame.text = notifyFrame:CreateFontString(nil, 'BACKGROUND', 'PVPInfoTextFont')
+notifyFrame.text:SetTextColor(1,0,0)
+notifyFrame.text:SetAllPoints()
+notifyFrame:SetPoint('CENTER', 0, 100)
 
+-- Debug messages.
+function Notify(message)
+    notifyFrame.text:SetText(message)
+    notifyFrame:SetAlpha(1)
+    notifyFrame:Show()
+    notifyFrameTime = GetTime()
+end
+------------------------------------------------------------------------------------------------------------------
 function echo(msg)
     UIErrorsFrame:Clear()
     UIErrorsFrame:AddMessage(msg, 0.0, 1.0, 0.0, 53, 2);

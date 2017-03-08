@@ -328,6 +328,13 @@ function UpdateIdle(elapsed)
         oexecute("FocusUnit('mouseover')")
     end]]
 
+    if IsArena() then
+        if IsValidTarget("target") and (not UnitExists("focus") or IsOneUnit("target", "focus")) then
+            if IsOneUnit("target","arena1") and UnitExists("arena2") then omacro("/focus arena2") end
+            if IsOneUnit("target","arena2") and UnitExists("arena1") then omacro("/focus arena1") end
+        end
+    end
+
     if Idle then Idle() end
 
 
@@ -380,4 +387,44 @@ function UpdateIdle(elapsed)
       end
     end
 end
+------------------------------------------------------------------------------------------------------------------
+--Arena Raid Icons
+local unitCD = {}
+local raidIconsByClass = {WARRIOR=8,DEATHKNIGHT=7,PALADIN=3,PRIEST=5,SHAMAN=6,DRUID=2,ROGUE=1,MAGE=8,WARLOCK=3,HUNTER=4}
+local function UpdateArenaRaidIcons(event, ...)
+    if IsArena() then
+        local members = GetGroupUnits()
+        for i=1, #members do
+            local u = members[i]
+            if UnitExists(u) and not GetRaidTargetIndex(u) and (not unitCD[u] or GetTime() - unitCD[u] > 5) then
+                SetRaidTarget(u,raidIconsByClass[select(2,UnitClass(u))])
+                unitCD[u] = GetTime()
+            end
+        end
+	end
+end
+AttachEvent("GROUP_ROSTER_UPDATE", UpdateArenaRaidIcons)
+AttachEvent("ARENA_OPPONENT_UPDATE", UpdateArenaRaidIcons)
+AttachEvent("ARENA_PREP_OPPONENT_SPECIALIZATIONS", UpdateArenaRaidIcons)
+------------------------------------------------------------------------------------------------------------------
+-- Alert опасных спелов
+local checkedTargets = {"target", "focus", "arena1", "arena2", "mouseover"}
+function UpdateSpellAlert(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err = select(1, ...)
+    --[[if sourceName == UnitName("player") or sourceName == UnitName("target") then
+        print(type, sourceName, spellName, destName)
+    end]]
+    if InAlertList(spellName) then
+        for i=1,#checkedTargets do
+            local t = checkedTargets[i]
+            if IsValidTarget(t) and UnitGUID(t) == sourceGUID then
+                type = strreplace(type, "SPELL_AURA_", "")
+                Notify("|cffff7d0a" .. spellName .. " ("..(sourceName or "unknown")..")|r  - " .. type .. "!")
+                PlaySound("RaidWarning", "master");
+                break
+            end
+        end
+    end
+end
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateSpellAlert)
 ------------------------------------------------------------------------------------------------------------------
