@@ -122,7 +122,7 @@ function Heal()
     end
     if not u then return end
     local l = UnitLostHP(u)
-    if InCombatLockdown() and IsInGroup() and IsSpellNotUsed("Частица Света", 10) and not hasLight then
+    if not IsArena and InCombatLockdown() and IsInGroup() and IsSpellNotUsed("Частица Света", 10) and not hasLight then
       if InInteractRange(teammate) then
         if DoSpell("Частица Света",  teammate) then return end
       else
@@ -137,7 +137,7 @@ function Heal()
     if InCombatMode() and h < 95 and UseEquippedItem("Украшенные перчатки разгневанного гладиатора") then return end
     if InCombatMode() and mana < 90 and UseEquippedItem("Осколок чистейшего льда") then return end
 
-    if InCombatMode() and IsSpellNotUsed("Священный щит", 5) and not hasShield then
+    if not IsArena and InCombatMode() and IsSpellNotUsed("Священный щит", 5) and not hasShield then
       if InInteractRange(teammate) then
         if DoSpell("Священный щит",  teammate) then return end
       else
@@ -146,8 +146,8 @@ function Heal()
     end
 
     if du and IsCtr()--[[(IsCtr() or (h > 45 and (IsSpellNotUsed("Очищение", 2) or HasDebuff(redDispelList, 1, du))))]] and DoSpell("Очищение", du) then return end
-    if (h < 98 or l > 3000) and DoSpell("Шок небес", u) then return end
-    if (HasBuff("Прилив Света") or PlayerInPlace()) and (h < 50 or l > 2000) and DoSpell("Вспышка Света", u) then return end
+    if not IsArena and (h < 98 or l > 3000) and DoSpell("Шок небес", u) then return end
+    if not IsArena and (HasBuff("Прилив Света") or PlayerInPlace()) and (h < 50 or l > 2000) and DoSpell("Вспышка Света", u) then return end
 
     --[[if InCombatMode() then
       TryTarget()
