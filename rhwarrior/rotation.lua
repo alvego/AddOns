@@ -311,30 +311,24 @@ function Idle()
     if aoe2 and HasSpell("Размашистые удары") then  DoSpell("Размашистые удары") end
     if aoe2 then DoSpell("Рассекающий удар", nil, not pvp) end
     if aoe3 and melee and stance ~= 3 and DoSpell("Удар грома") then return end
-
-    if not PlayerInPlace() and UnitIsPlayer(target) and not HasDebuff(myRootDebuff, 1, target) then
+    if shield and ( pvp and HasBuff("Magic", 3, target ) or HasBuff("Щит и меч", 0.1, player) ) and DoSpell("Мощный удар щитом", target) then return end
+    if stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
+    if not PlayerInPlace() and UnitIsPlayer(target) and not HasBuff("Длань свободы", 0.1, target) and not HasDebuff(myRootDebuff, 1, target) then
         if stance ~= 2 and InRange("Подрезать сухожилия", target) then
           if DoSpell("Подрезать сухожилия", target) then return end
         elseif HasSpell("Пронзительный вой") and DistanceTo(player, target) < 10 then
           if DoSpell("Пронзительный вой") then return end
         end
     end
-
-    if melee and HasSpell("Ударная волна") and DoSpell("Ударная волна") then return end
-    if shield and ( pvp and HasBuff("Magic", 3, target ) or HasBuff("Щит и меч", 0.1, player) ) and DoSpell("Мощный удар щитом", target) then return end
     if HasSpell("Сокрушение") and shield and DoSpell("Сокрушение", target) then return end
-
     if HasSpell("Смертельный удар") and DoSpell("Смертельный удар", target, true) then return end
-
     if stance ~= 3 and not HasMyDebuff("Кровопускание", 1, target) and DoSpell("Кровопускание", target, true) then return end
-
-    if stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
-
     if stance ~= 2 and HasBuff("Внезапная смерть") and DoSpell("Казнь", target) then return end
+    if melee and HasSpell("Ударная волна") and DoSpell("Ударная волна") then return end
     if HasSpell("Кровожадность") and DoSpell("Кровожадность", target, true) then return end
     if stance == 3 and HasSpell("Вихрь") and (melee or aoe2) and DoSpell("Вихрь", nil, true) then return end
     if HasBuff("Сокрушить!") and DoSpell("Мощный удар", target, true) then return end
-    if not aoe2 and rage > ( HasSpell("Кровожадность") and 50 or 90) then --TODO символ на удар героя, когторый возвращает рагу
+    if not aoe2 and rage > ( HasSpell("Кровожадность") and 90 or 50) then --TODO символ на удар героя, когторый возвращает рагу
 	   if melee and DoSpell("Удар героя", target) then return end
     end
 
