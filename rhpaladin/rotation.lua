@@ -23,8 +23,6 @@ local redDispelList = {
     "Успокаивающий поцелуй"
 }
 
-teammate = "Qo"
-
 local function canDispel(u)
   return HasDebuff(dispelTypes, 1, u) and not HasDebuff("Нестабильное колдовство", 0.1, u)
 end
@@ -151,12 +149,12 @@ function Heal()
     if (h < 98 or l > 3000) and DoSpell("Шок небес", u) then return end
     if (HasBuff("Прилив Света") or PlayerInPlace()) and (h < 50 or l > 2000) and DoSpell("Вспышка Света", u) then return end
 
-    if InCombatMode() then
+    --[[if InCombatMode() then
       TryTarget()
       if not IsValidTarget(target) then return end
       if DoSpell("Правосудие света", target) then return end
       if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
-    end
+    end]]
 end
 ------------------------------------------------------------------------------------------------------------------
 function PvE()

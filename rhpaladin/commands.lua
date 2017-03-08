@@ -1,5 +1,7 @@
 -- Paladin Rotation Helper by Alex Tim & Co
 ------------------------------------------------------------------------------------------------------------------
+teammate = "Qo"
+
 SetCommand("fear",
     function() --Apply true if done
         local target = nil --Вороная горгулья
@@ -23,19 +25,6 @@ SetCommand("fear",
         return false
     end
 )
-----------------------------------------------------------------------------------------------------------------
-SetCommand("freeQo",
-  function()
-    if not UnitCanAttack("player", teammate) and IsInteractUnit(teammate) then
-      UseSpell("Длань свободы", teammate)
-    end
-  end,
-  function()
-    if not InGCD() and not IsReadySpell("Длань свободы") then return true end
-    return false
-  end
-)
-
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("Lay",
   function()
@@ -62,15 +51,17 @@ SetCommand("sacra",
 )
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("free",
+  function() return true end,
   function()
-    UseSpell("Длань свободы", "player")
-  end,
-  function()
-    if not InGCD() and not IsReadySpell("Длань свободы") then return true end
-    return false
+    local target = IsAlt() and teammate or "player"
+    if not InInteractRange(target) then
+       chat("free: !InInteractRange")
+       return true
+    end
+    DoCommand("spell", "Длань свободы", target)
+    return true
   end
 )
-
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("repentance",
   function(target)
@@ -85,14 +76,15 @@ SetCommand("repentance",
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("stun",
-  function(target)
-    UseSpell("Молот правосудия", target)
-  end,
-  function(target)
-    if target == nil then target = "target" end
-    if (not InGCD() and not IsReadySpell("Молот правосудия")) or not CanControl(target) or HasBuff("Незыблемость льда", 0.1 , target) then return true end
-    return false
+  function() return true end,
+  function()
+    local target = IsAlt() and "focus" or "player"
+    if not CanControl(target) then
+       chat("stun: !CanControl")
+       return true
+    end
+    DoCommand("spell", "Молот правосудия", target)
+    return true
   end
 )
-
 ------------------------------------------------------------------------------------------------------------------
