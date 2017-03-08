@@ -157,10 +157,10 @@ function CantAttack()
     return true
   end
   if not autoAttack then
-      FaceToTarget(target)
       chat('attack: start!')
       oexecute("StartAttack()")
   end
+  FaceToTarget(target)
   return false
 end
 ------------------------------------------------------------------------------------------------------------------

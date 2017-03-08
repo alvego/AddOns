@@ -99,6 +99,7 @@ function Heal()
     local h = UnitHealth100(u)
     local fatUnit = nil
     local fatHP = 0
+    UpdateUnits()
     for i = 1, #UNITS do
       local _u = UNITS[i]
       if IsVisible(_u) then
@@ -257,7 +258,6 @@ function PvP()
   TryTarget()
   if not CanAttack(target) then return end
   if (IsAttack() or UnitAffectingCombat(target)) then oexecute("StartAttack()") end
-  if not IsValidTarget(target) then return end
   FaceToTarget(target)
   if HasBuff("Проклятие хаоса") then oexecute('CancelUnitBuff("player", "Проклятие хаоса")') end
   if UnitHealth100(target) < 19.99 and DoSpell("Молот гнева", target) then return end
