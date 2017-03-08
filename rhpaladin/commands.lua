@@ -78,7 +78,7 @@ SetCommand("repentance",
 SetCommand("stun",
   function() return true end,
   function()
-    local target = IsAlt() and "focus" or "player"
+    local target = IsAlt() and "focus" or "target"
     if not CanControl(target) then
        chat("stun: " .. CanControlInfo)
        return true
