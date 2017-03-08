@@ -80,7 +80,7 @@ SetCommand("stun",
   function()
     local target = IsAlt() and "focus" or "player"
     if not CanControl(target) then
-       chat("stun: !CanControl")
+       chat("stun: " .. CanControlInfo)
        return true
     end
     DoCommand("spell", "Молот правосудия", target)

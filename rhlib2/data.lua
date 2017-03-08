@@ -25,21 +25,44 @@ ControlList = { -- > 4
 "Соблазн"
 }
 ------------------------------------------------------------------------------------------------------------------
+CanControlInfo = ""
 -- Можно законтролить игрока
 local imperviousList = {"Вихрь клинков", "Зверь внутри", "Незыблемость льда"} -- TODO: Незыблемость льда под вопросом
 function CanControl(target)
     if nil == target then target = "target" end
-    return CanMagicAttack(target) and not HasBuff(imperviousList, 0.1, target)
-        and not HasDebuff(ControlList, 3, target)
+    if not CanMagicAttack(target) then
+      CanControlInfo = CanMagicAttackInfo
+      return false
+    end
+    local aura = HasBuff(imperviousList, 0.1, target)
+    if aura then
+      CanControlInfo = aura
+      return false
+    end
+    local aura = HasDebuff(ControlList, 3, target)
+    if aura then
+      CanControlInfo = aura
+      return false
+    end
+    return true
 end
 
 ------------------------------------------------------------------------------------------------------------------
+CanMagicAttackInfo = ""
 -- можно использовать магические атаки против игрока
 local magicList = {"Отражение заклинания", "Антимагический панцирь", "Рунический покров", "Эффект тотема заземления"}
 function CanMagicAttack(target)
     if nil == target then target = "target" end
-    return CanAttack(target)
-        and not HasBuff(magicList, 0.1, target)
+    if not CanAttack(target) then
+      CanMagicAttackInfo = CanAttackInfo
+      return false
+    end
+    local aura = HasBuff(magicList, 0.1, target)
+    if aura then
+      CanMagicAttackInfo = aura
+      return false
+    end
+    return true
 end
 
 ------------------------------------------------------------------------------------------------------------------
