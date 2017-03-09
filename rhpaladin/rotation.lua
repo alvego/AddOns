@@ -146,6 +146,7 @@ function Heal()
     end
 
     if du and IsCtr()--[[(IsCtr() or (h > 45 and (IsSpellNotUsed("Очищение", 2) or HasDebuff(redDispelList, 1, du))))]] and DoSpell("Очищение", du) then return end
+    if IsArena() and h < 60 and DoSpell("Шок небес", u) then return end
     if not IsArena() and (h < 98 or l > 3000) and DoSpell("Шок небес", u) then return end
     if not IsArena() and (HasBuff("Прилив Света") or PlayerInPlace()) and (h < 50 or l > 2000) and DoSpell("Вспышка Света", u) then return end
 
