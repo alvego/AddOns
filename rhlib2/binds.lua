@@ -410,7 +410,6 @@ function UpdateSapped(event, ...)
 	and destGUID == UnitGUID("player")
 	and (type == "SPELL_AURA_APPLIED" or type == "SPELL_AURA_REFRESH")
 	then
-		RunMacroText("/к Меня сапнули, помогите плиз!")
 		Notify("Словил сап от роги: "..(sourceName or "(unknown)"))
 	end
 end

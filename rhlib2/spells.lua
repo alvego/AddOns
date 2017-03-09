@@ -357,13 +357,4 @@ function UseSpell(spell, target)
   end
   return true
 end
-
 ------------------------------------------------------------------------------------------------------------------
-local function UpdateBreakCast(event, ...)
-    local unit, spell, rank, target = select(1,...)
-    if spell and spell == 'Удар щитом' and IsValidTarget(unit) then
-        print(unit ..' --> '..spell)
-        omacro('/stopcasting')
-    end
-end
-AttachEvent('UNIT_SPELLCAST_SUCCEEDED', UpdateBreakCast)

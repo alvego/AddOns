@@ -83,7 +83,7 @@ function Idle()
 	  if not debuff then
 		     debuff = HasDebuff(ControlList, 3, "player")
     end
-    if debuff and  IsSpellNotUsed("Ярость берсерка", 1) and DoSpell("Каждый за себя") then return end
+    if debuff and IsSpellNotUsed("Ярость берсерка", 1) and DoSpell("Каждый за себя") then return end
 
     --AutoTaunt-----------------------------------------------------------------
     if not pvp and AdvMode and AutoTaunt and IsInGroup() --and Defence
