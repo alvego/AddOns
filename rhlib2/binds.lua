@@ -388,6 +388,34 @@ function UpdateIdle(elapsed)
     end
 end
 ------------------------------------------------------------------------------------------------------------------
+-- Запоминаем вредоносные спелы которые нужно кастить (нужно для сбивания кастов, например тотемом заземления)
+if HarmfulCastingSpell == nil then HarmfulCastingSpell = {} end
+function IsHarmfulCast(spellName)
+    return HarmfulCastingSpell[spellName]
+end
+
+local function UpdateHarmfulSpell(event, ...)
+    local timestamp, event, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellID, spellName, spellSchool, agrs12, agrs13,agrs14 = select(1, ...)
+    if event:match("SPELL_DAMAGE") and spellName and agrs12 > 0 then
+        local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange = GetSpellInfo(spellID)
+        if castTime > 0 then HarmfulCastingSpell[name] = true end
+    end
+end
+AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', UpdateHarmfulSpell)
+------------------------------------------------------------------------------------------------------------------
+-- нас сапнул рога
+function UpdateSapped(event, ...)
+    local timestamp, type, sourceGUID, sourceName, sourceFlags, destGUID, destName, destFlags, spellId, spellName, destFlag, err = select(1, ...)
+	if spellName == "Ошеломление"
+	and destGUID == UnitGUID("player")
+	and (type == "SPELL_AURA_APPLIED" or type == "SPELL_AURA_REFRESH")
+	then
+		RunMacroText("/к Меня сапнули, помогите плиз!")
+		Notify("Словил сап от роги: "..(sourceName or "(unknown)"))
+	end
+end
+AttachEvent("COMBAT_LOG_EVENT_UNFILTERED", UpdateSapped)
+------------------------------------------------------------------------------------------------------------------
 --Arena Raid Icons
 local unitCD = {}
 local raidIconsByClass = {WARRIOR=8,DEATHKNIGHT=7,PALADIN=3,PRIEST=5,SHAMAN=6,DRUID=2,ROGUE=1,MAGE=8,WARLOCK=3,HUNTER=4}
@@ -419,7 +447,9 @@ function UpdateSpellAlert(event, ...)
             local t = checkedTargets[i]
             if IsValidTarget(t) and UnitGUID(t) == sourceGUID then
                 type = strreplace(type, "SPELL_AURA_", "")
-                Notify("|cffff7d0a" .. spellName .. " ("..(sourceName or "unknown")..")|r  - " .. type .. "!")
+                type = strreplace(type, "APPLIED", "+")
+                type = strreplace(type, "REMOVED", "-")
+                Notify("|cffff7d0a" .. spellName .. " ("..(UnitName(t) or "unknown")..")|r  - " .. type .. "!")
                 PlaySound("RaidWarning", "master");
                 break
             end

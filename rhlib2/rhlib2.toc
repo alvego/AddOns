@@ -4,7 +4,7 @@
 ## Version: 2.0
 ## DefaultState: Disabled
 ## LoadOnDemand: 1
-## SavedVariables: Paused, Debug, FaceSpells, ExcludeItemsList, Farm
+## SavedVariables: Paused, Debug, FaceSpells, HarmfulCastingSpell, ExcludeItemsList, Farm
 lib.lua
 misc.lua
 units.lua

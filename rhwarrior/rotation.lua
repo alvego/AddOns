@@ -37,6 +37,9 @@ function Idle()
   local rage = UnitMana(player)
   local warbringer = HasTalent("Вестник войны") > 0
   local titansGrip = HasTalent("Хватка титана") > 0
+  local pvp = IsPvP()
+  local combat = InCombatLockdown()
+  local shield = IsEquippedItemType("Щит")
 
   if AutoTaunt or warbringer then
     Defence = true
@@ -44,15 +47,13 @@ function Idle()
     if attack then
       Defence = false
     else
-      if hp < 25 then
+      if hp < (pvp and 50 or 30) then
         Defence = true
       end
     end
   end
 
-  local pvp = IsPvP()
-  local combat = InCombatLockdown()
-  local shield = IsEquippedItemType("Щит")
+
 
   if Defence then
       Equip1HShield(pvp)
@@ -78,9 +79,9 @@ function Idle()
 
     -- Auto AntiControl --------------------------------------------------------
     local debuff = HasDebuff(bloodList, 3, "player")
-    	if debuff and  IsSpellNotUsed("Каждый за себя", 1) and DoSpell("Ярость берсерка") then return end
-	if not debuff then
-		debuff = HasDebuff(ControlList, 3, "player")
+    if debuff and IsSpellNotUsed("Каждый за себя", 1) and DoSpell("Ярость берсерка") then return end
+	  if not debuff then
+		     debuff = HasDebuff(ControlList, 3, "player")
     end
     if debuff and  IsSpellNotUsed("Ярость берсерка", 1) and DoSpell("Каждый за себя") then return end
 
@@ -181,6 +182,7 @@ function Idle()
     ----------------------------------------------------------------------------
     local melee = InMelee(target)
     if TryInterrupt(pvp) then return end
+    if TryInterrupt(pvp, 'focus') then return end
     -- TryProtect -----------------------------------------------------------------
     if combat then
       --if hp < 50 and UseEquippedItem("Проржавевший костяной ключ") then return end
@@ -193,7 +195,6 @@ function Idle()
         if hp < 80 and DoSpell("Блок щитом") then return end
       end
       if hp < 60 and rage > 15 and HasBuff("Исступление", 0.1, player) and DoSpell("Безудержное восстановление", player, true) then return end
-
     end
 
     ----------------------------------------------------------------------------
@@ -328,7 +329,7 @@ function Idle()
     if HasSpell("Кровожадность") and DoSpell("Кровожадность", target, true) then return end
     if stance == 3 and HasSpell("Вихрь") and (melee or aoe2) and DoSpell("Вихрь", nil, true) then return end
     if HasBuff("Сокрушить!") and DoSpell("Мощный удар", target, true) then return end
-    if not aoe2 and rage > ( HasSpell("Кровожадность") and 90 or 50) then --TODO символ на удар героя, когторый возвращает рагу
+    if not aoe2 and rage > ( HasSpell("Кровожадность") and 50 or 70) then --TODO символ на удар героя, когторый возвращает рагу
 	   if melee and DoSpell("Удар героя", target) then return end
     end
 

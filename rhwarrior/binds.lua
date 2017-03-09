@@ -70,11 +70,11 @@ function UseInterrupt()
     end
 end
 
-function TryInterrupt(pvp)
+function TryInterrupt(pvp, target)
 
     if not CanInterrupt then return false end
 
-    local target = "target"
+    if not target then target = "target" end
 
 
     local spell, left, duration, channel, nointerrupt = UnitIsCasting(target)
@@ -96,9 +96,15 @@ function TryInterrupt(pvp)
           return true
         end
       end
-
-      if reflect and HasBuff("Отражение заклинания", 0.1, player)  then
+      
+      local harm = IsHarmfulCast(spell)
+      if reflect and HasBuff("Отражение заклинания", 0.1, player) and harm then
         return false;
+      end
+
+      if stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then
+        chat("Превосходство в " .. name)
+        return true
       end
 
       if not notinterrupt and stance == 3 and DoSpell("Зуботычина", target, true) then

@@ -117,7 +117,7 @@ SetCommand("run",
           chat("Вмешательство")
           if IsInGroup() and IsReadySpell("Вмешательство") then
             local look = IsMouselooking()
-            if not look and IsInteractUnit(Teammate) and UnitInRange(Teammate) and InRange("Вмешательство", Teammate) then
+            if (IsArena() or not look) and IsInteractUnit(Teammate) and InRange("Вмешательство", Teammate) then
                 DoCommand("intervene", Teammate)
             else
               UpdateUnits()
