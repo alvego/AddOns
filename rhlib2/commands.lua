@@ -18,6 +18,7 @@ function DoCommand(cmd, ...)
         print("DoCommand: Ошибка! Нет такой комманды ".. cmd)
         return
     end
+    SendAddonMessage('rhlib2', cmd .. "!", "PARTY")
     local d = 1.55
     local t = GetTime() + d
 
@@ -34,6 +35,14 @@ function DoCommand(cmd, ...)
     Commands[cmd].Timer = t
     Commands[cmd].Params = { ... }
 end
+
+------------------------------------------------------------------------------------------------------------------
+local function receiveAddonMessage(type, prefix, message, channel, sender)
+  if prefix ~= 'rhlib2' then return end
+  if IsOneUnit(sender, "player") then return end
+  echo(sender .. ': ' .. message)
+end
+AttachEvent('CHAT_MSG_ADDON', receiveAddonMessage)
 
 ------------------------------------------------------------------------------------------------------------------
 -- навешиваем обработчик с максимальным приоритетом на событие OnUpdate, для обработки вызванных комманд

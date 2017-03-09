@@ -27,7 +27,7 @@ local GetTime = GetTime
 local notifyFrame
 local notifyFrameTime = 0
 local function notifyFrame_OnUpdate()
-  if (notifyFrameTime > 0 and notifyFrameTime < GetTime() - 1) then
+  if (notifyFrameTime > 0 and notifyFrameTime < GetTime() - 2) then
     local alpha = notifyFrame:GetAlpha()
     if alpha ~= 0 then notifyFrame:SetAlpha(alpha - .02) end
     if aplha == 0 then
@@ -44,12 +44,15 @@ notifyFrame:SetWidth(800)
 notifyFrame:SetScript('OnUpdate', notifyFrame_OnUpdate)
 notifyFrame:Hide()
 notifyFrame.text = notifyFrame:CreateFontString(nil, 'BACKGROUND', 'PVPInfoTextFont')
-notifyFrame.text:SetTextColor(1,0,0)
 notifyFrame.text:SetAllPoints()
 notifyFrame:SetPoint('CENTER', 0, 100)
 
 -- Debug messages.
-function Notify(message)
+function Notify(messager, r, g, b)
+    r = r or 1
+    b = b or 0
+    g = g or 0
+    notifyFrame.text:SetTextColor(r,g,b)
     notifyFrame.text:SetText(message)
     notifyFrame:SetAlpha(1)
     notifyFrame:Show()
