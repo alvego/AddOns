@@ -18,7 +18,11 @@ function DoCommand(cmd, ...)
         print("DoCommand: Ошибка! Нет такой комманды ".. cmd)
         return
     end
-    SendAddonMessage('rhlib2', cmd .. "!", "PARTY")
+    local s = ''
+    for i = 1, select('#', ...) do
+      s = ' ' .. s .. select(i, ...)
+    end
+    SendAddonMessage('rhlib2', 'CMD:' .. cmd .. s .. "!", "PARTY")
     local d = 1.55
     local t = GetTime() + d
 
@@ -41,6 +45,7 @@ local function receiveAddonMessage(type, prefix, message, channel, sender)
   if prefix ~= 'rhlib2' then return end
   if IsOneUnit(sender, "player") then return end
   echo(sender .. ': ' .. message)
+  --Notify(sender .. ': ' .. message)
 end
 AttachEvent('CHAT_MSG_ADDON', receiveAddonMessage)
 

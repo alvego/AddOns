@@ -441,6 +441,12 @@ function UpdateSpellAlert(event, ...)
     --[[if sourceName == UnitName("player") or sourceName == UnitName("target") then
         print(type, sourceName, spellName, destName)
     end]]
+    if tContains(ControlList, spellName) and destGUID == UnitGUID('player') then
+      if type == 'SPELL_AURA_APPLIED' then
+        SendAddonMessage('rhlib2', 'На мне ' .. spellName .. "!", "PARTY")
+      end
+    end
+
     if InAlertList(spellName) then
         for i=1,#checkedTargets do
             local t = checkedTargets[i]

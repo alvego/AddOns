@@ -182,7 +182,7 @@ SetCommand("shatter",
         return not IsSpellNotUsed('Сокрушительный бросок', 1)
     end
 )
-
+---------------------------------------------------------------------------------------------------------------
 SetCommand("retaliation",
     function()
       local stance = GetShapeshiftForm()
@@ -195,8 +195,25 @@ SetCommand("retaliation",
         if IsReadySpell("Возмездие") then return false end
         local stance = GetShapeshiftForm()
         if stance ~= 1 then return false end
-        chat('Возмездие ')
+        chat('Возмездие')
         return not IsSpellNotUsed('Возмездие', 1)
+    end
+)
+---------------------------------------------------------------------------------------------------------------
+SetCommand("disarm",
+    function()
+      local stance = GetShapeshiftForm()
+      if stance ~= 2 and  DoSpell("Оборонительная стойка") then
+        return true
+      end
+      return DoSpell("Разоружение", true)
+    end,
+    function()
+        if IsReadySpell("Разоружение") then return false end
+        local stance = GetShapeshiftForm()
+        if stance ~= 2 then return false end
+        chat('Разоружение')
+        return not IsSpellNotUsed('Разоружение', 1)
     end
 )
 ---------------------------------------------------------------------------------------------------------------
