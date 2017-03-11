@@ -198,11 +198,11 @@ function Heal()
     end
 
     if IsReadySpell("Длань возмездия") and UnitIsPlayer(target) and IsValidTarget(target) and (
-      (tContains(steathClass, GetClass(target)) and not InRange("Покаяние", target)) or HasBuff(reflectBuff, 1, target)
+      ((tContains(steathClass, GetClass(target))) and not InRange("Покаяние", target)) or UnitAffectingCombat(target) or HasBuff(reflectBuff, 1, target)
     ) and not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
 
     if IsReadySpell("Длань возмездия") and UnitIsPlayer(focus) and IsValidTarget(focus) and (
-      (tContains(steathClass, GetClass(focus)) and not InRange("Покаяние", focus)) or HasBuff(reflectBuff, 1, focus)
+      (tContains(steathClass, GetClass(focus)) and not InRange("Покаяние", focus)) or UnitAffectingCombat(focus) or HasBuff(reflectBuff, 1, focus)
     ) and not HasDebuff("Длань возмездия", 1, focus) and DoSpell("Длань возмездия", focus) then return end
 
     if IsArena() and not InCombatLockdown() then
