@@ -97,8 +97,9 @@ function InInteractRange(unit)
     if UnitIsDeadOrGhost(unit) then return false end
     if not UnitIsFriend("player", unit) then return false end
     if UnitCanAttack("player", unit) then return false end
-    if UnitInRange(unit) then return true end --only party
+    if HasDebuff("Смерч", 0.01, unit) then return false end
     if not IsVisible(unit)  then return false end
+    if UnitInRange(unit) then return true end --only party
     if interactRangeSpell then
       return IsSpellInRange(interactRangeSpell, unit) == 1
     end

@@ -68,12 +68,13 @@ end
 function Heal()
     local target = "target"
     local player = "player"
+    local focus = "focus"
 
 
     if IsPvP() and not HasBuff("Праведное неистовство") and IsSpellNotUsed("Праведное неистовство", 5) and DoSpell("Праведное неистовство") then return end
-    if (IsAttack() or InCombatLockdown()) and not HasBuff("Аура") and DoSpell("Аура сосредоточенности", player) then return end
+    if not HasBuff("Аура") and DoSpell("Аура сосредоточенности", player) then return end
     if not HasBuff("Печать") and DoSpell("Печать мудрости", player) then return end
-    if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
+    if not InCombatLockdown() and not IsArena() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
         if not HasBuff("благословение королей") and DoSpell("Великое благословение королей", player) then return end
     end
 
@@ -112,10 +113,10 @@ function Heal()
         if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
         if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
       end
-      if IsPvP() and hp < 40 and DoSpell("Длань спасения", player) then return end
     end
+    if (IsPvP() or InCombatLockdown()) and hp < 40 and DoSpell("Длань спасения", player) then return end
 
-    local u = "player"
+    local u = player
     local du = nil
     if InInteractRange(teammate) and canDispel(teammate) then du = teammate end
     if not du and canDispel(u) then du = u end
@@ -196,12 +197,21 @@ function Heal()
 
     end
 
-    --[[if InCombatMode() then
+    if IsReadySpell("Длань возмездия") and UnitIsPlayer(target) and IsValidTarget(target) and (
+      (tContains(steathClass, GetClass(target)) and not InRange("Покаяние", target)) or HasBuff(reflectBuff, 1, target)
+    ) and not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
+
+    if IsReadySpell("Длань возмездия") and UnitIsPlayer(focus) and IsValidTarget(focus) and (
+      (tContains(steathClass, GetClass(focus)) and not InRange("Покаяние", focus)) or HasBuff(reflectBuff, 1, focus)
+    ) and not HasDebuff("Длань возмездия", 1, focus) and DoSpell("Длань возмездия", focus) then return end
+
+    if IsArena() and not InCombatLockdown() then
       TryTarget()
       if not IsValidTarget(target) then return end
       if DoSpell("Правосудие света", target) then return end
-      if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
-    end]]
+      if DoSpell("Длань возмездия", target) then return end
+      --if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
+    end
 end
 ------------------------------------------------------------------------------------------------------------------
 function PvE()

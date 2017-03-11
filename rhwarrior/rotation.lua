@@ -75,7 +75,7 @@ function Idle()
   -- дайте поесть (побегать) спокойно
   if not attack and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
   if IsCtr() then AddRage() end
-  if InCombatMode() then
+  if InCombatMode() or IsArena() then
 
     -- Auto AntiControl --------------------------------------------------------
     local debuff = HasDebuff(bloodList, 3, "player")
@@ -251,7 +251,7 @@ function Idle()
 
 
     --local autoAttack = IsCurrentSpell("Автоматическая атака")
-    if (attack or UnitAffectingCombat(target)) then
+    if (attack or UnitAffectingCombat(target) or pvp) then
       --if validTarget and not autoAttack then oexecute("StartAttack()") end
       if validTarget then oexecute("StartAttack()") end
     else
