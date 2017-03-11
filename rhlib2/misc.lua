@@ -48,7 +48,7 @@ notifyFrame.text:SetAllPoints()
 notifyFrame:SetPoint('CENTER', 0, 100)
 
 -- Debug messages.
-function Notify(messager, r, g, b)
+function Notify(message, r, g, b)
     r = r or 1
     b = b or 0
     g = g or 0
