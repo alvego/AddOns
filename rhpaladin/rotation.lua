@@ -92,6 +92,8 @@ function Heal()
           debuff =  HasDebuff(SilenceList, 3, player)
           if debuff then silence = true end
         end
+        if thp < 35 and hp > 50 and (IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Священная жертва", teammate) then return end
+        if hp > 60 and (IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Длань жертвенности", teammate) then return end
         if not HasDebuff(SilenceList, 0.01, player) and GetSpellCooldownLeft("Вспышка Света") < 2 and DoSpell("Мастер аур") then chat("Мастер аур!") return end
         if debuff and (not silence or (hp < 30 or (thp and thp < 30))) then
           if IsSpellNotUsed("Божественный щит", 1) and DoSpell("Каждый за себя") then chat("Каждый за себя! " .. debuff)  return end
