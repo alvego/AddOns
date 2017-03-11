@@ -82,7 +82,7 @@ function Heal()
     local hp = UnitHealth100(player)
     local mana = UnitMana100(player)
     local thp = InInteractRange(teammate) and UnitHealth100(teammate) or nil
-    if hp < 40 or (thp and thp < 40) then
+    if hp < 50 or (thp and thp < 50) then
       local bubble = HasMyBuff("Божественный щит", 0.1, player)
       if not bubble then
         -- Auto AntiControl --------------------------------------------------------
@@ -92,16 +92,18 @@ function Heal()
           debuff =  HasDebuff(SilenceList, 3, player)
           if debuff then silence = true end
         end
-        if thp < 35 and hp > 50 and (IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Священная жертва", teammate) then return end
-        if hp > 60 and (IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Длань жертвенности", teammate) then return end
         if not HasDebuff(SilenceList, 0.01, player) and GetSpellCooldownLeft("Вспышка Света") < 2 and DoSpell("Мастер аур") then chat("Мастер аур!") return end
         if debuff and (not silence or (hp < 30 or (thp and thp < 30))) then
+        print(2)
           if IsSpellNotUsed("Божественный щит", 1) and DoSpell("Каждый за себя") then chat("Каждый за себя! " .. debuff)  return end
           if not IsReadySpell("Каждый за себя") and IsSpellNotUsed("Каждый за себя", 1) and DoSpell("Божественный щит") then chat("Божественный щит! " .. debuff) return end
         end
       end
     end
 
+    if hp > 65 and thp and thp < 50 and (IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Священная жертва", teammate) then return end
+    if hp > 60 and thp and thp < 40 and(IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Длань жертвенности", teammate) then return end
+    if hp < 40 and (IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Длань жертвенности", teammate) then return end
     if thp and thp < 30 and HasDebuff(physicDebuff, 2, teammate) and DoSpell("Длань защиты", teammate) then chat("Длань защиты на"..teammate) return end
 
     if InCombatLockdown() then

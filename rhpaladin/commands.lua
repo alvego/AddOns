@@ -88,3 +88,15 @@ SetCommand("stun",
   end
 )
 ------------------------------------------------------------------------------------------------------------------
+SetCommand("bop",
+  function()
+    if not UnitCanAttack("player", teammate) and IsInteractUnit(teammate) then
+      UseSpell("Длань защиты", teammate)
+    end
+  end,
+  function()
+    if not InGCD() and not IsReadySpell("Длань защиты") then return true end
+    return false
+  end
+)
+------------------------------------------------------------------------------------------------------------------
