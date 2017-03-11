@@ -206,7 +206,7 @@ SetCommand("disarm",
       if stance ~= 2 and  DoSpell("Оборонительная стойка") then
         return true
       end
-      return DoSpell("Разоружение", true)
+      return DoSpell("Разоружение", "target", true)
     end,
     function()
         if IsReadySpell("Разоружение") then return false end

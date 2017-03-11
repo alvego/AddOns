@@ -4,6 +4,7 @@ local peaceBuff = {"Пища", "Питье"}
 local dispelTypes = {'Magic', 'Disease', 'Poison'}
 local steathClass = {"ROGUE", "DRUID"}
 local reflectBuff = {"Отражение заклинания", "Эффект тотема заземления"}
+local physicDebuff = {"Смертельный удар"}
 
 local redDispelList = {
     "Превращение",
@@ -67,6 +68,8 @@ end
 function Heal()
     local target = "target"
     local player = "player"
+
+
     if IsPvP() and not HasBuff("Праведное неистовство") and IsSpellNotUsed("Праведное неистовство", 5) and DoSpell("Праведное неистовство") then return end
     if (IsAttack() or InCombatLockdown()) and not HasBuff("Аура сосредоточенности") and DoSpell("Аура сосредоточенности", player) then return end
     --if IsPvP() and not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
@@ -78,6 +81,27 @@ function Heal()
 
     local hp = UnitHealth100(player)
     local mana = UnitMana100(player)
+    local thp = InInteractRange(teammate) and UnitHealth100(teammate) or nil
+    if hp < 40 or (thp and thp < 40) then
+      local bubble = HasMyBuff("Божественный щит", 0.1, player)
+      if not bubble then
+        -- Auto AntiControl --------------------------------------------------------
+        local silence = false;
+        local debuff = HasDebuff(ControlList, 3, player)
+        if not debuff then
+          debuff =  HasDebuff(SilenceList, 3, player)
+          if debuff then silence = true end
+        end
+        if not HasDebuff(SilenceList, 0.01, player) and GetSpellCooldownLeft("Вспышка Света") < 2 and DoSpell("Мастер аур") then chat("Мастер аур!") return end
+        if debuff and (not silence or (hp < 30 or (thp and thp < 30))) then
+          if IsSpellNotUsed("Божественный щит", 1) and DoSpell("Каждый за себя") then chat("Каждый за себя! " .. debuff)  return end
+          if not IsReadySpell("Каждый за себя") and IsSpellNotUsed("Каждый за себя", 1) and DoSpell("Божественный щит") then chat("Божественный щит! " .. debuff) return end
+        end
+      end
+    end
+
+    if thp and thp < 30 and HasDebuff(physicDebuff, 2, teammate) and DoSpell("Длань защиты", teammate) then chat("Длань защиты на"..teammate) return end
+
 
     if InCombatLockdown() then
       if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
@@ -122,6 +146,7 @@ function Heal()
     end
     if not u then return end
     local l = UnitLostHP(u)
+
     if not IsArena() and InCombatLockdown() and IsInGroup() and IsSpellNotUsed("Частица Света", 10) and not hasLight then
       if InInteractRange(teammate) then
         if DoSpell("Частица Света",  teammate) then return end

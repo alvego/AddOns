@@ -81,6 +81,7 @@ function TryInterrupt(pvp, target)
     if not spell then return nil end
     if left < (channel and 0.5 or 0.2) then  return  end -- если уже докастил, нет смысла трепыхаться, тунелинг - нет смысла сбивать последний тик
     if pvp and not tContains(InterruptList, spell) then return false end
+    if pvp and tContains(HealList, spell) and (not IsValidTarget("target") or UnitHealth100("target") > 70) and (not IsValidTarget("focus") or UnitHealth100("focus") > 70) then return false end
     local name = (UnitName(target)) or target
     local stance = GetShapeshiftForm()
 
@@ -96,7 +97,7 @@ function TryInterrupt(pvp, target)
           return true
         end
       end
-      
+
       local harm = IsHarmfulCast(spell)
       if reflect and HasBuff("Отражение заклинания", 0.1, player) and harm then
         return false;
