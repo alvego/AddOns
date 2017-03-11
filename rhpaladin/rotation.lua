@@ -71,16 +71,16 @@ function Heal()
 
 
     if IsPvP() and not HasBuff("Праведное неистовство") and IsSpellNotUsed("Праведное неистовство", 5) and DoSpell("Праведное неистовство") then return end
-    if (IsAttack() or InCombatLockdown()) and not HasBuff("Аура сосредоточенности") and DoSpell("Аура сосредоточенности", player) then return end
-    --if IsPvP() and not HasBuff("Печать") and DoSpell("Печать праведности") then return true end
+    if (IsAttack() or InCombatLockdown()) and not HasBuff("Аура") and DoSpell("Аура сосредоточенности", player) then return end
     if not HasBuff("Печать") and DoSpell("Печать мудрости", player) then return end
-    --if not HasBuff("Печать") and DoSpell("Печать мудрости","player") then return end
     if not InCombatLockdown() and not HasMyBuff("благословение королей") and not HasMyBuff("благословение могущества") then
         if not HasBuff("благословение королей") and DoSpell("Великое благословение королей", player) then return end
     end
 
     local hp = UnitHealth100(player)
     local mana = UnitMana100(player)
+    if hp < 25 and DoSpell("Божественный щит", player) then return end
+    if hp < 25 and not IsReadySpell("Божественный щит") and not HasMyBuff("Божественный щит", 0.1, player) and DoSpell("Божественная защита", player) then return end
     local thp = InInteractRange(teammate) and UnitHealth100(teammate) or nil
     if hp < 50 or (thp and thp < 50) then
       local bubble = HasMyBuff("Божественный щит", 0.1, player)
@@ -102,7 +102,7 @@ function Heal()
     end
 
     if hp > 50 and thp and thp < 45 and (IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Священная жертва", teammate) then return end
-    if hp > 60 and thp and thp < 50 and(IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Длань жертвенности", teammate) then return end
+    if hp > 60 and thp and thp < 50 and(IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Длань жертвенности", teammate) then print(hp) print(thp)return end
     if hp < 40 and (IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Священная жертва", player) then return end
     if thp and thp < 30 and HasDebuff(physicDebuff, 2, teammate) and DoSpell("Длань защиты", teammate) then chat("Длань защиты на"..teammate) return end
 
@@ -181,18 +181,18 @@ function Heal()
     end
 
     if du and IsCtr()--[[(IsCtr() or (h > 45 and (IsSpellNotUsed("Очищение", 2) or HasDebuff(redDispelList, 1, du))))]] and DoSpell("Очищение", du) then return end
-    if IsArena() and h < 60 and DoSpell("Шок небес", u) then return end
+    if IsArena() and h < 95 and DoSpell("Шок небес", u) then return end
     if not IsArena() and (h < 98 or l > 3000) and DoSpell("Шок небес", u) then return end
     local infusion = HasBuff("Прилив Света")
     if (h < 50 or l > 2000) then
       local master = HasBuff("Мастер аур")
       local inPlace = PlayerInPlace()
-      local canCastFlash = not IsArena() or master
+      local canCastFlash = --[[not IsArena() or]] master
        if not inPlace and not infusion and canCastFlash then
          Notify((master and "Мастер! " or "Стой! ") .. UnitName(u) .. " hp: " .. h)
          if master and AdvMode then oexecute("MoveForwardStop()") end
        end
-       if (infusion or (canCastFlash and inPlace)) and DoSpell("Вспышка Света", u) then return end
+       if --[[(infusion or (canCastFlash and inPlace)) and]] DoSpell("Вспышка Света", u) then return end
 
     end
 

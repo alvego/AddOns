@@ -100,3 +100,15 @@ SetCommand("bop",
   end
 )
 ------------------------------------------------------------------------------------------------------------------
+SetCommand("shield",
+  function() return true end,
+  function()
+    local target = IsAlt() and teammate or "player"
+    if not InInteractRange(target) then
+       chat("free: !InInteractRange")
+       return true
+    end
+    DoCommand("spell", "Священный щит", target)
+    return true
+  end
+)
