@@ -93,7 +93,8 @@ function Heal()
           debuff, _, _, _, _, _duration, _expirationTime =  HasDebuff(SilenceList, 3, player)
           if debuff then silence = true end
         end
-        if debuff and (_duration - _expirationTime > 0.3) then
+
+        if debuff and (_duration - _expirationTime - GetTime() > 0.3) then
           if not silence or (hp < 30 or (thp and thp < 30)) then
             if IsSpellNotUsed("Божественный щит", 1) and DoSpell("Каждый за себя") then chat("Каждый за себя! " .. debuff)  return end
             if not IsReadySpell("Каждый за себя") and IsSpellNotUsed("Каждый за себя", 1) and DoSpell("Божественный щит") then chat("Божественный щит! " .. debuff) return end
@@ -223,12 +224,12 @@ function Heal()
 
     if AdvMode and TimerMore('HolyDMG', 5) then
 
-    if IsValidTarget(target) and UnitIsPlayer(target) and (tContains(steathClass, GetClass(target) and DistanceTo(player, target) > 25) or UnitAffectingCombat(target) or HasBuff(reflectBuff, 1, target)) then
+    if IsValidTarget(target) and UnitIsPlayer(target) and (tContains(steathClass, GetClass(target) and DistanceTo(player, target) > 25) or not UnitAffectingCombat(target) or HasBuff(reflectBuff, 1, target)) then
      if DoSpell("Правосудие света", target) then TimerStart('HolyDMG') return end
      if DoSpell("Длань возмездия", target) then TimerStart('HolyDMG') return end
     end
 
-    if IsValidTarget(focus) and UnitIsPlayer(focus) and (tContains(steathClass, GetClass(focus) and DistanceTo(player, focus) > 25) or UnitAffectingCombat(focus) or HasBuff(reflectBuff, 1, focus)) then
+    if IsValidTarget(focus) and UnitIsPlayer(focus) and (tContains(steathClass, GetClass(focus) and DistanceTo(player, focus) > 25) or not UnitAffectingCombat(focus) or HasBuff(reflectBuff, 1, focus)) then
       if DoSpell("Правосудие света", focus) then TimerStart('HolyDMG') return end
       if DoSpell("Длань возмездия", focus) then TimerStart('HolyDMG') return end
     end
