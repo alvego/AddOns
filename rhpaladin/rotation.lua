@@ -93,7 +93,7 @@ function Heal()
           debuff, _, _, _, _, _duration, _expirationTime =  HasDebuff(SilenceList, 3, player)
           if debuff then silence = true end
         end
-        if debuff and (_duration - _expirationTime > 0.3)) then
+        if debuff and (_duration - _expirationTime > 0.3) then
           if not silence or (hp < 30 or (thp and thp < 30)) then
             if IsSpellNotUsed("Божественный щит", 1) and DoSpell("Каждый за себя") then chat("Каждый за себя! " .. debuff)  return end
             if not IsReadySpell("Каждый за себя") and IsSpellNotUsed("Каждый за себя", 1) and DoSpell("Божественный щит") then chat("Божественный щит! " .. debuff) return end
