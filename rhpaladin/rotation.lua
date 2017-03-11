@@ -101,9 +101,9 @@ function Heal()
       end
     end
 
-    if hp > 65 and thp and thp < 50 and (IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Священная жертва", teammate) then return end
-    if hp > 60 and thp and thp < 40 and(IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Длань жертвенности", teammate) then return end
-    if hp < 40 and (IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Длань жертвенности", teammate) then return end
+    if hp > 50 and thp and thp < 45 and (IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Священная жертва", teammate) then return end
+    if hp > 60 and thp and thp < 50 and(IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Длань жертвенности", teammate) then return end
+    if hp < 40 and (IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Священная жертва", player) then return end
     if thp and thp < 30 and HasDebuff(physicDebuff, 2, teammate) and DoSpell("Длань защиты", teammate) then chat("Длань защиты на"..teammate) return end
 
     if InCombatLockdown() then
