@@ -220,17 +220,17 @@ function Heal()
 
     end
 
-    if IsValidTarget(target) and UnitIsPlayer(target) and (tContains(steathClass, GetClass(target) and DistanceTo(player, target) > 25) or UnitAffectingCombat(target) or HasBuff(reflectBuff, 1, target)) then
+    if AdvMode and IsValidTarget(target) and UnitIsPlayer(target) and (tContains(steathClass, GetClass(target) and DistanceTo(player, target) > 25) or UnitAffectingCombat(target) or HasBuff(reflectBuff, 1, target)) then
      if IsSpellNotUsed("Длань возмездия", 1) and DoSpell("Правосудие света", target) then return end
      if IsSpellNotUsed("Правосудие света", 1) and DoSpell("Длань возмездия", target) then return end
     end
 
-    if IsValidTarget(focus) and UnitIsPlayer(focus) and (tContains(steathClass, GetClass(focus) and DistanceTo(player, focus) > 25) or UnitAffectingCombat(focus) or HasBuff(reflectBuff, 1, focus)) then
+    if AdvMode and IsValidTarget(focus) and UnitIsPlayer(focus) and (tContains(steathClass, GetClass(focus) and DistanceTo(player, focus) > 25) or UnitAffectingCombat(focus) or HasBuff(reflectBuff, 1, focus)) then
      if IsSpellNotUsed("Длань возмездия", 1) and DoSpell("Правосудие света", focus) then return end
      if IsSpellNotUsed("Правосудие света", 1) and DoSpell("Длань возмездия", focus) then return end
     end
 
-    if IsPvP() and not InCombatLockdown() then
+    if AdvMode and IsPvP() and not InCombatLockdown() then
       TryTarget()
       if not IsValidTarget(target) then return end
       if IsSpellNotUsed("Длань возмездия", 1) and DoSpell("Правосудие света", target) then return end
