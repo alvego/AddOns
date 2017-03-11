@@ -102,7 +102,6 @@ function Heal()
 
     if thp and thp < 30 and HasDebuff(physicDebuff, 2, teammate) and DoSpell("Длань защиты", teammate) then chat("Длань защиты на"..teammate) return end
 
-
     if InCombatLockdown() then
       if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
       if not (InDuel() or IsArena()) then
@@ -162,6 +161,13 @@ function Heal()
     if InCombatMode() and h < 95 and UseEquippedItem("Украшенные перчатки разгневанного гладиатора") then return end
     if InCombatMode() and mana < 90 and UseEquippedItem("Осколок чистейшего льда") then return end
 
+    if h > 45 and AdvMode then
+      for i = 1, #TARGETS do
+        local t = TARGETS[i]
+        if CanMagicAttack(t) and UnitHealth100(t) < 19.99 and DoSpell("Молот гнева", t) then return end
+      end
+    end
+
     if not IsArena() and InCombatMode() and IsSpellNotUsed("Священный щит", 5) and not hasShield then
       if InInteractRange(teammate) then
         if DoSpell("Священный щит",  teammate) then return end
@@ -173,7 +179,18 @@ function Heal()
     if du and IsCtr()--[[(IsCtr() or (h > 45 and (IsSpellNotUsed("Очищение", 2) or HasDebuff(redDispelList, 1, du))))]] and DoSpell("Очищение", du) then return end
     if IsArena() and h < 60 and DoSpell("Шок небес", u) then return end
     if not IsArena() and (h < 98 or l > 3000) and DoSpell("Шок небес", u) then return end
-    if not IsArena() and (HasBuff("Прилив Света") or PlayerInPlace()) and (h < 50 or l > 2000) and DoSpell("Вспышка Света", u) then return end
+    local infusion = HasBuff("Прилив Света")
+    if (h < 50 or l > 2000) then
+      local master = HasBuff("Мастер аур")
+      local inPlace = PlayerInPlace()
+      local canCastFlash = not IsArena() or master
+       if not inPlace and not infusion and canCastFlash then
+         Notify((master and "Мастер! " or "Стой! ") .. UnitName(u) .. " hp: " .. h)
+         if master and AdvMode then oexecute("MoveForwardStop()") end
+       end
+       if (infusion or (canCastFlash and inPlace)) and DoSpell("Вспышка Света", u) then return end
+
+    end
 
     --[[if InCombatMode() then
       TryTarget()
