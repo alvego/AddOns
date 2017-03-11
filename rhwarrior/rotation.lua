@@ -78,12 +78,13 @@ function Idle()
   if InCombatMode() or IsArena() then
 
     -- Auto AntiControl --------------------------------------------------------
-    local debuff = HasDebuff(bloodList, 3, "player")
-    if debuff and IsSpellNotUsed("Каждый за себя", 1) and DoSpell("Ярость берсерка") then return end
+
+    local debuff, _, _, _, _, _duration, _expirationTime = HasDebuff(bloodList, 3, "player")
+    if debuff and (_duration - _expirationTime > 0.3)  and IsSpellNotUsed("Каждый за себя", 1) and DoSpell("Ярость берсерка") then return end
 	  if not debuff then
-		     debuff = HasDebuff(ControlList, 3, "player")
+		     debuff, _, _, _, _, _duration, _expirationTime = HasDebuff(ControlList, 3, "player")
     end
-    if debuff and IsSpellNotUsed("Ярость берсерка", 1) and DoSpell("Каждый за себя") then return end
+    if debuff and (_duration - _expirationTime > 0.3) and IsSpellNotUsed("Ярость берсерка", 1) and DoSpell("Каждый за себя") then return end
 
     --AutoTaunt-----------------------------------------------------------------
     if not pvp and AdvMode and AutoTaunt and IsInGroup() --and Defence

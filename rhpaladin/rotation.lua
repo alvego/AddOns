@@ -88,17 +88,18 @@ function Heal()
       if not bubble then
         -- Auto AntiControl --------------------------------------------------------
         local silence = false;
-        local debuff = HasDebuff(ControlList, 3, player)
+        local debuff, _, _, _, _, _duration, _expirationTime = HasDebuff(ControlList, 3, player)
         if not debuff then
-          debuff =  HasDebuff(SilenceList, 3, player)
+          debuff, _, _, _, _, _duration, _expirationTime =  HasDebuff(SilenceList, 3, player)
           if debuff then silence = true end
         end
-        if not HasDebuff(SilenceList, 0.01, player) and GetSpellCooldownLeft("Вспышка Света") < 2 and DoSpell("Мастер аур") then chat("Мастер аур!") return end
-        if debuff and (not silence or (hp < 30 or (thp and thp < 30))) then
-        print(2)
-          if IsSpellNotUsed("Божественный щит", 1) and DoSpell("Каждый за себя") then chat("Каждый за себя! " .. debuff)  return end
-          if not IsReadySpell("Каждый за себя") and IsSpellNotUsed("Каждый за себя", 1) and DoSpell("Божественный щит") then chat("Божественный щит! " .. debuff) return end
+        if debuff and (_duration - _expirationTime > 0.3)) then
+          if not silence or (hp < 30 or (thp and thp < 30)) then
+            if IsSpellNotUsed("Божественный щит", 1) and DoSpell("Каждый за себя") then chat("Каждый за себя! " .. debuff)  return end
+            if not IsReadySpell("Каждый за себя") and IsSpellNotUsed("Каждый за себя", 1) and DoSpell("Божественный щит") then chat("Божественный щит! " .. debuff) return end
+          end
         end
+        if not HasDebuff(SilenceList, 0.01, player) and GetSpellCooldownLeft("Вспышка Света") < 2 and DoSpell("Мастер аур") then chat("Мастер аур!") return end
       end
     end
 
