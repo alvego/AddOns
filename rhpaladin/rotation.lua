@@ -221,7 +221,7 @@ function Heal()
 
     end
 
-    if AdvMode and TimerMore('HolyDMG', 4) then
+    if AdvMode and TimerMore('HolyDMG', 5) then
 
     if IsValidTarget(target) and UnitIsPlayer(target) and (tContains(steathClass, GetClass(target) and DistanceTo(player, target) > 25) or UnitAffectingCombat(target) or HasBuff(reflectBuff, 1, target)) then
      if DoSpell("Правосудие света", target) then TimerStart('HolyDMG') return end
