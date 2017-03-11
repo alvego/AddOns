@@ -306,8 +306,8 @@ function Idle()
     if stance ~= 2 and IsUsableSpell("Победный раж") and DoSpell("Победный раж", target) then return end
     if stance == 2 and IsUsableSpell("Реванш") and DoSpell("Реванш", target) then return end
 
-    --if stance == 2 and HasBuff(burstList, 5, target) and DoSpell("Разоружение", target, true) then return end
-    if not attack and HasBuff(burstList, 5, target) and DoCommand("disarm") then return end
+    if stance == 2 and HasBuff(burstList, 5, target) and DoSpell("Разоружение", target, true) then return end
+    --if not attack and HasBuff(burstList, 5, target) and DoCommand("disarm") then return end
 
 
     if aoe2 and HasSpell("Размашистые удары") then  DoSpell("Размашистые удары") end
@@ -330,7 +330,7 @@ function Idle()
     if HasSpell("Кровожадность") and DoSpell("Кровожадность", target, true) then return end
     if stance == 3 and HasSpell("Вихрь") and (melee or aoe2) and DoSpell("Вихрь", nil, true) then return end
     if HasBuff("Сокрушить!") and DoSpell("Мощный удар", target, true) then return end
-    if not aoe2 and rage > ( HasSpell("Кровожадность") and 50 or 70) then --TODO символ на удар героя, когторый возвращает рагу
+    if not aoe2 and rage > ( HasSpell("Кровожадность") and 50 or 95) then --TODO символ на удар героя, когторый возвращает рагу
 	   if melee and DoSpell("Удар героя", target) then return end
     end
 
