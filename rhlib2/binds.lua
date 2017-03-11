@@ -451,12 +451,12 @@ function UpdateSpellAlert(event, ...)
         for i=1,#checkedTargets do
             local t = checkedTargets[i]
             if IsValidTarget(t) and UnitGUID(t) == sourceGUID then
-                type = strreplace(type, "SPELL_AURA_", "")
-                type = strreplace(type, "APPLIED", "+")
-                type = strreplace(type, "REMOVED", "-")
-                Notify("|cffff7d0a" .. spellName .. " ("..(UnitName(t) or "unknown")..")|r  - " .. type .. "!")
-                PlaySound("RaidWarning", "master");
-                break
+              if type == 'SPELL_AURA_APPLIED' then
+                Notify("|cffff7d0a" .. spellName .. " ("..(UnitName(t) or "unknown")..")|r  - ОN")
+              end
+              if type == 'SPELL_AURA_REMOVED' then
+                Notify("|cffff7d0a" .. spellName .. " ("..(UnitName(t) or "unknown")..")|r  - ОFF")
+              end
             end
         end
     end

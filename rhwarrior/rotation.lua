@@ -278,6 +278,7 @@ function Idle()
     end
 
     if not CanAttack(target) and not attack then
+      chat('!CanAttack ' .. CanAttackInfo)
       if HasBuff("Сдерживание",1,target) and stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
       return
     end
@@ -301,7 +302,7 @@ function Idle()
         end
         if not IsSpellNotUsed("Вихрь клинков", 0.1) and UnitExists(target) then oexecute("ClearTarget()") end
     end
-
+    if UnitIsCasting(target) and stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
 	--if AutoTaunt and UnitClassification(target) == "worldboss"  and (select(4, UnitDebuff("Раскол брони", 10, target)) or 0) < 5 and DoSpell("Раскол брони", target) then return end
     if stance ~= 2 and IsUsableSpell("Победный раж") and DoSpell("Победный раж", target) then return end
     if stance == 2 and IsUsableSpell("Реванш") and DoSpell("Реванш", target) then return end
@@ -314,7 +315,6 @@ function Idle()
     if aoe2 then DoSpell("Рассекающий удар", nil, not pvp) end
     if aoe3 and melee and stance ~= 3 and DoSpell("Удар грома") then return end
     if shield and ( pvp and HasBuff("Magic", 3, target ) or HasBuff("Щит и меч", 0.1, player) ) and DoSpell("Мощный удар щитом", target) then return end
-    if stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
     if not PlayerInPlace() and UnitIsPlayer(target) and not HasBuff("Длань свободы", 0.1, target) and not HasDebuff(myRootDebuff, 1, target) then
         if stance ~= 2 and InRange("Подрезать сухожилия", target) then
           if DoSpell("Подрезать сухожилия", target) then return end
@@ -330,10 +330,10 @@ function Idle()
     if HasSpell("Кровожадность") and DoSpell("Кровожадность", target, true) then return end
     if stance == 3 and HasSpell("Вихрь") and (melee or aoe2) and DoSpell("Вихрь", nil, true) then return end
     if HasBuff("Сокрушить!") and DoSpell("Мощный удар", target, true) then return end
+    if stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target) then return end
     if not aoe2 and rage > ( HasSpell("Кровожадность") and 50 or 95) then --TODO символ на удар героя, когторый возвращает рагу
-	   if melee and DoSpell("Удар героя", target) then return end
+	     if melee and DoSpell("Удар героя", target) then return end
     end
-
     if warbringer or HasBuff("благословение могущества", 3, player) then
       if not HasBuff("Командирский крик", 3, player) and DoSpell("Командирский крик") then return end
     else

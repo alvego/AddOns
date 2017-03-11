@@ -80,8 +80,7 @@ function TryInterrupt(pvp, target)
     local spell, left, duration, channel, nointerrupt = UnitIsCasting(target)
     if not spell then return nil end
     if left < (channel and 0.5 or 0.2) then  return  end -- если уже докастил, нет смысла трепыхаться, тунелинг - нет смысла сбивать последний тик
-    if pvp and not tContains(InterruptList, spell) then return false end
-    if pvp and tContains(HealList, spell) and (not IsValidTarget("target") or UnitHealth100("target") > 70) and (not IsValidTarget("focus") or UnitHealth100("focus") > 70) then return false end
+
     local name = (UnitName(target)) or target
     local stance = GetShapeshiftForm()
 
@@ -99,7 +98,7 @@ function TryInterrupt(pvp, target)
       end
 
       local harm = IsHarmfulCast(spell)
-      if reflect and HasBuff("Отражение заклинания", 0.1, player) and harm then
+      if HasBuff("Отражение заклинания", 0.1, player) and harm then
         return false;
       end
 
@@ -107,6 +106,9 @@ function TryInterrupt(pvp, target)
         chat("Превосходство в " .. name)
         return true
       end
+
+      if pvp and not tContains(InterruptList, spell) then return false end
+      if pvp and tContains(HealList, spell) and (not IsValidTarget("target") or UnitHealth100("target") > 70) and (not IsValidTarget("focus") or UnitHealth100("focus") > 70) then return false end
 
       if not notinterrupt and stance == 3 and DoSpell("Зуботычина", target, true) then
         chat("Зуботычина в " .. name)
@@ -124,6 +126,14 @@ function TryInterrupt(pvp, target)
       if HasSpell("Оглушающий удар") and DoSpell("Оглушающий удар", target, true) then
         chat("Оглушающий удар в " .. name)
         return true
+      end
+
+      if harm and stance ~= 3 and GetSpellCooldownLeft("Отражение заклинания") == 0 then
+        Equip1HShield(pvp)
+        if DoSpell("Отражение заклинания", player, true) then
+          chat("Отражение заклинания harm от " .. spell .. " - " ..name)
+          return true
+        end
       end
     end
 
