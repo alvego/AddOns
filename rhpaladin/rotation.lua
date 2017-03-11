@@ -239,6 +239,7 @@ function Heal()
       if DoSpell("Длань возмездия", target) then TimerStart('HolyDMG') return end
       --if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
     end
+  end
 end
 ------------------------------------------------------------------------------------------------------------------
 function PvE()
