@@ -167,10 +167,33 @@ function Heal()
     if InCombatMode() and mana < 90 and UseEquippedItem("Осколок чистейшего льда") then return end
 
     if h > 45 and AdvMode then
+
+      local ftar = nil --Вороная горгулья
       for i = 1, #TARGETS do
         local t = TARGETS[i]
-        if CanMagicAttack(t) and UnitHealth100(t) < 19.99 and DoSpell("Молот гнева", t) then return end
+        if IsValidTarget(t) then
+           local ctype = UnitCreatureType(t)
+           if (ctype =="Нежить" or ctype == "Демон") and CanMagicAttack(t) and InRange("Изгнание зла", t) then
+              ftar = t
+              if UnitName(t) == "Вороная горгулья" then  break end
+           end
+         end
+       end
+      if ftar and DoSpell("Изгнание зла", ftar) then  return true  end
+
+      local mh, mt
+      for i = 1, #TARGETS do
+        local t = TARGETS[i]
+        if CanMagicAttack(t) and UnitHealth100(t) < 19.99  and InRange("Молот гнева", t) then
+          local _h = UnitHealth100(t)
+          if not mh or mh > _t then
+            mh = _h
+            mt = t
+          end
+        end
       end
+      if mt and DoSpell("Молот гнева", mt) then return end
+
     end
 
     if not IsArena() and InCombatMode() and IsSpellNotUsed("Священный щит", 5) and not hasShield then
@@ -196,8 +219,6 @@ function Heal()
        if --[[(infusion or (canCastFlash and inPlace)) and]] DoSpell("Вспышка Света", u) then return end
 
     end
-
-
 
     if IsValidTarget(target) and UnitIsPlayer(target) and (tContains(steathClass, GetClass(target) and DistanceTo(player, target) > 25) or UnitAffectingCombat(target) or HasBuff(reflectBuff, 1, target)) then
      if DoSpell("Правосудие света", target) then return end

@@ -4,8 +4,8 @@ teammate = "Qo"
 
 SetCommand("fear",
     function() --Apply true if done
-        local target = nil --Вороная горгулья
         UpdateObjects()
+        local target = nil --Вороная горгулья
         for i = 1, #TARGETS do
           local t = TARGETS[i]
           if IsValidTarget(t) then
