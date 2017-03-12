@@ -83,7 +83,7 @@ function Heal()
     if hp < 25 and DoSpell("Божественный щит", player) then return end
     if hp < 25 and not IsReadySpell("Божественный щит") and not HasMyBuff("Божественный щит", 0.1, player) and DoSpell("Божественная защита", player) then return end
     local thp = InInteractRange(teammate) and UnitHealth100(teammate) or nil
-    if hp < 50 or (thp and thp < 50) then
+    if hp < 55 or (thp and thp < 55) then
       local bubble = HasMyBuff("Божественный щит", 0.1, player)
       if not bubble then
         -- Auto AntiControl --------------------------------------------------------
@@ -94,8 +94,8 @@ function Heal()
           if debuff then silence = true end
         end
 
-        if debuff and (_duration - _expirationTime - GetTime() > 0.3) then
-          if not silence or (hp < 30 or (thp and thp < 30)) then
+        if debuff and ((_duration - (_expirationTime - GetTime())) > 0.45) then
+          if not silence or (hp < 35 or (thp and thp < 35)) then
             if IsSpellNotUsed("Божественный щит", 1) and DoSpell("Каждый за себя") then chat("Каждый за себя! " .. debuff)  return end
             if not IsReadySpell("Каждый за себя") and IsSpellNotUsed("Каждый за себя", 1) and DoSpell("Божественный щит") then chat("Божественный щит! " .. debuff) return end
           end
@@ -104,9 +104,11 @@ function Heal()
       end
     end
 
-    if hp > 50 and thp and thp < 45 and (IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Священная жертва", teammate) then return end
-    if hp > 60 and thp and thp < 50 and(IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Длань жертвенности", teammate) then print(hp) print(thp)return end
-    if hp < 40 and (IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10)) and DoSpell("Священная жертва", player) then return end
+    if IsSpellNotUsed("Длань жертвенности", 12) or IsSpellNotUsed("Священная жертва", 10) then
+      if hp > 50 and thp and thp < 45 and DoSpell("Священная жертва", teammate) then return end
+      if hp > 60 and thp and thp < 50 and DoSpell("Длань жертвенности", teammate) then return end
+      if hp < 40 and DoSpell("Священная жертва", player) then return end
+    end
     if thp and thp < 30 and HasDebuff(physicDebuff, 2, teammate) and DoSpell("Длань защиты", teammate) then chat("Длань защиты на"..teammate) return end
 
     if InCombatLockdown() then
@@ -222,11 +224,10 @@ function Heal()
 
     end
 
-    if AdvMode and TimerMore('HolyDMG', 5) then
-
+  if AdvMode and TimerMore('HolyDMG', 5) then
     if IsValidTarget(target) and UnitIsPlayer(target) and (tContains(steathClass, GetClass(target) and DistanceTo(player, target) > 25) or not UnitAffectingCombat(target) or HasBuff(reflectBuff, 1, target)) then
-     if DoSpell("Правосудие света", target) then TimerStart('HolyDMG') return end
-     if DoSpell("Длань возмездия", target) then TimerStart('HolyDMG') return end
+      if DoSpell("Правосудие света", target) then TimerStart('HolyDMG') return end
+      if DoSpell("Длань возмездия", target) then TimerStart('HolyDMG') return end
     end
 
     if IsValidTarget(focus) and UnitIsPlayer(focus) and (tContains(steathClass, GetClass(focus) and DistanceTo(player, focus) > 25) or not UnitAffectingCombat(focus) or HasBuff(reflectBuff, 1, focus)) then
@@ -235,11 +236,11 @@ function Heal()
     end
 
     if IsPvP() and not InCombatLockdown() then
-      TryTarget()
-      if not IsValidTarget(target) then return end
+    TryTarget()
+    if not IsValidTarget(target) then return end
       if DoSpell("Правосудие света", target) then TimerStart('HolyDMG') return end
       if DoSpell("Длань возмездия", target) then TimerStart('HolyDMG') return end
-      --if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
+    --if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
     end
   end
 end

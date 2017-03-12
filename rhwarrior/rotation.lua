@@ -27,12 +27,14 @@ local bloodList = {
 local procList = {"Целеустремленность железного дворфа", "Сила таунка", "Мощь таунка", "Скорость врайкулов", "Ловкость врайкула", "Пронзающая тьма"}
 
 local immuneList = {"Божественный щит", "Ледяная глыба", "Длань защиты" }
+local needSheeld = false;
 Defence = false
 function Idle()
   local stance = GetShapeshiftForm()
   local attack = IsAttack()
-
+  local mouse5 = IsMouse(5)
   local player = "player"
+  local focus = "focus"
   local hp = UnitHealth100(player)
   local rage = UnitMana(player)
   local warbringer = HasTalent("Вестник войны") > 0
@@ -41,10 +43,11 @@ function Idle()
   local combat = InCombatLockdown()
   local shield = IsEquippedItemType("Щит")
 
+  local damage = attack or IsCtr() or HasBuff("Вихрь клинков")
   if AutoTaunt or warbringer then
     Defence = true
   else
-    if attack then
+    if damage  then
       Defence = false
     else
       if hp < (pvp and 50 or 30) then
@@ -54,8 +57,14 @@ function Idle()
   end
 
 
+  if Defence or mouse5 then
+     needSheeld = true
+  end
+  if damage then
+     needSheeld = false
+  end
 
-  if Defence then
+  if needSheeld then
       Equip1HShield(pvp)
   else
     if not HasBuff("Отражение заклинания", 0.1, player) then
@@ -64,7 +73,7 @@ function Idle()
   end
 
   -- Дизамаунт -----------------------------------------------------------------
-  if attack or IsMouse(5) then
+  if attack or mouse5 then
       if HasBuff("Парашют") then
         oexecute('CancelUnitBuff("player", "Парашют")')
       end
@@ -80,11 +89,11 @@ function Idle()
     -- Auto AntiControl --------------------------------------------------------
 
     local debuff, _, _, _, _, _duration, _expirationTime = HasDebuff(bloodList, 3, "player")
-    if debuff and (_duration - _expirationTime - GetTime() > 0.3)  and IsSpellNotUsed("Каждый за себя", 2) and DoSpell("Ярость берсерка") then return end
+    if debuff and ((_duration - (_expirationTime - GetTime())) > 0.45) and IsSpellNotUsed("Каждый за себя", 2) and DoSpell("Ярость берсерка") then chat("Ярость берсерка - " .. debuff) return end
 	  if not debuff then
 		     debuff, _, _, _, _, _duration, _expirationTime = HasDebuff(ControlList, 3, "player")
     end
-    if debuff and (_duration - _expirationTime - GetTime() > 0.3) and IsSpellNotUsed("Ярость берсерка", 2) and DoSpell("Каждый за себя") then return end
+    if debuff and ((_duration - (_expirationTime - GetTime())) > 0.45) and IsSpellNotUsed("Ярость берсерка", 2) and DoSpell("Каждый за себя") then chat("Каждый за себя - " .. debuff) return end
 
     --AutoTaunt-----------------------------------------------------------------
     if not pvp and AdvMode and AutoTaunt and IsInGroup() --and Defence
@@ -100,21 +109,23 @@ function Idle()
         local t = TARGETS[i]
         if UnitAffectingCombat(t) then
           local isTanking, status, threatpct, rawthreatpct, threatvalue = UnitDetailedThreatSituation("player", t);
-          if status and status < 3 and threatpct < _threatpct then
+          if status and threatpct < _threatpct then
             _t = t
             _threatpct = threatpct
             _isTanking = isTanking
           end
-          if status and status < 2 and DistanceTo(player, t) <= 10 then _c = _c + 1 end
+          if status and not isTanking and DistanceTo(player, t) <= 10 then _c = _c + 1 end
         end
       end
       --------------------------------------------------------------------------
       if _c > 1 and DoSpell("Вызывающий крик", nil, true) then return end
       if _t then
-        if stance == 2 and not _isTanking and DoSpell("Провокация", _t, true) then return end
-        if DoSpell("Героический бросок", _t) then return end
-        if stance ~= 3 and DistanceTo(player, _t) < 8 and DoSpell("Удар грома") then return end
-        if shield and DoSpell("Мощный удар щитом", _t, true) then return end
+        if not _isTanking then
+          if stance == 2 and DoSpell("Провокация", _t, true) then return end
+          if DoSpell("Героический бросок", _t) then return end
+          if stance ~= 3 and DistanceTo(player, _t) < 8 and DoSpell("Удар грома") then return end
+          if shield and DoSpell("Мощный удар щитом", _t, true) then return end
+        end
         if stance ~= 3 and DoSpell("Дразнящий удар", _t, true) then return end
       end
     end
@@ -132,58 +143,7 @@ function Idle()
         aoe3 = enemyCount >= 3
       end
     end
-    ----------------------------------------------------------------------------
-    local target = "target"
-    local validTarget = IsValidTarget(target)
 
-    --[[if not validTarget and UnitExists(target) then
-      oexecute("ClearTarget()")
-    end]]
-    -- TryTarget ---------------------------------------------------------------
-    if not validTarget then
-        local _uid = nil
-        local _face = false
-        local _dist = 100
-        local _combat = false
-        local look = IsMouselooking()
-        for i = 1, #TARGETS do
-          local uid = TARGETS[i]
-          repeat -- для имитации continue
-            if not IsValidTarget(uid) then break end
-            local combat = UnitAffectingCombat(uid)
-            -- уже есть кто-то в бою
-            if _combat and not combat then break end
-            -- автоматически выбераем только цели в бою
-            if not attack and not combat then break end
-            -- не будет лута
-            if (UnitIsTapped(uid)) and (not UnitIsTappedByPlayer(uid)) then break end
-            if UnitIsPossessed(uid) then break end
-            -- в pvp выбираем только игроков
-            if pvp and not UnitIsPlayer(uid) then break end
-            -- только актуальные цели
-            local face = PlayerFacingTarget(uid, look and 30 or 90)
-            -- если смотрим, то только впереди
-            if look and not face then break end
-            local dist = DistanceTo("player", uid)
-            if _face and not face and dist > 8 then break end
-            if dist > _dist then break end
-            _uid = uid
-            _combat = combat
-            _face = face
-            _dist = dist
-          until true
-        end
-        if _uid then
-          oexecute("TargetUnit('".. _uid .."')")
-          validTarget = true
-        else
-          --print('нет нормальной цели')
-        end
-    end
-    ----------------------------------------------------------------------------
-    local melee = InMelee(target)
-    if TryInterrupt(pvp) then return end
-    if TryInterrupt(pvp, 'focus') then return end
     -- TryProtect -----------------------------------------------------------------
     if combat then
       --if hp < 50 and UseEquippedItem("Проржавевший костяной ключ") then return end
@@ -202,9 +162,16 @@ function Idle()
     if (attack or hp > 60) and HasBuff("Длань защиты", 1, player) then
       oexecute('CancelUnitBuff("player", "Длань защиты")')
     end
-
+    ----------------------------------------------------------------------------
+    local target = "target"
+    local validTarget = IsValidTarget(target)
+    -- TryTarget ---------------------------------------------------------------
+    if not validTarget then TryTarget(attack, true) end
+    ----------------------------------------------------------------------------
+    local melee = InMelee(target)
+    if TryInterrupt(pvp) then return end
+    if TryInterrupt(pvp, focus) then return end
     -- Rotation ----------------------------------------------------------------
-
     if attack and validTarget and IsVisible(target)
       and IsSpellNotUsed("Перехват", 1)
       and IsSpellNotUsed("Рывок", 1)  then
@@ -249,23 +216,6 @@ function Idle()
       end
     end
 
-
-
-    --local autoAttack = IsCurrentSpell("Автоматическая атака")
-    if (attack or UnitAffectingCombat(target) or pvp) then
-      --if validTarget and not autoAttack then oexecute("StartAttack()") end
-      if validTarget then oexecute("StartAttack()") end
-    else
-      --if autoAttack then  oexecute("StopAttack()") end
-      oexecute("StopAttack()")
-    end
-    if not validTarget then
-		  --print(IsValidTargetInfo)
-		  return
-    end
-
-    FaceToTarget(target)
-
     if HasBuff(immuneList, 3, target) and IsReadySpell("Сокрушительный бросок") and rage >= 25  then
   		if not PlayerInPlace() then
   			echo('Стой!!!')
@@ -278,11 +228,12 @@ function Idle()
       oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
     end
 
-    if not CanAttack(target) and not attack then
+    if not CanAttack(target) then
       chat('!CanAttack ' .. CanAttackInfo)
-      if HasBuff("Сдерживание",1,target) and stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
-      return
+      if HasBuff("Сдерживание",0.1, target) and stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
     end
+
+    if CantAttack() then return end
 
     if HasBuff("Сокрушить!") then
       local spell, left =  UnitIsCasting("player")
@@ -295,27 +246,29 @@ function Idle()
       if HasSpell("Жажда смерти") then DoSpell("Жажда смерти", nil, true) end
       if stance == 3 then DoSpell("Безрассудство") end
     end
+
     if IsCtr() then
         if Equiped2H() and HasSpell("Вихрь клинков") and IsReadySpell("Вихрь клинков") and rage >= 25 then
-          DoSpell("Размашистые удары")
-          DoSpell("Вихрь клинков", nil, true)
-          return
+          if not DoSpell("Размашистые удары") then
+            DoSpell("Вихрь клинков", nil, true)
+            return
+          end
         end
-        if not IsSpellNotUsed("Вихрь клинков", 0.1) and UnitExists(target) then oexecute("ClearTarget()") end
     end
+    if HasMyBuff("Вихрь клинков") and IsValidTarget(target) and IsValidTarget(focus) and (DistanceTo("player", focus) > DistanceTo("player", target)) then switchFocusTarget() end
     if UnitIsCasting(target) and stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
 	--if AutoTaunt and UnitClassification(target) == "worldboss"  and (select(4, UnitDebuff("Раскол брони", 10, target)) or 0) < 5 and DoSpell("Раскол брони", target) then return end
+
+    if shield and ( pvp and HasBuff("Magic", 3, target ) or HasBuff("Щит и меч", 0.1, player) ) and DoSpell("Мощный удар щитом", target, true) then return end
+    if melee and stance == 2 and DoSpell("Разоружение", target, true) then return end
+    if melee and HasBuff(burstList, 5, target) then DoCommand("disarm") return end
     if stance ~= 2 and IsUsableSpell("Победный раж") and DoSpell("Победный раж", target) then return end
     if stance == 2 and IsUsableSpell("Реванш") and DoSpell("Реванш", target) then return end
-
-    if stance == 2 and HasBuff(burstList, 5, target) and DoSpell("Разоружение", target, true) then return end
     --if not attack and HasBuff(burstList, 5, target) and DoCommand("disarm") then return end
-
-
     if aoe2 and HasSpell("Размашистые удары") then  DoSpell("Размашистые удары") end
     if aoe2 then DoSpell("Рассекающий удар", nil, not pvp) end
     if aoe3 and melee and stance ~= 3 and DoSpell("Удар грома") then return end
-    if shield and ( pvp and HasBuff("Magic", 3, target ) or HasBuff("Щит и меч", 0.1, player) ) and DoSpell("Мощный удар щитом", target) then return end
+
     if not PlayerInPlace() and UnitIsPlayer(target) and not HasBuff("Длань свободы", 0.1, target) and not HasDebuff(myRootDebuff, 1, target) then
         if stance ~= 2 and InRange("Подрезать сухожилия", target) then
           if DoSpell("Подрезать сухожилия", target) then return end

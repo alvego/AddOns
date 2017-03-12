@@ -132,7 +132,7 @@ function MonkRotation()
   if not HasBuff("Облик лунного совуха") and DoSpell("Облик лунного совуха") then return end
   if UnitMana100() < 30 and UseItem("Рунический флакон с зельем маны") then return end
     if UnitMana100(player) < 50 and DoSpell("Озарение", player) then return end
-  TryTarget()
+  if not validTarget then TryTarget() end
   if CantAttack() then return end
   if UnitHealth(target) > 200000 and not HasDebuff("Волшебный огонь") and DoSpell("Волшебный огонь", target) then return end
   --if not HasDebuff("Земля и луна") and DoSpell("Гнев", target) then end
@@ -140,68 +140,5 @@ function MonkRotation()
   if not HasMyDebuff("Лунный огонь", 1, target) and DoSpell("Лунный огонь", target) then return end
   if not HasBuff("Солнечное") and (HasBuff("Лунное") or GetTime() - l < 4.6) and DoSpell("Звездный огонь", target) then l = GetTime() return end
   if DoSpell("Гнев", target) then return end
-end
-------------------------------------------------------------------------------------------------------------------
-function CantAttack()
-  if not CanAttack(target) then
-    if IsValidTargetInfo then chat('!attack: ' .. CanAttackInfo ) end
-    return true
-  end
-  local autoAttack = IsCurrentSpell("Автоматическая атака")
-  if not attack and not UnitAffectingCombat(target) then -- TODO: Не бить в сапы и имуны, писать почему не бьем
-    chat('!attack: !combat target' )
-    if autoAttack then
-      chat('attack: stop!')
-      oexecute("StopAttack()")
-    end
-    return true
-  end
-  if not autoAttack then
-      chat('attack: start!')
-      oexecute("StartAttack()")
-  end
-  FaceToTarget(target)
-  return false
-end
-------------------------------------------------------------------------------------------------------------------
-function TryTarget()
-  if validTarget then return end
-  local _uid = nil
-  local _face = false
-  local _dist = 100
-  local _combat = false
-  local look = IsMouselooking()
-  for i = 1, #TARGETS do
-    local uid = TARGETS[i]
-    repeat -- для имитации continue
-      if not IsValidTarget(uid) then break end
-      local combat = UnitAffectingCombat(uid)
-      -- уже есть кто-то в бою
-      if _combat and not combat then break end
-      -- автоматически выбераем только цели в бою
-      if not attack and not combat then break end
-      -- не будет лута
-      if (UnitIsTapped(uid)) and (not UnitIsTappedByPlayer(uid)) then break end
-      -- Призванный юнит
-      if UnitIsPossessed(uid) then break end
-      -- в pvp выбираем только игроков
-      if pvp and not UnitIsPlayer(uid) then break end
-      -- только актуальные цели
-      local face = PlayerFacingTarget(uid, look and 30 or 90)
-      -- если смотрим, то только впереди
-      if look and not face then break end
-      local dist = DistanceTo("player", uid)
-      if _face and not face and dist > 8 then break end
-      if dist > _dist then break end
-      _uid = uid
-      _combat = combat
-      _face = face
-      _dist = dist
-    until true
-  end
-  if _uid then
-    oexecute("TargetUnit('".. _uid .."')")
-    validTarget = true
-  end
 end
 ------------------------------------------------------------------------------------------------------------------

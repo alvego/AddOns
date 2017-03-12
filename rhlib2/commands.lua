@@ -18,11 +18,7 @@ function DoCommand(cmd, ...)
         print("DoCommand: Ошибка! Нет такой комманды ".. cmd)
         return
     end
-    local s = ''
-    for i = 1, select('#', ...) do
-      s = s .. ' ' .. select(i, ...)
-    end
-    SendAddonMessage('rhlib2', 'CMD:' .. cmd .. s .. "!", "PARTY")
+
     local d = 1.55
     local t = GetTime() + d
 
@@ -65,6 +61,12 @@ function UpdateCommands()
                    if GetTime() - Commands[cmd].Last > 0.1 and Commands[cmd].Apply(unpack(Commands[cmd].Params)) then
                         --print(cmd, 'Apply true')
                         Commands[cmd].Last = GetTime()
+                        local s = ''
+                        for i = 1, select('#', unpack(Commands[cmd].Params)) do
+                          s = s .. ' ' .. select(i, unpack(Commands[cmd].Params))
+                        end
+                        chat('CMD:' .. cmd .. s .. "!")
+                        SendAddonMessage('rhlib2', 'cmd: ' .. cmd .. s .. "!", "PARTY")
                    end
                 end
             else

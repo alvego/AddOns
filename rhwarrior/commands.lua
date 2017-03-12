@@ -79,8 +79,6 @@ SetCommand("intervene",
         end
     end,
     function(unit)
-        if HasBuff("Вихрь клинков", 0.01, player) then oexecute('CancelUnitBuff("player", "Вихрь клинков")') return true end
-
         if UnitMana("player") < 10 and not IsReadySpell("Кровавая ярость") then
           print("intervene - !rage")
           return true
@@ -108,6 +106,7 @@ SetCommand("intervene",
 SetCommand("run",
     function() return true end,
     function()
+        if HasBuff("Вихрь клинков", 0.01, player) then oexecute('CancelUnitBuff("player", "Вихрь клинков")') return true end
         if not InCombatLockdown() and PlayerInPlace() and IsOutdoors() then
           local mount = (IsShift() or IsBattleground() or not IsFlyableArea()) and ( GetFreeBagSlotCount() < 3 and "Тундровый мамонт путешественника" or getRandomMount(groundMounts)) or getRandomMount(flyMounts)
           if IsAlt() then mount = "Тундровый мамонт путешественника" end
@@ -115,6 +114,10 @@ SetCommand("run",
           DoCommand("mount", mount)
         else
           chat("Вмешательство")
+          if IsArena() then
+            DoCommand("intervene", Teammate)
+            return true
+          end
           if IsInGroup() and IsReadySpell("Вмешательство") then
             local look = IsMouselooking()
             if (IsArena() or not look) and IsInteractUnit(Teammate) and InRange("Вмешательство", Teammate) then
@@ -158,6 +161,24 @@ SetCommand("defence",
         Defence = true
         chat('Защищаемся')
         return GetShapeshiftForm() == 2
+    end
+)
+---------------------------------------------------------------------------------------------------------------
+SetCommand("dispel",
+    function()
+      if not IsEquippedItemType("Щит") then
+        Equip1HShield(true)
+        return true
+      end
+      return DoSpell("Мощный удар щитом", "target", true)
+    end,
+    function()
+        if not IsValidTarget("target") then return true end
+        if not InRange("Мощный удар щитом", "target") then return true end
+        if HasBuff("Вихрь клинков", 0.01, "player") then return true end
+        if IsReadySpell("Мощный удар щитом") then return false end
+        chat("Мощный удар щитом")
+        return not IsSpellNotUsed('Мощный удар щитом', 1)
     end
 )
 ---------------------------------------------------------------------------------------------------------------

@@ -286,3 +286,97 @@ end
 function IsInParty()
     return (GetNumPartyMembers() > 0)
 end
+------------------------------------------------------------------------------------------------------------------
+function CantAttack()
+  local attack = IsAttack()
+  if not CanAttack("target") then
+    if CanAttackInfo then chat('!attack: ' .. CanAttackInfo ) end
+    return true
+  end
+  local autoAttack = IsCurrentSpell("Автоматическая атака")
+  if not attack and not UnitAffectingCombat("target") then -- TODO: Не бить в сапы и имуны, писать почему не бьем
+    chat('!attack: !combat target' )
+    if autoAttack then
+      chat('attack: stop!')
+      oexecute("StopAttack()")
+    end
+    return true
+  end
+  if not autoAttack then
+      chat('attack: start!')
+      oexecute("StartAttack()")
+  end
+  FaceToTarget("target")
+  return false
+end
+------------------------------------------------------------------------------------------------------------------
+function TryTarget(attack, focus)
+  local validTarget = IsValidTarget("target")
+  if IsArena() and validTarget and IsValidTarget("focus") then
+    switchFocusTarget()
+    return
+  end
+  local pvp = IsPvP()
+  local _currentGUID = nil
+  local _uid = nil
+  local _uid2 = nil
+  local _face = false
+  local _dist = 100
+  local _combat = false
+  UpdateObjects()
+  UpdateTargets()
+  if validTarget then
+    _currentGUID = UnitGUID("target")
+    _uid2 = "target"
+  end
+  local look = IsMouselooking()
+  for i = 1, #TARGETS do
+    local uid = TARGETS[i]
+    repeat -- для имитации continue
+      if not IsValidTarget(uid) then break end
+      local combat = UnitAffectingCombat(uid)
+      -- уже есть кто-то в бою
+      if _currentGUID and _currentGUID == UnitGUID(uid) then break end
+      if _combat and not combat then break end
+      -- автоматически выбераем только цели в бою
+      if not attack and not combat then break end
+      -- не будет лута
+      if (UnitIsTapped(uid)) and (not UnitIsTappedByPlayer(uid)) then break end
+      -- Призванный юнит
+      if UnitIsPossessed(uid) then break end
+      -- в pvp выбираем только игроков
+      if pvp and not UnitIsPlayer(uid) then break end
+      -- только актуальные цели
+      local face = PlayerFacingTarget(uid, look and 45 or 90)
+      -- если смотрим, то только впереди
+      if look and not face then break end
+      local dist = DistanceTo("player", uid)
+      if _face and not face and dist > 8 then break end
+      if dist > _dist then break end
+      if _uid then _uid2 = _uid end
+      _uid = uid
+      _combat = combat
+      _face = face
+      _dist = dist
+    until true
+  end
+  if focus and _uid2 then oexecute("FocusUnit('".. _uid2 .."')") end
+  if _uid then oexecute("TargetUnit('".. _uid .."')") end
+end
+------------------------------------------------------------------------------------------------------------------
+function switchFocusTarget()
+  if UnitExists("target") and not UnitExists("focus") then
+      omacro("/focus")
+      omacro("/cleartarget")
+      return
+  end
+  if UnitExists("focus") and not UnitExists("target") then
+    omacro("/target focus")
+    omacro("/clearfocus")
+    return
+  end
+  omacro("/target focus")
+  omacro("/targetlasttarget")
+  omacro("/focus")
+  omacro("/targetlasttarget")
+end
