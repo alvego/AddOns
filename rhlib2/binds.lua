@@ -297,7 +297,7 @@ function UpdateIdle(elapsed)
     if LootFrame:IsVisible() then
       if (IsFishingMode() and IsFishingLoot()) or Farm and (not IsInGroup() or (GetLootMethod() == 'freeforall')) then
         for i=1, GetNumLootItems() do
-          if not select(4, GetLootSlotInfo(i)) then LootSlot(i) end
+          if not select(5, GetLootSlotInfo(i)) then LootSlot(i) end
         end
         if InCombatMode() then CloseLoot() return end
       end

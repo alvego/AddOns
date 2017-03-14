@@ -5,8 +5,9 @@ local peaceBuff = {"Пища", "Питье"}
 local player = "player"
 local target = "target"
 local iUNITS = {"player", Teammate}
-local stance, attack, pvp, combat, combatMode, validTarget, inPlace
+local stance, attack, pvp, combat, combatMode, validTarget, inPlace, toggle
 function Idle()
+  toggle = not toggle
   stance = GetShapeshiftForm()
   attack = IsAttack()
   pvp = IsPvP()
@@ -106,6 +107,7 @@ function HealRotation()
   -- Auto AntiControl --------------------------------------------------------
   if (IsAttack() or h < 60) and IsEquippedItem("Медальон Альянса") then
     local debuff, _, _, _, _, _duration, _expirationTime = HasDebuff(ControlList, 3, "player")
+    if debuff then chat("Control: " .. debuff ) end
     if debuff and ((_duration - (_expirationTime - GetTime())) > 0.45) and UseEquippedItem("Медальон Альянса") then chat("Медальон Альянса - " .. debuff) return end
   end
 
@@ -157,7 +159,7 @@ function HealRotation()
      if (h < 55 and l > 8000) and (HasMyBuff("Омоложение", 2, u) or HasMyBuff("Восстановление", 2, u) or HasMyBuff("Жизнецвет", 2, u) or HasMyBuff("Буйный рост", 2, u)) and DoSpell("Покровительство Природы", u) then return end
   end
 
-  if pvp and lifebloom_u and lifebloom_h < 90 and DoSpell("Жизнецвет", lifebloom_u) then return end
+  if toggle and pvp and lifebloom_u and lifebloom_h and lifebloom_h < 90 and DoSpell("Жизнецвет", lifebloom_u) then return end
   local tanking = (IsInGroup() and UnitThreat(u) > 1) or (hp < 75 and pvp and IsOneUnit(u, player))
   if (h < 98 or l > 500 or tanking) and not HasMyBuff("Омоложение", 1, u) and DoSpell("Омоложение", u) then return end
   local count, _, _, last = select(4, HasMyBuff("Жизнецвет", 0.01, u))

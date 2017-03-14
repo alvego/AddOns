@@ -118,7 +118,7 @@ SetCommand("run",
       end
 
       form = (ground or combat) and 4 or 6
-      if not (mounted or swimming or falling) and not inPlace and outdoors and stance ~= form then
+      if not (mounted or swimming) and not inPlace and outdoors and stance ~= form then
         DoCommand("form", form)
         return true
       end

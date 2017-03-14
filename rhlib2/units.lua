@@ -26,7 +26,12 @@ function PayerIsRooted()
   if moving and HasDebuff(RootList, 0.5, "player") then return true end
   local speed = GetUnitSpeed("player")
   if speed == 0 then return false end
-  return speed < (moveBackward and 4.5 or 7)
+  if speed < (moveBackward and 4.5 or 7) then
+    TimerStart('PayerIsRooted')
+  else
+    TimerReset('PayerIsRooted')
+  end
+  return TimerStarted('PayerIsRooted') and TimerMore('PayerIsRooted', 2)
 end
 
 ------------------------------------------------------------------------------------------------------------------
