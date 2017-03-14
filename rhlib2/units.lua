@@ -27,11 +27,11 @@ function PayerIsRooted()
   local speed = GetUnitSpeed("player")
   if speed == 0 then return false end
   if speed < (moveBackward and 4.5 or 7) then
-    TimerStart('PayerIsRooted')
+    if not TimerStarted('PayerIsRooted') then TimerStart('PayerIsRooted') end
   else
-    TimerReset('PayerIsRooted')
+    if TimerStarted('PayerIsRooted') then TimerReset('PayerIsRooted') end
   end
-  return TimerStarted('PayerIsRooted') and TimerMore('PayerIsRooted', 2)
+  return TimerStarted('PayerIsRooted') and TimerMore('PayerIsRooted', 1)
 end
 
 ------------------------------------------------------------------------------------------------------------------
