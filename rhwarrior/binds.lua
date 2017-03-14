@@ -89,8 +89,8 @@ function TryInterrupt(pvp, target)
     if (channel or left < 0.8)  then
 
       local reflect = tContains(ReflectList, spell)
-
-      if reflect and stance ~= 3 and GetSpellCooldownLeft("Отражение заклинания") == 0 then
+      local forme = IsOneUnit(target..'-target', "player")
+      if reflect and stance ~= 3 and forme and GetSpellCooldownLeft("Отражение заклинания") == 0 then
         Equip1HShield()
         if DoSpell("Отражение заклинания", player, true) then
           chat("Отражение заклинания от " .. spell .. " - " ..name)
@@ -99,7 +99,7 @@ function TryInterrupt(pvp, target)
       end
 
       local harm = IsHarmfulCast(spell)
-      if HasBuff("Отражение заклинания", 0.1, player) and harm then
+      if forme and HasBuff("Отражение заклинания", 0.1, player) and harm then
         return false;
       end
 

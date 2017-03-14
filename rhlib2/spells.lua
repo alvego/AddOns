@@ -370,10 +370,10 @@ function UseShapeshiftForm(stance)
   if active then return false end
   local start, duration, enabled =  GetShapeshiftFormCooldown(stance)
   if enabled ~= 1 then return false end
-  if (start == 0) or ((start or 0) + duration - GetTime()) then
-    print('stance', stance)
-    oexecute('CastShapeshiftForm(' .. stance .. ')')
-  end
+  if not IsReadySpell(name, true) then return false end
+  if not (start == 0) and not ((start or 0) + duration - GetTime()) then return false end
+  oexecute('CastShapeshiftForm(' .. stance .. ')')
+  return true
 end
 
 

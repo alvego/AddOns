@@ -29,6 +29,46 @@ SetCommand("mount",
     end
 )
 ---------------------------------------------------------------------------------------------------------------
+SetCommand("stun",
+    function(target)
+      local stance = GetShapeshiftForm()
+      if stance ~= 1 then
+        UseShapeshiftForm(1)
+        return true
+      end
+      return DoSpell("Исступление")
+    end,
+    function(target)
+        if not target then target = "target" end
+        local stance = GetShapeshiftForm()
+        if HasBuff("Исступление") then
+          chat("stun Оглушить!")
+          DoCommand("spell", "Оглушить", target)
+          return true
+        end
+        if stance ~= 1 then
+          if not IsReadySpell("Исступление") then
+            chat("stun !Исступление")
+            return true
+          end
+        end
+        if not IsReadySpell("Оглушить") then
+          chat("stun !IsReady")
+          return true
+        end
+        if not CanAttack(target) then
+            chat("stun !CanAttack")
+          return true
+        end
+        if not InRange("Оглушить", target) then
+          chat("stun !InRange")
+          return true
+        end
+
+        return false
+    end
+)
+---------------------------------------------------------------------------------------------------------------
 local stance1, stance2
 SetCommand("unRoot",
     function()
@@ -47,13 +87,13 @@ SetCommand("unRoot",
       return false
     end,
     function()
+        if IsMounted() or CanExitVehicle() or IsFlying() or UnitIsCasting("player") then return true end
         return stance1 == nil and stance2 == nil
     end,
     function()
         local stance = GetShapeshiftForm()
-        stance1 = stance == 1 and 3 or 1
+        stance1 = stance == 0 and ((HasTalent("Древо Жизни") or HasTalent("Облик лунного совуха")) and 5 or 1) or 0
         stance2 = stance
-        print('init', stance1, stance2)
         return stance1
     end
 )
@@ -72,18 +112,14 @@ SetCommand("run",
       local stance = GetShapeshiftForm()
       local ground = IsShift() or IsBattleground() or not isFlyable
 
-      if falling and stance ~= (not ground and outdoors and 3 or 6) then
-        DoCommand("form", not ground and outdoors and 3 or 6)
-        return true
-      end
-
-      if swimming and outdoors and stance ~= 2 then
+      if not combat and swimming and outdoors and stance ~= 2 then
         DoCommand("form", 2)
         return true
       end
 
-      if not (mounted or combat or swimming or falling) and not inPlace and outdoors and stance ~= (ground and 4 or 6) then
-        DoCommand("form", ground and 4 or 6)
+      form = (ground or combat) and 4 or 6
+      if not (mounted or swimming or falling) and not inPlace and outdoors and stance ~= form then
+        DoCommand("form", form)
         return true
       end
 
@@ -102,7 +138,7 @@ SetCommand("run",
 SetCommand("form",
     function(stance)
         if UseShapeshiftForm(stance) then
-            echo(spell.."!",1)
+            print("form ".. stance .."!")
             return true
         end
     end,

@@ -11,6 +11,14 @@ function SetCommand(name, applyFunc, checkFunc, initFunc)
 end
 
 ------------------------------------------------------------------------------------------------------------------
+function InUseCommand(cmd)
+  if not Commands[cmd] then
+      print("DoCommand: Ошибка! Нет такой комманды ".. cmd)
+      return false
+  end
+  return ((Commands[cmd].Timer - GetTime()) >  0)
+end
+------------------------------------------------------------------------------------------------------------------
 -- Используется в макросах
 -- /run DoCommand('my_command', 'focus')
 function DoCommand(cmd, ...)
@@ -18,6 +26,7 @@ function DoCommand(cmd, ...)
         print("DoCommand: Ошибка! Нет такой комманды ".. cmd)
         return
     end
+    print('cmd: ' .. cmd, ...)
     local time = GetTime()
     local d = 1.55
     local t = time + d

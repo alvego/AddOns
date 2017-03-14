@@ -6,9 +6,26 @@ hooksecurefunc("MoveBackwardStart", moveBackwardStart);
 local moveBackwardStop = function() moveBackward = false end
 hooksecurefunc("MoveBackwardStop", moveBackwardStop);
 
+local moving = false
+local moveStart = function() moving = true end
+hooksecurefunc("MoveBackwardStart", moveStart);
+hooksecurefunc("MoveForwardStart", moveStart);
+hooksecurefunc("StrafeLeftStart", moveStart);
+hooksecurefunc("StrafeRightStart", moveStart);
+hooksecurefunc("JumpOrAscendStart", moveStart);
+local moveStop = function() moving = false end
+hooksecurefunc("MoveBackwardStop", moveStop);
+hooksecurefunc("MoveForwardStop", moveStop);
+hooksecurefunc("StrafeLeftStop", moveStop);
+hooksecurefunc("StrafeRightStop", moveStop);
+hooksecurefunc("AscendStop", moveStop);
+
+
 function PayerIsRooted()
+  if IsSwimming() or IsMounted() or CanExitVehicle() then return false end
+  if moving and HasDebuff(RootList, 0.5, "player") then return true end
   local speed = GetUnitSpeed("player")
-  if speed == 0 or IsMounted() or CanExitVehicle() then return false end
+  if speed == 0 then return false end
   return speed < (moveBackward and 4.5 or 7)
 end
 
