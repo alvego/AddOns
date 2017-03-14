@@ -1,11 +1,25 @@
 -- Rotation Helper Library by Alex Tim
 ------------------------------------------------------------------------------------------------------------------
+local moveBackward = false
+local moveBackwardStart = function() moveBackward = true end
+hooksecurefunc("MoveBackwardStart", moveBackwardStart);
+local moveBackwardStop = function() moveBackward = false end
+hooksecurefunc("MoveBackwardStop", moveBackwardStop);
+
+function PayerIsRooted()
+  local speed = GetUnitSpeed("player")
+  if speed == 0 or IsMounted() or CanExitVehicle() then return false end
+  return speed < (moveBackward and 4.5 or 7)
+end
+
+------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------
 local inDuel = false
-local startDuel = StartDuel
-function StartDuel()
+local function startDuel()
     inDuel = true
     startDuel()
 end
+hooksecurefunc("StartDuel", startDuel);
 
 function InDuel()
     return inDuel

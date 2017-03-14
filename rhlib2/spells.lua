@@ -358,4 +358,23 @@ function UseSpell(spell, target)
   end
   return true
 end
+-----------------------------------------------------------------------------------------------------------------
+function UseShapeshiftForm(stance)
+  if UnitIsCasting("player") then return false end
+  if not stance or stance == 0 then
+    if GetShapeshiftForm() ~= 0 then oexecute("CancelShapeshiftForm()") end
+    return false
+  end
+  local icon, name, active, castable, spellId = GetShapeshiftFormInfo(stance);
+  if not icon then return false end
+  if active then return false end
+  local start, duration, enabled =  GetShapeshiftFormCooldown(stance)
+  if enabled ~= 1 then return false end
+  if (start == 0) or ((start or 0) + duration - GetTime()) then
+    print('stance', stance)
+    oexecute('CastShapeshiftForm(' .. stance .. ')')
+  end
+end
+
+
 ------------------------------------------------------------------------------------------------------------------

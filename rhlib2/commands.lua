@@ -6,8 +6,8 @@ local Commands = {}
 ------------------------------------------------------------------------------------------------------------------
 -- метод для задания команды, которая имеет приоритет на ротацией
 -- SetCommand(string 'произвольное имя', function(...) команда, bool function(...) проверка, что все выполнилось, или выполнение невозможно)
-function SetCommand(name, applyFunc, checkFunc)
-    Commands[name] = {Last = 0, Timer = 0, Apply = applyFunc, Check = checkFunc, Params == null}
+function SetCommand(name, applyFunc, checkFunc, initFunc)
+    Commands[name] = {Last = 0, Timer = 0, Apply = applyFunc, Check = checkFunc, Init = initFunc, Params == null}
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -18,10 +18,9 @@ function DoCommand(cmd, ...)
         print("DoCommand: Ошибка! Нет такой комманды ".. cmd)
         return
     end
-
+    local time = GetTime()
     local d = 1.55
-    local t = GetTime() + d
-
+    local t = time + d
     local spell, _, _, _, _, endTime  = UnitCastingInfo("player")
     if not spell then spell, _, _, _, _, endTime, _, nointerrupt = UnitChannelInfo("player") end
     if spell and endTime then
@@ -31,7 +30,7 @@ function DoCommand(cmd, ...)
             t = GetTime() + d
         end
     end
-
+    if Commands[cmd].Init and (Commands[cmd].Timer - time <= 0) then Commands[cmd].Init(...) end
     Commands[cmd].Timer = t
     Commands[cmd].Params = { ... }
 end
@@ -41,7 +40,7 @@ local function receiveAddonMessage(type, prefix, message, channel, sender)
   if prefix ~= 'rhlib2' then return end
   if IsOneUnit(sender, "player") then return end
   echo(sender .. ': ' .. message)
-  chat(sender .. ': ' .. message)
+  chat(sender .. ': ' .. message, 0, 0, 1)
 end
 AttachEvent('CHAT_MSG_ADDON', receiveAddonMessage)
 
@@ -65,7 +64,7 @@ function UpdateCommands()
                         for i = 1, select('#', unpack(Commands[cmd].Params)) do
                           s = s .. ' ' .. select(i, unpack(Commands[cmd].Params))
                         end
-                        chat('CMD:' .. cmd .. s .. "!")
+                        chat('CMD:' .. cmd .. s .. "!", 0, 1, 0)
                         SendAddonMessage('rhlib2', 'cmd: ' .. cmd .. s .. "!", "PARTY")
                    end
                 end

@@ -167,7 +167,7 @@ SetCommand("defence",
 SetCommand("dispel",
     function()
       if not IsEquippedItemType("Щит") then
-        Equip1HShield(true)
+        Equip1HShield()
         return true
       end
       return DoSpell("Мощный удар щитом", "target", true)

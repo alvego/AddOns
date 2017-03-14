@@ -7,7 +7,8 @@ BINDING_NAME_WRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 BINDING_NAME_WRH_AUTOTAUNT = "Авто Taunt"
 BINDING_NAME_WRH_AUTOAOE = "Вкл/Выкл авто AOE"
 ------------------------------------------------------------------------------------------------------------------
-function Equip1HShield(pvp)
+function Equip1HShield()
+  local pvp = (GetCombatRating(CR_CRIT_TAKEN_MELEE) > 300)
   if not InCombatMode() and IsEquippedItemType("Удочка") then return end
   if TimerMore('equipweapon', 0.5) and not IsEquippedItemType("Щит") and not HasBuff("Вихрь клинков", 0.01, "player") then
     local titansGrip = HasTalent("Хватка титана") > 0
@@ -90,7 +91,7 @@ function TryInterrupt(pvp, target)
       local reflect = tContains(ReflectList, spell)
 
       if reflect and stance ~= 3 and GetSpellCooldownLeft("Отражение заклинания") == 0 then
-        Equip1HShield(pvp)
+        Equip1HShield()
         if DoSpell("Отражение заклинания", player, true) then
           chat("Отражение заклинания от " .. spell .. " - " ..name)
           return true
@@ -116,7 +117,7 @@ function TryInterrupt(pvp, target)
       end
 
       if not notinterrupt  and stance ~= 3 and GetSpellCooldownLeft("Удар щитом") == 0 and InMelee(target) then
-        Equip1HShield(pvp)
+        Equip1HShield()
         if IsEquippedItemType("Щит") and DoSpell("Удар щитом", target, true) then
           chat("Удар щитом в " .. name)
           return true
@@ -129,7 +130,7 @@ function TryInterrupt(pvp, target)
       end
 
       if harm and stance ~= 3 and GetSpellCooldownLeft("Отражение заклинания") == 0 then
-        Equip1HShield(pvp)
+        Equip1HShield()
         if DoSpell("Отражение заклинания", player, true) then
           chat("Отражение заклинания harm от " .. spell .. " - " ..name)
           return true

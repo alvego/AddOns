@@ -3,6 +3,7 @@
 local peaceBuff = {"Пища", "Питье"}
 local player = "player"
 local target = "target"
+local iUNITS = {"player"}
 local stance, attack, pvp, combat, combatMode, validTarget, inPlace
 function Idle()
   stance = GetShapeshiftForm()
@@ -24,7 +25,8 @@ function Idle()
   end
   ------------------------------------------------------------------------------
   -- дайте поесть (побегать) спокойно
-  if not attack and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) or stance == 4 or stance == 6 then return end
+  if not attack and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) or stance == 2 or stance == 4 or stance == 6  then return end
+
   if HasTalent("Древо Жизни") > 0 then
     HealRotation()
     return
@@ -37,8 +39,8 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function HealRotation()
   if not (attack or combat or AutoHeal) then return end
-  if not HasBuff("Древо Жизни") and DoSpell("Древо Жизни") then return end
-  if not HasBuff("дикой природы") and DoSpell("Знак дикой природы") then return end
+  --if not HasBuff("Древо Жизни") and DoSpell("Древо Жизни") then return end
+  if not HasBuff("дикой природы") and DoSpell("Знак дикой природы", player) then return end
   ------------------------------------------------------------------------------
   local hp = UnitHealth100(player)
   local mana = UnitMana100(player)
@@ -53,7 +55,7 @@ function HealRotation()
     if mana < 80 and UseEquippedItem("Осколок чистейшего льда", player) then return end
   end
   local u = "player"
-  local h = nil
+  local h = hp
   local curse_u = nil
   local curse_h = nil
 
@@ -62,13 +64,15 @@ function HealRotation()
 
   local lifebloom_u = nil
   local lifebloom_h = nil
+
+  local lowhpmembers = 0
   ------------------------------------------------------------------------------
   UpdateUnits()
-  for i = 1, #UNITS do
-    local _u = UNITS[i]
+  local units = hp > 60 and UNITS or iUNITS
+  for i = 1, #units do
+    local _u = units[i]
     if IsVisible(_u) then
       local _h = UnitHealth100(_u)
-
       if HasDebuff("Curse", 2, _u) and (not curse_h or _h < curse_h) then
         curse_u = _u
         curse_h = _h
@@ -83,16 +87,21 @@ function HealRotation()
         lifebloom_u = _u
         lifebloom_h = _h
       end
-
+      if _h < 50 then lowhpmembers = lowhpmembers + 1 end
       if not h or _h < h then
         u = _u
         h = _h
+        if (select(4, HasMyBuff("Жизнецвет", 0.01, u)) or 0) < 3 then
+          lifebloom_u = u
+        end
       end
     end
   end
   if not u then return end
   local l = UnitLostHP(u)
   if mana > 50 then l = l * 1.2 end -- оверхил
+
+
   --if IsAlt() then h = 60  l = 8000 end
   if HasBuff("Природная стремительность") then
      DoSpell("Целительное прикосновение", u)
@@ -119,6 +128,25 @@ function HealRotation()
   local count, _, _, last = select(4, HasMyBuff("Жизнецвет", 0.01, u))
   if mana > 30 and h > 35 and (((tanking or h < 90) and (count or 0) < 3) or (tanking and last < 2 and h > 95)) and DoSpell("Жизнецвет", u) then return end
 
+  if h > 40 and TimerLess("Damage", 2) then DoSpell("Хватка природы") return end
+  if h > 50  and PayerIsRooted() then DoCommand('unRoot') end
+  if IsReadySpell("Спокойствие") and InCombatLockdown() then
+
+		if (lowhpmembers > 3 and (100 / #units * lowhpmembers > 35)) and (not pvp or (IsReadySpell("Дубовая кожа") or HasBuff("Дубовая кожа"))) then
+			if not TimerStarted("tranquilityAlert") then
+				Notify("Стой на месте! Ща жахнем 'Спокойствие!'")
+        TimerStart("tranquilityAlert")
+			elseif TimerMore("tranquilityAlert", 1)  then
+        if not PlayerInPlace() then
+            if AdvMode then oexecute("MoveForwardStop()") end
+        elseif not DoSpell("Дубовая кожа") and DoSpell("Спокойствие") then
+				  TimerReset("tranquilityAlert")
+		      return
+        end
+			end
+		end
+  end
+
   if inPlace then
      if (h < 65 and l > 6000) and HasMyBuff("Благоволение природы") and not HasMyBuff("Восстановление", 3, u) and DoSpell("Восстановление", u) then return end
      if (h < 55 and l > 8000) and (HasMyBuff("Омоложение", 2, u) or HasMyBuff("Восстановление", 2, u) or HasMyBuff("Жизнецвет", 2, u) or HasMyBuff("Буйный рост", 2, u)) and DoSpell("Покровительство Природы", u) then return end
@@ -132,7 +160,7 @@ function MonkRotation()
   if not HasBuff("Облик лунного совуха") and DoSpell("Облик лунного совуха") then return end
   if UnitMana100() < 30 and UseItem("Рунический флакон с зельем маны") then return end
     if UnitMana100(player) < 50 and DoSpell("Озарение", player) then return end
-  if not validTarget then TryTarget() end
+  if not validTarget then TryTarget(attack) end
   if CantAttack() then return end
   if UnitHealth(target) > 200000 and not HasDebuff("Волшебный огонь") and DoSpell("Волшебный огонь", target) then return end
   --if not HasDebuff("Земля и луна") and DoSpell("Гнев", target) then end

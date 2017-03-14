@@ -65,7 +65,7 @@ function Idle()
   end
 
   if needSheeld then
-      Equip1HShield(pvp)
+      Equip1HShield()
   else
     if not HasBuff("Отражение заклинания", 0.1, player) then
         Equip2H()
