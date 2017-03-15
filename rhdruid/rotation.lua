@@ -7,7 +7,22 @@ local player = "player"
 local target = "target"
 local iUNITS = {"player", Teammate}
 local stance, attack, pvp, combat, combatMode, validTarget, inPlace, rejuvenation
+local followUnit = nil
 function Idle()
+  followUnit = nil
+  if AutoFollow and not IsMouselooking() and IsInteractUnit(Teammate) then
+    local unit = GetSameGroupUnit(Teammate)
+    if unit ~= Teammate then followUnit = unit end
+  end
+
+  if followUnit then
+    local dist = DistanceTo(player, followUnit)
+    if (dist > 15 or not IsVisible(followUnit)) then
+      DoFollow(followUnit)
+    else
+      StopFollow()
+    end
+  end
   stance = GetShapeshiftForm()
   attack = IsAttack()
   pvp = IsPvP()
@@ -106,10 +121,28 @@ function HealRotation()
   -- Auto Damage -------------------------------------------------------------
   if h > (IsCtr() and 30 or 60) then
     if AdvMode and pvp then
+      UpdateObjects()
+      local st = nil
+      local mt = nil
+      local dist = nil
+      local used = false
       for i = 1, #TARGETS do
         local t = TARGETS[i]
-        if CanMagicAttack(t) and UnitIsPlayer(t) and ((tContains(steathClass, GetClass(t)) and DistanceTo(player, target) > 25) or not UnitAffectingCombat(t)) and not HasMyDebuff("Волшебный огонь", 0.1, t) and DoSpell("Волшебный огонь", t) then return end
-      end
+        if CanMagicAttack(t) then
+          local d = DistanceTo("player", t)
+          if not mt and UnitIsPlayer(t) and ((tContains(steathClass, GetClass(t)) and d > 25) or not UnitAffectingCombat(t)) and not HasMyDebuff("Волшебный огонь", 0.1, t) then mt = t end
+          if not used then
+             used =  HasDebuff("Спячка", 1, t)
+             local ctype = UnitCreatureType(t)
+             if d < 25 and (ctype =="Животное" or ctype == "Дракон") and not dist or (dist > d) and not IsOneUnit(t, target) then
+                st = t
+                dist = d
+             end
+           end
+         end
+       end
+      if not used and st and DoSpell("Спячка", st) then return end
+      if mt and DoSpell("Волшебный огонь", mt) then return end
     end
     if not validTarget and IsCtr() then TryTarget(attack) end
     if CanMagicAttack(target) and not CantAttack() then
@@ -139,6 +172,7 @@ function HealRotation()
   if (h < 45 and l > 12000) and UseEquippedItem("Подвеска истинной крови", u) then return end
 
   if h > 30 and TryInterrupt() then return end
+  if h > 30 and TryInterrupt("focus") then return end
   if h > 40 and TimerLess("Damage", 2) then DoSpell("Хватка природы", player) return end
 
   if IsReadySpell("Спокойствие") and InCombatLockdown() then

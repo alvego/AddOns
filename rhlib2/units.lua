@@ -35,6 +35,34 @@ function PayerIsRooted()
 end
 
 ------------------------------------------------------------------------------------------------------------------
+--GetSameGroupUnit
+function DoFollow(target)
+  if not target then Error("DoFollow !target") return false end
+  if IsFollow(target) then return false end
+  if not CheckInteractDistance(target, 4) then return false end
+  oexecute('FollowUnit("'..target..'")')
+  return true
+end
+
+function StopFollow()
+  if not IsFollow() then return end
+  oexecute('MoveForwardStart()')
+  oexecute('MoveForwardStop()')
+end
+
+
+local followTarget = nil
+function IsFollow(target)
+  if not followTarget then return false end
+  return target and IsOneUnit(followTarget, target) or true
+end
+
+local function autofollowUpdate(event, unit)
+  followTarget = unit
+end
+AttachEvent("AUTOFOLLOW_BEGIN", autofollowUpdate)
+AttachEvent("AUTOFOLLOW_END", autofollowUpdate)
+
 ------------------------------------------------------------------------------------------------------------------
 local inDuel = false
 local function startDuel()

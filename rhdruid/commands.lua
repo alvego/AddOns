@@ -80,6 +80,38 @@ SetCommand("stun",
     end
 )
 ---------------------------------------------------------------------------------------------------------------
+SetCommand("cyclone",
+    function(target)
+      return DoSpell("Природная стремительность")
+    end,
+    function(target)
+        if not target then target = "target" end
+        local stance = GetShapeshiftForm()
+        if HasBuff("Природная стремительность") then
+          chat("Смерч!")
+          DoCommand("spell", "Смерч", target)
+          return true
+        end
+        return false
+    end,
+    function(target)
+        if not target then target = "target" end
+        if not IsReadySpell("Природная стремительность") then
+          chat("stun !Природная стремительность")
+          return true
+        end
+        if not CanMagicAttack(target) then
+          chat("stun !CanMagicAttack: " .. CanMagicAttackInfo)
+          return true
+        end
+        if not InRange("Смерч", target) then
+          chat("stun !InRange")
+          return true
+        end
+        return false
+    end
+)
+---------------------------------------------------------------------------------------------------------------
 local stance1, stance2
 SetCommand("unRoot",
     function()
