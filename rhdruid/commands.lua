@@ -87,14 +87,13 @@ SetCommand("unRoot",
       return false
     end,
     function()
-        if IsMounted() or CanExitVehicle() or IsFlying() or UnitIsCasting("player") then return true end
+        if IsMounted() or CanExitVehicle() or IsFlying() or UnitIsCasting("player") or HasBuff("Неистовое восстановление") or HasBuff("Исступление") then return true end
         return stance1 == nil and stance2 == nil
     end,
     function()
         local stance = GetShapeshiftForm()
         stance1 = stance == 0 and ((HasTalent("Древо Жизни") or HasTalent("Облик лунного совуха")) and 5 or 1) or 0
         stance2 = stance
-        return stance1
     end
 )
 ---------------------------------------------------------------------------------------------------------------
@@ -112,6 +111,11 @@ SetCommand("run",
       local stance = GetShapeshiftForm()
       local ground = IsShift() or IsBattleground() or not isFlyable
 
+      if stance == 3 and not inPlace and IsReadySpell("Порыв") then
+        DoCommand('spell', "Порыв", player)
+        return true
+      end
+      if IsStealthed() then return true end
       if not combat and swimming and outdoors and stance ~= 2 then
         DoCommand("form", 2)
         return true
@@ -132,6 +136,39 @@ SetCommand("run",
       end
 
       return true
+    end
+)
+---------------------------------------------------------------------------------------------------------------
+SetCommand("bye",
+    function(target)
+      local stance = GetShapeshiftForm()
+      if stance ~= 3 then
+        UseShapeshiftForm(3)
+        return true
+      end
+      if InCombatLockdown() then
+         return PlayerInPlace() and DoSpell('Слиться с тенью') 
+      end
+      return DoSpell('Крадущийся зверь')
+    end,
+    function()
+        return HasBuff('Крадущийся зверь')
+    end,
+    function()
+        if not IsReadySpell('Крадущийся зверь') then
+            chat("bye !Крадущийся зверь")
+          return false
+        end
+        if InCombatLockdown() then
+          if not IsReadySpell('Слиться с тенью') then
+            chat("bye cbt !Слиться с тенью")
+            return false
+          end
+          if not PlayerInPlace() then
+            chat("bye cbt !inPlace")
+            return false
+          end
+        end
     end
 )
 ---------------------------------------------------------------------------------------------------------------

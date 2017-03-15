@@ -2,12 +2,12 @@
 ------------------------------------------------------------------------------------------------------------------
 Teammate = "Qo"
 local peaceBuff = {"Пища", "Питье"}
+local steathClass = {"ROGUE", "DRUID"}
 local player = "player"
 local target = "target"
 local iUNITS = {"player", Teammate}
-local stance, attack, pvp, combat, combatMode, validTarget, inPlace, toggle
+local stance, attack, pvp, combat, combatMode, validTarget, inPlace, rejuvenation
 function Idle()
-  toggle = not toggle
   stance = GetShapeshiftForm()
   attack = IsAttack()
   pvp = IsPvP()
@@ -30,7 +30,7 @@ function Idle()
   -- дайте поесть (побегать) спокойно
   if not attack and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) or IsStealthed())  then return end
   if PayerIsRooted() then DoCommand('unRoot') end
-  if not attack and (stance == 2 or stance == 4 or stance == 6) then return end
+  --if not attack and (stance == 2 or stance == 4 or stance == 6) then return end
   if HasTalent("Древо Жизни") > 0 then
     HealRotation()
     return
@@ -42,8 +42,8 @@ function Idle()
 end
 ------------------------------------------------------------------------------------------------------------------
 function HealRotation()
+  if not attack and not(stance == 0 or stance == 5) then return end
   if not (attack or combat or AutoHeal) then return end
-  if not IsCtr() then UseShapeshiftForm(5) end
   ------------------------------------------------------------------------------
   local hp = UnitHealth100(player)
   local mana = UnitMana100(player)
@@ -65,8 +65,8 @@ function HealRotation()
   local potion_u = nil
   local potion_h = nil
 
-  local lifebloom_u = nil
-  local lifebloom_h = nil
+  local hot_u = nil
+  local hot_h = nil
 
   local lowhpmembers = 0
   ------------------------------------------------------------------------------
@@ -74,7 +74,7 @@ function HealRotation()
   local units = hp > 60 and UNITS or iUNITS
   for i = 1, #units do
     local _u = units[i]
-    if IsVisible(_u) then
+    if InInteractRange(_u) then
       local _h = UnitHealth100(_u)
       if HasDebuff("Curse", 2, _u) and (not curse_h or _h < curse_h) then
         curse_u = _u
@@ -86,39 +86,51 @@ function HealRotation()
         potion_h = _h
       end
 
-      if not HasMyBuff("Жизнецвет", 0.01, u) and (not lifebloom_h or _h < lifebloom_h) then
-        lifebloom_u = _u
-        lifebloom_h = _h
+      if not HasMyBuff("Жизнецвет", 0.01, u) and not HasMyBuff("Омоложение", 0.01, u) and not HasMyBuff("Восстановление", 0.01, u)  and (not hot_h or _h < hot_h) then
+        hot_u = _u
+        hot_h = _h
       end
       if _h < 50 then lowhpmembers = lowhpmembers + 1 end
       if not h or _h < h then
         u = _u
         h = _h
-        if (select(4, HasMyBuff("Жизнецвет", 0.01, u)) or 0) < 3 then
-          lifebloom_u = u
-        end
       end
     end
   end
+  -- Auto AntiControl --------------------------------------------------------
+  if h < 50 and IsEquippedItem("Медальон Альянса") then
+    local debuff, _, _, _, _, _duration, _expirationTime = HasDebuff(ControlList, 3, "player")
+    if debuff then print("Control: " .. debuff, attack, h) end
+    if (attack or h < 60) and debuff and ((_duration - (_expirationTime - GetTime())) > 0.45) and UseEquippedItem("Медальон Альянса") then chat("Медальон Альянса - " .. debuff) return end
+  end
+  -- Auto Damage -------------------------------------------------------------
+  if h > (IsCtr() and 30 or 60) then
+    if AdvMode and pvp then
+      for i = 1, #TARGETS do
+        local t = TARGETS[i]
+        if CanMagicAttack(t) and UnitIsPlayer(t) and ((tContains(steathClass, GetClass(t)) and DistanceTo(player, target) > 25) or not UnitAffectingCombat(t)) and not HasMyDebuff("Волшебный огонь", 0.1, t) and DoSpell("Волшебный огонь", t) then return end
+      end
+    end
+    if not validTarget and IsCtr() then TryTarget(attack) end
+    if CanMagicAttack(target) and not CantAttack() then
+      if UnitIsPlayer(target) and tContains(steathClass, GetClass(target)) and not HasMyDebuff("Волшебный огонь", 0.1, target) and DoSpell("Волшебный огонь", target) then return end
+      if not HasMyDebuff("Рой насекомых", 0.1, target) and DoSpell("Рой насекомых", target) then return end
+      if not HasMyDebuff("Лунный огонь", 0.1, target) and DoSpell("Лунный огонь", target) then return end
+      if IsCtr() and DoSpell(inPlace and "Гнев" or "Лунный огонь", target) then return end
+    end
+  end
+  -- Heal --------------------------------------------------------------------
+  if not IsCtr() then UseShapeshiftForm(5) end
   if not u then return end
   local l = UnitLostHP(u)
-  if mana > 50 then l = l * 1.2 end -- оверхил
-
-  -- Auto AntiControl --------------------------------------------------------
-  if (IsAttack() or h < 60) and IsEquippedItem("Медальон Альянса") then
-    local debuff, _, _, _, _, _duration, _expirationTime = HasDebuff(ControlList, 3, "player")
-    if debuff then chat("Control: " .. debuff ) end
-    if debuff and ((_duration - (_expirationTime - GetTime())) > 0.45) and UseEquippedItem("Медальон Альянса") then chat("Медальон Альянса - " .. debuff) return end
-  end
-
   --if IsAlt() then h = 60  l = 8000 end
   if HasBuff("Природная стремительность") then
      DoSpell("Целительное прикосновение", u)
      return
   end
 
-  if lifebloom_u and HasBuff("Ясность мысли") then
-   DoSpell("Жизнецвет", lifebloom_u)
+  if hot_u and HasBuff("Ясность мысли") then
+   DoSpell("Жизнецвет", hot_u)
    return
   end
 
@@ -127,16 +139,7 @@ function HealRotation()
   if (h < 45 and l > 12000) and UseEquippedItem("Подвеска истинной крови", u) then return end
 
   if h > 30 and TryInterrupt() then return end
-  if IsCtr() and h > 30 then
-    if not validTarget then TryTarget(attack) end
-    if CantAttack() then return end
-    if not HasMyDebuff("Рой насекомых", 0.1, target) and DoSpell("Рой насекомых", target) then return end
-    if not HasMyDebuff("Лунный огонь", 0.1, target) and DoSpell("Лунный огонь", target) then return end
-    if DoSpell(inPlace and "Гнев" or "Лунный огонь", target) then return end
-  end
-
   if h > 40 and TimerLess("Damage", 2) then DoSpell("Хватка природы", player) return end
-
 
   if IsReadySpell("Спокойствие") and InCombatLockdown() then
 		if (lowhpmembers > 3 and (100 / #units * lowhpmembers > 35)) then
@@ -155,20 +158,30 @@ function HealRotation()
   end
 
   if inPlace then
-     if (h < 65 and l > 6000) and HasMyBuff("Благоволение природы") and not HasMyBuff("Восстановление", 3, u) and DoSpell("Восстановление", u) then return end
-     if (h < 55 and l > 8000) and (HasMyBuff("Омоложение", 2, u) or HasMyBuff("Восстановление", 2, u) or HasMyBuff("Жизнецвет", 2, u) or HasMyBuff("Буйный рост", 2, u)) and DoSpell("Покровительство Природы", u) then return end
+     if (h < 75 and l > 6000) and HasMyBuff("Благоволение природы") and not HasMyBuff("Восстановление", 3, u) and DoSpell("Восстановление", u) then return end
+     if (h < 65 and l > 8000) and (HasMyBuff("Омоложение", 2, u) or HasMyBuff("Восстановление", 2, u) or HasMyBuff("Жизнецвет", 2, u) or HasMyBuff("Буйный рост", 2, u)) and DoSpell("Покровительство Природы", u) then return end
   end
 
-  if toggle and pvp and lifebloom_u and lifebloom_h and lifebloom_h < 90 and DoSpell("Жизнецвет", lifebloom_u) then return end
-  local tanking = (IsInGroup() and UnitThreat(u) > 1) or (hp < 75 and pvp and IsOneUnit(u, player))
+  local tanking = (UnitThreat(u) > 1) or (hp < 60 and IsOneUnit(u, player))
   if (h < 98 or l > 500 or tanking) and not HasMyBuff("Омоложение", 1, u) and DoSpell("Омоложение", u) then return end
   local count, _, _, last = select(4, HasMyBuff("Жизнецвет", 0.01, u))
-  if mana > 30 and h > 45 and (((tanking or h <= 98) and (count or 0) < 3) or (tanking and last < 2 and h > 98)) and DoSpell("Жизнецвет", u) then return end
-  if IsAlt() or (mana > 50 and h > 77) then
-    if potion_u and  IsSpellNotUsed("Устранение яда", 3) and DoSpell("Устранение яда", potion_u) then return end
-    if curse_u and IsSpellNotUsed("Снятие проклятия", 3) and DoSpell("Снятие проклятия", curse_u) then return end
+  if h > 45 and (((tanking or h <= 95) and (count or 0) < 3) or (tanking and last < 2 and h > 95)) and DoSpell("Жизнецвет", u) then return end
+
+
+  if hot_u and hot_h and hot_h < 100 then
+    if not rejuvenation then rejuvenation = 1 end
+    local spell = "Омоложение"
+    if rejuvenation > 5 then
+      spell = "Жизнецвет"
+      rejuvenation = 1
+    end
+     return HasMyBuff("Жизнецвет", 1, hot_u)
   end
 
+  if IsAlt() or (mana > 50 and h > 77) then
+    if potion_u and  IsSpellNotUsed("Устранение яда", 5) and DoSpell("Устранение яда", potion_u) then return end
+    if curse_u and IsSpellNotUsed("Снятие проклятия", 5) and DoSpell("Снятие проклятия", curse_u) then return end
+  end
 
   if h > 70 and mana > 50 then
     for i = 1, #iUNITS do

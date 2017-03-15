@@ -39,7 +39,7 @@ function DoCommand(cmd, ...)
             t = GetTime() + d
         end
     end
-    if Commands[cmd].Init and (Commands[cmd].Timer - time <= 0) then Commands[cmd].Init(...) end
+    if Commands[cmd].Init and (Commands[cmd].Timer - time <= 0) and Commands[cmd].Init(...) then return end
     Commands[cmd].Timer = t
     Commands[cmd].Params = { ... }
 end
