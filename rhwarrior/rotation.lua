@@ -224,7 +224,7 @@ function Idle()
     end
 
 
-    if HasBuff("Проклятие хаоса") then
+    if not pvp and HasBuff("Проклятие хаоса") then
       oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
     end
 

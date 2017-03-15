@@ -5,7 +5,8 @@ local peaceBuff = {"Пища", "Питье"}
 local steathClass = {"ROGUE", "DRUID"}
 local player = "player"
 local target = "target"
-local iUNITS = {"player", Teammate}
+local iUNITS = {"player", Teammate, "Nau"}
+local duelUnits = {"player"}
 local stance, attack, pvp, combat, combatMode, validTarget, inPlace, rejuvenation
 local followUnit = nil
 function Idle()
@@ -86,7 +87,8 @@ function HealRotation()
   local lowhpmembers = 0
   ------------------------------------------------------------------------------
   UpdateUnits()
-  local units = hp > 60 and UNITS or iUNITS
+  local units = InDuel() and duelUnits or (hp > 60 and UNITS or iUNITS)
+
   for i = 1, #units do
     local _u = units[i]
     if InInteractRange(_u) then
@@ -113,14 +115,14 @@ function HealRotation()
     end
   end
   -- Auto AntiControl --------------------------------------------------------
-  if h < 50 and IsEquippedItem("Медальон Альянса") then
+  if IsEquippedItem("Медальон Альянса") then
     local debuff, _, _, _, _, _duration, _expirationTime = HasDebuff(ControlList, 3, "player")
-    if debuff then print("Control: " .. debuff, attack, h) end
+    --if debuff then print("Control: " .. debuff, (_duration - (_expirationTime - GetTime()))) end
     if (attack or h < 60) and debuff and ((_duration - (_expirationTime - GetTime())) > 0.45) and UseEquippedItem("Медальон Альянса") then chat("Медальон Альянса - " .. debuff) return end
   end
   -- Auto Damage -------------------------------------------------------------
-  if h > (IsCtr() and 30 or 60) then
-    if AdvMode and pvp then
+  if (IsCtr() or not InMelee(target)) and (h > (IsCtr() and 40 or 80)) then
+    --[[if AdvMode and pvp then
       UpdateObjects()
       local st = nil
       local mt = nil
@@ -134,7 +136,7 @@ function HealRotation()
           if not used then
              used =  HasDebuff("Спячка", 1, t)
              local ctype = UnitCreatureType(t)
-             if d < 25 and (ctype =="Животное" or ctype == "Дракон") and not dist or (dist > d) and not IsOneUnit(t, target) then
+             if d and d < 25 and (ctype =="Животное" or ctype == "Дракон") and (not dist or (dist > d)) and not IsOneUnit(t, target) then
                 st = t
                 dist = d
              end
@@ -143,7 +145,7 @@ function HealRotation()
        end
       if not used and st and DoSpell("Спячка", st) then return end
       if mt and DoSpell("Волшебный огонь", mt) then return end
-    end
+    end]]
     if not validTarget and IsCtr() then TryTarget(attack) end
     if CanMagicAttack(target) and not CantAttack() then
       if UnitIsPlayer(target) and tContains(steathClass, GetClass(target)) and not HasMyDebuff("Волшебный огонь", 0.1, target) and DoSpell("Волшебный огонь", target) then return end
@@ -192,8 +194,8 @@ function HealRotation()
   end
 
   if inPlace then
-     if (h < 75 and l > 6000) and HasMyBuff("Благоволение природы") and not HasMyBuff("Восстановление", 3, u) and DoSpell("Восстановление", u) then return end
-     if (h < 65 and l > 8000) and (HasMyBuff("Омоложение", 2, u) or HasMyBuff("Восстановление", 2, u) or HasMyBuff("Жизнецвет", 2, u) or HasMyBuff("Буйный рост", 2, u)) and DoSpell("Покровительство Природы", u) then return end
+     if (h < 50 and l > 6000) and HasMyBuff("Благоволение природы") and not HasMyBuff("Восстановление", 3, u) and DoSpell("Восстановление", u) then return end
+     if (h < 40 and l > 8000) and (HasMyBuff("Омоложение", 2, u) or HasMyBuff("Восстановление", 2, u) or HasMyBuff("Жизнецвет", 2, u) or HasMyBuff("Буйный рост", 2, u)) and DoSpell("Покровительство Природы", u) then return end
   end
 
   local tanking = (UnitThreat(u) > 1) or (hp < 60 and IsOneUnit(u, player))
