@@ -232,8 +232,18 @@ function Idle()
       chat('!CanAttack ' .. CanAttackInfo)
       if HasBuff("Сдерживание",0.1, target) and stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
     end
-
     if CantAttack() then return end
+
+    if IsCtr() then
+        if Equiped2H() and HasSpell("Вихрь клинков") and IsReadySpell("Вихрь клинков") and rage >= 25 then
+          if not DoSpell("Размашистые удары") then
+            DoSpell("Вихрь клинков", nil, true)
+            return
+          end
+        end
+    end
+    if HasMyBuff("Вихрь клинков") and IsValidTarget(target) and IsValidTarget(focus) and (DistanceTo("player", focus) > DistanceTo("player", target)) then switchFocusTarget() end
+    if (attack or (UnitHealth100(target) < 50) or UnitIsCasting(target)) and stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
 
     if HasBuff("Сокрушить!") then
       local spell, left =  UnitIsCasting("player")
@@ -247,16 +257,6 @@ function Idle()
       if stance == 3 then DoSpell("Безрассудство") end
     end
 
-    if IsCtr() then
-        if Equiped2H() and HasSpell("Вихрь клинков") and IsReadySpell("Вихрь клинков") and rage >= 25 then
-          if not DoSpell("Размашистые удары") then
-            DoSpell("Вихрь клинков", nil, true)
-            return
-          end
-        end
-    end
-    if HasMyBuff("Вихрь клинков") and IsValidTarget(target) and IsValidTarget(focus) and (DistanceTo("player", focus) > DistanceTo("player", target)) then switchFocusTarget() end
-    if UnitIsCasting(target) and stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
 	--if AutoTaunt and UnitClassification(target) == "worldboss"  and (select(4, UnitDebuff("Раскол брони", 10, target)) or 0) < 5 and DoSpell("Раскол брони", target) then return end
 
     if shield and ( pvp and HasBuff("Magic", 3, target ) or HasBuff("Щит и меч", 0.1, player) ) and DoSpell("Мощный удар щитом", target, true) then return end

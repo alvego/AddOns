@@ -5,7 +5,18 @@ local flyMounts = {
 }
 local groundMounts = {
     "Волшебный петух",
-    "Стремительный призрачный тигр"
+    "Стремительный призрачный тигр",
+    "Боевой скакун Грозовой Вершины",
+    "Черный боевой баран",
+    "Черный боевой медведь",
+    "Черный боевой элекк",
+    "Большой медведь Blizzard",
+    "Огромный серый кодо",
+    "Большой черный боевой мамонт",
+    "Стремительный зеленый механодолгоног",
+    "Стремительный желтый механодолгоног",
+    "Стремительный белый рысак",
+    "Стремительный игреневый конь"
 }
 
 local function getRandomMount(mountList)
@@ -116,9 +127,15 @@ SetCommand("run",
         return true
       end
       if IsStealthed() then return true end
+
       if not combat and swimming and outdoors and stance ~= 2 then
         DoCommand("form", 2)
         return true
+      end
+
+      if not mounted and not inPlace and ((ground and outdoors) or combat or not outdoors) and IsReadySpell("Порыв") then
+        UseShapeshiftForm(3)
+        return false
       end
 
       form = (ground or combat) and 4 or 6
@@ -147,7 +164,7 @@ SetCommand("bye",
         return true
       end
       if InCombatLockdown() then
-         return PlayerInPlace() and DoSpell('Слиться с тенью') 
+         return PlayerInPlace() and DoSpell('Слиться с тенью')
       end
       return DoSpell('Крадущийся зверь')
     end,
@@ -175,7 +192,7 @@ SetCommand("bye",
 SetCommand("form",
     function(stance)
         if UseShapeshiftForm(stance) then
-            print("form ".. stance .."!")
+            --print("form ".. stance .."!")
             return true
         end
     end,

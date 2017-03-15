@@ -26,7 +26,6 @@ function DoCommand(cmd, ...)
         print("DoCommand: Ошибка! Нет такой комманды ".. cmd)
         return
     end
-    print('cmd: ' .. cmd, ...)
     local time = GetTime()
     local d = 1.55
     local t = time + d
@@ -40,6 +39,7 @@ function DoCommand(cmd, ...)
         end
     end
     if Commands[cmd].Init and (Commands[cmd].Timer - time <= 0) and Commands[cmd].Init(...) then return end
+    --print('cmd: ' .. cmd, ...)
     Commands[cmd].Timer = t
     Commands[cmd].Params = { ... }
 end
