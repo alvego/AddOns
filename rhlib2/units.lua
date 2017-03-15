@@ -67,7 +67,6 @@ AttachEvent("AUTOFOLLOW_END", autofollowUpdate)
 local inDuel = false
 local function startDuel()
     inDuel = true
-    startDuel()
 end
 hooksecurefunc("StartDuel", startDuel);
 
