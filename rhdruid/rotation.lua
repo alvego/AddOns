@@ -11,17 +11,20 @@ local stance, attack, pvp, combat, combatMode, validTarget, inPlace, rejuvenatio
 local followUnit = nil
 function Idle()
   followUnit = nil
-  if AutoFollow and not IsMouselooking() and IsInteractUnit(Teammate) then
-    local unit = GetSameGroupUnit(Teammate)
-    if unit ~= Teammate then followUnit = unit end
+  if AutoFollow and not IsMouselooking() and not UnitIsCasting(player) then
+    if UnitExists(Teammate) then
+      followUnit = Teammate
+    end
+  else
+    StopFollow()
   end
-
   if followUnit then
     local dist = DistanceTo(player, followUnit)
-    if (dist > 15 or not IsVisible(followUnit)) then
+    print(dist)
+    if (dist < 90 and (dist > 15 or not IsVisible(followUnit))) then
       DoFollow(followUnit)
     else
-      StopFollow()
+      PauseFollow()
     end
   end
   stance = GetShapeshiftForm()
@@ -247,3 +250,12 @@ function MonkRotation()
   if DoSpell("Гнев", target) then return end
 end
 ------------------------------------------------------------------------------------------------------------------
+local function followHelper(type, prefix, message, channel, sender)
+  if prefix ~= 'rhlib2' then return end
+  if not followUnit then return end
+  if not IsOneUnit(sender, followUnit)  then return end
+  if message:match("cmd: mount") then
+    DoCommand("run")
+  end
+end
+AttachEvent('CHAT_MSG_ADDON', followHelper)

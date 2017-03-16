@@ -20,7 +20,6 @@ hooksecurefunc("StrafeLeftStop", moveStop);
 hooksecurefunc("StrafeRightStop", moveStop);
 hooksecurefunc("AscendStop", moveStop);
 
-
 function PayerIsRooted()
   if IsSwimming() or IsMounted() or CanExitVehicle() then return false end
   if moving and HasDebuff(RootList, 0.5, "player") then return true end
@@ -33,35 +32,6 @@ function PayerIsRooted()
   end
   return TimerStarted('PayerIsRooted') and TimerMore('PayerIsRooted', 1)
 end
-
-------------------------------------------------------------------------------------------------------------------
---GetSameGroupUnit
-function DoFollow(target)
-  if not target then Error("DoFollow !target") return false end
-  if IsFollow(target) then return false end
-  if not CheckInteractDistance(target, 4) then return false end
-  oexecute('FollowUnit("'..target..'")')
-  return true
-end
-
-function StopFollow()
-  if not IsFollow() then return end
-  oexecute('MoveForwardStart()')
-  oexecute('MoveForwardStop()')
-end
-
-
-local followTarget = nil
-function IsFollow(target)
-  if not followTarget then return false end
-  return target and IsOneUnit(followTarget, target) or true
-end
-
-local function autofollowUpdate(event, unit)
-  followTarget = unit
-end
-AttachEvent("AUTOFOLLOW_BEGIN", autofollowUpdate)
-AttachEvent("AUTOFOLLOW_END", autofollowUpdate)
 
 ------------------------------------------------------------------------------------------------------------------
 local inDuel = false
@@ -312,13 +282,257 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function PlayerFacingTarget(unit, angle) -- angle 1 .. 90, default 90
     if not UnitExists(unit) or IsOneUnit("player",unit) then return false end
-    local facing = GetPlayerFacing()
-    local x1,y1 = UnitPosition("player")
-    local x2,y2 = UnitPosition(unit)
-    local yawAngle = atan2(y1 - y2, x1 - x2) - deg(facing)
-    if yawAngle < 0 then yawAngle = yawAngle + 360 end
+    local x, y = UnitPosition(unit)
+    local yawAngle = PlayerFacingAngleToPoint(x, y)
     if not angle then angle = 90 end
-    return yawAngle > (180 - angle) and yawAngle < (180 + angle)
+    return yawAngle > -angle and yawAngle < angle
+end
+------------------------------------------------------------------------------------------------------------------
+function PlayerFacingAngleToPoint(x, y) -- angle 1 .. 90, default 90
+    if not x or not y then return 0 end
+    local facing = GetPlayerFacing()
+    local x0,y0 = UnitPosition("player")
+    local yawAngle = atan2(y0 - y, x0 - x) - deg(facing)
+    if yawAngle < 0 then yawAngle = yawAngle + 360 end
+    return yawAngle - 180
+end
+------------------------------------------------------------------------------------------------------------------
+
+local moveForward = false
+local moveForwardStart = function() moveForward = true end
+hooksecurefunc("MoveForwardStart", moveForwardStart);
+local moveForwardStop = function() moveForward = false end
+hooksecurefunc("MoveForwardStop", moveForwardStop);
+
+function RunForwardStart()
+  if moveForward then return end
+  oexecute('MoveForwardStart()')
+end
+
+function RunForwardStop()
+  if not moveForward then return end
+  print('RunForwardStop')
+  oexecute('MoveForwardStop()')
+end
+------------------------------------------------------------------------------------------------------------------
+local moveUp = false
+local moveUpStart = function() moveUp = true end
+hooksecurefunc("JumpOrAscendStart", moveUpStart);
+local moveUpStop = function() moveUp = false end
+hooksecurefunc("AscendStop", moveUpStop);
+
+function MoveUpStart()
+  if moveUp then return end
+  MoveDownStop()
+  oexecute('JumpOrAscendStart()')
+end
+
+function MoveUpStop()
+  if not moveUp then return end
+  oexecute('AscendStop()')
+end
+
+local moveDown = false
+local moveDownStart = function() moveDown = true end
+hooksecurefunc("SitStandOrDescendStart", moveDownStart);
+local moveDownStop = function() moveDown = false end
+hooksecurefunc("DescendStop", moveDownStop);
+
+function MoveDownStart()
+  if moveDown then return end
+  MoveUpStop()
+  oexecute('SitStandOrDescendStart()')
+end
+
+function MoveDownStop()
+  if not moveDown then return end
+  oexecute('DescendStop()')
+end
+
+function MoveZStop()
+  MoveDownStop()
+  MoveUpStop()
+end
+------------------------------------------------------------------------------------------------------------------
+local turnRight = false
+local turnRightStart = function() turnRight = true end
+hooksecurefunc("TurnRightStart", turnRightStart);
+local turnRightStop = function() turnRight = false end
+hooksecurefunc("TurnRightStop", turnRightStop);
+
+local turnLeft = false
+local turnLeftStart = function() turnLeft = true end
+hooksecurefunc("TurnLeftStart", turnLeftStart);
+local turnLeftStop = function() turnLeft = false end
+hooksecurefunc("TurnLeftStop", turnLeftStop);
+
+function RotateRightStart()
+  if turnRight then return end
+  RotateLeftStop()
+  oexecute('TurnRightStart()')
+end
+
+function RotateRightStop()
+  if not turnRight then return end
+  oexecute('TurnRightStop()')
+end
+
+function RotateLeftStart()
+  RotateRightStop()
+  if turnLeft then return end
+  oexecute('TurnLeftStart()')
+end
+
+function RotateLeftStop()
+  if not turnLeft then return end
+  oexecute('TurnLeftStop()')
+end
+
+function RotateStop()
+  RotateLeftStop()
+  RotateRightStop()
+end
+
+------------------------------------------------------------------------------------------------------------------
+function MoveStop()
+  RotateStop()
+  RunForwardStop()
+  MoveZStop()
+end
+
+------------------------------------------------------------------------------------------------------------------
+local followTarget = nil
+local followPause = false
+local pointStack = {}
+function DoFollow(target)
+  if not target then Error("DoFollow !target") return false end
+  followPause = false
+  if IsFollow(target) then return false end
+  print('DoFollow', target)
+  followTarget = target
+  wipe(pointStack)
+  return true
+end
+
+function StopFollow()
+  if not IsFollow() then return end
+  print('StopFollow')
+  followTarget = nil
+  wipe(pointStack)
+  MoveStop()
+end
+
+function PauseFollow()
+  if followPause then return end
+  followPause = true
+  print('PauseFollow')
+  MoveStop()
+end
+
+function IsFollow(target)
+  if not followTarget then return false end
+  return target and IsOneUnit(followTarget, target) or true
+end
+------------------------------------------------------------------------------------------------------------------
+
+
+local function updateFollow()
+  if not IsFollow() then return end
+  echo('Follow: ' .. followTarget )
+  local x, y, z = UnitPosition("player")
+  ------------------------------------------------------------------------------------------------------------------
+  local tx, ty, tz = UnitPosition(followTarget)
+  if PointToPontDistance(x, y, z, tx, ty, tz) < 5 and #pointStack > 1  then
+    wipe(pointStack)
+  end
+  if #pointStack > 0 then
+      local lx,ly,lz = unpack(pointStack[#pointStack])
+      local lx2 = x
+      local ly2 = y
+      local lz2 = z
+      if #pointStack > 1 then
+        lx2,ly2,lz2 = unpack(pointStack[#pointStack-1])
+      end
+    local pointDist = PointToPontDistance(tx, ty, tz, lx, ly, lz)
+    local dz = abs(tz - lz)
+    local offset = PointToLineDistance(tx, ty, lx, ly, lx2, ly2)
+    if (pointDist > 5 and ((dz > 2) or (offset > 3))) then
+        tinsert(pointStack, { tx, ty, tz })
+        print('AddPoint', #pointStack, pointDist, dz, offset)
+    end
+  else
+    tinsert(pointStack, { tx, ty, tz })
+    print('AddPoint', #pointStack)
+  end
+  ------------------------------------------------------------------------------------------------------------------
+  if followPause then return end
+  local _x, _y, _z
+  if #pointStack > 0 then
+    _x, _y, _z =  unpack(pointStack[1])
+  end
+  ------------------------------------------------------------------------------------------------------------------
+  if not _x or not _y or not _z then
+    return
+  end
+  local angle = PlayerFacingAngleToPoint(_x, _y)
+  if abs(angle) < 5 then
+    RotateStop()
+  else
+    if angle > 0 then
+      RotateLeftStart()
+    else
+      RotateRightStart()
+    end
+  end
+
+  local dist = PointToPontDistance(x, y, z, _x, _y, _z)
+  if dist < ( GetUnitSpeed("player") < 8 and 1.5 or 5 ) then
+    if #pointStack == 1 then
+        MoveStop()
+    end
+    tremove(pointStack, 1)
+    print('RemovePoint', #pointStack)
+
+    return
+  end
+  if abs(angle) > (dist > 10 and 55 or (5 / dist) + 5)  then
+    print('stop to rotate')
+    RunForwardStop()
+  else
+    RunForwardStart()
+  end
+  if abs(_z - z) > 1 then
+    if (_z - z) > 0 then
+      MoveUpStart()
+    else
+      if IsFlying() or IsSwimming() then MoveDownStart() end
+    end
+  else
+    MoveZStop()
+  end
+end
+AttachUpdate(updateFollow)
+------------------------------------------------------------------------------------------------------------------
+-- x0, y0 - checked point
+-- x1, y1 and x2, y2 - line points
+local abs = math.abs
+local sqrt = math.sqrt
+local sqr = math.sqr
+function PointToLineDistance(x0, y0, x1, y1, x2, y2)
+  if not (x0 and y0 and x1 and y1 and x2 and y2) then return 0 end
+  local a = y1 - y2
+  local b = x2 - x1
+  if (abs(a) < 0.01) or (abs(b) < 0.01) then return 1000000 end -- line verical (as point)
+  local c = x1 * y2 - x2 * y1
+  return abs(a * x0 + b * y0 + c) / sqrt(a * a + b * b)
+end
+------------------------------------------------------------------------------------------------------------------
+function PointToPontDistance(x1, y1, z1, x2, y2, z2)
+  if not (x1 and y1 and z1 and x2 and y2 and z2) then return 0 end
+  local dx = x1 - x2
+  local dy = y1 - y2
+  local dz = z1 - z2
+  return sqrt( dx * dx + dy * dy + dz * dz )
 end
 ------------------------------------------------------------------------------------------------------------------
 function InCombatMode()
