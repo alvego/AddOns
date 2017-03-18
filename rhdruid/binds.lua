@@ -4,7 +4,6 @@ print("|cff0055ffRotation Helper|r|cffffe00a > |r|cffFF7D0ADruid|r loaded")
 -- Binding
 BINDING_HEADER_DRH = "Druid Rotation Helper"
 BINDING_NAME_DRH_AUTOHEAL = "Вкл/Выкл авто лечение"
-BINDING_NAME_DRH_AUTOFOLLOW = "Вкл/Выкл авто следование"
 BINDING_NAME_DRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
 ------------------------------------------------------------------------------------------------------------------
 if AutoHeal == nil then AutoHeal = true end
@@ -12,13 +11,6 @@ function AutoHealToggle()
     AutoHeal = not AutoHeal
     echo("Авто Heal: " .. ( AutoHeal and "ON" or "OFF" ))
 end
-------------------------------------------------------------------------------------------------------------------
-if AutoFollow == nil then AutoFollow = true end
-function AutoFollowToggle()
-    AutoFollow = not AutoFollow
-    echo("Авто Follow: " .. ( AutoFollow and "ON" or "OFF" ))
-end
-
 ------------------------------------------------------------------------------------------------------------------
 if CanInterrupt == nil then CanInterrupt = true end
 

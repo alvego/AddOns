@@ -1,16 +1,5 @@
 -- Rotation Helper Library by Alex Tim
 ------------------------------------------------------------------------------------------------------------------
-function test()
-  print("CanAttack", CanAttack("target"), CanAttackInfo)
-  print("IsValidTarget", IsValidTarget("target"))
-  print("UnitAffectingCombat", UnitAffectingCombat("target"))
-  print("UnitCanAttack", UnitCanAttack("player","target"))
-  print("InMelee", InMelee("target"))
-  print("DistanceTo", DistanceTo("player", "target"))
-  print("InCombatMode", InCombatMode())
-  print("InCombatLockdown", InCombatLockdown())
-end
-------------------------------------------------------------------------------------------------------------------
 -- l18n
 BINDING_HEADER_RHLIB = "Rotation Helper Library"
 BINDING_NAME_RHLIB_OFF = "Выкл ротацию"
@@ -24,6 +13,12 @@ BINDING_NAME_RHLIB_FARM = "Режим фарминга"
 -- Условие для включения ротации
 ------------------------------------------------------------------------------------------------------------------
 if Paused == nil then Paused = false end
+
+function TryAttack()
+    if Paused then return end
+    TimerStart('Attack')
+end
+
 -- Условие для включения ротации
 local beginAttack = false
 function IsAttack()

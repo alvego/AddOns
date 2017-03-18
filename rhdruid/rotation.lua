@@ -8,25 +8,7 @@ local target = "target"
 local iUNITS = {"player", Teammate, "Nau"}
 local duelUnits = {"player"}
 local stance, attack, pvp, combat, combatMode, validTarget, inPlace, rejuvenation
-local followUnit = nil
 function Idle()
-  followUnit = nil
-  if AutoFollow and not IsMouselooking() and not UnitIsCasting(player) then
-    if UnitExists(Teammate) then
-      followUnit = Teammate
-    end
-  else
-    StopFollow()
-  end
-  if followUnit then
-    local dist = DistanceTo(player, followUnit)
-    print(dist)
-    if (dist < 90 and (dist > 15 or not IsVisible(followUnit))) then
-      DoFollow(followUnit)
-    else
-      PauseFollow()
-    end
-  end
   stance = GetShapeshiftForm()
   attack = IsAttack()
   pvp = IsPvP()
@@ -252,8 +234,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 local function followHelper(type, prefix, message, channel, sender)
   if prefix ~= 'rhlib2' then return end
-  if not followUnit then return end
-  if not IsOneUnit(sender, followUnit)  then return end
+  if IsOneUnit(sender, "player")  then return end
   if message:match("cmd: mount") then
     DoCommand("run")
   end

@@ -26,6 +26,7 @@ function PayerIsRooted()
   local speed = GetUnitSpeed("player")
   if speed == 0 then return false end
   if speed < (moveBackward and 4.5 or 7) then
+    print(speed)
     if not TimerStarted('PayerIsRooted') then TimerStart('PayerIsRooted') end
   else
     if TimerStarted('PayerIsRooted') then TimerReset('PayerIsRooted') end
@@ -297,24 +298,6 @@ function PlayerFacingAngleToPoint(x, y) -- angle 1 .. 90, default 90
     return yawAngle - 180
 end
 ------------------------------------------------------------------------------------------------------------------
-
-local moveForward = false
-local moveForwardStart = function() moveForward = true end
-hooksecurefunc("MoveForwardStart", moveForwardStart);
-local moveForwardStop = function() moveForward = false end
-hooksecurefunc("MoveForwardStop", moveForwardStop);
-
-function RunForwardStart()
-  if moveForward then return end
-  oexecute('MoveForwardStart()')
-end
-
-function RunForwardStop()
-  if not moveForward then return end
-  print('RunForwardStop')
-  oexecute('MoveForwardStop()')
-end
-------------------------------------------------------------------------------------------------------------------
 local moveUp = false
 local moveUpStart = function() moveUp = true end
 hooksecurefunc("JumpOrAscendStart", moveUpStart);
@@ -399,133 +382,146 @@ function MoveStop()
   RunForwardStop()
   MoveZStop()
 end
-
-------------------------------------------------------------------------------------------------------------------
-local followTarget = nil
-local followPause = false
-local pointStack = {}
-function DoFollow(target)
-  if not target then Error("DoFollow !target") return false end
-  followPause = false
-  if IsFollow(target) then return false end
-  print('DoFollow', target)
-  followTarget = target
-  wipe(pointStack)
-  return true
-end
-
-function StopFollow()
-  if not IsFollow() then return end
-  print('StopFollow')
-  followTarget = nil
-  wipe(pointStack)
-  MoveStop()
-end
-
-function PauseFollow()
-  if followPause then return end
-  followPause = true
-  print('PauseFollow')
-  MoveStop()
-end
-
-function IsFollow(target)
-  if not followTarget then return false end
-  return target and IsOneUnit(followTarget, target) or true
-end
 ------------------------------------------------------------------------------------------------------------------
 
+local moveForward = false
+local moveForwardStart = function() moveForward = true end
+hooksecurefunc("MoveForwardStart", moveForwardStart);
+local moveForwardStop = function() moveForward = false end
+hooksecurefunc("MoveForwardStop", moveForwardStop);
 
-local function updateFollow()
-  if not IsFollow() then return end
-  echo('Follow: ' .. followTarget )
+function RunForwardStart()
+  if moveForward then return end
+  oexecute('MoveForwardStart()')
+end
+
+function RunForwardStop()
+  if not moveForward then return end
+  --print('RunForwardStop')
+  oexecute('MoveForwardStop()')
+end
+------------------------------------------------------------------------------------------------------------------
+function Intersection(ax1,ay1,ax2,ay2,bx1,by1,bx2,by2)
+   local v1 = (bx2-bx1)*(ay1-by1)-(by2-by1)*(ax1-bx1)
+   local v2 = (bx2-bx1)*(ay2-by1)-(by2-by1)*(ax2-bx1)
+   local v3 = (ax2-ax1)*(by1-ay1)-(ay2-ay1)*(bx1-ax1)
+   local v4 = (ax2-ax1)*(by2-ay1)-(ay2-ay1)*(bx2-ax1)
+   return (v1*v2 < 0) and (v3*v4 < 0);
+end
+------------------------------------------------------------------------------------------------------------------
+function removeLoops(points)
+  if #points < 4 then return end
+  local xn, yn = unpack(points[#points])
+  local _xn, _yn = unpack(points[#points-1])
+  local _xi, _yi = unpack(points[#points-2])
+  local cross
+  for i = #points-3, 1, -1 do
+    local xi, yi, zi = unpack(points[i])
+    if Intersection(xn, yn, _xn, _yn, xi, yi, _xi, _yi)  then
+      cross = i
+      break
+    end
+    _xi = xi
+    _yi = yi
+  end
+  if not cross then return end
+  local loop_start = cross + 1
+  local loop_end = #points - 1
+  for i = loop_start, loop_end do
+    tremove(points, loop_start)
+  end
+end
+
+------------------------------------------------------------------------------------------------------------------
+function clearFollowPoints(unit)
+    SendAddonMessage('rhlib2', format("clearFollow!", x, y, z), "WHISPER", unit)
+end
+------------------------------------------------------------------------------------------------------------------
+function sendFollowAttack(unit)
+    SendAddonMessage('rhlib2', format("followAttack!", x, y, z), "WHISPER", unit)
+end
+------------------------------------------------------------------------------------------------------------------
+local lx, ly, lz, lf
+function sendFollowPoint(unit, x, y, z)
+    local msg = format("followPoint:%.0f,%.0f,%.0f", x, y, z)
+    --print(msg)
+    SendAddonMessage('rhlib2', msg , "WHISPER", unit)
+    lx, ly, lz = x,y,z
+    lf = GetPlayerFacing()
+end
+------------------------------------------------------------------------------------------------------------------
+local followPoints = {}
+local function receiveFollowPoint(type, prefix, message, channel, sender)
+  if prefix ~= 'rhlib2' then return end
+  if channel ~= 'WHISPER' then return end
+  if IsOneUnit(sender, "player") then return end
+  if message:match("clearFollow!") then
+    wipe(followPoints)
+    if not PlayerInPlace() then
+      RunForwardStart()
+      RunForwardStop()
+    end
+    return
+  end
+  if message:match("followAttack!") then
+    TryAttack()
+    return
+  end
+  if message:match("followPoint:") then
+    local point = {}
+    gsub(message, "-?%d+", function(i) tinsert(point, tonumber(i)) end)
+    tinsert(followPoints, point)
+    --print("point: ", unpack(point))
+    removeLoops(followPoints)
+    return
+  end
+end
+AttachEvent('CHAT_MSG_ADDON', receiveFollowPoint)
+------------------------------------------------------------------------------------------------------------------
+function GoToMeUnit(unit)
   local x, y, z = UnitPosition("player")
-  ------------------------------------------------------------------------------------------------------------------
-  local tx, ty, tz = UnitPosition(followTarget)
-  if PointToPontDistance(x, y, z, tx, ty, tz) < 5 and #pointStack > 1  then
-    wipe(pointStack)
-  end
-  if #pointStack > 0 then
-      local lx,ly,lz = unpack(pointStack[#pointStack])
-      local lx2 = x
-      local ly2 = y
-      local lz2 = z
-      if #pointStack > 1 then
-        lx2,ly2,lz2 = unpack(pointStack[#pointStack-1])
-      end
-    local pointDist = PointToPontDistance(tx, ty, tz, lx, ly, lz)
-    local dz = abs(tz - lz)
-    local offset = PointToLineDistance(tx, ty, lx, ly, lx2, ly2)
-    if (pointDist > 5 and ((dz > 2) or (offset > 3))) then
-        tinsert(pointStack, { tx, ty, tz })
-        print('AddPoint', #pointStack, pointDist, dz, offset)
+  if lx and ly and lz then
+    local dist = (IsFlying() and 30 or ((abs(lf - GetPlayerFacing()) > 0.5) and 2 or 10))
+    if PointToPontDistance(x, y, z, lx, ly, lz) > dist then
+      --print(dist)
+      sendFollowPoint(unit, x, y, z)
     end
   else
-    tinsert(pointStack, { tx, ty, tz })
-    print('AddPoint', #pointStack)
+    sendFollowPoint(unit, x, y, z)
   end
-  ------------------------------------------------------------------------------------------------------------------
-  if followPause then return end
-  local _x, _y, _z
-  if #pointStack > 0 then
-    _x, _y, _z =  unpack(pointStack[1])
-  end
-  ------------------------------------------------------------------------------------------------------------------
-  if not _x or not _y or not _z then
-    return
-  end
-  local angle = PlayerFacingAngleToPoint(_x, _y)
-  if abs(angle) < 5 then
-    RotateStop()
-  else
-    if angle > 0 then
-      RotateLeftStart()
-    else
-      RotateRightStart()
-    end
-  end
-
+end
+------------------------------------------------------------------------------------------------------------------
+if not AutoFollowUnit then AutoFollowUnit = nil end
+local function updateFollow()
+  if AutoFollowUnit and UnitExists(AutoFollowUnit) then GoToMeUnit(AutoFollowUnit) end
+  if Paused then return end
+  if UnitIsCasting('player') then return end
+  if #followPoints < 1 then return end
+  local _x, _y, _z =  unpack(followPoints[1])
+  local x, y, z = UnitPosition("player")
   local dist = PointToPontDistance(x, y, z, _x, _y, _z)
-  if dist < ( GetUnitSpeed("player") < 8 and 1.5 or 5 ) then
-    if #pointStack == 1 then
-        MoveStop()
-    end
-    tremove(pointStack, 1)
-    print('RemovePoint', #pointStack)
-
+  -- if (dist < 6 and dist > 4) and not (IsFlying() or IsSwimming() or IsFalling()) then
+  --   MoveUpStart()
+  --   MoveUpStop()
+  -- end
+  if (dist < 3) then
+    tremove(followPoints, 1)
+    updateFollow()
     return
   end
-  if abs(angle) > (dist > 10 and 55 or (5 / dist) + 5)  then
-    print('stop to rotate')
-    RunForwardStop()
-  else
-    RunForwardStart()
-  end
-  if abs(_z - z) > 1 then
-    if (_z - z) > 0 then
-      MoveUpStart()
-    else
-      if IsFlying() or IsSwimming() then MoveDownStart() end
-    end
-  else
-    MoveZStop()
+  --if PlayerInPlace() then
+    MovePlayer(_x, _y, _z)
+  --end
+  if PlayerInPlace() then
+    -- if not (IsFlying() or IsSwimming() or IsFalling()) then
+    --   MoveUpStart()
+    --   MoveUpStop()
+    -- end
+    tremove(followPoints, 1)
+    updateFollow()
   end
 end
 AttachUpdate(updateFollow)
-------------------------------------------------------------------------------------------------------------------
--- x0, y0 - checked point
--- x1, y1 and x2, y2 - line points
-local abs = math.abs
-local sqrt = math.sqrt
-local sqr = math.sqr
-function PointToLineDistance(x0, y0, x1, y1, x2, y2)
-  if not (x0 and y0 and x1 and y1 and x2 and y2) then return 0 end
-  local a = y1 - y2
-  local b = x2 - x1
-  if (abs(a) < 0.01) or (abs(b) < 0.01) then return 1000000 end -- line verical (as point)
-  local c = x1 * y2 - x2 * y1
-  return abs(a * x0 + b * y0 + c) / sqrt(a * a + b * b)
-end
 ------------------------------------------------------------------------------------------------------------------
 function PointToPontDistance(x1, y1, z1, x2, y2, z2)
   if not (x1 and y1 and z1 and x2 and y2 and z2) then return 0 end

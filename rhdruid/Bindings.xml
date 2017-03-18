@@ -2,9 +2,6 @@
   <Binding name="DRH_AUTOHEAL" description="Toggle Auto HEAL" header="DRH">
     AutoHealToggle();
   </Binding>
-  <Binding name="DRH_AUTOFOLLOW" description="Toggle Auto Follow" header="DRH">
-    AutoFollowToggle();
-  </Binding>
   <Binding name="DRH_INTERRUPT" description="Use cast interrupt" header="DRH">
     ToggeInterrupt();
   </Binding>

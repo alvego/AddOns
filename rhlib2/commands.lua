@@ -48,8 +48,10 @@ end
 local function receiveAddonMessage(type, prefix, message, channel, sender)
   if prefix ~= 'rhlib2' then return end
   if IsOneUnit(sender, "player") then return end
-  echo(sender .. ': ' .. message)
-  chat(sender .. ': ' .. message, 0, 0, 1)
+  if UnitIsVisible(sender) and message:match("cmd:") then
+    echo(sender .. ': ' .. message)
+    chat(sender .. ': ' .. message, 0, 0, 1)
+  end
 end
 AttachEvent('CHAT_MSG_ADDON', receiveAddonMessage)
 
