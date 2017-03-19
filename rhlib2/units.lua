@@ -491,15 +491,31 @@ function GoToMeUnit(unit)
   end
 end
 ------------------------------------------------------------------------------------------------------------------
+local __x,__y, __z --Last MovePlayer
+function MoveToPoint(_x, _y, _z)
+  if _x ~= __x or _y ~= __y or _z ~= __z then
+    MovePlayer(_x, _y, _z)
+    __x, __y, __z = _x, _y, _z
+  end
+end
+------------------------------------------------------------------------------------------------------------------
 if not AutoFollowUnit then AutoFollowUnit = nil end
+
 local function updateFollow()
   if AutoFollowUnit and UnitExists(AutoFollowUnit) then GoToMeUnit(AutoFollowUnit) end
   if Paused then return end
   if UnitIsCasting('player') then return end
+
   if #followPoints < 1 then return end
   local _x, _y, _z =  unpack(followPoints[1])
   local x, y, z = UnitPosition("player")
   local dist = PointToPontDistance(x, y, z, _x, _y, _z)
+  if #followPoints == 1 and dist < 15 then
+    if not PlayerInPlace() then
+        MoveToPoint(x, y, z) -- stop follow
+    end
+    return
+  end
   -- if (dist < 6 and dist > 4) and not (IsFlying() or IsSwimming() or IsFalling()) then
   --   MoveUpStart()
   --   MoveUpStop()
@@ -509,10 +525,8 @@ local function updateFollow()
     updateFollow()
     return
   end
-  --if PlayerInPlace() then
-    MovePlayer(_x, _y, _z)
-  --end
-  if PlayerInPlace() then
+  MoveToPoint(_x, _y, _z)
+  if PlayerInPlace() then -- something wrong
     -- if not (IsFlying() or IsSwimming() or IsFalling()) then
     --   MoveUpStart()
     --   MoveUpStop()

@@ -29,7 +29,7 @@ function Idle()
   ------------------------------------------------------------------------------
   if UnitIsCasting("player") then return end
   -- дайте поесть (побегать) спокойно
-  if not attack and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) or IsStealthed())  then return end
+  if not attack and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) or IsStealthed() or IsFishingMode())  then return end
   if PayerIsRooted() then DoCommand('unRoot') end
   --if not attack and (stance == 2 or stance == 4 or stance == 6) then return end
   if HasTalent("Древо Жизни") > 0 then
@@ -169,7 +169,7 @@ function HealRotation()
         TimerStart("tranquilityAlert")
 			elseif TimerMore("tranquilityAlert", 1)  then
         if not inPlace then
-            if AdvMode then oexecute("MoveForwardStop()") end
+            --if AdvMode then oexecute("MoveForwardStop()") end
         elseif not DoSpell("Дубовая кожа") and DoSpell("Спокойствие") then
 				  TimerReset("tranquilityAlert")
 		      return
@@ -179,8 +179,8 @@ function HealRotation()
   end
 
   if inPlace then
-     if (h < 50 and l > 6000) and HasMyBuff("Благоволение природы") and not HasMyBuff("Восстановление", 3, u) and DoSpell("Восстановление", u) then return end
-     if (h < 40 and l > 8000) and (HasMyBuff("Омоложение", 2, u) or HasMyBuff("Восстановление", 2, u) or HasMyBuff("Жизнецвет", 2, u) or HasMyBuff("Буйный рост", 2, u)) and DoSpell("Покровительство Природы", u) then return end
+     if (h < 65 and l > 6000) and HasMyBuff("Благоволение природы") and not HasMyBuff("Восстановление", 3, u) and DoSpell("Восстановление", u) then return end
+     if (h < 55 and l > 8000) and (HasMyBuff("Омоложение", 2, u) or HasMyBuff("Восстановление", 2, u) or HasMyBuff("Жизнецвет", 2, u) or HasMyBuff("Буйный рост", 2, u)) and DoSpell("Покровительство Природы", u) then return end
   end
 
   local tanking = (UnitThreat(u) > 1) or (hp < 60 and IsOneUnit(u, player))
@@ -199,7 +199,7 @@ function HealRotation()
      return HasMyBuff("Жизнецвет", 1, hot_u)
   end
 
-  if IsAlt() or (mana > 50 and h > 77) then
+  if IsAlt() or (mana > 50 and h > 70) then
     if potion_u and  IsSpellNotUsed("Устранение яда", 5) and DoSpell("Устранение яда", potion_u) then return end
     if curse_u and IsSpellNotUsed("Снятие проклятия", 5) and DoSpell("Снятие проклятия", curse_u) then return end
   end
