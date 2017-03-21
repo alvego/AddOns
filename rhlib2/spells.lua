@@ -186,6 +186,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 local notVisible = {}
 local function resetNotVisible()
+  print('PLAYER_REGEN_ENABLED')
   wipe(notVisible)
 end
 AttachEvent("PLAYER_REGEN_ENABLED", resetNotVisible)
@@ -194,10 +195,10 @@ function IsVisible(target)
   local guid = UnitGUID(target)
   local t = notVisible[guid]
   if t and GetTime() - t < 1.2 then
-    if UnitInLos and not UnitInLos(target) then
+    --[[if UnitInLos and not UnitInLos(target) then
         notVisible[guid] = nil;
         return true;
-    end
+    end]]
     return false
   end
   return true;

@@ -434,15 +434,18 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function clearFollowPoints(unit)
+    if not UnitExists(unit) then return  end
     SendAddonMessage('rhlib2', format("clearFollow!", x, y, z), "WHISPER", unit)
 end
 ------------------------------------------------------------------------------------------------------------------
 function sendFollowAttack(unit)
+    if not UnitExists(unit) then return  end
     SendAddonMessage('rhlib2', format("followAttack!", x, y, z), "WHISPER", unit)
 end
 ------------------------------------------------------------------------------------------------------------------
 local lx, ly, lz, lf
 function sendFollowPoint(unit, x, y, z)
+    if not UnitExists(unit) then return  end
     local msg = format("followPoint:%.0f,%.0f,%.0f", x, y, z)
     --print(msg)
     SendAddonMessage('rhlib2', msg , "WHISPER", unit)
@@ -450,11 +453,13 @@ function sendFollowPoint(unit, x, y, z)
     lf = GetPlayerFacing()
 end
 ------------------------------------------------------------------------------------------------------------------
+local followUnit = nil
 local followPoints = {}
 local function receiveFollowPoint(type, prefix, message, channel, sender)
   if prefix ~= 'rhlib2' then return end
   if channel ~= 'WHISPER' then return end
   if IsOneUnit(sender, "player") then return end
+  --print(type, prefix, message, channel, sender)
   if message:match("clearFollow!") then
     wipe(followPoints)
     if not PlayerInPlace() then
@@ -473,12 +478,14 @@ local function receiveFollowPoint(type, prefix, message, channel, sender)
     tinsert(followPoints, point)
     --print("point: ", unpack(point))
     removeLoops(followPoints)
+    followUnit = sender
     return
   end
 end
 AttachEvent('CHAT_MSG_ADDON', receiveFollowPoint)
 ------------------------------------------------------------------------------------------------------------------
 function GoToMeUnit(unit)
+  if not UnitExists(unit) then return  end
   local x, y, z = UnitPosition("player")
   if lx and ly and lz then
     local dist = (IsFlying() and 30 or ((abs(lf - GetPlayerFacing()) > 0.5) and 2 or 10))
@@ -505,15 +512,17 @@ local function updateFollow()
   if AutoFollowUnit and UnitExists(AutoFollowUnit) then GoToMeUnit(AutoFollowUnit) end
   if Paused then return end
   if UnitIsCasting('player') then return end
-
   if #followPoints < 1 then return end
   local _x, _y, _z =  unpack(followPoints[1])
   local x, y, z = UnitPosition("player")
   local dist = PointToPontDistance(x, y, z, _x, _y, _z)
-  if #followPoints == 1 and dist < 15 then
-    if not PlayerInPlace() then
-        MoveToPoint(x, y, z) -- stop follow
-    end
+  if followUnit and UnitIsVisible(followUnit) and PointToPontDistance(x, y, z, UnitPosition(followUnit)) < 5 then wipe(followPoints) end
+  if #followPoints == 1 and PointToPontDistance(x, y, z, unpack(followPoints[#followPoints])) < 15 then
+    -- if not PlayerInPlace() then
+    --     --MoveToPoint(x, y, z) -- stop follow
+    --     RunForwardStart()
+    --     RunForwardStop()
+    -- end
     return
   end
   -- if (dist < 6 and dist > 4) and not (IsFlying() or IsSwimming() or IsFalling()) then
