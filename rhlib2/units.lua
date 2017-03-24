@@ -26,7 +26,7 @@ function PayerIsRooted()
   local speed = GetUnitSpeed("player")
   if speed == 0 then return false end
   if speed < (moveBackward and 4.5 or 7) then
-    print(speed)
+    print('PayerIsRooted', speed, moveBackward)
     if not TimerStarted('PayerIsRooted') then TimerStart('PayerIsRooted') end
   else
     if TimerStarted('PayerIsRooted') then TimerReset('PayerIsRooted') end
@@ -434,18 +434,18 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function clearFollowPoints(unit)
-    if not UnitExists(unit) then return  end
+    if not UnitIsConnected(unit) then return  end
     SendAddonMessage('rhlib2', format("clearFollow!", x, y, z), "WHISPER", unit)
 end
 ------------------------------------------------------------------------------------------------------------------
 function sendFollowAttack(unit)
-    if not UnitExists(unit) then return  end
+    if not UnitIsConnected(unit) then return  end
     SendAddonMessage('rhlib2', format("followAttack!", x, y, z), "WHISPER", unit)
 end
 ------------------------------------------------------------------------------------------------------------------
 local lx, ly, lz, lf
 function sendFollowPoint(unit, x, y, z)
-    if not UnitExists(unit) then return  end
+    if not UnitIsConnected(unit) then return  end
     local msg = format("followPoint:%.0f,%.0f,%.0f", x, y, z)
     --print(msg)
     SendAddonMessage('rhlib2', msg , "WHISPER", unit)
@@ -485,7 +485,7 @@ end
 AttachEvent('CHAT_MSG_ADDON', receiveFollowPoint)
 ------------------------------------------------------------------------------------------------------------------
 function GoToMeUnit(unit)
-  if not UnitExists(unit) then return  end
+  if not UnitIsConnected(unit) then return  end
   local x, y, z = UnitPosition("player")
   if lx and ly and lz then
     local dist = (IsFlying() and 30 or ((abs(lf - GetPlayerFacing()) > 0.5) and 2 or 10))
@@ -509,7 +509,8 @@ end
 if not AutoFollowUnit then AutoFollowUnit = nil end
 
 local function updateFollow()
-  if AutoFollowUnit and UnitExists(AutoFollowUnit) then GoToMeUnit(AutoFollowUnit) end
+  if not UnitPosition then return end
+  if AutoFollowUnit and UnitIsConnected(AutoFollowUnit) then GoToMeUnit(AutoFollowUnit) end
   if Paused then return end
   if UnitIsCasting('player') then return end
   if #followPoints < 1 then return end

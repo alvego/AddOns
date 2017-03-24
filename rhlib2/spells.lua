@@ -186,7 +186,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 local notVisible = {}
 local function resetNotVisible()
-  print('PLAYER_REGEN_ENABLED')
+  --print('PLAYER_REGEN_ENABLED')
   wipe(notVisible)
 end
 AttachEvent("PLAYER_REGEN_ENABLED", resetNotVisible)
