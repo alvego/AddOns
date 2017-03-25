@@ -57,7 +57,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function HasSpell(spellName)
-    if GetSpellInfo(spellName) then return true end
+    if spellName and GetSpellInfo(spellName) then return true end
     return false
 end
 ------------------------------------------------------------------------------------------------------------------

@@ -11,16 +11,16 @@ function SetCommand(name, applyFunc, checkFunc, initFunc)
       print("DoCommand: Ошибка! Нет имени комманды")
       return
   end
-  if not applyFunc then applyFunc = function() return true end
-  if not checkFunc then checkFunc = function() return true end
-  if not initFunc then initFunc = function() return false end
+  if not applyFunc then applyFunc = function() return true end end
+  if not checkFunc then checkFunc = function() return true end end
+  if not initFunc then initFunc = function() return false end end
   Commands[name] = {Last = 0, Timer = 0, Apply = applyFunc, Check = checkFunc, Init = initFunc, Params == null}
 end
 
 ------------------------------------------------------------------------------------------------------------------
-function ApplyCommand(cmd)
+function ApplyCommand(cmd, ...)
   if HaveCommand(cmd) and not InUseCommand(cmd) then
-      DoCommand(cmd)
+      DoCommand(cmd, ...)
       return true
   end
   return false
