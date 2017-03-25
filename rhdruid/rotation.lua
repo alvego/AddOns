@@ -30,7 +30,7 @@ function Idle()
   if UnitIsCasting("player") then return end
   -- дайте поесть (побегать) спокойно
   if not attack and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) or IsStealthed() or IsFishingMode())  then return end
-  if PayerIsRooted() then DoCommand('unRoot') end
+  if combat and PayerIsRooted() then DoCommand('unRoot') end
   --if not attack and (stance == 2 or stance == 4 or stance == 6) then return end
   if HasTalent("Древо Жизни") > 0 then
     HealRotation()
@@ -232,11 +232,11 @@ function MonkRotation()
   if DoSpell("Гнев", target) then return end
 end
 ------------------------------------------------------------------------------------------------------------------
-local function followHelper(type, prefix, message, channel, sender)
-  if prefix ~= 'rhlib2' then return end
-  if IsOneUnit(sender, "player")  then return end
-  if message:match("cmd: mount") then
-    DoCommand("run")
-  end
-end
-AttachEvent('CHAT_MSG_ADDON', followHelper)
+-- local function followHelper(type, prefix, message, channel, sender)
+--   if prefix ~= 'rhlib2' then return end
+--   if IsOneUnit(sender, "player")  then return end
+--   if message:match("cmd: mount") then
+--     DoCommand("run")
+--   end
+-- end
+-- AttachEvent('CHAT_MSG_ADDON', followHelper)

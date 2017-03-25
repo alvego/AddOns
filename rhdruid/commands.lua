@@ -230,7 +230,7 @@ SetCommand("form",
     end,
     function(stance)
         if UnitIsCasting('player') then
-            chat("Кастуем " .. spell)
+            chat("Кастуем " .. stance)
             return true
         end
         return stance == GetShapeshiftForm()

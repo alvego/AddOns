@@ -1,5 +1,12 @@
 -- Rotation Helper Library by Alex Tim
 ------------------------------------------------------------------------------------------------------------------
+-- local autorun = true
+-- local toggleRun = function()
+--   print('ToggleAutoRun')
+--   autorun = not autorun
+-- end
+-- hooksecurefunc("ToggleRun", toggleRun);
+
 local moveBackward = false
 local moveBackwardStart = function() moveBackward = true end
 hooksecurefunc("MoveBackwardStart", moveBackwardStart);
@@ -435,21 +442,22 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function clearFollowPoints(unit)
     if not UnitIsConnected(unit) then return  end
-    SendAddonMessage('rhlib2', format("clearFollow!", x, y, z), "WHISPER", unit)
+    SendAddonMessage('rhlib2', "clearFollow!", "WHISPER", unit)
 end
 ------------------------------------------------------------------------------------------------------------------
 function sendFollowAttack(unit)
     if not UnitIsConnected(unit) then return  end
-    SendAddonMessage('rhlib2', format("followAttack!", x, y, z), "WHISPER", unit)
+    SendAddonMessage('rhlib2', "followAttack!", "WHISPER", unit)
 end
 ------------------------------------------------------------------------------------------------------------------
-local lx, ly, lz, lf
-function sendFollowPoint(unit, x, y, z)
+local lx, ly, lz, lf, lflag
+function sendFollowPoint(unit, x, y, z, flag)
+    if not flag then flag = 0 end
     if not UnitIsConnected(unit) then return  end
-    local msg = format("followPoint:%.0f,%.0f,%.0f", x, y, z)
+    local msg = format("followPoint:%.0f,%.0f,%.0f,%.0f", x, y, z, flag)
     --print(msg)
     SendAddonMessage('rhlib2', msg , "WHISPER", unit)
-    lx, ly, lz = x,y,z
+    lx, ly, lz, lflag = x,y,z,flag
     lf = GetPlayerFacing()
 end
 ------------------------------------------------------------------------------------------------------------------
@@ -487,14 +495,43 @@ AttachEvent('CHAT_MSG_ADDON', receiveFollowPoint)
 function GoToMeUnit(unit)
   if not UnitIsConnected(unit) then return  end
   local x, y, z = UnitPosition("player")
+  local flag = IsMounted() and 2 or 1
+  if IsAttack() then flag = 3 end
   if lx and ly and lz then
-    local dist = (IsFlying() and 30 or ((abs(lf - GetPlayerFacing()) > 0.5) and 2 or 10))
+    local dist = ((abs(lf - GetPlayerFacing()) > 0.5) and 2 or 10)
     if PointToPontDistance(x, y, z, lx, ly, lz) > dist then
       --print(dist)
-      sendFollowPoint(unit, x, y, z)
+      sendFollowPoint(unit, x, y, z, flag)
     end
   else
-    sendFollowPoint(unit, x, y, z)
+    sendFollowPoint(unit, x, y, z, flag)
+  end
+end
+------------------------------------------------------------------------------------------------------------------
+function DoFollowFlag(flag)
+  if flag == 1 and IsMounted() then
+    Dismount()
+    return
+  end
+  if flag == 1 and IsMounted() then
+    if CanExitVehicle() then VehicleExit() end
+    if IsMounted() then Dismount() end
+    UseShapeshiftForm(0)
+    return
+  end
+  if flag == 2 then
+    ApplyCommand('run')
+    return
+  end
+  if flag == 3 then
+    TryAttack()
+    return
+  end
+  if flag == 4 and not (IsFlying() or IsSwimming() or IsFalling())  then
+    print('Jump')
+     MoveUpStart()
+     MoveUpStop()
+     return
   end
 end
 ------------------------------------------------------------------------------------------------------------------
@@ -507,18 +544,27 @@ function MoveToPoint(_x, _y, _z)
 end
 ------------------------------------------------------------------------------------------------------------------
 if not AutoFollowUnit then AutoFollowUnit = nil end
-
+------------------------------------------------------------------------------------------------------------------
+local jumpFollowStart = function()
+  if AutoFollowUnit and not (IsFlying() or IsSwimming() or IsFalling()) then
+    print('Jump!')
+    local x, y, z =  UnitPosition('player')
+    sendFollowPoint(AutoFollowUnit, x, y, z, 4)
+  end
+end
+hooksecurefunc("JumpOrAscendStart", jumpFollowStart);
+------------------------------------------------------------------------------------------------------------------
 local function updateFollow()
   if not UnitPosition then return end
   if AutoFollowUnit and UnitIsConnected(AutoFollowUnit) then GoToMeUnit(AutoFollowUnit) end
   if Paused then return end
   if UnitIsCasting('player') then return end
   if #followPoints < 1 then return end
-  local _x, _y, _z =  unpack(followPoints[1])
-  local x, y, z = UnitPosition("player")
+  local _x, _y, _z, _flag =  unpack(followPoints[1])
+  x, y, z = UnitPosition("player")
   local dist = PointToPontDistance(x, y, z, _x, _y, _z)
-  if followUnit and UnitIsVisible(followUnit) and PointToPontDistance(x, y, z, UnitPosition(followUnit)) < 5 then wipe(followPoints) end
-  if #followPoints == 1 and PointToPontDistance(x, y, z, unpack(followPoints[#followPoints])) < 15 then
+  --if followUnit and UnitIsVisible(followUnit) and PointToPontDistance(x, y, z, UnitPosition(followUnit)) < 5 then wipe(followPoints) end
+  if #followPoints == 1 then -- nd PointToPontDistance(x, y, z, unpack(followPoints[#followPoints])) < 15 then
     -- if not PlayerInPlace() then
     --     --MoveToPoint(x, y, z) -- stop follow
     --     RunForwardStart()
@@ -532,16 +578,14 @@ local function updateFollow()
   -- end
   if (dist < 3) then
     tremove(followPoints, 1)
+    DoFollowFlag(_flag)
     updateFollow()
     return
   end
   MoveToPoint(_x, _y, _z)
   if PlayerInPlace() then -- something wrong
-    -- if not (IsFlying() or IsSwimming() or IsFalling()) then
-    --   MoveUpStart()
-    --   MoveUpStop()
-    -- end
     tremove(followPoints, 1)
+    DoFollowFlag(_flag)
     updateFollow()
   end
 end

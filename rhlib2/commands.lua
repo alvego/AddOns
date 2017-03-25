@@ -11,6 +11,22 @@ function SetCommand(name, applyFunc, checkFunc, initFunc)
 end
 
 ------------------------------------------------------------------------------------------------------------------
+function ApplyCommand(cmd)
+  if HaveCommand(cmd) and not InUseCommand(cmd) then
+      DoCommand(cmd)
+      return true
+  end
+  return false
+end
+
+------------------------------------------------------------------------------------------------------------------
+function HaveCommand(cmd)
+  if not Commands[cmd] then
+      return false
+  end
+  return true
+end
+------------------------------------------------------------------------------------------------------------------
 function InUseCommand(cmd)
   if not Commands[cmd] then
       print("DoCommand: Ошибка! Нет такой комманды ".. cmd)
@@ -134,7 +150,7 @@ local function hookUseAction(slot, ...)
       local name = nil
       if actiontype == "spell" then
           name = GetSpellName(id, "spell")
-          DoCommand("spell", name)
+          ApplyCommand("spell", name)
       elseif actiontype == "item" then
           name = GetItemInfo(id)
       elseif actiontype == "companion" then
@@ -142,7 +158,7 @@ local function hookUseAction(slot, ...)
       elseif actiontype == "macro" then
           name = GetMacroInfo(id)
           if Commands[name] then
-            DoCommand(name)
+            ApplyCommand(name)
           end
       end
       --if name then print("UseAction", slot, name, actiontype, ...) end
