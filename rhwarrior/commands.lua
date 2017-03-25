@@ -104,7 +104,7 @@ SetCommand("intervene",
 )
 ---------------------------------------------------------------------------------------------------------------
 SetCommand("run",
-    function() return true end,
+    nil,
     function()
         if HasBuff("Вихрь клинков", 0.01, player) then oexecute('CancelUnitBuff("player", "Вихрь клинков")') return true end
         if not InCombatLockdown() and PlayerInPlace() and IsOutdoors() then

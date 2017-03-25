@@ -141,7 +141,7 @@ SetCommand("unRoot",
 )
 ---------------------------------------------------------------------------------------------------------------
 SetCommand("run",
-    function() return true end,
+    nil,
     function()
       local player = "player"
       local mounted = IsMounted() or CanExitVehicle()

@@ -200,6 +200,8 @@ function Heal()
 
     end
 
+    if IsArena() and InInteractRange(shieldUnit) and IsSpellNotUsed("Священный щит", 5) and not HasMyBuff("Священный щит", 1, shieldUnit) and DoSpell("Священный щит", shieldUnit) then return end
+
     if not IsArena() and InCombatMode() and IsSpellNotUsed("Священный щит", 5) and not hasShield then
       if InInteractRange(teammate) then
         if DoSpell("Священный щит",  teammate) then return end

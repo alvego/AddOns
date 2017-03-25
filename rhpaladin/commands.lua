@@ -1,6 +1,26 @@
 -- Paladin Rotation Helper by Alex Tim & Co
 ------------------------------------------------------------------------------------------------------------------
 teammate = "Qo"
+shieldUnit = "player"
+------------------------------------------------------------------------------------------------------------------
+SetCommand("switch",
+    nil,
+    nil,
+    function()
+      if shieldUnit == "player" then
+        if InInteractRange(teammate) then
+          shieldUnit = teammate
+        end
+      else
+        shieldUnit = "player"
+      end
+      local name = UnitName(shieldUnit)
+      Notify(name)
+      chat(name)
+      return true
+    end
+)
+------------------------------------------------------------------------------------------------------------------
 
 SetCommand("fear",
     function() --Apply true if done
@@ -51,7 +71,7 @@ SetCommand("sacra",
 )
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("free",
-  function() return true end,
+  nil,
   function()
     local target = IsAlt() and teammate or "player"
     if not InInteractRange(target) then
@@ -76,7 +96,7 @@ SetCommand("repentance",
 
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("stun",
-  function() return true end,
+  nil,
   function()
     local target = IsAlt() and "focus" or "target"
     if not CanControl(target) then
@@ -101,7 +121,7 @@ SetCommand("bop",
 )
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("shield",
-  function() return true end,
+  nil,
   function()
     local target = IsAlt() and teammate or "player"
     if not InInteractRange(target) then

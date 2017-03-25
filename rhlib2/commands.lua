@@ -7,7 +7,14 @@ local Commands = {}
 -- метод для задания команды, которая имеет приоритет на ротацией
 -- SetCommand(string 'произвольное имя', function(...) команда, bool function(...) проверка, что все выполнилось, или выполнение невозможно)
 function SetCommand(name, applyFunc, checkFunc, initFunc)
-    Commands[name] = {Last = 0, Timer = 0, Apply = applyFunc, Check = checkFunc, Init = initFunc, Params == null}
+  if not name then
+      print("DoCommand: Ошибка! Нет имени комманды")
+      return
+  end
+  if not applyFunc then applyFunc = function() return true end
+  if not checkFunc then checkFunc = function() return true end
+  if not initFunc then initFunc = function() return false end
+  Commands[name] = {Last = 0, Timer = 0, Apply = applyFunc, Check = checkFunc, Init = initFunc, Params == null}
 end
 
 ------------------------------------------------------------------------------------------------------------------
