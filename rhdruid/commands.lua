@@ -176,9 +176,10 @@ SetCommand("followDismount",
     nil,
     nil,
     function()
+      local stance = GetShapeshiftForm()
       if CanExitVehicle() then VehicleExit() return false end
-      if IsMounted() then Dismount()  return false end
-      if stance == 2 or stance == 4 or stance == 6 then UseShapeshiftForm(0)  return false end
+      if IsMounted() then Dismount() return false end
+      if stance == 4 or stance == 6 then UseShapeshiftForm(0) return false end -- stance == 2 or
       return true
     end
 )

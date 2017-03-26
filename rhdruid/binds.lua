@@ -73,15 +73,15 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateDamage)
 -- Лайфхак, чтоб не разбиться об воду при падении с высоты (защита от ДК с повышенным чувством юмора)
 local FallingTime
 local function UpdateFormFix()
-    if IsFalling() then
+      if IsFalling() and not InJump() then
         if FallingTime == nil then FallingTime = GetTime() end
-        if not IsAttack() and FallingTime and (GetTime() - FallingTime > 2) and not InUseCommand("form") then
+        if not IsAttack() and FallingTime and (GetTime() - FallingTime > 1) and not InUseCommand("form") and not IsMounted() then
            DoCommand("form", (InCombatLockdown() or IsBattleground() or not IsFlyableArea() or not IsOutdoors()) and 3 or 6)
         end
     else
         if FallingTime ~= nil then FallingTime = nil end
     end
-    if AdvMode and IsSwimming() and not (IsMounted() or CanExitVehicle()) and not InUseCommand("form") then DoCommand("form", 2) end
+    if AdvMode and IsSwimming() and not PlayerInPlace() and not (IsMounted() or CanExitVehicle()) and not InUseCommand("form") then DoCommand("form", 2) end
 end
 AttachUpdate(UpdateFormFix)
 ------------------------------------------------------------------------------------------------------------------

@@ -310,6 +310,9 @@ function PlayerFacingAngleToPoint(x, y) -- angle 1 .. 90, default 90
 end
 ------------------------------------------------------------------------------------------------------------------
 local moveUp = false
+function InJump()
+  return moveUp and not IsFlying() and not IsSwimming()
+end
 local moveUpStart = function() moveUp = true end
 hooksecurefunc("JumpOrAscendStart", moveUpStart);
 local moveUpStop = function() moveUp = false end
@@ -413,6 +416,7 @@ function RunForwardStop()
 end
 ------------------------------------------------------------------------------------------------------------------
 function Intersection(ax1,ay1,ax2,ay2,bx1,by1,bx2,by2)
+   if not ax1 or not ay1 or not ax2 or not ay2 or not bx1 or not by1 or not bx2  or not by2 then return false end
    local v1 = (bx2-bx1)*(ay1-by1)-(by2-by1)*(ax1-bx1)
    local v2 = (bx2-bx1)*(ay2-by1)-(by2-by1)*(ax2-bx1)
    local v3 = (ax2-ax1)*(by1-ay1)-(ay2-ay1)*(bx1-ax1)
@@ -454,6 +458,12 @@ function sendFollowAttack(unit)
     SendAddonMessage('rhlib2', "followAttack!", "WHISPER", unit)
 end
 ------------------------------------------------------------------------------------------------------------------
+function sendFollowForce(unit)
+    if not UnitIsConnected(unit) then return  end
+    local x, y, z = UnitPosition('player')
+    sendFollowPoint(unit, x, y, z, 5)
+end
+------------------------------------------------------------------------------------------------------------------
 local lx, ly, lz, lf, lflag
 function sendFollowPoint(unit, x, y, z, flag)
     if not flag then flag = 0 end
@@ -489,8 +499,27 @@ local function receiveFollowPoint(type, prefix, message, channel, sender)
     gsub(message, "-?%d+", function(i) tinsert(point, tonumber(i)) end)
     -- HACK instant
     local flag = (#point > 3 and point[4] or 0)
-    if flag == 1 or flag == 2 then
-      DoFollowFlag(flag)
+    if flag == 1 or flag == 2 or flag == 5 or flag == 3 then
+      if flag == 1 then
+        ApplyCommand('followDismount')
+      end
+      if flag == 2 then
+        ApplyCommand('followMount')
+      end
+      if flag == 5 then
+        wipe(followPoints)
+        MoveToPoint(unpack(point))
+      end
+      if flag == 3 then
+        print('TryAttack')
+        local tar = followUnit .. '-target'
+        if IsValidTarget(tar) and UnitAffectingCombat(tar) then
+          oexecute("TargetUnit('".. tar .."')")
+        end
+        TryAttack()
+
+      end
+      --print('flag', flag)
       point[4] = 0
     end
     tinsert(followPoints, point)
@@ -519,30 +548,16 @@ function GoToMeUnit(unit)
 end
 ------------------------------------------------------------------------------------------------------------------
 function DoFollowFlag(flag)
-  if flag == 1 and IsMounted() then
-    Dismount()
-    return
-  end
-  if flag == 1 then
-    ApplyCommand('followDismount')
-    return
-  end
-  if flag == 2 then
-    ApplyCommand('followMount')
-    return
-  end
-  if flag == 3 then
-    --oexecute('')
-    TryAttack()
+  if not flag or flag == 0  then
     return
   end
   if flag == 4 and not (IsFlying() or IsSwimming() or IsFalling())  then
     print('Jump')
-    local inPlace = PlayerInPlace()
-    if inPlace then RunForwardStart() end
+    --local inPlace = PlayerInPlace()
+    --if inPlace then RunForwardStart() end
     MoveUpStart()
     MoveUpStop()
-    if inPlace then RunForwardStop() end
+    --if inPlace then RunForwardStop() end
    return
   end
 end
@@ -555,6 +570,9 @@ end
 ------------------------------------------------------------------------------------------------------------------
 local __x,__y, __z --Last MovePlayer
 function MoveToPoint(_x, _y, _z)
+  if PlayerInPlace() then
+    __x,__y, __z = nil, nil, nil
+  end
   if TimerLess('MoveToPointWait', 1) then return end
   if _x ~= __x or _y ~= __y or _z ~= __z then
     MovePlayer(_x, _y, _z)
@@ -565,7 +583,7 @@ end
 if not AutoFollowUnit then AutoFollowUnit = nil end
 ------------------------------------------------------------------------------------------------------------------
 local jumpFollowStart = function()
-  if AutoFollowUnit and not (IsFlying() or IsSwimming() or IsFalling()) then
+  if AutoFollowUnit and not InCombatMode() and not (IsFlying() or IsSwimming() or IsFalling()) then
     print('Jump!')
     local x, y, z =  UnitPosition('player')
     sendFollowPoint(AutoFollowUnit, x, y, z, 4)
@@ -582,10 +600,16 @@ local function updateFollow()
   local _x, _y, _z, _flag =  unpack(followPoints[1])
   x, y, z = UnitPosition("player")
   local dist = PointToPontDistance(x, y, z, _x, _y, _z)
-  if followUnit and UnitIsVisible(followUnit) and PointToPontDistance(x, y, z, UnitPosition(followUnit)) < 5 then
-    wipe(followPoints)
-    tinsert(followPoints, {UnitPosition(followUnit), _flag})
+
+  if followUnit and UnitIsVisible(followUnit) then
+    local d = PointToPontDistance(x, y, z, UnitPosition(followUnit))
+    if d  < 5 then
+      wipe(followPoints)
+      tinsert(followPoints, {UnitPosition(followUnit), _flag})
+    end
+    if UnitAffectingCombat(followUnit) and d < 30 and IsVisible(followUnit) then return end
   end
+
   if (dist < (_flag == 4 and 2 or 5)) then
     tremove(followPoints, 1)
     DoFollowFlag(_flag)
@@ -595,14 +619,12 @@ local function updateFollow()
   if not cast then
     MoveToPoint(_x, _y, _z)
     if (#followPoints > 2) then
-      if AdvMode and  PlayerInPlace(2)  then -- something wrong
+      if AdvMode and PlayerInPlace(2) then -- something wrong
+        DoFollowFlag(4)
         tremove(followPoints, 1)
         DoFollowFlag(_flag)
         updateFollow()
         return
-      end
-      if AdvMode and PlayerInPlace(1)  then -- something wrong
-        DoFollowFlag(4) -- jump
       end
     end
   end

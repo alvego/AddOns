@@ -140,7 +140,7 @@ function HealRotation()
     end
   end
   -- Heal --------------------------------------------------------------------
-  if not IsCtr() then UseShapeshiftForm(5) end
+  if not IsCtr() and (not IsSwimming() or attack) then UseShapeshiftForm(5) end
   if not u then return end
   local l = UnitLostHP(u)
   --if IsAlt() then h = 60  l = 8000 end
@@ -233,7 +233,7 @@ function MonkRotation()
   if (not attack or not combat) and not HasBuff("Шипы") and DoSpell("Шипы", player) then return end
   if TimerLess("Damage", 2) then DoSpell("Хватка природы", player) return end
   if TimerLess("Damage", 1) then DoSpell("Дубовая кожа", player) return end
-  UseShapeshiftForm(5)
+  if (not IsSwimming() or attack) then UseShapeshiftForm(5) end
   local hp = UnitHealth100(player)
   local mana = UnitMana100(player)
   if combat then
