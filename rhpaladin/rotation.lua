@@ -37,7 +37,7 @@ function Idle()
         oexecute('CancelUnitBuff("player", "Парашют")')
       end
       if CanExitVehicle() then VehicleExit() end
-      if IsMounted() and not IsPvP() then
+      if IsMounted() then
         if HasBuff("Аура воина Света") then
            oexecute('CancelUnitBuff("player", "Аура воина Света")')
           if HasSpell("Частица Света") and DoSpell("Аура сосредоточенности") then return end
@@ -354,7 +354,7 @@ function PvP()
     (tContains(steathClass, GetClass(target)) and not InRange("Покаяние", target)) or HasBuff(reflectBuff, 1, target)
   ) and not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
   if CanMagicAttack(target) and DoSpell((IsAlt() and "Правосудие справедливости" or "Правосудие мудрости"), target) then return end
-  if not isFinishHim and not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
+  if not isFinishHim and not HasBuff("Священный щит") and IsSpellNotUsed("Священный щит", 4) and DoSpell("Священный щит", player) then return end
   if UseEquippedItem(GetSlotItemName(10), target) then return end
   if (UnitCreatureType(target) == "Нежить") and mana > 30 and DistanceTo(player, target) < 8 and DoSpell("Гнев небес") then return end
   if DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
@@ -368,7 +368,7 @@ function PvP()
   if mana > 50 then
     if DistanceTo(player, target) < 8 and (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
     if HasBuff("Искусство войны") and hp < 95 and DoSpell("Вспышка Света", player) then return end
-    if not InDuel() and InMelee(target) and DoSpell("Освящение") then return end
+    --if not InDuel() and InMelee(target) and DoSpell("Освящение") then return end
   end
 end
 ------------------------------------------------------------------------------------------------------------------
