@@ -283,8 +283,12 @@ function IsPvP()
     return inInstance ~= nil and (instanceType =="arena" or instanceType =="pvp")
 end
 ------------------------------------------------------------------------------------------------------------------
-function PlayerInPlace()
-    return (GetUnitSpeed("player") == 0) and not IsFalling()
+function PlayerInPlace(more)
+    local inPlace = (GetUnitSpeed("player") == 0) and not IsFalling()
+    TimerToggle('PlayerInPlace', inPlace);
+    if not inPlace then return false end
+    if more and not TimerMore('PlayerInPlace', more) then return false end
+    return true
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -483,6 +487,12 @@ local function receiveFollowPoint(type, prefix, message, channel, sender)
   if message:match("followPoint:") then
     local point = {}
     gsub(message, "-?%d+", function(i) tinsert(point, tonumber(i)) end)
+    -- HACK instant
+    local flag = (#point > 3 and point[4] or 0)
+    if flag == 1 or flag == 2 then
+      DoFollowFlag(flag)
+      point[4] = 0
+    end
     tinsert(followPoints, point)
     --print("point: ", unpack(point))
     removeLoops(followPoints)
@@ -513,30 +523,39 @@ function DoFollowFlag(flag)
     Dismount()
     return
   end
-  if flag == 1 and IsMounted() then
-    if CanExitVehicle() then VehicleExit() end
-    if IsMounted() then Dismount() end
-    UseShapeshiftForm(0)
+  if flag == 1 then
+    ApplyCommand('followDismount')
     return
   end
   if flag == 2 then
-    ApplyCommand('run')
+    ApplyCommand('followMount')
     return
   end
   if flag == 3 then
+    --oexecute('')
     TryAttack()
     return
   end
   if flag == 4 and not (IsFlying() or IsSwimming() or IsFalling())  then
     print('Jump')
-     MoveUpStart()
-     MoveUpStop()
-     return
+    local inPlace = PlayerInPlace()
+    if inPlace then RunForwardStart() end
+    MoveUpStart()
+    MoveUpStop()
+    if inPlace then RunForwardStop() end
+   return
   end
+end
+------------------------------------------------------------------------------------------------------------------
+function FollowPause()
+  TimerStart('MoveToPointWait')
+  RunForwardStart()
+  RunForwardStop()
 end
 ------------------------------------------------------------------------------------------------------------------
 local __x,__y, __z --Last MovePlayer
 function MoveToPoint(_x, _y, _z)
+  if TimerLess('MoveToPointWait', 1) then return end
   if _x ~= __x or _y ~= __y or _z ~= __z then
     MovePlayer(_x, _y, _z)
     __x, __y, __z = _x, _y, _z
@@ -558,35 +577,34 @@ local function updateFollow()
   if not UnitPosition then return end
   if AutoFollowUnit and UnitIsConnected(AutoFollowUnit) then GoToMeUnit(AutoFollowUnit) end
   if Paused then return end
-  if UnitIsCasting('player') then return end
-  if #followPoints < 1 then return end
+  cast = UnitIsCasting('player')
+  if #followPoints < 2 then return end
   local _x, _y, _z, _flag =  unpack(followPoints[1])
   x, y, z = UnitPosition("player")
   local dist = PointToPontDistance(x, y, z, _x, _y, _z)
-  --if followUnit and UnitIsVisible(followUnit) and PointToPontDistance(x, y, z, UnitPosition(followUnit)) < 5 then wipe(followPoints) end
-  if #followPoints == 1 then -- nd PointToPontDistance(x, y, z, unpack(followPoints[#followPoints])) < 15 then
-    -- if not PlayerInPlace() then
-    --     --MoveToPoint(x, y, z) -- stop follow
-    --     RunForwardStart()
-    --     RunForwardStop()
-    -- end
-    return
+  if followUnit and UnitIsVisible(followUnit) and PointToPontDistance(x, y, z, UnitPosition(followUnit)) < 5 then
+    wipe(followPoints)
+    tinsert(followPoints, {UnitPosition(followUnit), _flag})
   end
-  -- if (dist < 6 and dist > 4) and not (IsFlying() or IsSwimming() or IsFalling()) then
-  --   MoveUpStart()
-  --   MoveUpStop()
-  -- end
-  if (dist < 3) then
+  if (dist < (_flag == 4 and 2 or 5)) then
     tremove(followPoints, 1)
     DoFollowFlag(_flag)
     updateFollow()
     return
   end
-  MoveToPoint(_x, _y, _z)
-  if PlayerInPlace() then -- something wrong
-    tremove(followPoints, 1)
-    DoFollowFlag(_flag)
-    updateFollow()
+  if not cast then
+    MoveToPoint(_x, _y, _z)
+    if (#followPoints > 2) then
+      if AdvMode and  PlayerInPlace(2)  then -- something wrong
+        tremove(followPoints, 1)
+        DoFollowFlag(_flag)
+        updateFollow()
+        return
+      end
+      if AdvMode and PlayerInPlace(1)  then -- something wrong
+        DoFollowFlag(4) -- jump
+      end
+    end
   end
 end
 AttachUpdate(updateFollow)
@@ -604,12 +622,15 @@ function InCombatMode()
       TimerStart('CombatTarget')
     end
     if InCombatLockdown() then
-      TimerStart('CombatLock')
-    end
-    if IsAttack() or (TimerLess('CombatLock', 0.01) and TimerLess('CombatTarget', 3)) then
+     TimerStart('CombatLock')
+   end
+   if IsAttack() or (TimerLess('CombatLock', 1) and TimerLess('CombatTarget', 3)) then
       TimerStart('InCombatMode')
       return true
     end
+    -- if InCombatLockdown() then
+    --   print(TimerLess('CombatTarget', 5))
+    -- end
     return false
 end
 ------------------------------------------------------------------------------------------------------------------
@@ -651,6 +672,17 @@ function CantAttack()
   return false
 end
 ------------------------------------------------------------------------------------------------------------------
+local groupTargets = {}
+local function tryTargetBreak(msg, uid)
+  if true then return end
+  if not Debug then return end
+  msg = 'TryTarget: ' .. msg
+  if uid then
+      local name = UnitName(uid)
+      msg = msg .. ' - '.. name
+  end
+  print(msg)
+end
 function TryTarget(attack, focus)
   local validTarget = IsValidTarget("target")
   if IsArena() and validTarget and IsValidTarget("focus") then
@@ -664,36 +696,70 @@ function TryTarget(attack, focus)
   local _face = false
   local _dist = 100
   local _combat = false
-  UpdateObjects()
-  UpdateTargets()
+
   if validTarget then
     _currentGUID = UnitGUID("target")
     _uid2 = "target"
   end
+  -- assist
+  if not attack and not pvp and IsInGroup() then
+    local t1, t2, c
+    local units = GetGroupUnits()
+    wipe(groupTargets)
+    for i = 1, #units do
+      local t = units[i] .. '-target'
+      if IsValidTarget(t) and UnitAffectingCombat(t) and (not _currentGUID or _currentGUID ~= UnitGUID(t)) then
+        for _t,_ in pairs(groupTargets) do
+          if IsOneUnit(t, _t) then
+            t = _t
+            break
+          end
+        end
+        local _c = (groupTargets[t] or 0) + 1
+        groupTargets[t] = _c
+        if not t1 or _c > c then
+          t2 = t1
+          t1 = t
+          c = _c
+        end
+      end
+    end
+    if t1 then
+      if _uid2 then t2 =_uid2 end
+      if focus and t2 then oexecute("FocusUnit('".. t2 .."')") end
+      if Debug then print('assist', t1, c) end
+      if t1 then oexecute("TargetUnit('".. t1 .."')") end
+      return
+    end
+  end
+  UpdateObjects()
+  UpdateTargets()
   local look = IsMouselooking()
   for i = 1, #TARGETS do
     local uid = TARGETS[i]
     repeat -- для имитации continue
-      if not IsValidTarget(uid) then break end
+      if not IsValidTarget(uid) then tryTargetBreak(IsValidTargetInfo, uid) break end
+      if UnitHealthMax(uid) < 20 then tryTargetBreak("maxhp < 20", uid) break end
       local combat = UnitAffectingCombat(uid)
+      -- выбираем другую цель
+      if _currentGUID and _currentGUID == UnitGUID(uid) then tryTargetBreak("curr tar", uid) break end
       -- уже есть кто-то в бою
-      if _currentGUID and _currentGUID == UnitGUID(uid) then break end
-      if _combat and not combat then break end
+      if _combat and not combat then tryTargetBreak("!combat", uid) break end
       -- автоматически выбераем только цели в бою
-      if not attack and not combat then break end
+      if not attack and not combat then tryTargetBreak("!attack !combat", uid) break end
       -- не будет лута
-      if (UnitIsTapped(uid)) and (not UnitIsTappedByPlayer(uid)) then break end
+      if (UnitIsTapped(uid)) and (not UnitIsTappedByPlayer(uid)) then tryTargetBreak("tapped", uid) break end
       -- Призванный юнит
-      if UnitIsPossessed(uid) then break end
+      if UnitIsPossessed(uid) then tryTargetBreak("possessed", uid) break end
       -- в pvp выбираем только игроков
-      if pvp and not UnitIsPlayer(uid) then break end
+      if pvp and not UnitIsPlayer(uid) then tryTargetBreak("pvp !player", uid) break end
       -- только актуальные цели
       local face = PlayerFacingTarget(uid, look and 45 or 90)
       -- если смотрим, то только впереди
-      if look and not face then break end
+      if look and not face then tryTargetBreak("look & !face", uid) break end
       local dist = DistanceTo("player", uid)
-      if _face and not face and dist > 8 then break end
-      if dist > _dist then break end
+      if _face and not face and dist > 8 then tryTargetBreak("!face & dist > 8", uid) break end
+      if dist > _dist then tryTargetBreak(">dist", uid) break end
       if _uid then _uid2 = _uid end
       _uid = uid
       _combat = combat

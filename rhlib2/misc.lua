@@ -136,7 +136,13 @@ function TimerMore(name, less)
   return TimerElapsed(name) > (less or 0)
 end
 
-
+function TimerToggle(name, toggle)
+  if toggle then
+    if not TimerStarted(name) then TimerStart(name) end
+  else
+    if TimerStarted(name) then TimerReset(name) end
+  end
+end
 ------------------------------------------------------------------------------------------------------------------
 if ExcludeItemsList == nil then ExcludeItemsList = {} end
 ------------------------------------------------------------------------------------------------------------------

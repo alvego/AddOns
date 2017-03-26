@@ -140,6 +140,49 @@ SetCommand("unRoot",
     end
 )
 ---------------------------------------------------------------------------------------------------------------
+SetCommand("followMount",
+    nil,
+    function()
+      local player = "player"
+      local stance = GetShapeshiftForm()
+      local mounted = IsMounted() or CanExitVehicle() or (stance == 6)
+      if mounted then return true end
+      local combat = InCombatLockdown()
+      local outdoors = IsOutdoors()
+      local swimming = IsSwimming()
+      local falling = IsFalling()
+      local isFlyable = IsFlyableArea()
+      if mounted or combat or swimming or falling or not outdoors then return true end
+      local ground = IsShift() or IsBattleground() or not isFlyable
+      if ground then
+        UseShapeshiftForm(0)
+        local inPlace = PlayerInPlace()
+        FollowPause()
+        if not inPlace then
+          return false
+        end
+        if not UnitIsCasting("player") then
+          UseMount(getRandomMount(groundMounts))
+          return false
+        end
+      else
+        DoCommand("form", 6)
+      end
+      return true
+    end
+)
+---------------------------------------------------------------------------------------------------------------
+SetCommand("followDismount",
+    nil,
+    nil,
+    function()
+      if CanExitVehicle() then VehicleExit() return false end
+      if IsMounted() then Dismount()  return false end
+      if stance == 2 or stance == 4 or stance == 6 then UseShapeshiftForm(0)  return false end
+      return true
+    end
+)
+---------------------------------------------------------------------------------------------------------------
 SetCommand("run",
     nil,
     function()
@@ -171,14 +214,14 @@ SetCommand("run",
       end
 
       form = (ground or combat) and 4 or 6
-      if not (mounted or swimming) and not inPlace and outdoors and stance ~= form then
+      if not (mounted or swimming) and not inPlace and outdoors and stance ~= form and (form ~= 4 or not HasBuff("Порыв")) then
         DoCommand("form", form)
         return true
       end
 
       if not (mounted or combat or swimming or falling) and inPlace and outdoors then
         UseShapeshiftForm(0)
-        local mount = (IsShift() or IsBattleground() or not isFlyable) and getRandomMount(groundMounts) or getRandomMount(flyMounts)
+        local mount = ground and getRandomMount(groundMounts) or getRandomMount(flyMounts)
         if IsAlt() then mount = "Тундровый мамонт путешественника" end
         DoCommand("mount", mount)
         return true

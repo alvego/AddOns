@@ -225,7 +225,7 @@ function UpdateTargets(force)
   wipe(TARGETS)
   for i = 1, #OBJECTS do
     local uid = OBJECTS[i]
-    if UnitCanAttack("player", uid) and DistanceTo("player", uid) <= 30 and IsValidTarget(uid) then
+    if UnitCanAttack("player", uid) and DistanceTo("player", uid) <= 40 and IsValidTarget(uid) then
         tinsert(TARGETS, uid)
     end
   end

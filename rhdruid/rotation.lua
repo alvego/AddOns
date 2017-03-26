@@ -27,10 +27,9 @@ function Idle()
       if (mouse5 and stance ~= 0) or (stance == 2 or stance == 4 or stance == 6) then UseShapeshiftForm(0) end
   end
   ------------------------------------------------------------------------------
-  if UnitIsCasting("player") then return end
   -- дайте поесть (побегать) спокойно
   if not attack and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff) or IsStealthed() or IsFishingMode())  then return end
-  if combat and PayerIsRooted() then DoCommand('unRoot') end
+  if pvp and combat and PayerIsRooted() then DoCommand('unRoot') end
   --if not attack and (stance == 2 or stance == 4 or stance == 6) then return end
   if HasTalent("Древо Жизни") > 0 then
     HealRotation()
@@ -45,6 +44,7 @@ end
 function HealRotation()
   if not attack and not(stance == 0 or stance == 5) then return end
   if not (attack or combat or AutoHeal) then return end
+  if UnitIsCasting("player") then return end
   ------------------------------------------------------------------------------
   local hp = UnitHealth100(player)
   local mana = UnitMana100(player)
@@ -215,20 +215,52 @@ function HealRotation()
   end
 end
 ------------------------------------------------------------------------------------------------------------------
-local l = 0
 function MonkRotation()
+  if not attack and not(stance == 0 or stance == 5) then return end
   if not combatMode then return end
-  if not HasBuff("дикой природы") and DoSpell("Знак дикой природы") then return end
+  -- casting
+  local spell, left = UnitIsCasting(player)
+  if spell and spell  == "Звездный огонь" and not HasBuff("Лунное") and left > 1 then StopCast("!Лунное") end
+  if spell and spell  ~= "Гнев" and HasBuff("Солнечное", 1) and left > 1 then  StopCast("Солнечное") end
+  if spell then return end
+  -- Auto AntiControl --------------------------------------------------------
+  if attack and IsEquippedItem("Медальон Альянса") then
+    local debuff, _, _, _, _, _duration, _expirationTime = HasDebuff(ControlList, 3, "player")
+    --if debuff then print("Control: " .. debuff, (_duration - (_expirationTime - GetTime()))) end
+    if debuff and ((_duration - (_expirationTime - GetTime())) > 0.45) and UseEquippedItem("Медальон Альянса") then chat("Медальон Альянса - " .. debuff) return end
+  end
+  if (not attack or not combat) and not HasBuff("дикой природы") and DoSpell(IsBattleground() and (GetItemCount("Дикий шиполист") > 0) and "Дар дикой природы" or "Знак дикой природы", player) then return end
+  if (not attack or not combat) and not HasBuff("Шипы") and DoSpell("Шипы", player) then return end
+  if TimerLess("Damage", 2) then DoSpell("Хватка природы", player) return end
+  if TimerLess("Damage", 1) then DoSpell("Дубовая кожа", player) return end
   UseShapeshiftForm(5)
-  if UnitMana100() < 30 and UseItem("Рунический флакон с зельем маны") then return end
-    if UnitMana100(player) < 50 and DoSpell("Озарение", player) then return end
+  local hp = UnitHealth100(player)
+  local mana = UnitMana100(player)
+  if combat then
+    if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
+    if hp < 70 and DoSpell("Дубовая кожа", player) then return end
+    if not (InDuel() or IsArena()) then
+      if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
+      if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
+    end
+    if mana < 60 and DoSpell("Озарение", player) then return end
+    if mana < 80 and UseEquippedItem("Осколок чистейшего льда", player) then return end
+  end
+  --print(1)
   if not validTarget then TryTarget(attack) end
+  --print(2)
+  if not CanMagicAttack(target) then chat(CanMagicAttackInfo) return end
+  --print(3)
   if CantAttack() then return end
-  if UnitHealth(target) > 200000 and not HasDebuff("Волшебный огонь") and DoSpell("Волшебный огонь", target) then return end
-  --if not HasDebuff("Земля и луна") and DoSpell("Гнев", target) then end
-  if not HasMyDebuff("Рой насекомых", 1, target) and DoSpell("Рой насекомых", target) then return end
+  if not HasDebuff("Земля и луна") and DoSpell("Гнев", target) then end
   if not HasMyDebuff("Лунный огонь", 1, target) and DoSpell("Лунный огонь", target) then return end
-  if not HasBuff("Солнечное") and (HasBuff("Лунное") or GetTime() - l < 4.6) and DoSpell("Звездный огонь", target) then l = GetTime() return end
+  if not HasMyDebuff("Рой насекомых", 1, target) and DoSpell("Рой насекомых", target) then return end
+  if UnitHealth(target) > 200000 and not HasDebuff("Волшебный огонь") and DoSpell("Волшебный огонь", target) then return end
+  if HasBuff("Лунное", 2) and DoSpell("Звездный огонь", target) then return end
+  if (IsAlt() or pvp) and not attack then
+    if HasDebuff("Poison", 2, player) and not HasBuff("Устранение яда", 0.5, player) and IsSpellNotUsed("Устранение яда", 5) and DoSpell("Устранение яда", player) then return end
+    if HasDebuff("Curse", 2, player) and  IsSpellNotUsed("Снятие проклятия", 5) and DoSpell("Снятие проклятия", player) then return end
+  end
   if DoSpell("Гнев", target) then return end
 end
 ------------------------------------------------------------------------------------------------------------------
