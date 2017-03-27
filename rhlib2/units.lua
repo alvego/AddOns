@@ -570,7 +570,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 local __x,__y, __z --Last MovePlayer
 function MoveToPoint(_x, _y, _z)
-  if PlayerInPlace() then
+  if PlayerInPlace() or (abs(PlayerFacingAngleToPoint(_x, _y)) > 5) then
     __x,__y, __z = nil, nil, nil
   end
   if TimerLess('MoveToPointWait', 1) then return end
@@ -610,7 +610,7 @@ local function updateFollow()
     if UnitAffectingCombat(followUnit) and d < 30 and IsVisible(followUnit) then return end
   end
 
-  if (dist < (_flag == 4 and 2 or 5)) then
+  if (dist < (_flag == 4 and 2 or 5)) or (not IsFlying() and dist > 1000) then
     tremove(followPoints, 1)
     DoFollowFlag(_flag)
     updateFollow()
