@@ -47,7 +47,7 @@ function Idle()
       end
   end
   -- дайте поесть (побегать) спокойно
-  if not IsPvP() and IsMounted() and not HasBuff("Аура воина Света") and DoSpell("Аура воина Света") then return end
+  --if not IsPvP() and IsMounted() and not HasBuff("Аура воина Света") and DoSpell("Аура воина Света") then return end
 
   if not IsAttack() and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
 
@@ -250,8 +250,8 @@ end
 function PvE()
   local target = "target"
   local player = "player"
-  if HasBuff("Праведное неистовство") then oexecute('CancelUnitBuff("player", "Праведное неистовство")') end
-  if not HasBuff("Печать") and DoSpell("Печать праведности", player) then return  end
+  --if HasBuff("Праведное неистовство") then oexecute('CancelUnitBuff("player", "Праведное неистовство")') end
+  if not HasBuff("Печать") and DoSpell("Печать мщения", player) then return  end
   local hp = UnitHealth100(player)
   local mana = UnitMana100(player)
   if hp < 30 and DoSpell("Возложение рук", player) then return end
@@ -262,8 +262,8 @@ function PvE()
     if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
   end
   if HasBuff("Искусство войны") then
-     if hp < 50 and DoSpell("Вспышка Света", player) then return end
-     if IsInteractUnit(teammate) and UnitHealth100(teammate) < 30 and DoSpell("Вспышка Света", teammate) then return end
+     if hp < 30 and DoSpell("Вспышка Света", player) then return end
+     --if IsInteractUnit(teammate) and UnitHealth100(teammate) < 30 and DoSpell("Вспышка Света", teammate) then return end
   end
   TryTarget()
   if not CanAttack(target) then return end
@@ -271,8 +271,9 @@ function PvE()
   if not IsValidTarget(target) then return end
   if HasBuff("Проклятие хаоса") then oexecute('CancelUnitBuff("player", "Проклятие хаоса")') end
   if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
+
   FaceToTarget(target)
-  if mana < 30 and DoSpell("Святая клятва") then return end
+  if mana < 35 and DoSpell("Святая клятва") then return end
   if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
   if DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
   if DoSpell("Удар воина Света") then return end
@@ -281,7 +282,7 @@ function PvE()
   if UseEquippedItem(GetSlotItemName(10), target) then return end
   if (UnitCreatureType(target) == "Нежить") and mana > 30 and DistanceTo(player, target) < 8 and DoSpell("Гнев небес") then return end
   if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
-  if mana > 50 and InMelee(target) and DoSpell("Освящение") then return end
+  if mana > 30 and InMelee(target) and DoSpell("Освящение") then return end
   --if not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
 end
 
