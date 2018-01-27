@@ -1,8 +1,8 @@
 <Bindings>
   <Binding name="DRH_AUTOHEAL" description="Toggle Auto HEAL" header="DRH">
-    AutoHealToggle();
+    ToggleAutoHeal();
   </Binding>
-  <Binding name="DRH_INTERRUPT" description="Use cast interrupt" header="DRH">
-    ToggeInterrupt();
+  <Binding name="DRH_AUTODISPEL" description="Toggle Auto DISPEL" header="DRH">
+    ToggleAutoDispel();
   </Binding>
 </Bindings>
