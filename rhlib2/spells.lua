@@ -297,24 +297,25 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellErrors)
 ------------------------------------------------------------------------------------------------------------------
 local _m = ''
 local function falseBecause(m, spell, icon, target)
-  local spellDebug = spell == "Кровожадность"
-  if m == "Не готов" then return false end -- ignore
-  if m == "Уже используется" then return false end -- ignore
-  if spellDebug and  _m ~= m then
-    _m = m
-    local s = '|T'.. (icon and icon or 'Interface\\Icons\\INV_Misc_Coin_02') ..':16|t '
-    if spell then
-      s = s .. '|cff71d5ff[' .. spell .. ']|r '
-    end
-    if m and m ~= spell then
-      s = s .. '|cffff5555<' .. m .. '>|r '
-    end
-    if target then
-      s = s .. '|cffcccccc->|r ' .. (UnitIsEnemy("player", target) and '|cffff0000' or '|cff00ff00') .. (UnitName(target) or target) .. '|r'
-    end
-    print(s)
-  end
   return false
+  -- local spellDebug = spell == "Удар воина Света"
+  -- if m == "Не готов" then return false end -- ignore
+  -- if m == "Уже используется" then return false end -- ignore
+  -- if spellDebug and  _m ~= m then
+  --   _m = m
+  --   local s = '|T'.. (icon and icon or 'Interface\\Icons\\INV_Misc_Coin_02') ..':16|t '
+  --   if spell then
+  --     s = s .. '|cff71d5ff[' .. spell .. ']|r '
+  --   end
+  --   if m and m ~= spell then
+  --     s = s .. '|cffff5555<' .. m .. '>|r '
+  --   end
+  --   if target then
+  --     s = s .. '|cffcccccc->|r ' .. (UnitIsEnemy("player", target) and '|cffff0000' or '|cff00ff00') .. (UnitName(target) or target) .. '|r'
+  --   end
+  --   print(s)
+  -- end
+  -- return false
 end
 
 function UseSpell(spell, target)
