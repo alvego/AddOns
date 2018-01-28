@@ -50,18 +50,6 @@ function Idle()
   --if not IsPvP() and IsMounted() and not HasBuff("Аура воина Света") and DoSpell("Аура воина Света") then return end
 
   if not IsAttack() and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
-  -- AOE -------------------------------------------------------------------
-  local aoe2 = false
-
-  if IsShift() then
-    aoe2 = true
-  else
-    if not InDuel() then
-      local enemyCount = GetEnemyCountInRange(6)
-      aoe2 = enemyCount >= 2
-    end
-  end
-
 
   -- Heal Rotation ------------------------------------------------------------------------------------------------------------------------------
   if HasSpell("Частица Света") then
@@ -268,8 +256,18 @@ function Tank()
     local target = "target"
     local hp = UnitHealth100(player)
     local mana = UnitMana100(player)
+    local aoe = false
 
-    -- heals
+    if IsShift() then
+      aoe = true
+    else
+      if not InDuel() then
+        local enemyCount = GetEnemyCountInRange(6)
+        aoe = enemyCount >= 3
+      end
+    end
+
+        -- heals
     if hp < 30 and DoSpell("Возложение рук", player) then return end
 
     if InCombatLockdown() then
@@ -300,7 +298,7 @@ function Tank()
 
     FaceToTarget(target)
     if DoSpell("Щит мстителя", target) then return end
-    if aoe2 then
+    if aoe then
         if mana > 50 and InMelee(target) and DoSpell("Освящение", target) then return end
         if (UnitCreatureType(target) == "Нежить") and mana > 60 and InMelee(target) and DoSpell("Гнев небес", target) then return end
     end
