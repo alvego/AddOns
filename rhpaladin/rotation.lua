@@ -285,7 +285,64 @@ function Tank()
     if not HasBuff("Святая клятва") and DoSpell("Святая клятва") then return end
     if not HasBuff("Щит небес", 0.8) and DoSpell("Щит небес") then return end
 
+    local isReadyHandOfReckoning = IsReadySpell("Длань возмездия")
+    local isReadyRighteousDefense = IsReadySpell("Праведная защита")
+    if TimerMore("AGGRO", 0.5) then
+      TimerStart("AGGRO")
 
+      if IsReadySpell("Длань возмездия") then
+        for i = 1, #TARGETS do
+          local uid = TARGETS[i]
+          local name = UnitName(uid)
+          if name and UnitAffectingCombat(uid) and not AggroIgnored[name] then
+            for j = 1, #UNITS do
+              local u = UNITS[j]
+              local n = UnitName(u)
+              if n and not IsOneUnit(u, player) and not AggroIgnored[n] and UnitThreat(u, uid) == 3 and DoSpell("Длань возмездия", uid) then
+                chat("Длань возмездия на " .. name .. ", снимаем с " .. u )
+                return
+              end
+            end -- for units
+          end -- not ignored
+        end --for units
+      end --ready
+
+      if IsReadySpell("Праведная защита") then
+        local _u = nil
+        local _c = 0
+        local _n = ""
+        for i = 1, #UNITS do
+          local u = UNITS[i]
+          local name = UnitName(u)
+          if name and not AggroIgnored[name] and not IsOneUnit(u, player) and UnitThreat(unit) == 3 then
+            local c = 0;
+            for j = 1, #TARGETS do
+              if c >= 0 then
+                local uid = TARGETS[j]
+                local n = UnitName(u)
+                if n and UnitThreat(u, uid) == 3 then
+                  if AggroIgnored[n] then
+                    c = -1
+                  else
+                    c = c + 1
+                  end
+                end
+              end --c >= 0
+              if c > _c then
+                _u = u
+                _n = name
+                _c = c
+              end
+            end -- for units
+          end -- not ignored
+        end --for units
+        if _u and DoSpell("Праведная защита", _u) then
+          chat("Праведная защита на " .. _c .. ", на нем висело " .. _с .. "мобов" )
+          return
+        end
+      end --ready
+
+    end --aggro
 
 
     TryTarget()
