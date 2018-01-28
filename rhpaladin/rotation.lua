@@ -277,7 +277,7 @@ function Tank()
       if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
     end
 
-    if IsAlt() or  InCombatLockdown() then
+    if IsAlt() or InCombatLockdown() then
       -- Buffs
       if not HasBuff("Благословение") and DoSpell("Великое благословение неприкосновенности", player) then return end
       if not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
@@ -347,7 +347,7 @@ function Tank()
       end --ready
 
     end --aggro
-    
+
 
     TryTarget()
     if not CanAttack(target) then return end
