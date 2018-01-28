@@ -337,7 +337,7 @@ function Tank()
           end -- not ignored
         end --for units
         if _u and DoSpell("Праведная защита", _u) then
-          chat("Праведная защита на " .. _c .. ", на нем висело " .. _с .. "мобов" )
+          chat("Праведная защита на " .. _n .. ", на нем висело " .. _c .. "мобов")
           return
         end
       end --ready
