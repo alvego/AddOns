@@ -132,3 +132,28 @@ SetCommand("shield",
     return true
   end
 )
+------------------------------------------------------------------------------------------------------------------
+SetCommand("aignore",
+  nil,
+  function()
+    if IsAlt() then
+      wipe(AggroIgnored)
+      chat("wipe AggroIgnored")
+      return true
+    end
+    local name = UnitName("target")
+    if not name then
+      chat("target not exists")
+      return true
+    end
+    if AggroIgnored[name] then
+      AggroIgnored[name] = nil
+      chat(name .. " remove from AggroIgnored")
+    else
+      AggroIgnored[name] = true;
+      chat(name .. " add to AggroIgnored")
+    end
+    return true
+  end
+)
+------------------------------------------------------------------------------------------------------------------
