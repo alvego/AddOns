@@ -287,8 +287,7 @@ function Tank()
       if not HasBuff("Святая клятва") and DoSpell("Святая клятва") then return end
       if not HasBuff("Щит небес", 0.8) and DoSpell("Щит небес") then return end
     end
-    local isReadyHandOfReckoning = IsReadySpell("Длань возмездия")
-    local isReadyRighteousDefense = IsReadySpell("Праведная защита")
+
     if TimerMore("AGGRO", 0.5) then
       TimerStart("AGGRO")
       UpdateUnits()
@@ -323,7 +322,7 @@ function Tank()
             for j = 1, #TARGETS do
               if c >= 0 then
                 local uid = TARGETS[j]
-                local n = UnitName(u)
+                local n = UnitName(uid)
                 if n and UnitThreat(u, uid) == 3 then
                   if AggroIgnored[n] then
                     c = -1
@@ -333,6 +332,7 @@ function Tank()
                 end
               end --c >= 0
               if c > _c then
+                print(name, c, _c)
                 _u = u
                 _n = name
                 _c = c
