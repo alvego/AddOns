@@ -56,6 +56,10 @@ function Idle()
       Heal()
       return
    end
+   if HasSpell("Щит мстителя") then
+      Tank()
+      return
+   end
    --DD_rotation--------------------------------------------------------------------------------------------------------------------------------------------
   if not HasSpell("Удар воина Света") then return end
   if IsPvP() then
@@ -247,6 +251,53 @@ function Heal()
   end
 end
 ------------------------------------------------------------------------------------------------------------------
+function Tank()
+    local player = "player"
+    local target = "target"
+    local hp = UnitHealth100(player)
+    local mana = UnitMana100(player)
+
+    -- heals
+    if hp < 30 and DoSpell("Возложение рук", player) then return end
+
+    if InCombatLockdown() then
+      if hp < 50 and not (HasBuff("Затвердевшая кожа")) and UseEquippedItem("Проржавевший костяной ключ") then return true end
+      if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
+      if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
+      if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
+    end
+    -- Buffs
+    if not HasBuff("Благословение") and DoSpell("Великое благословение неприкосновенности", player) then return end
+    if not HasBuff("Праведное неистовство") and DoSpell("Праведное неистовство") then return end
+    if HasSpell("Печать мщения") and not HasBuff("Печать мщения") and DoSpell("Печать мщения") then return end
+    if HasSpell("Печать порчи") and not HasBuff("Печать порчи") and DoSpell("Печать порчи") then return end
+    if not HasBuff("Священный щит") and DoSpell("Священный щит", player) then return end
+    if not HasBuff("Святая клятва") and DoSpell("Святая клятва") then return end
+    if not HasBuff("Щит небес", 0.8) and DoSpell("Щит небес") then return end
+
+    
+
+
+    TryTarget()
+    if not CanAttack(target) then return end
+    if (IsAttack() or UnitAffectingCombat(target)) then oexecute("StartAttack()") end
+    if not IsValidTarget(target) then return end
+
+    -- пытаемся сдиспелить с себя каку
+    if IsCtr() and DoSpell("Очищение" , player) then return end
+
+    FaceToTarget(target)
+    if DoSpell("Щит мстителя", target) then return end
+    if IsAOE() then
+        if mana > 50 and InMelee(target) and DoSpell("Освящение", target) then return end
+        if (UnitCreatureType(target) == "Нежить") and mana > 60 and InMelee(target) and DoSpell("Гнев небес", target) then return end
+    end
+    if UnitHealth100(target) < 20 and DoSpell("Молот гнева", target) then return end
+    if DoSpell("Молот праведника", target) then return end
+    if DoSpell((mana > 55) and "Правосудие света" or "Правосудие мудрости", target) then return end
+    if DoSpell("Щит праведности", target) then return end
+end
+------------------------------------------------------------------------------------------------------------------
 function PvE()
   local target = "target"
   local player = "player"
@@ -279,7 +330,7 @@ function PvE()
 
   if DoSpell("Удар воина Света", target) then return end
 
-  if CanMagicAttack(target) and DoSpell((IsAlt() and "Правосудие справедливости" or "Правосудие мудрости"), target) then return end
+  if CanMagicAttack(target) and DoSpell(IsAlt() and "Правосудие справедливости" or "Правосудие мудрости", target) then return end
   if HasBuff("Искусство войны") and CanMagicAttack(target) and DoSpell("Экзорцизм", target) then return end
   if UseEquippedItem("Перчатки ануб'арского охотника") then return end
   if (UnitCreatureType(target) == "Нежить") and mana > 30 and DistanceTo(player, target) < 8 and DoSpell("Гнев небес") then return end

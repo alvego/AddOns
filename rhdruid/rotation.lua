@@ -4,6 +4,7 @@ Teammate = "Qo"
 local peaceBuff = {"Пища", "Питье"}
 local steathClass = {"ROGUE", "DRUID"}
 local player = "player"
+local focus = "focus"
 local target = "target"
 local iUNITS = {"player", Teammate, "Nau"}
 local duelUnits = {"player"}
@@ -156,9 +157,9 @@ function HealRotation()
    return
   end
 
-  if (h < 70 and l > 10000) and (HasMyBuff("Омоложение", 1, u) or HasMyBuff("Восстановление", 1, u)) and HasSpell("Быстрое восстановление") and DoSpell("Быстрое восстановление", u) then return end
-  if (h < 50 and l > 12000) and not IsReadyItem("Подвеска истинной крови") and HasSpell("Природная стремительность") and DoSpell("Природная стремительность") then  return end
   if (h < 45 and l > 12000) and UseEquippedItem("Подвеска истинной крови", u) then return end
+  if (h < 50 and l > 12000) and HasSpell("Природная стремительность") and DoSpell("Природная стремительность") then  return end
+  if (h < 70 and l > 10000) and (HasMyBuff("Омоложение", 1, u) or HasMyBuff("Восстановление", 1, u)) and HasSpell("Быстрое восстановление") and DoSpell("Быстрое восстановление", u) then return end
 
   if h > 40 and TimerLess("Damage", 2) then DoSpell("Хватка природы", player) return end
 
@@ -171,11 +172,14 @@ function HealRotation()
      if (h < 55 and l > 8000) and (HasMyBuff("Омоложение", 2, u) or HasMyBuff("Восстановление", 2, u) or HasMyBuff("Жизнецвет", 2, u) or HasMyBuff("Буйный рост", 2, u)) and DoSpell("Покровительство Природы", u) then return end
   end
 
-  if mana > 50 and h > 45 and UnitThreat(u) > 1 then
-    local count, _, _, last = select(4, HasMyBuff("Жизнецвет", 0.01, u))
-    if ((count or 0) < 3) or (last < 2 and h > 95) then
-       if DoSpell("Жизнецвет", u) then return end
-     end
+  if mana > 50 and InInteractRange(focus) then
+    f_h = UnitHealth100(focus)
+    if f_h > 45 then
+      local count, _, _, last = select(4, HasMyBuff("Жизнецвет", 0.01, focus))
+      if ((count or 0) < 3) or (last < 2 and f_h > 95) then
+         if DoSpell("Жизнецвет", focus) then return end
+      end
+    end
   end
 
   if wg_u and DoSpell("Буйный рост", wg_u) then return end
@@ -185,15 +189,15 @@ function HealRotation()
     if curse_u and IsSpellNotUsed("Снятие проклятия", 5) and DoSpell("Снятие проклятия", curse_u) then return end
   end
 
-  -- if h > 90 and mana > 50 then
-  --   for i = 1, #iUNITS do
-  --     local _u = iUNITS[i]
-  --     if InInteractRange(_u) then
-  --       if not HasBuff("дикой природы", 1, _u) and DoSpell(IsBattleground() and (GetItemCount("Дикий шиполист") > 0) and "Дар дикой природы" or "Знак дикой природы", _u) then return end
-  --       if not HasBuff("Шипы", 1, _u) and DoSpell("Шипы", _u) then return end
-  --     end
-  --   end
-  -- end
+  if h > 90 and mana > 50 then
+    for i = 1, #iUNITS do
+      local _u = iUNITS[i]
+      if InInteractRange(_u) then
+        if not HasBuff("дикой природы", 1, _u) and DoSpell(IsInGroup() and (GetItemCount("Дикий шиполист") > 0) and "Дар дикой природы" or "Знак дикой природы", _u) then return end
+        if not HasBuff("Шипы", 1, _u) and DoSpell("Шипы", _u) then return end
+      end
+    end
+  end
 
   if rj_u and DoSpell("Омоложение", rj_u) then return end
 end
