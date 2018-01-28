@@ -291,6 +291,7 @@ function Tank()
     local isReadyRighteousDefense = IsReadySpell("Праведная защита")
     if TimerMore("AGGRO", 0.5) then
       TimerStart("AGGRO")
+      UpdateUnits()
 
       if IsReadySpell("Длань возмездия") then
         for i = 1, #TARGETS do
@@ -301,7 +302,7 @@ function Tank()
               local u = UNITS[j]
               local n = UnitName(u)
               if n and not IsOneUnit(u, player) and not AggroIgnored[n] and UnitThreat(u, uid) == 3 and DoSpell("Длань возмездия", uid) then
-                chat("Длань возмездия на " .. name .. ", снимаем с " .. u )
+                chat("Длань возмездия на " .. name .. ", снимаем с " .. n )
                 return
               end
             end -- for units
@@ -316,7 +317,8 @@ function Tank()
         for i = 1, #UNITS do
           local u = UNITS[i]
           local name = UnitName(u)
-          if name and not AggroIgnored[name] and not IsOneUnit(u, player) and UnitThreat(unit) == 3 then
+
+          if name and not AggroIgnored[name] and not IsOneUnit(u, player) and UnitThreat(u) == 3 then
             local c = 0;
             for j = 1, #TARGETS do
               if c >= 0 then
@@ -339,13 +341,13 @@ function Tank()
           end -- not ignored
         end --for units
         if _u and DoSpell("Праведная защита", _u) then
-          chat("Праведная защита на " .. _n .. ", на нем висело " .. _c .. "мобов")
+          chat("Праведная защита на " .. _n .. ", на нем висело " .. _c .. " мобов")
           return
         end
       end --ready
 
     end --aggro
-
+    if not IsAttack() then return end
 
     TryTarget()
     if not CanAttack(target) then return end
