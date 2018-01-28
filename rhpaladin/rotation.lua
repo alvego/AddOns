@@ -347,7 +347,7 @@ function Tank()
       end --ready
 
     end --aggro
-    if not IsAttack() then return end
+    
 
     TryTarget()
     if not CanAttack(target) then return end
