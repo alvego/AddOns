@@ -288,7 +288,7 @@ function Tank()
       if not HasBuff("Щит небес", 0.8) and DoSpell("Щит небес") then return end
     end
 
-    if TimerMore("AGGRO", 0.5) then
+  if TimerMore("AGGRO", 0.5) then
       TimerStart("AGGRO")
       UpdateUnits()
 
@@ -396,8 +396,9 @@ function PvE()
 
   FaceToTarget(target)
   if mana < 35 and DoSpell("Святая клятва") then return end
+
   --if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
-  if DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
+  if (InMelee(target) or DistanceTo(player, target) < 8) and DoSpell("Божественная буря") then return end
 
   if DoSpell("Удар воина Света", target) then return end
 
