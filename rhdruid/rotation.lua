@@ -80,15 +80,16 @@ function HealRotation()
   local wg_u = nil
   local wg_c = 0
 
-  local full_hp = attack and 101 or 100
+  local full_hp = attack and 101 or 99
   ------------------------------------------------------------------------------
   UpdateUnits()
   local units = InDuel() and duelUnits or (hp > 60 and UNITS or iUNITS)
-
+  local clearcasting = HasBuff("Ясность мысли")
   for i = 1, #units do
     local _u = units[i]
     if InInteractRange(_u) then
       local _h = UnitHealth100(_u)
+
       if not h or _h < h then
         u = _u
         h = _h
@@ -106,36 +107,46 @@ function HealRotation()
         end
       end
 
-      if _h < full_hp then
+      if _h < full_hp and (not rj_u or _h < rj_h) and not HasMyBuff("Омоложение", 0.01, _u) then
+        rj_u = _u
+        rj_h = _h
+      end
 
-        if (not rj_u or _h < rj_h) and not HasMyBuff("Омоложение", 0.01, _u) then
-          rj_u = _u
-          rj_h = _h
-        end
-
-        if (not lb_u or _h < lb_h) and not HasMyBuff("Жизнецвет", 0.01, _u) then
-          lb_u = _u
-          lb_h = _h
-        end
-
-        if IsReadySpell("Буйный рост") then
-            local _c = 1;
-            for j = 1, #units do
-              local __u = units[j]
-              local __h = UnitHealth100(__u)
-              if __h < full_hp and DistanceTo(_u, __u) < 15 then
-                _c = _c + 1
-              end
+      if _h < full_hp and IsReadySpell("Буйный рост") then
+          local _c = 1;
+          for j = 1, #units do
+            local __u = units[j]
+            local __h = UnitHealth100(__u)
+            if __h < full_hp and DistanceTo(_u, __u) < 15 then
+              _c = _c + 1
             end
-            if not wg_u or wg_c < _c then
-              wg_u = _u
-              wg_c = _c
-            end
-        end
+          end
+          if not wg_u or wg_c < _c then
+            wg_u = _u
+            wg_c = _c
+          end
+      end
 
+      if _h < full_hp and clearcasting and (not lb_u or _h < lb_h) and not HasMyBuff("Жизнецвет", 0.01, _u) then
+        lb_u = _u
+        lb_h = _h
+      end
+
+    end
+  end
+
+  if mana > 50 and InInteractRange(focus) then
+    local f_h = UnitHealth100(focus)
+    if f_h > 45 then
+      --name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId
+      local count, _, _, last = select(4, HasMyBuff("Жизнецвет", 0.01, focus))
+      if (count or 0) < 3 or (last or GetTime()) - GetTime() < 2.5 or clearcasting then
+         lb_u = focus
+         lb_h = f_h
       end
     end
   end
+
   -- Auto AntiControl --------------------------------------------------------
   if IsEquippedItem("Медальон Альянса") then
     local debuff, _, _, _, _, _duration, _expirationTime = HasDebuff(ControlList, 3, "player")
@@ -152,7 +163,7 @@ function HealRotation()
      return
   end
 
-  if lb_u and HasBuff("Ясность мысли") then
+  if lb_u and clearcasting then
    DoSpell("Жизнецвет", lb_u)
    return
   end
@@ -172,17 +183,9 @@ function HealRotation()
      if (h < 55 and l > 8000) and (HasMyBuff("Омоложение", 2, u) or HasMyBuff("Восстановление", 2, u) or HasMyBuff("Жизнецвет", 2, u) or HasMyBuff("Буйный рост", 2, u)) and DoSpell("Покровительство Природы", u) then return end
   end
 
-  if mana > 50 and InInteractRange(focus) then
-    f_h = UnitHealth100(focus)
-    if f_h > 45 then
-      local count, _, _, last = select(4, HasMyBuff("Жизнецвет", 0.01, focus))
-      if ((count or 0) < 3) or (last < 2 and f_h > 95) then
-         if DoSpell("Жизнецвет", focus) then return end
-      end
-    end
-  end
-
   if wg_u and DoSpell("Буйный рост", wg_u) then return end
+
+  if lb_u and DoSpell("Жизнецвет", lb_u) then return end
 
   if IsAlt() or (mana > 50 and h > 70) then
     if potion_u and IsSpellNotUsed("Устранение яда", 5) and DoSpell("Устранение яда", potion_u) then return end
