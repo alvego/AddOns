@@ -164,7 +164,7 @@ function AutoTauntToggle()
         echo("Авто Taunt: OFF")
     end
 end
-
+------------------------------------------------------------------------------------------------------------------
 function AddRage()
   if (HasTalent("Улучшенная ярость берсерка") > 0) or TimerLess("Damage", 2) then
     --if IsSpellNotUsed("Кровавая ярость", 1) and IsSpellNotUsed("Ярость берсерка", 1) then

@@ -288,7 +288,7 @@ function Tank()
       if not HasBuff("Щит небес", 0.8) and DoSpell("Щит небес") then return end
     end
 
-  if TimerMore("AGGRO", 0.5) then
+    if AutoTaunt and TimerMore("AGGRO", 0.5) then
       TimerStart("AGGRO")
       UpdateUnits()
 

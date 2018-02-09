@@ -1,6 +1,20 @@
 ﻿-- Paladin Rotation Helper by Alex Tim & Co
 ------------------------------------------------------------------------------------------------------------------
 print("|cff0055ffRotation Helper|r|cffffe00a > |cffff4080Paladin|r loaded!")
+-- Binding
+BINDING_HEADER_PRH = "Paladin Rotation Helper"
+BINDING_NAME_PRH_AUTOTAUNT = "Авто Taunt"
+------------------------------------------------------------------------------------------------------------------
+if AutoTaunt == nil then AutoTaunt = true end
+
+function AutoTauntToggle()
+    AutoTaunt = not AutoTaunt
+    if AutoTaunt then
+        echo("Авто Taunt: ON")
+    else
+        echo("Авто Taunt: OFF")
+    end
+end
 ------------------------------------------------------------------------------------------------------------------
 if not AggroIgnored then AggroIgnored = {} end
 ------------------------------------------------------------------------------------------------------------------

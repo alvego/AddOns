@@ -1,0 +1,5 @@
+<Bindings>
+  <Binding name="PRH_AUTOTAUNT" description="Auto Taunt" header="PRH">
+    AutoTauntToggle();
+  </Binding>
+</Bindings>
