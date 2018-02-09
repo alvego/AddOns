@@ -4,7 +4,7 @@
 ## DefaultState: Disabled
 ## Interface: 30300
 ## Dependencies: rhlib2
-## SavedVariables: AggroIgnoredб AutoTaunt
+## SavedVariables: AggroIgnored, AutoTaunt
 commands.lua
 rotation.lua
 binds.lua
