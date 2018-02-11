@@ -77,7 +77,7 @@ function GetUnits()
         exists = IsOneUnit(realUnits[j], u)
 			if exists then break end
 		end
-        if not exists and IsInteractUnit(u) then
+    if not exists and InInteractRange(u) then
 			tinsert(realUnits, u)
 		end
     end
@@ -163,21 +163,6 @@ function IsValidTarget(t)
     if UnitIsDeadOrGhost(t) and not HasBuff("Притвориться мертвым", 0.1, t) then
         IsValidTargetInfo = "Цель дохлая"
         return false
-    end
-    return true
-end
-
-------------------------------------------------------------------------------------------------------------------
-IsInteractUnitInfo = ""
-function IsInteractUnit(t)
-    if t == nil then t = "player" end
-    if not InInteractRange(t) then
-        IsInteractUnitInfo = "Не в радиусе взаимодействия"
-        return false
-    end
-    if UnitIsDeadOrGhost(t) then
-    	IsInteractUnitInfo = "Труп " .. t
-    	return false
     end
     return true
 end

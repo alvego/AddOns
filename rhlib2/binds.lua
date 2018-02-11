@@ -236,9 +236,9 @@ function UpdateUnits(force)
   if not force and TimerLess("UpdateUnits", 0.5) then return end
   TimerStart("UpdateUnits")
   wipe(UNITS)
-  local groupUnits = GetGroupUnits()
-  for i = 1, #groupUnits do
-    local u = groupUnits[i]
+  local units = GetUnits()
+  for i = 1, #units do
+    local u = units[i]
     if InInteractRange(u) then
       tinsert(UNITS, u)
     end

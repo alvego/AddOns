@@ -49,9 +49,18 @@ function HealRotation()
   ------------------------------------------------------------------------------
   local hp = UnitHealth100(player)
   local mana = UnitMana100(player)
+
+  if (not attack or not combat) then
+    if not HasBuff("дикой природы") and DoSpell(IsBattleground() and (GetItemCount("Дикий шиполист") > 0) and "Дар дикой природы" or "Знак дикой природы", player) then return end
+    if not HasBuff("Шипы") and DoSpell("Шипы", player) then return end
+    if InInteractRange(focus) and not HasBuff("Шипы", 0.1, focus) and DoSpell("Шипы", focus) then return end
+  end
+
   if combat then
     if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
     if hp < 70 and DoSpell("Дубовая кожа", player) then return end
+    if TimerLess("Damage", 2) then DoSpell("Хватка природы", player) return end
+
     if not (InDuel() or IsArena()) then
       if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
       if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
@@ -140,7 +149,7 @@ function HealRotation()
     if f_h > 45 then
       --name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId
       local count, _, _, last = select(4, HasMyBuff("Жизнецвет", 0.01, focus))
-      if (count or 0) < 3 or (last or GetTime()) - GetTime() < 2.5 or clearcasting then
+      if not count or (attack and count < 3) or last - GetTime() < 2  then
          lb_u = focus
          lb_h = f_h
       end
@@ -172,8 +181,6 @@ function HealRotation()
   if (h < 50 and l > 12000) and HasSpell("Природная стремительность") and DoSpell("Природная стремительность") then  return end
   if (h < 70 and l > 10000) and (HasMyBuff("Омоложение", 1, u) or HasMyBuff("Восстановление", 1, u)) and HasSpell("Быстрое восстановление") and DoSpell("Быстрое восстановление", u) then return end
 
-  if h > 40 and TimerLess("Damage", 2) then DoSpell("Хватка природы", player) return end
-
   -- if IsAlt() then
   --   h = 40
   --   l = 10000
@@ -190,16 +197,6 @@ function HealRotation()
   if IsAlt() or (mana > 50 and h > 70) then
     if potion_u and IsSpellNotUsed("Устранение яда", 5) and DoSpell("Устранение яда", potion_u) then return end
     if curse_u and IsSpellNotUsed("Снятие проклятия", 5) and DoSpell("Снятие проклятия", curse_u) then return end
-  end
-
-  if h > 90 and mana > 50 then
-    for i = 1, #iUNITS do
-      local _u = iUNITS[i]
-      if InInteractRange(_u) then
-        if not HasBuff("дикой природы", 1, _u) and DoSpell(IsInGroup() and (GetItemCount("Дикий шиполист") > 0) and "Дар дикой природы" or "Знак дикой природы", _u) then return end
-        if not HasBuff("Шипы", 1, _u) and DoSpell("Шипы", _u) then return end
-      end
-    end
   end
 
   if rj_u and DoSpell("Омоложение", rj_u) then return end

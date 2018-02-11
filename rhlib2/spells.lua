@@ -350,7 +350,11 @@ function UseSpell(spell, target)
   if target then  cmd = cmd ..",'".. target .."'" end
   cmd = cmd .. ")"
   if Debug then
-    chat("> " ..  name .. (target and (" @" .. target) or "") , 0.9, 0.5, 0.5)
+    local t = ""
+    if target then
+      t = " @" .. target .. ' <' .. UnitName(target) .. '>'
+    end
+    chat("> " ..  name .. t, 0.9, 0.5, 0.5)
   end
   -- пробуем скастовать
   oexecute(cmd)

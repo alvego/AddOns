@@ -48,7 +48,7 @@ SetCommand("fear",
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("Lay",
   function()
-    if not UnitCanAttack("player", teammate) and IsInteractUnit(teammate) then
+    if not UnitCanAttack("player", teammate) and InInteractRange(teammate) then
       UseSpell("Возложение рук", teammate)
     end
   end,
@@ -60,7 +60,7 @@ SetCommand("Lay",
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("sacra",
   function()
-    if not UnitCanAttack("player", teammate) and IsInteractUnit(teammate) then
+    if not UnitCanAttack("player", teammate) and InInteractRange(teammate) then
       UseSpell("Длань жертвенности", teammate)
     end
   end,
@@ -110,7 +110,7 @@ SetCommand("stun",
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("bop",
   function()
-    if not UnitCanAttack("player", teammate) and IsInteractUnit(teammate) then
+    if not UnitCanAttack("player", teammate) and InInteractRange(teammate) then
       UseSpell("Длань защиты", teammate)
     end
   end,

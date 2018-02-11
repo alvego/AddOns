@@ -198,18 +198,18 @@ SetCommand("run",
       local stance = GetShapeshiftForm()
       local ground = IsShift() or IsBattleground() or not isFlyable
 
+      if not IsStealthed() and not combat and swimming and outdoors and stance ~= 2 then
+        DoCommand("form", 2)
+        return true
+      end
+
       if stance == 3 and not inPlace and IsReadySpell("Порыв") then
         DoCommand('spell', "Порыв", player)
         return true
       end
       if IsStealthed() then return true end
 
-      if not combat and swimming and outdoors and stance ~= 2 then
-        DoCommand("form", 2)
-        return true
-      end
-
-      if not mounted and not inPlace and ((ground and outdoors) or combat or not outdoors) and IsReadySpell("Порыв") then
+      if not mounted and not inPlace and ((ground and outdoors) or combat or not outdoors) and (IsReadySpell("Порыв") or HasBuff("Порыв")) then
         UseShapeshiftForm(3)
         return false
       end

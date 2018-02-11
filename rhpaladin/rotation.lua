@@ -385,7 +385,7 @@ function PvE()
   end
   if HasBuff("Искусство войны") then
      if hp < 30 and DoSpell("Вспышка Света", player) then return end
-     --if IsInteractUnit(teammate) and UnitHealth100(teammate) < 30 and DoSpell("Вспышка Света", teammate) then return end
+     --if InInteractRange(teammate) and UnitHealth100(teammate) < 30 and DoSpell("Вспышка Света", teammate) then return end
   end
   TryTarget()
   if not CanAttack(target) then return end
@@ -461,7 +461,7 @@ function PvP()
   end
   if HasBuff("Искусство войны") then
      if hp < (shield and 90 or 50) and DoSpell("Вспышка Света", player) then return end
-     if IsInteractUnit(teammate) and UnitHealth100(teammate) < 50 and DoSpell("Вспышка Света", teammate) then return end
+     if InInteractRange(teammate) and UnitHealth100(teammate) < 50 and DoSpell("Вспышка Света", teammate) then return end
   end
   if AdvMode then
     for i = 1, #TARGETS do
