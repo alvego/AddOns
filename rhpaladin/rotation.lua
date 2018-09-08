@@ -397,14 +397,15 @@ function PvE()
   FaceToTarget(target)
   if mana < 35 and DoSpell("Святая клятва") then return end
 
-  --if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
+  if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
   if (InMelee(target) or DistanceTo(player, target) < 8) and DoSpell("Божественная буря") then return end
 
   if DoSpell("Удар воина Света", target) then return end
 
   if CanMagicAttack(target) and DoSpell(IsAlt() and "Правосудие справедливости" or "Правосудие мудрости", target) then return end
   if HasBuff("Искусство войны") and CanMagicAttack(target) and DoSpell("Экзорцизм", target) then return end
-  if UseEquippedItem("Перчатки ануб'арского охотника") then return end
+  --if UseEquippedItem("Перчатки ануб'арского охотника") then return end
+  if UseEquippedItem(GetSlotItemName(10), target) then return end
   if (UnitCreatureType(target) == "Нежить") and mana > 30 and DistanceTo(player, target) < 8 and DoSpell("Гнев небес") then return end
   if IsEquippedItemType("Щит") and DoSpell("Щит праведности", target) then return end
   if mana > 30 and InMelee(target) and DoSpell("Освящение") then return end
