@@ -3,7 +3,7 @@
 local GetTime = GetTime
 ------------------------------------------------------------------------------------------------------------------
 function GetSlotItemName(slot)
-    if not HasAction(slot) then return nil end
+    --if not HasAction(slot) then return nil end
     local itemName = GetItemInfo(GetInventoryItemID("player", slot))
     return itemName
 end
