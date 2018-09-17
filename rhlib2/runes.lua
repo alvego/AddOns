@@ -2,17 +2,17 @@
 ------------------------------------------------------------------------------------------------------------------
 local GetTime = GetTime
 ------------------------------------------------------------------------------------------------------------------
-function Runes(slot)
+function Runes(slot, time)
     local c = 0
     if slot == 1 then
-       if IsRuneReady(1) then c = c + 1 end
-       if IsRuneReady(2) then c = c + 1 end
+       if IsRuneReady(1, time) then c = c + 1 end
+       if IsRuneReady(2, time) then c = c + 1 end
     elseif slot == 2 then
-        if IsRuneReady(5) then c = c + 1 end
-        if IsRuneReady(6) then c = c + 1 end
+        if IsRuneReady(5, time) then c = c + 1 end
+        if IsRuneReady(6, time) then c = c + 1 end
     elseif slot == 3 then
-        if IsRuneReady(3) then c = c + 1 end
-        if IsRuneReady(4) then c = c + 1 end
+        if IsRuneReady(3, time) then c = c + 1 end
+        if IsRuneReady(4, time) then c = c + 1 end
     end
     return c;
 end

@@ -35,26 +35,13 @@ function TryInterrupt(pvp, melee)
     if pvp and not tContains(InterruptList, spell) then return false end
     if pvp and tContains(HealList, spell) and (not IsValidTarget(target) or UnitHealth100(target) > 70) and (not IsValidTarget(focus) or UnitHealth100(focus) > 70) then return false end
 
-
-
-    if not notinterrupt and canMagic and melee and DoSpell("Заморозка разума", target, true) then
-      chat("Зуботычина в " .. name)
-      return true
-    end
-
-    if HasSpell("Оглушающий удар") and DoSpell("Удушение", target, true) then
-      chat("Оглушающий удар в " .. name)
-      return true
-    end
-
-
     if not notinterrupt and not HasBuff(nointerruptBuffs, 0.1, target) and CanMagicAttack(target) then
         if (channel or left < 0.8) and InMelee(target) and DoSpell("Заморозка разума", target) then
-            echo("Заморозка разума"..name)
+            echo("Заморозка разума "..name)
             return true
         end
         if (not channel and left < 1.8) and DoSpell("Удушение", target) then
-            echo("Удушение"..name)
+            echo("Удушение "..name)
             return true
         end
     end
