@@ -166,7 +166,7 @@ function Idle()
     local target = "target"
     local validTarget = IsValidTarget(target)
     -- TryTarget ---------------------------------------------------------------
-    if not validTarget then TryTarget(attack, true) end
+    TryTarget(attack, true)
     ----------------------------------------------------------------------------
     local melee = InMelee(target)
     if TryInterrupt(pvp) then return end

@@ -33,20 +33,20 @@ function Idle()
     -- Auto AntiControl --------------------------------------------------------
 
     local debuff, _, _, _, _, _duration, _expirationTime = HasDebuff(ControlList, 3, player)
-    if debuff and ((_duration - (_expirationTime - GetTime())) > 0.45) and DoSpell("Каждый за себя") then chat("Каждый за себя - " .. debuff) return end
+    if debuff and ((_duration - (_expirationTime - time)) > 0.45) and DoSpell("Каждый за себя") then chat("Каждый за себя - " .. debuff) return end
 
     -- IsAOE -------------------------------------------------------------------
     local aoe2 = false
-    local aoe3 = false
+    local aoe5 = false
 
     if IsShift() then
       aoe2 = true
-      aoe3 = true
+      aoe5 = true
     else
       if AutoAOE and not InDuel() then
         local enemyCount = GetEnemyCountInRange(15)
         aoe2 = enemyCount >= 2
-        aoe3 = enemyCount >= 3
+        aoe5 = enemyCount >= 5
       end
     end
 
@@ -79,29 +79,29 @@ function Idle()
     local target = "target"
     local validTarget = IsValidTarget(target)
     -- TryTarget ---------------------------------------------------------------
-    if not validTarget then TryTarget(attack, true) end
+    TryTarget(attack, true)
     ----------------------------------------------------------------------------
     if attack and not validTarget and DoSpell("Зимний горн") then return end
     ----------------------------------------------------------------------------
     local melee = InMelee(target)
     if TryInterrupt(pvp, melee) then return end
     -- Rotation ----------------------------------------------------------------
-    if HasBuff("Проклятие хаоса") then
-      oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
-    end
+    -- if HasBuff("Проклятие хаоса") then
+    --   oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
+    -- end
 
-    if HasBuff("Кровоотвод") then
-      oexecute('CancelUnitBuff("player", "Кровоотвод")')
-    end
+    -- if HasBuff("Кровоотвод") then
+    --   oexecute('CancelUnitBuff("player", "Кровоотвод")')
+    -- end
 
     if CantAttack() then return end
 
     -- Новая ротация
 
-    local minBloodRunesLeft = min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2))
+    --local minBloodRunesLeft = min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2))
     --local minUnholyRunesLeft = min(GetRuneCooldownLeft(3), GetRuneCooldownLeft(4))
     --local minFrostRunesLeft = min(GetRuneCooldownLeft(5), GetRuneCooldownLeft(6))
-
+    local plagueMin = 6 + LagTime
     local expirationTime, unitCaster = select(7, UnitDebuff(target, "Озноб"))
     local frostFeverLast = (expirationTime and unitCaster == player) and max(expirationTime - time, 0) or 0
     local expirationTime, unitCaster = select(7, UnitDebuff(target, "Кровавая чума"))
@@ -109,7 +109,7 @@ function Idle()
     local plagueLast = min(frostFeverLast, bloodPlagueLast)
     -- обновить болезни на цели
     if AutoAOE and melee then
-      local needPestilence = plagueLast > 0.25 and plagueLast < 2.5
+      local needPestilence = plagueLast > LagTime and plagueLast < plagueMin
       -- focus
       if not needPestilence and IsValidTarget(focus) and DistanceTo(target, focus) < 15 then
         local expirationTime, unitCaster = select(7, UnitDebuff(focus, "Озноб"))
@@ -118,29 +118,26 @@ function Idle()
         local _bloodPlagueLast = (expirationTime and unitCaster == player) and max(expirationTime - time, 0) or 0
         local _plagueLast = min(_frostFeverLast, _bloodPlagueLast)
         -- с цели на фокус
-        needPestilence = _plagueLast < 0.1 and plagueLast > 0.25
-        if aoe3 and not needPestilence and max(_frostFeverLast, _bloodPlagueLast) < 0.1 and UnitHealth(target) < 15000 and max(frostFeverLast, bloodPlagueLast) > 0.25 then
+        needPestilence = _plagueLast < 0.1 and plagueLast > LagTime
+        if aoe5 and not needPestilence and max(_frostFeverLast, _bloodPlagueLast) < 0.1 and UnitHealth(target) < 15000 and max(frostFeverLast, bloodPlagueLast) > LagTime then
           echo('Хоть одну болезнь развесить!')
           needPestilence = true;
         end
       end
       if needPestilence then
         -- кд рун крови дольше чем остаток болезней
-        if minBloodRunesLeft > plagueLast - LagTime and IsReadySpell("Кровоотвод") then
+        if not HasRunes(100) then
            -- ресаем руну крови
-           oexecute('CastSpellByName("Кровоотвод")')
+           DoSpell("Кровоотвод")
         end
-        if not InGCD() and minBloodRunesLeft < LagTime and IsReadySpell("Мор") then
-          oexecute('CastSpellByName("Мор", "target")')
-        end
-        return
+        DoSpell("Мор")
       end
 
     end
 
 
-    --if (IsCtr() or pvp or (UnitClassification(target) == "worldboss") or aoe3) and HasBuff(procList, 5, player) then
-    if (IsCtr() or pvp or (UnitClassification(target) == "worldboss") or aoe3) then
+    --if (IsCtr() or pvp or (UnitClassification(target) == "worldboss") or aoe5) and HasBuff(procList, 5, player) then
+    if (IsCtr() or pvp or (UnitClassification(target) == "worldboss")) then --or aoe5
       if HasSpell("Истерия") and DoSpell("Истерия", player) then return end
       if HasSpell("Танцующее руническое оружие") and DoSpell("Танцующее руническое оружие", target) then return end
     end
@@ -154,24 +151,23 @@ function Idle()
    end
 
    -- накладываем болезни
-   if bloodPlagueLast < 0.25 and DoSpell("Удар чумы", target) then return end
-   if frostFeverLast < 0.25 and DoSpell(frostFeverSpell, target) then return end
+   if bloodPlagueLast < LagTime and DoSpell("Удар чумы", target) then return end
+   if frostFeverLast < LagTime and DoSpell(frostFeverSpell, target) then return end
    if melee and DoSpell("Рунический удар", target) then return end
    -- сливаем runic power
-   if canMagic and rp > 95 and DoSpell("Лик смерти", target) then return end
+   --if canMagic and rp > 95 and DoSpell("Лик смерти", target) then return end
    -- aoe
-   if aoe3 and plagueLast > 0 and IsReadySpell("Смерть и разложение") then
+   if aoe5 and plagueLast > plagueMin and IsReadySpell("Смерть и разложение") then
      DoSpell("Смерть и разложение", target)
      return
    end
-   if aoe3 and plagueLast > 0 and DoSpell("Вскипание крови") then return end
-   if plagueLast < 1.5 and not attack then return end
-   if ((not pvp and hp > 75) or minBloodRunesLeft == 0) and plagueLast > 2 and not aoe3 and DoSpell("Удар в сердце", target) then return end
-   if plagueLast > 0 and melee and DoSpell("Удар смерти", target) then return end
-   if canMagic and rp > 80 and DoSpell("Лик смерти", target) then return end
-   local norunes = NoRunes()
-   if norunes and (not HasBuff("Зимний горн") or rp < 40) and DoSpell("Зимний горн") then return end
+   if aoe5 and plagueLast > plagueMin and DoSpell("Вскипание крови") then return end
+   --if plagueLast < 1.5 and not attack then return end
+   if (not HasRunes(100) or hp < (pvp and 80 or 50)) and melee and plagueLast > LagTime and DoSpell("Удар смерти", target) then return end
+   if plagueLast > plagueMin and not aoe5 and DoSpell("Удар в сердце", target) then return end
+   if canMagic and rp > 95 and DoSpell("Лик смерти", target) then return end
+   if (not HasBuff("Зимний горн") or rp < 40) and DoSpell("Зимний горн") then return end
    -- ресаем все.
-   if norunes and rp < 80 and DoSpell("Усиление рунического оружия") then return end
+   if NoRunes() and rp < 80 and DoSpell("Усиление рунического оружия") then return end
   end
 end

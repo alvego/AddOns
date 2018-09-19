@@ -690,12 +690,17 @@ local function tryTargetBreak(msg, uid)
   end
   print(msg)
 end
-function TryTarget(attack, focus)
+
+function TryTarget(attack, focus, force)
   local validTarget = IsValidTarget("target")
-  if IsArena() and validTarget and IsValidTarget("focus") then
-    switchFocusTarget()
-    return
+  local validFocus = IsValidTarget("focus")
+  if validTarget and validFocus and IsArena() then
+      switchFocusTarget()
+      return
   end
+
+  if validTarget and (not focus or validFocus) and not force then return end
+
   local pvp = IsPvP()
   local _currentGUID = nil
   local _uid = nil
@@ -708,6 +713,7 @@ function TryTarget(attack, focus)
     _currentGUID = UnitGUID("target")
     _uid2 = "target"
   end
+
   -- assist
   if not attack and not pvp and IsInGroup() then
     local t1, t2, c
@@ -732,10 +738,14 @@ function TryTarget(attack, focus)
       end
     end
     if t1 then
+      if not force and validTarget and focus then
+        oexecute("FocusUnit('".. t1 .."')")
+        return
+      end
       if _uid2 then t2 =_uid2 end
       if focus and t2 then oexecute("FocusUnit('".. t2 .."')") end
       if Debug then print('assist', t1, c) end
-      if t1 then oexecute("TargetUnit('".. t1 .."')") end
+      oexecute("TargetUnit('".. t1 .."')")
       return
     end
   end
@@ -773,6 +783,10 @@ function TryTarget(attack, focus)
       _face = face
       _dist = dist
     until true
+  end
+  if not force and validTarget and focus then
+    if _uid then oexecute("FocusUnit('".. _uid .."')") end
+    return
   end
   if focus and _uid2 then oexecute("FocusUnit('".. _uid2 .."')") end
   if _uid then oexecute("TargetUnit('".. _uid .."')") end

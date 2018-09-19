@@ -1,6 +1,6 @@
 ﻿-- Warrior Rotation Helper by Alex Tim & Co
 ------------------------------------------------------------------------------------------------------------------
-print("|cff0055ffRotation Helper|r|cffffe00a > |r|cffC79C6EWarrior|r loaded")
+print("|cff0055ffRotation Helper|r|cffffe00a > |cff800000Death Knight|r loaded.")
 -- Binding
 BINDING_HEADER_WRH = "DeathKnight Rotation Helper"
 BINDING_NAME_WRH_INTERRUPT = "Вкл/Выкл сбивание кастов"

@@ -233,7 +233,7 @@ function MonkRotation()
     if mana < 60 and DoSpell("Озарение", player) then return end
     if mana < 80 and UseEquippedItem("Осколок чистейшего льда", player) then return end
   end
-  if not validTarget then TryTarget(attack) end
+  TryTarget(attack)
   if not CanMagicAttack(target) then chat(CanMagicAttackInfo) return end
   if CantAttack() then return end
   if not HasDebuff("Земля и луна") and DoSpell("Гнев", target) then end

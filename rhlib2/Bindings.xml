@@ -12,7 +12,7 @@
     ReloadUI();
   </Binding>
   <Binding name="RHLIB_TARGET" description="Toggle Target" header="RHLIB">
-    TryTarget(true, true);
+    TryTarget(true, true, true);
   </Binding>
   <Binding name="RHLIB_FARM" description="Toggle Farm Mode" header="RHLIB">
     FarmToggle();
