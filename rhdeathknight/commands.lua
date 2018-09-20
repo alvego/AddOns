@@ -1,4 +1,4 @@
--- Warrior Rotation Helper by Alex Tim & Co
+-- Death Knight Helper by Alex Tim & Co
 ------------------------------------------------------------------------------------------------------------------
 Teammate = "Nau"
 local flyMounts = {
@@ -64,3 +64,13 @@ SetCommand("run",
     end
 )
 ------------------------------------------------------------------------------------------------------------------
+SetCommand("defence",
+    function()
+      return DoSpell("Власть льда")
+    end,
+    function()
+        Defence = true
+        chat('Защищаемся')
+        return HasBuff("Власть льда")
+    end
+)

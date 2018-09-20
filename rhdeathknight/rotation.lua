@@ -1,21 +1,39 @@
--- Warrior Rotation Helper by Alex Tim & Co
+-- Death Knight Rotation Helper by Alex Tim & Co
 ------------------------------------------------------------------------------------------------------------------
 local peaceBuff = {"Пища", "Питье"}
+local stanceBuff = {"Власть крови", "Власть льда", "Власть нечестивости"}
+local steathClass = {"ROGUE", "DRUID"}
+local reflectBuff = {"Отражение заклинания", "Эффект тотема заземления", "Рунический покров"}
 local burstList = {"Вихрь клинков", "Стылая кровь", "Гнев карателя", "Быстрая стрельба"}
+local burstSpell = {"Истерия", "Танцующее руническое оружие"}
 local procList = {"Целеустремленность железного дворфа", "Сила таунка", "Мощь таунка", "Скорость врайкулов", "Ловкость врайкула", "Пронзающая тьма"}
 local immuneList = {"Божественный щит", "Ледяная глыба", "Длань защиты" }
 local min = math.min
 local max = math.max
+Defence = false
 function Idle()
   local attack = IsAttack()
   local mouse5 = IsMouse(5)
   local player = "player"
+  local target = "target"
   local focus = "focus"
   local hp = UnitHealth100(player)
   local rp = UnitMana(player)
   local pvp = IsPvP()
   local combat = InCombatLockdown()
   local time = GetTime()
+
+  if AutoTaunt then
+    Defence = true
+  else
+    if attack or IsCtr() or HasBuff(burstSpell) then
+      Defence = false
+    else
+      if hp < (pvp and 50 or 30) then
+        Defence = true
+      end
+    end
+  end
 
   -- Дизамаунт -----------------------------------------------------------------
   if attack or mouse5 then
@@ -31,9 +49,13 @@ function Idle()
   if InCombatMode() or IsArena() then
 
     -- Auto AntiControl --------------------------------------------------------
-
-    local debuff, _, _, _, _, _duration, _expirationTime = HasDebuff(ControlList, 3, player)
-    if debuff and ((_duration - (_expirationTime - time)) > 0.45) and DoSpell("Каждый за себя") then chat("Каждый за себя - " .. debuff) return end
+    if AdvMode then
+      local debuff, _, _, _, _, _duration, _expirationTime = HasDebuff(ControlList, 3, player)
+      if debuff and ((_duration - (_expirationTime - time)) > 0.45) and DoSpell("Каждый за себя") then
+        chat("Каждый за себя - " .. debuff)
+        return
+      end
+    end
 
     -- IsAOE -------------------------------------------------------------------
     local aoe2 = false
@@ -72,16 +94,60 @@ function Idle()
       if hp < 80 and HasSpell("Захват рун") and DoSpell("Захват рун") then return end
     end
     ----------------------------------------------------------------------------
-    if (attack or hp > 60) and HasBuff("Длань защиты", 1, player) then
+    if AdvMode and combat and not IsEquippedItemType("Топор") and EquipItem("Темная Скорбь") then return end
+    if Defence then
+      if not HasBuff("Власть льда") and DoSpell("Власть льда") then return end
+    else
+      if not HasBuff("Власть крови") and DoSpell("Власть крови") then return end
+    end
+    --AutoTaunt-----------------------------------------------------------------
+    if not pvp and AdvMode and AutoTaunt and IsInGroup() --and Defence
+      and IsSpellNotUsed("Хватка смерти", 1)
+      and IsSpellNotUsed("Темная власть", 1) then
+      local _t = nil
+      local _threatpct = 100
+      local _isTanking = true
+      --------------------------------------------------------------------------
+      for i = 1, #TARGETS do
+        local t = TARGETS[i]
+        if UnitAffectingCombat(t) then
+          local isTanking, status, threatpct, rawthreatpct, threatvalue = UnitDetailedThreatSituation("player", t);
+          if status and threatpct < _threatpct then
+            _t = t
+            _threatpct = threatpct
+            _isTanking = isTanking
+          end
+        end
+      end
+      --------------------------------------------------------------------------
+      if _t and not _isTanking then
+        if DoSpell("Темная власть", _t) then
+            chat("Темная власть на " .. UnitName(_t))
+           return
+         end
+        if DoSpell("Хватка смерти", _t) then
+            chat("Хватка смерти на " .. UnitName(_t))
+           return
+         end
+      end
+    end
+    ----------------------------------------------------------------------------
+    if (attack or hp > (Defence and 90 or 60)) and HasBuff("Длань защиты", 1, player) then
       oexecute('CancelUnitBuff("player", "Длань защиты")')
     end
     ----------------------------------------------------------------------------
-    local target = "target"
     local validTarget = IsValidTarget(target)
+    local validFocus = IsValidTarget(focus)
+    ----------------------------------------------------------------------------
+    if AdvMode and pvp and IsReadySpell("Темная власть") then
+        if validTarget and UnitIsPlayer(target) and ((tContains(steathClass, GetClass(target)) and not InRange("Ледяные оковы", target)) or HasBuff(reflectBuff, 1, target)) and not HasDebuff("Темная власть", 1, target) and DoSpell("Темная власть", target) then return end
+        if validFocus and UnitIsPlayer(focus) and ((tContains(steathClass, GetClass(focus)) and not InRange("Ледяные оковы", focus)) or HasBuff(reflectBuff, 1, target)) and not HasDebuff("Темная власть", 1, focus) and DoSpell("Темная власть", focus) then return end
+    end
     -- TryTarget ---------------------------------------------------------------
     TryTarget(attack, true)
     ----------------------------------------------------------------------------
     if attack and not validTarget and DoSpell("Зимний горн") then return end
+    if attack and AdvMode and not HasBuff(stanceBuff) and DoSpell("Власть крови") then return end
     ----------------------------------------------------------------------------
     local melee = InMelee(target)
     if TryInterrupt(pvp, melee) then return end
@@ -107,6 +173,8 @@ function Idle()
     local expirationTime, unitCaster = select(7, UnitDebuff(target, "Кровавая чума"))
     local bloodPlagueLast = (expirationTime and unitCaster == player) and max(expirationTime - time, 0) or 0
     local plagueLast = min(frostFeverLast, bloodPlagueLast)
+    local plagueAnyLast = max(frostFeverLast, bloodPlagueLast)
+
     -- обновить болезни на цели
     if AutoAOE and melee then
       local needPestilence = plagueLast > LagTime and plagueLast < plagueMin
@@ -119,7 +187,7 @@ function Idle()
         local _plagueLast = min(_frostFeverLast, _bloodPlagueLast)
         -- с цели на фокус
         needPestilence = _plagueLast < 0.1 and plagueLast > LagTime
-        if aoe5 and not needPestilence and max(_frostFeverLast, _bloodPlagueLast) < 0.1 and UnitHealth(target) < 15000 and max(frostFeverLast, bloodPlagueLast) > LagTime then
+        if aoe5 and not needPestilence and max(_frostFeverLast, _bloodPlagueLast) < 0.1 and UnitHealth(target) < 15000 and plagueAnyLast > LagTime then
           echo('Хоть одну болезнь развесить!')
           needPestilence = true;
         end
@@ -134,7 +202,6 @@ function Idle()
       end
 
     end
-
 
     --if (IsCtr() or pvp or (UnitClassification(target) == "worldboss") or aoe5) and HasBuff(procList, 5, player) then
     if (IsCtr() or pvp or (UnitClassification(target) == "worldboss")) then --or aoe5
@@ -163,7 +230,7 @@ function Idle()
    end
    if aoe5 and plagueLast > plagueMin and DoSpell("Вскипание крови") then return end
    --if plagueLast < 1.5 and not attack then return end
-   if (not HasRunes(100) or hp < (pvp and 80 or 50)) and melee and plagueLast > LagTime and DoSpell("Удар смерти", target) then return end
+   if (not HasRunes(100) or hp < (pvp and 80 or 50)) and melee and plagueAnyLast > LagTime and DoSpell("Удар смерти", target) then return end
    if plagueLast > plagueMin and not aoe5 and DoSpell("Удар в сердце", target) then return end
    if canMagic and rp > 95 and DoSpell("Лик смерти", target) then return end
    if (not HasBuff("Зимний горн") or rp < 40) and DoSpell("Зимний горн") then return end

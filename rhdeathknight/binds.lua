@@ -1,4 +1,4 @@
-﻿-- Warrior Rotation Helper by Alex Tim & Co
+﻿-- Death Knight Helper by Alex Tim & Co
 ------------------------------------------------------------------------------------------------------------------
 print("|cff0055ffRotation Helper|r|cffffe00a > |cff800000Death Knight|r loaded.")
 -- Binding
