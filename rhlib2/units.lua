@@ -694,6 +694,13 @@ end
 function TryTarget(attack, focus, force)
   local validTarget = IsValidTarget("target")
   local validFocus = IsValidTarget("focus")
+
+  if validTarget and focus and validFocus then
+    if IsOneUnit("focus", "target") then
+      oexecute("ClearFocus()")
+    end
+  end
+
   if validTarget and validFocus and IsArena() then
       switchFocusTarget()
       return
@@ -738,7 +745,7 @@ function TryTarget(attack, focus, force)
       end
     end
     if t1 then
-      if not force and validTarget and focus then
+      if not force and validTarget and focus and not IsOneUnit("target", t1) then
         oexecute("FocusUnit('".. t1 .."')")
         return
       end

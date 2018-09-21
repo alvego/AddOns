@@ -224,7 +224,7 @@ function Idle()
    -- сливаем runic power
    --if canMagic and rp > 95 and DoSpell("Лик смерти", target) then return end
    -- aoe
-   if aoe5 and plagueLast > plagueMin and IsReadySpell("Смерть и разложение") then
+   if melee and aoe5 and plagueLast > plagueMin and IsReadySpell("Смерть и разложение") then
      DoSpell("Смерть и разложение", target)
      return
    end
