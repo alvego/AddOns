@@ -158,9 +158,9 @@ function Idle()
     --   oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
     -- end
 
-    -- if HasBuff("Кровоотвод") then
-    --   oexecute('CancelUnitBuff("player", "Кровоотвод")')
-    -- end
+    if HasBuff("Кровоотвод") then
+      oexecute('CancelUnitBuff("player", "Кровоотвод")')
+    end
 
     if CantAttack() then return end
 
@@ -169,7 +169,7 @@ function Idle()
     --local minBloodRunesLeft = min(GetRuneCooldownLeft(1), GetRuneCooldownLeft(2))
     --local minUnholyRunesLeft = min(GetRuneCooldownLeft(3), GetRuneCooldownLeft(4))
     --local minFrostRunesLeft = min(GetRuneCooldownLeft(5), GetRuneCooldownLeft(6))
-    local plagueMin = 6 + LagTime
+    local plagueMin = 8 + LagTime
     local expirationTime, unitCaster = select(7, UnitDebuff(target, "Озноб"))
     local frostFeverLast = (expirationTime and unitCaster == player) and max(expirationTime - time, 0) or 0
     local expirationTime, unitCaster = select(7, UnitDebuff(target, "Кровавая чума"))
@@ -224,7 +224,7 @@ function Idle()
    if frostFeverLast < LagTime and DoSpell(frostFeverSpell, target) then return end
    if melee and DoSpell("Рунический удар", target) then return end
    -- сливаем runic power
-   --if canMagic and rp > 95 and DoSpell("Лик смерти", target) then return end
+   if canMagic and rp > 95 and DoSpell("Лик смерти", target) then return end
    -- aoe
    if melee and aoe5 and plagueLast > plagueMin and IsReadySpell("Смерть и разложение") then
      DoSpell("Смерть и разложение", target)
@@ -232,11 +232,15 @@ function Idle()
    end
    if aoe5 and plagueLast > plagueMin and DoSpell("Вскипание крови") then return end
    --if plagueLast < 1.5 and not attack then return end
+
    if (not HasRunes(100) or hp < (pvp and 80 or 50)) and melee and plagueAnyLast > LagTime and DoSpell("Удар смерти", target) then return end
-   if plagueLast > plagueMin and not aoe5 and DoSpell("Удар в сердце", target) then return end
-   if canMagic and rp > 95 and DoSpell("Лик смерти", target) then return end
-   if (not HasBuff("Зимний горн") or rp < 40) and DoSpell("Зимний горн") then return end
-   -- ресаем все.
-   if NoRunes() and rp < 80 and DoSpell("Усиление рунического оружия") then return end
+   if plagueLast > (AutoAOE and plagueMin or LagTime) and not aoe5 and DoSpell("Удар в сердце", target) then return end
+
+   if NoRunes() then
+      if canMagic and rp >= 40 and DoSpell("Лик смерти", target) then return end
+      if (not HasBuff("Зимний горн") or rp < 40) and DoSpell("Зимний горн") then return end
+      -- ресаем все.
+      if rp < 80 and DoSpell("Усиление рунического оружия") then return end
+   end
   end
 end
