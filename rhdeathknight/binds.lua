@@ -110,8 +110,8 @@ end
 
 function HasRunes(runes, strong, time)
     local r = floor(runes / 100)
-    local g = floor((runes - r * 100) / 10)
-    local b = floor(runes - r * 100 - g * 10)
+    local b = floor((runes - r * 100) / 10)
+    local g = floor(runes - r * 100 - b * 10)
     local a = 0
 
     for i = 1, 6 do

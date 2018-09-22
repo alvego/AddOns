@@ -12,6 +12,8 @@ local min = math.min
 local max = math.max
 Defence = false
 function Idle()
+  --print(HasRunes(200),HasRunes(020), HasRunes(002))
+  --if true then return end
   local attack = IsAttack()
   local mouse5 = IsMouse(5)
   local player = "player"
@@ -205,7 +207,7 @@ function Idle()
 
     --if (IsCtr() or pvp or (UnitClassification(target) == "worldboss") or aoe5) and HasBuff(procList, 5, player) then
     if (IsCtr() or pvp or (UnitClassification(target) == "worldboss")) then --or aoe5
-      if HasSpell("Истерия") and DoSpell("Истерия", player) then return end
+      if HasBuff("Танцующее руническое оружие") and HasSpell("Истерия") and DoSpell("Истерия", player) then return end
       if HasSpell("Танцующее руническое оружие") and DoSpell("Танцующее руническое оружие", target) then return end
     end
 
