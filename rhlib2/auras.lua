@@ -137,3 +137,15 @@ function GetTemporaryEnchant(i_invID)
         return line
     end
 end
+
+
+function GetSlotInfo(slot)
+  local link = GetInventoryItemLink("player", slot)
+  local itemId, enchantId, gem1, gem2, gem3, gem4 = link:match("item:(%d+):(%d+):(%d+):(%d+):(%d+):(%d+)")
+  return itemId, enchantId, gem1, gem2, gem3, gem4
+end
+
+function GetEnchantId(slot)
+  local itemId, enchantId, gem1, gem2, gem3, gem4 = GetSlotInfo(slot)
+  return enchantId
+end

@@ -91,6 +91,7 @@ local spellRunes = {
     ["Захват рун"] = 100,
     ["Мор"] = 100,
     ["Войско мертвых"] = 111,
+    ["Воющий ветер"] = 011,
     ["Смерть и разложение"] = 111,
     ["Власть крови"] = 100,
     ["Власть льда"] = 010,
@@ -98,7 +99,7 @@ local spellRunes = {
     ["Врата смерти"] = 001,
     ["Зона антимагии"] = 001,
     ["Удушение"] = 100,
-    ["Удар в сердце"] = 100,
+    ["Удар в сердце"] = 100
 }
 ------------------------------------------------------------------------------------------------------------------
 function DoSpell(spellName, target)
@@ -130,6 +131,14 @@ function HasRunes(runes, strong, time)
     if strong then a = 0 end
     if r + g + b - a <= 0 then return true end
     return false;
+end
+------------------------------------------------------------------------------------------------------------------
+function SwitchEquipmentSet(name)
+  if TimerMore('equipweapon', 1) and GetTime() - GetSpellCooldown(61304) < 0.1 then --start GCD
+    --print(name)
+    oexecute("UseEquipmentSet('".. name .."')")
+    TimerStart('equipweapon')
+  end
 end
 ------------------------------------------------------------------------------------------------------------------
 local function updateDamage(event, ...)
