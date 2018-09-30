@@ -88,9 +88,10 @@ function Idle()
 
     local enemyInRange = GetEnemyInRange(10, target)
     --if inPlace and IsSpellNotUsed("Огненный столб", 5) and #enemyInRange > 4 and DoSpell("Огненный столб", target) then return end
-    if inPlace and mana > 50 and #enemyInRange > 4 and DoSpell("Снежная буря", target) then return end
+    if not pvp and inPlace and mana > 50 and #enemyInRange > 6 and DoSpell("Снежная буря", target) then return end
+
     if attack and not inPlace and #enemyInRange > 1  then --and IsSpellNotUsed("Живая бомба", 3)
-      local count = math.max(3, #enemyInRange)
+      local count = math.max(5, #enemyInRange)
       for i = 1, count do
         local uid = enemyInRange[i]
         if not HasMyDebuff("Живая бомба", 0.01, uid) and InRange("Живая бомба", uid) then
@@ -143,7 +144,7 @@ function Idle()
     end
     local enemyInRange = GetEnemyInRange(10, target)
     --if inPlace and IsSpellNotUsed("Огненный столб", 5) and #enemyInRange > 4 and DoSpell("Огненный столб", target) then return end
-    if inPlace and mana > 50 and #enemyInRange > 4 and DoSpell("Снежная буря", target) then return end
+    if not pvp and inPlace and mana > 50 and #enemyInRange > 6 and DoSpell("Снежная буря", target) then return end
 
     if (pvp or UnitThreat(player, target) == 3) and TimerMore('frost1', 0.5) and inPlace and UnitAffectingCombat(target) and not HasDebuff("Ледяная стрела", 0.01, target) and InRange("Ледяная стрела") then
       if DoSpell("Ледяная стрела(Уровень 1)", target) then
