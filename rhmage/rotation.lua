@@ -36,12 +36,13 @@ function Idle()
     if not (HasBuff("интеллект", 5) or HasBuff("гениальность", 5)) and DoSpell(IsBattleground() and (GetItemCount("Порошек чар") > 0) and "Чародейская гениальность Даларана" or "Даларанский интеллект", player) then return end
     if HasSpell("Живая бомба") and not HasBuff("Раскаленный доспех", 5) and DoSpell("Раскаленный доспех", player) then return end
     if HasSpell("Глубокая заморозка") and not HasBuff("доспех", 5) and DoSpell("Ледяной доспех", player) then return end
+    if combatMode and HasSpell("Ледяная преграда") and not HasBuff("Ледяная преграда", 0.01) and DoSpell("Ледяная преграда", player) then return end
   end
 
   if not (combatMode or IsArena()) then return end
   -- TryProtect -----------------------------------------------------------------
   if combat then
-    --if hp < (TimerLess("Damage", 1) and 80 or 50) and UseEquippedItem("Проржавевший костяной ключ") then return end
+    if hp < (TimerLess("Damage", 1) and 80 or 50) and UseEquippedItem("Проржавевший костяной ключ") then return end
     if not (InDuel() or IsArena()) then
       if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
       if hp < 50 and UseItem("Камень здоровья из Скверны") then return end

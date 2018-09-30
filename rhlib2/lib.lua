@@ -60,7 +60,7 @@ local function OnUpdate(frame, elapsed)
         AdvMode = true
     end
     local throttle =  1 / GetFramerate()
-    if throttle < 0.02 then throttle = 0.02 end
+    if throttle < 0.125 then throttle = 0.125 end
     update = update + elapsed
     if update > throttle then
         AdvMode = false;

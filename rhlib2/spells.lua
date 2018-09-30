@@ -179,7 +179,7 @@ function UnitIsCasting(unit)
     if spell == nil or not startTime or not endTime then return nil end
     local left = endTime * 0.001 - GetTime()
     local duration = (endTime - startTime) * 0.001
-    if left < (LagTime * 2 - 0.15) then return nil end
+    if left < (LagTime * 2 - 0.1) then return nil end
     --print(unit, spell, left, duration, channel, nointerrupt)
     return spell, left, duration, channel, nointerrupt
 end
