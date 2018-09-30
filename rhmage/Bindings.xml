@@ -1,0 +1,5 @@
+<Bindings>
+  <Binding name="WRH_INTERRUPT" description="Use cast interrupt" header="WRH">
+    UseInterrupt();
+  </Binding>
+</Bindings>

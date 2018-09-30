@@ -195,28 +195,27 @@ SetCommand("run",
       local swimming = IsSwimming()
       local falling = IsFalling()
       local isFlyable = IsFlyableArea()
-      local stance = GetShapeshiftForm()
       local ground = IsShift() or IsBattleground() or not isFlyable
 
-      if not IsStealthed() and not combat and swimming and outdoors and stance ~= 2 then
-        DoCommand("form", 2)
+      if not IsStealthed() and not combat and swimming and outdoors and not HasBuff("Водный облик") then
+        DoCommand("spell", "Водный облик", player)
         return true
       end
 
-      if stance == 3 and not inPlace and IsReadySpell("Порыв") then
+      if HasBuff("Облик кошки") and not inPlace and IsReadySpell("Порыв") then
         DoCommand('spell', "Порыв", player)
         return true
       end
       if IsStealthed() then return true end
 
       if not mounted and not inPlace and ((ground and outdoors) or combat or not outdoors) and (IsReadySpell("Порыв") or HasBuff("Порыв")) then
-        UseShapeshiftForm(3)
+        DoCommand("spell", "Водный облик", player)
         return false
       end
 
-      form = (ground or combat) and 4 or 6
-      if not (mounted or swimming) and not inPlace and outdoors and stance ~= form and (form ~= 4 or not HasBuff("Порыв")) then
-        DoCommand("form", form)
+      form = (ground or combat) and "Походный облик" or "Облик стремительной птицы"
+      if not (mounted or swimming) and not inPlace and outdoors and not HasBuff(form) and (form ~= 4 or not HasBuff("Порыв")) then
+        DoCommand("spell", form, player)
         return true
       end
 
@@ -234,6 +233,7 @@ SetCommand("run",
 ---------------------------------------------------------------------------------------------------------------
 SetCommand("bye",
     function(target)
+
       local stance = GetShapeshiftForm()
       if stance ~= 3 then
         UseShapeshiftForm(3)

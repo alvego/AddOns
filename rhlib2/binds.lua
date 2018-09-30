@@ -65,7 +65,10 @@ function FaceToTarget(target)
     if not target then target = "target" end
     if not FaceToUnit then return end
     if TimerLess("FaceToTarget", 1) then return end
-    if IsMouselooking() then return end
+    if IsMouselooking() then
+      TimerStart("FaceToTarget")
+      return
+    end
     if not PlayerInPlace() then return end
     if not UnitExists(target) then return end
     if PlayerFacingTarget(target) then return end
@@ -193,11 +196,30 @@ TARGETS = {}
 UNITS = {}
 OBJECTS = {}
 ------------------------------------------------------------------------------------------------------------------
-function GetEnemyCountInRange(range)
+local enemyInRange = {}
+function GetEnemyInRange(range, centerUnit)
+  if not centerUnit then
+    centerUnit = "player"
+  end
+  wipe(enemyInRange)
+  for i = 1, #TARGETS do
+    local uid = TARGETS[i]
+    local dist = DistanceTo(centerUnit, uid)
+    if dist <= range then
+      tinsert(enemyInRange, uid)
+    end
+  end
+  return enemyInRange
+end
+
+function GetEnemyCountInRange(range, centerUnit)
+  if not centerUnit then
+    centerUnit = "player"
+  end
   local count = 0
   for i = 1, #TARGETS do
     local uid = TARGETS[i]
-    local dist = DistanceTo("player", uid)
+    local dist = DistanceTo(centerUnit, uid)
     if dist <= range then
       count = count + 1
     end

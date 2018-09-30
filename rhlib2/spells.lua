@@ -179,7 +179,7 @@ function UnitIsCasting(unit)
     if spell == nil or not startTime or not endTime then return nil end
     local left = endTime * 0.001 - GetTime()
     local duration = (endTime - startTime) * 0.001
-    if left < LagTime then return nil end
+    if left < (LagTime * 2 - 0.15) then return nil end
     --print(unit, spell, left, duration, channel, nointerrupt)
     return spell, left, duration, channel, nointerrupt
 end
@@ -345,7 +345,7 @@ function UseSpell(spell, target)
     castInfo.TargetName = UnitName(target)
     castInfo.TargetGUID = UnitGUID(target)
   end
-  local cmd = "CastSpellByName('" .. name .."'"
+  local cmd = "CastSpellByName('" .. spell .."'"
     -- с учетом цели
   if target then  cmd = cmd ..",'".. target .."'" end
   cmd = cmd .. ")"
@@ -354,7 +354,7 @@ function UseSpell(spell, target)
     if target then
       t = " @" .. target .. ' <' .. UnitName(target) .. '>'
     end
-    chat("> " ..  name .. t, 0.9, 0.5, 0.5)
+    chat("> " ..  spell .. t, 0.9, 0.5, 0.5)
   end
   -- пробуем скастовать
   oexecute(cmd)
