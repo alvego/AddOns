@@ -45,7 +45,7 @@ end
 -- Отключаем авторотацию, при повторном нажатии останавливаем каст (если есть)
 function AutoRotationOff()
     if oexecute then
-      if UnitIsCasting() and Paused then
+      if UnitIsCasting("player") and Paused then
           StopCast("Pause")
       end
       oexecute("StopAttack()")

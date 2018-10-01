@@ -61,12 +61,17 @@ function HasSpell(spellName)
     return false
 end
 ------------------------------------------------------------------------------------------------------------------
+GCDDuration = 1.5
 function GetGCDLeft()
-    return GetSpellCooldownLeft(61304)
+  local start, duration = GetSpellCooldown(61304);
+  if not start then return 0 end
+  if start == 0 then return 0 end
+  if duration then GCDDuration = duration end
+  return start + duration - GetTime()
 end
 
 function InGCD()
-    return GetGCDLeft() > LagTime
+    return GetGCDLeft() > (LagTime * 2 - 0.01)
 end
 
 local abs = math.abs
@@ -128,6 +133,7 @@ function IsReadySpell(name, checkGCD)
 end
 
 ------------------------------------------------------------------------------------------------------------------
+
 function GetSpellCooldownLeft(name)
     local start, duration, enabled = GetSpellCooldown(name);
     if enabled ~= 1 then return 1 end
@@ -179,7 +185,7 @@ function UnitIsCasting(unit)
     if spell == nil or not startTime or not endTime then return nil end
     local left = endTime * 0.001 - GetTime()
     local duration = (endTime - startTime) * 0.001
-    if left < (LagTime * 2 - 0.1) then return nil end
+    if left < (LagTime * 2 - 0.01) then return nil end
     --print(unit, spell, left, duration, channel, nointerrupt)
     return spell, left, duration, channel, nointerrupt
 end
@@ -195,10 +201,10 @@ function IsVisible(target)
   local guid = UnitGUID(target)
   local t = notVisible[guid]
   if t and GetTime() - t < 1.2 then
-    --[[if UnitInLos and not UnitInLos(target) then
+    if AdvMode and UnitInLos and not UnitInLos(target) then
         notVisible[guid] = nil;
         return true;
-    end]]
+    end
     return false
   end
   return true;
@@ -258,9 +264,9 @@ end
 
 function IsSpellInUse(spell)
     if not spell then return false end
-    --local castInfo = getCastInfo(spell)
-    --if (GetTime() - castInfo.StartTime <= LagTime) then return true end
-    if IsCurrentSpell(spell) == 1 then return true end
+    local castInfo = getCastInfo(spell)
+    if (GetTime() - castInfo.StartTime <= LagTime) then return true end
+    --if IsCurrentSpell(spell) == 1 then return true end
     return false
 end
 

@@ -19,7 +19,7 @@ end
 
 ------------------------------------------------------------------------------------------------------------------
 function NoRunes(t)
-    if (t == nil) then t = 1.6 end
+    if (t == nil) then t = GCDDuration end
     if GetRuneCooldownLeft(1) < t then return false end
     if GetRuneCooldownLeft(2) < t then return false end
     if GetRuneCooldownLeft(3) < t then return false end
@@ -33,7 +33,7 @@ end
 function IsRuneReady(id, time)
     if nil == time then time = 0 end
     local left = GetRuneCooldownLeft(id)
-    if left - time > LagTime then return false end
+    if left - time > (LagTime * 2 - 0.01) then return false end
     return true
 end
 

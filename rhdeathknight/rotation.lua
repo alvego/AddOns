@@ -12,6 +12,7 @@ local min = math.min
 local max = math.max
 Defence = false
 function Idle()
+
   --print(HasRunes(200),HasRunes(020), HasRunes(002))
   --if true then return end
 
@@ -146,6 +147,7 @@ function Idle()
     if validTarget and UnitIsPlayer(target) and ((tContains(steathClass, GetClass(target)) and not InRange("Ледяные оковы", target)) or HasBuff(reflectBuff, 1, target)) and not HasDebuff("Темная власть", 1, target) and DoSpell("Темная власть", target) then return end
     if validFocus and UnitIsPlayer(focus) and ((tContains(steathClass, GetClass(focus)) and not InRange("Ледяные оковы", focus)) or HasBuff(reflectBuff, 1, target)) and not HasDebuff("Темная власть", 1, focus) and DoSpell("Темная власть", focus) then return end
   end
+
   -- TryTarget ---------------------------------------------------------------
   TryTarget(attack, true)
   ----------------------------------------------------------------------------
@@ -174,6 +176,7 @@ function Idle()
 
   local canMagic = CanMagicAttack(target)
   local frostFeverSpell = pvp and "Ледяные оковы" or "Ледяное прикосновение"
+  local norunes = NoRunes()
   -- range
   if attack and not melee then
     if canMagic and DoSpell("Лик смерти", target) and frostFeverLast > 0 then return end
@@ -190,15 +193,28 @@ function Idle()
   if plagueLast == 0 then return end
   if melee and UseSpell("Рунический удар", target) then return end
   ------------------------------------------------------------------------------
+
   if HasSpell("Ледяной удар") then --Start Frost
+
+    local enchantId = GetEnchantId(17)
+    if not HasMyDebuff("Уязвимость к магии льда", 5, target) and enchantId ~= '3370' then
+      SwitchEquipmentSet("жар")
+    elseif enchantId ~= '3369' then
+      SwitchEquipmentSet("лед")
+    end
 
     if HasBuff("Кровоотвод") and IsReadySpell("Несокрушимая броня") then
       DoSpell("Несокрушимая броня")
       return
     end
 
-    if GetRuneType(1) == 4 and GetRuneType(2) == 1 and GetRuneCooldownLeft(1) > 0 and GetRuneCooldownLeft(2) < LagTime then
-      if plagueLast < 18 then
+    if GetRuneType(1) == 4 and GetRuneType(2) == 4 and IsRuneReady(1, LagTime) and IsRuneReady(2, LagTime) then
+      UseSpell(aoe5 and "Воющий ветер" or "Уничтожение", target)
+      return
+    end
+
+    if GetRuneType(1) == 4 and GetRuneType(2) == 1 and GetRuneCooldownLeft(1) > 0 and GetRuneCooldownLeft(2) < GCDDuration then
+      if plagueLast < 15 then
         UseSpell("Мор", target)
         return
       end
@@ -216,26 +232,17 @@ function Idle()
       return
     end
 
-    if plagueLast > 3 and HasRunes(011) then
+    if HasRunes(200, true, GCDDuration) then
+      UseSpell(plagueLast > 10 and "Кровавый удар" or "Мор", target)
+      return
+    end
+
+    if plagueLast > GCDDuration  and HasRunes(011, true) then
       UseSpell(aoe5 and "Воющий ветер" or "Уничтожение", target)
       return
     end
 
-    if HasRunes(200, true) then
-      UseSpell(not aoe2 and plagueLast > 10 and "Кровавый удар" or "Мор", target)
-      return
-    end
-
-    if plagueLast > 3 then
-      local enchantId = GetEnchantId(17)
-      if not HasMyDebuff("Уязвимость к магии льда", 5, target) and enchantId ~= '3370' then
-        SwitchEquipmentSet("жар")
-      elseif enchantId ~= '3369' then
-        SwitchEquipmentSet("лед")
-      end
-    end
-
-    if plagueLast > 3 then
+    if plagueLast > GCDDuration then
       if rp < (HasBuff("Машина для убийств") and 90 or 32) and HasBuff("Морозная дымка") then
         UseSpell("Воющий ветер", target)
         return
@@ -243,22 +250,22 @@ function Idle()
       if UseSpell("Ледяной удар", target) then return end
     end
 
-    if plagueLast > 3 and NoRunes() then
+    if plagueLast > 9 then
 
       if not HasBuff("Зимний горн") then
         UseSpell("Зимний горн")
         return
       end
 
-      if GetRuneType(1) == 4 and GetRuneType(2) == 4 and IsReadySpell("Усиление рунического оружия") then
+      if attack and norunes and GetRuneType(1) == 4 and GetRuneType(2) == 4 and IsReadySpell("Усиление рунического оружия") then
         UseSpell("Усиление рунического оружия")
         return
       end
 
-      -- if IsReadySpell("Воскрешение мертвых") then
-      --   DoSpell("Воскрешение мертвых")
-      --   return
-      -- end
+      if attack and IsReadySpell("Воскрешение мертвых") then
+        DoSpell("Воскрешение мертвых")
+        return
+      end
 
       if rp < 90 and DoSpell("Зимний горн") then return end
     end
@@ -315,7 +322,7 @@ function Idle()
     if aoe5 and plagueLast > plagueMin and DoSpell("Вскипание крови") then return end
     if (not HasRunes(100) or hp < (pvp and 80 or 50)) and melee and plagueAnyLast > LagTime and DoSpell("Удар смерти", target) then return end
     if plagueLast > (AutoAOE and plagueMin or LagTime) and not aoe5 and DoSpell("Удар в сердце", target) then return end
-    if NoRunes() then
+    if norunes then
       if canMagic and rp >= 40 and DoSpell("Лик смерти", target) then return end
       if (not HasBuff("Зимний горн") or rp < 40) and DoSpell("Зимний горн") then return end
       -- ресаем все.

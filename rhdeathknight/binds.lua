@@ -134,7 +134,8 @@ function HasRunes(runes, strong, time)
 end
 ------------------------------------------------------------------------------------------------------------------
 function SwitchEquipmentSet(name)
-  if TimerMore('equipweapon', 1) and GetTime() - GetSpellCooldown(61304) < 0.1 then --start GCD
+  local left = GetGCDLeft()
+  if TimerMore('equipweapon', 1) and left > 0 and left < 0.45 then --start GCD
     --print(name)
     oexecute("UseEquipmentSet('".. name .."')")
     TimerStart('equipweapon')
