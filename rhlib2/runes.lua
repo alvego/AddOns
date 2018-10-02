@@ -33,15 +33,17 @@ end
 function IsRuneReady(id, time)
     if nil == time then time = 0 end
     local left = GetRuneCooldownLeft(id)
-    if left - time > (LagTime * 2 - 0.01) then return false end
+    if left - time > (LagTime * 2) then return false end
     return true
 end
 
 ------------------------------------------------------------------------------------------------------------------
+RuneDuration = 8
 function GetRuneCooldownLeft(id)
     local start, duration = GetRuneCooldown(id);
     if not start then return 0 end
     if start == 0 then return 0 end
+    if duration then RuneDuration = duration end
     local left = start + duration - GetTime()
     if left < 0 then left = 0 end
     return left

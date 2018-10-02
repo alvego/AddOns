@@ -1,5 +1,8 @@
 <Bindings>
-  <Binding name="WRH_INTERRUPT" description="Use cast interrupt" header="WRH">
+  <Binding name="MRH_INTERRUPT" description="Use cast interrupt" header="MRH">
     UseInterrupt();
+  </Binding>
+  <Binding name="MRH_AUTOAOE" description="Toggle Auto AOE" header="MRH">
+    AutoAOEToggle();
   </Binding>
 </Bindings>

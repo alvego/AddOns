@@ -659,20 +659,20 @@ end
 function CantAttack()
   local attack = IsAttack()
   if not CanAttack("target") then
-    if CanAttackInfo then chat('!attack: ' .. CanAttackInfo ) end
+    if Debug and CanAttackInfo then chat('!attack: ' .. CanAttackInfo ) end
     return true
   end
   local autoAttack = IsCurrentSpell("Автоматическая атака")
   if not attack and not UnitAffectingCombat("target") then -- TODO: Не бить в сапы и имуны, писать почему не бьем
-    chat('!attack: !combat target' )
+    if Debug then chat('!attack: !combat target' ) end
     if autoAttack then
-      chat('attack: stop!')
+      if Debug then chat('attack: stop!') end
       oexecute("StopAttack()")
     end
     return true
   end
   if not autoAttack then
-      chat('attack: start!')
+      if Debug then chat('attack: start!') end
       oexecute("StartAttack()")
   end
   FaceToTarget("target")

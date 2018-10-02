@@ -156,8 +156,8 @@ local function hookUseAction(slot, ...)
   if actiontype and id and id ~= 0 then
       local name = nil
       if actiontype == "spell" then
-          name = GetSpellName(id, "spell")
-          ApplyCommand("spell", name)
+          --name = GetSpellName(id, "spell")
+          --ApplyCommand("spell", name)
       elseif actiontype == "item" then
           name = GetItemInfo(id)
       elseif actiontype == "companion" then

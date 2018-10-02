@@ -2,8 +2,9 @@
 ------------------------------------------------------------------------------------------------------------------
 print("|cff0055ffRotation Helper|r|cffffe00a > |r|cff0080bfMage|r loaded")
 -- Binding
-BINDING_HEADER_WRH = "Mage Rotation Helper"
-BINDING_NAME_WRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
+BINDING_HEADER_MRH = "Mage Rotation Helper"
+BINDING_NAME_MRH_INTERRUPT = "Вкл/Выкл сбивание кастов"
+BINDING_NAME_MRH_AUTOAOE = "Вкл/Выкл авто AOE"
 ------------------------------------------------------------------------------------------------------------------
 if CanInterrupt == nil then CanInterrupt = true end
 
@@ -35,6 +36,17 @@ function TryInterrupt()
         end
     end
     return false
+end
+------------------------------------------------------------------------------------------------------------------
+if AutoAOE == nil then AutoAOE = true end
+
+function AutoAOEToggle()
+    AutoAOE = not AutoAOE
+    if AutoAOE then
+        echo("Авто АОЕ: ON")
+    else
+        echo("Авто АОЕ: OFF")
+    end
 end
 -----------------------------------------------------------------------------------------------------------------
 local function updateDamage(event, ...)
