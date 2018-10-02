@@ -50,7 +50,11 @@ function Idle()
   ------------------------------------------------------------------------------
   -- дайте поесть (побегать) спокойно
   if not attack and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
+  ----------------------------------------------------------------------------
+  if not InCombatMode() and not HasBuff("Зимний горн") and DoSpell("Зимний горн") then return end
+  if not HasBuff(stanceBuff) and DoSpell("Власть крови") then return end
   if not (InCombatMode() or IsArena()) then return end
+
 
   -- Auto AntiControl --------------------------------------------------------
   if AdvMode then
@@ -151,9 +155,6 @@ function Idle()
   -- TryTarget ---------------------------------------------------------------
   TryTarget(attack, true)
   ----------------------------------------------------------------------------
-  if attack and not validTarget and DoSpell("Зимний горн") then return end
-  if attack and AdvMode and not HasBuff(stanceBuff) and DoSpell("Власть крови") then return end
-  ----------------------------------------------------------------------------
   local melee = InMelee(target)
   if TryInterrupt(pvp, melee) then return end
   -- Rotation ----------------------------------------------------------------
@@ -188,9 +189,11 @@ function Idle()
   end
 
   -- накладываем болезни
-  if bloodPlagueLast < LagTime and DoSpell("Удар чумы", target) then return end
-  if frostFeverLast < LagTime and DoSpell(frostFeverSpell, target) then return end
-  if plagueLast == 0 then return end
+  if plagueLast == 0 then
+    if bloodPlagueLast == 0 and HasRunes(001, HasSpell("Ледяной удар")) and UseSpell("Удар чумы", target) then return end
+    if frostFeverLast == 0 and HasRunes(010, HasSpell("Ледяной удар")) and UseSpell(frostFeverSpell, target) then return end
+    return
+  end
   if melee and UseSpell("Рунический удар", target) then return end
   ------------------------------------------------------------------------------
 
@@ -207,7 +210,36 @@ function Idle()
       DoSpell("Несокрушимая броня")
       return
     end
-
+    --------------------------------------------------------------------------------------------------
+    ----TEST------------------------------------------------------------------------------------------
+    --------------------------------------------------------------------------------------------------
+    -- if not HasRunes(011, false, GCDDuration) and GetRuneType(1) == 1 and IsRuneReady(1, GCDDuration) then
+    --   if UseSpell("Мор", target) then return end
+    -- elseif GetRuneType(2) == 1 and IsRuneReady(1, GCDDuration) then
+    --   if IsReadySpell("Кровоотвод") then
+    --     UseSpell("Кровоотвод")
+    --     return
+    --   end
+    --   if UseSpell("Кровавый удар", target) then return end
+    --   return
+    -- elseif not HasRunes(011, true) and HasRunes(011, false) then
+    --   if UseSpell(aoe5 and "Воющий ветер" or "Уничтожение", target) then return end
+    -- elseif HasBuff("Кровоотвод") and GetRuneType(1) == 4 and GetRuneType(2) == 1 then
+    --   chat("Отмена Кровоотвод")
+    --   oexecute('CancelUnitBuff("player", "Кровоотвод")')
+    --   return
+    -- elseif HasRunes(011, false) then
+    --   if UseSpell(aoe5 and "Воющий ветер" or "Уничтожение", target) then return end
+    -- elseif not HasRunes(100, true, 2) and not HasRunes(011, false, 2) then
+    --   if rp < (HasBuff("Машина для убийств") and 90 or 32) and HasBuff("Морозная дымка") then
+    --       if UseSpell("Воющий ветер", target) then return end
+    --   else
+    --     if UseSpell("Ледяной удар", target) then return end
+    --   end
+    -- end
+    --
+    -- if true then return end
+    --------------------------------------------------------------------------------------------------
     if GetRuneType(1) == 4 and GetRuneType(2) == 4 and IsRuneReady(1, LagTime) and IsRuneReady(2, LagTime) then
       UseSpell(aoe5 and "Воющий ветер" or "Уничтожение", target)
       return
@@ -257,12 +289,12 @@ function Idle()
         return
       end
 
-      if attack and norunes and GetRuneType(1) == 4 and GetRuneType(2) == 4 and IsReadySpell("Усиление рунического оружия") then
+      if norunes and GetRuneType(1) == 4 and GetRuneType(2) == 4 and IsReadySpell("Усиление рунического оружия") then
         UseSpell("Усиление рунического оружия")
         return
       end
 
-      if attack and IsReadySpell("Воскрешение мертвых") then
+      if IsCtr() and IsReadySpell("Воскрешение мертвых") then
         DoSpell("Воскрешение мертвых")
         return
       end
@@ -280,8 +312,8 @@ function Idle()
     if HasBuff("Кровоотвод") then
       oexecute('CancelUnitBuff("player", "Кровоотвод")')
     end
-    --if (IsCtr() or pvp or (UnitClassification(target) == "worldboss") or aoe5) and HasBuff(procList, 5, player) then
-    if (IsCtr() or pvp or (UnitClassification(target) == "worldboss")) then --or aoe5
+    --if (IsCtr() or pvp or UnitIsBoss(target) or aoe5) and HasBuff(procList, 5, player) then
+    if (IsCtr() or pvp or UnitIsBoss(target)) then --or aoe5
       if HasBuff("Танцующее руническое оружие") and HasSpell("Истерия") and DoSpell("Истерия", player) then return end
       if HasSpell("Танцующее руническое оружие") and DoSpell("Танцующее руническое оружие", target) then return end
     end

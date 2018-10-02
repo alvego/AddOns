@@ -9,7 +9,6 @@ local focus = "focus"
 local target = "target"
 local iUNITS = {"player", Teammate, "Nau"}
 local duelUnits = {"player"}
-local bosses = {"worldboss", "rareelite", "elite"}
 local stance, attack, pvp, combat, combatMode, validTarget, inPlace
 function Idle()
   stance = GetShapeshiftForm()
@@ -324,7 +323,7 @@ function Rotation()
 
 
       if IsInGroup() then
-        if tContains(bosses, UnitClassification(target)) then
+        if UnitIsBoss(target) then
             local isTanking, state, scaledPercent, rawPercent, threatValue = UnitDetailedThreatSituation("player", target)
             if not isTanking and state == 1 and DoSpell("Попятиться", target) then
                 print("Попятиться!!")

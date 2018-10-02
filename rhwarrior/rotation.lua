@@ -223,12 +223,12 @@ function Idle()
     end
 
 
-    if not pvp and HasBuff("Проклятие хаоса") then
-      oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
-    end
+    -- if not pvp and HasBuff("Проклятие хаоса") then
+    --   oexecute('CancelUnitBuff("player", "Проклятие хаоса")')
+    -- end
 
     if not CanAttack(target) then
-      chat('!CanAttack ' .. CanAttackInfo)
+      if Debug then chat('!CanAttack ' .. CanAttackInfo) end
       if HasBuff("Сдерживание",0.1, target) and stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target, true) then return end
     end
     if CantAttack() then return end
@@ -251,12 +251,12 @@ function Idle()
       end
     end
 
-    if (IsCtr() or pvp or (UnitClassification(target) == "worldboss") or aoe3) and HasBuff(procList, 5, player) then
+    if (IsCtr() or pvp or UnitIsBoss(target) or aoe3) and HasBuff(procList, 5, player) then
       if HasSpell("Жажда смерти") then DoSpell("Жажда смерти", nil, true) end
       if stance == 3 then DoSpell("Безрассудство") end
     end
 
-	--if AutoTaunt and UnitClassification(target) == "worldboss"  and (select(4, UnitDebuff("Раскол брони", 10, target)) or 0) < 5 and DoSpell("Раскол брони", target) then return end
+	--if AutoTaunt and UnitIsBoss(target) and (select(4, UnitDebuff("Раскол брони", 10, target)) or 0) < 5 and DoSpell("Раскол брони", target) then return end
 
     if shield and ( pvp and HasBuff("Magic", 3, target ) or HasBuff("Щит и меч", 0.1, player) ) and DoSpell("Мощный удар щитом", target, true) then return end
     if melee and stance == 2 and DoSpell("Разоружение", target, true) then return end
@@ -283,8 +283,8 @@ function Idle()
     if stance == 3 and HasSpell("Вихрь") and (melee or aoe2) and DoSpell("Вихрь", nil, true) then return end
     if HasBuff("Сокрушить!") and DoSpell("Мощный удар", target, true) then return end
     if stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target) then return end
-    if not aoe2 and rage > ( HasSpell("Кровожадность") and 50 or 95) then --TODO символ на удар героя, когторый возвращает рагу
-	     if melee and DoSpell("Удар героя", target) then return end
+    if not aoe2 and rage > ( HasSpell("Кровожадность") and 11 or 95) then --TODO символ на удар героя, когторый возвращает рагу
+	     if melee then DoSpell("Удар героя", target) end
     end
     if not attack then
       if warbringer or HasBuff("благословение могущества", 3, player) then

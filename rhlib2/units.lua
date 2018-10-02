@@ -209,12 +209,18 @@ function GetClass(target)
 end
 ------------------------------------------------------------------------------------------------------------------
 function UnitIsNPC(unit)
-    return UnitExists(unit) and not (UnitIsPlayer(unit) or UnitPlayerControlled(unit) or UnitCanAttack("player", unit));
+    return UnitExists(unit) and not (UnitIsPlayer(unit) or UnitPlayerControlled(unit) or UnitCanAttack("player", unit))
 end
 
 ------------------------------------------------------------------------------------------------------------------
 function UnitIsPet(unit)
-    return UnitExists(unit) and not UnitIsNPC(unit) and not UnitIsPlayer(unit) and UnitPlayerControlled(unit);
+    return UnitExists(unit) and not UnitIsNPC(unit) and not UnitIsPlayer(unit) and UnitPlayerControlled(unit)
+end
+
+------------------------------------------------------------------------------------------------------------------
+local bosses = {"worldboss", "rareelite", "elite"}
+function UnitIsBoss(unit)
+    return tContains(bosses, UnitClassification(unit))
 end
 
 ------------------------------------------------------------------------------------------------------------------
