@@ -664,6 +664,7 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function CantAttack()
   local attack = IsAttack()
+
   if not CanAttack("target") then
     if Debug and CanAttackInfo then chat('!attack: ' .. CanAttackInfo ) end
     return true
@@ -678,8 +679,12 @@ function CantAttack()
     return true
   end
   if not autoAttack then
-      if Debug then chat('attack: start!') end
-      oexecute("StartAttack()")
+      if IsStealthed() then
+        if Debug then chat('attack: stealth!') end
+      else
+        if Debug then chat('attack: start!') end
+        oexecute("StartAttack()")
+      end
   end
   FaceToTarget("target")
   return false

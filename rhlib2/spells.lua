@@ -191,24 +191,34 @@ function UnitIsCasting(unit)
 end
 ------------------------------------------------------------------------------------------------------------------
 local notVisible = {}
+local notBehind = {}
 local function resetNotVisible()
   --print('PLAYER_REGEN_ENABLED')
   wipe(notVisible)
+  wipe(notBehind)
 end
 AttachEvent("PLAYER_REGEN_ENABLED", resetNotVisible)
+
 function IsVisible(target)
   if not UnitExists(target) then return false end
   local guid = UnitGUID(target)
   local t = notVisible[guid]
-  if t and GetTime() - t < 1.2 then
-    if AdvMode and UnitInLos and not UnitInLos(target) then
-        notVisible[guid] = nil;
-        return true;
-    end
+  if t and GetTime() - t < 0.5 then
     return false
   end
   return true;
 end
+
+function IsBehind(target)
+  if not UnitExists(target) then return false end
+  local guid = UnitGUID(target)
+  local t = notBehind[guid]
+  if t and GetTime() - t < 0.5 then
+    return false
+  end
+  return true;
+end
+
 ------------------------------------------------------------------------------------------------------------------
 local InCast = {}
 
@@ -236,6 +246,10 @@ local function UpdateIsCast(event, ...)
         end
         if event == "UNIT_SPELLCAST_FAILED" then
             local error = castInfo.LastError
+
+            if error == "Вы должны находиться позади цели."  and  castInfo.TargetGUID then
+                notBehind[castInfo.TargetGUID] = GetTime()
+            end
             if error == "Цель вне поля зрения."  and  castInfo.TargetGUID then
                 notVisible[castInfo.TargetGUID] = GetTime()
             end

@@ -245,7 +245,7 @@ SetCommand("bye",
       return DoSpell('Крадущийся зверь')
     end,
     function()
-        return HasBuff('Крадущийся зверь')
+        return IsStealthed()
     end,
     function()
         if not IsReadySpell('Крадущийся зверь') then

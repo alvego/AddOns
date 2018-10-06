@@ -259,12 +259,12 @@ function Rotation()
   end
   local hp = UnitHealth100(player)
   local mana = UnitMana100(player)
-  local enemyCount = GetEnemyCountInRange(5)
-  if TimerLess("Damage", 2) then DoSpell("Хватка природы", player) return end
-  if TimerLess("Damage", 1) then DoSpell("Дубовая кожа", player) return end
+  local enemyCount = GetEnemyCountInRange(8)
+  if pvp and hp < 50 and TimerLess("Damage", 2) then DoSpell("Хватка природы", player) return end
+  if hp < (pvp and 80 or 50) and TimerLess("Damage", 1) then DoSpell("Дубовая кожа", player) return end
   if combat then
     if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
-    if hp < 70 and DoSpell("Дубовая кожа", player) then return end
+    if hp < 60 and DoSpell("Дубовая кожа", player) then return end
     if not (InDuel() or IsArena()) then
       if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
     end
@@ -272,18 +272,16 @@ function Rotation()
   TryTarget(attack, true)
   if CantAttack() then return end
   local melee = InMelee(target)
-  local behind = BehindUnit(target)
+  local behind = IsBehind(target)
   if not melee then
-    Notify("!Melee")
+    Notify("Ближе!")
   elseif not behind then
-    Notify("!Behind")
-  else
-    Notify("Good!", 0, 1, 0)
+    Notify("За спину!")
   end
 
   if HasBuff("Быстрота хищника") then
       --if IsControlKeyDown() and HasDebuff("Смерч",1,"target") then DoSpell("Смерч") return end
-      if hp < 60 then DoSpell("Целительное прикосновение", player) return end
+      if hp < ((pvp or not UnitIsBoss(target)) and 95 or 50) then DoSpell("Целительное прикосновение", player) return end
   end
 
   if HasBuff("Облик лютого медведя") and validTarget then
@@ -293,6 +291,12 @@ function Rotation()
           return
       end
       -- if DoSpell("Оглушить") then return end
+      -- if IsReadySpell("Оглушить") then return end
+      -- if hp < 60 and DoSpell("Неистовое восстановление") then return end
+      -- if DoSpell("Увечье(Облик медведя)") then return end
+      -- if enemyCount > 1 and DoSpell("Размах(Облик медведя)") then return end
+      -- if DoSpell("Взбучка") then return end
+      -- if DoSpell("Растерзать") then return end
       -- if not HasDebuff("Устрашающий рев",3) and DoSpell("Устрашающий рев") then return end
   end
   if HasBuff("Облик кошки") then
@@ -306,7 +310,7 @@ function Rotation()
           return
       end
 
-      if not (validTarget and combatMode)  then return end
+      --if not (validTarget and combatMode)  then return end
 
       if attack and HasSpell("Звериная атака - кошка") and (IsStealthed() or not IsReadySpell("Крадущийся зверь")) and DoSpell("Звериная атака - кошка", target) then return end
 
@@ -326,14 +330,14 @@ function Rotation()
         if UnitIsBoss(target) then
             local isTanking, state, scaledPercent, rawPercent, threatValue = UnitDetailedThreatSituation("player", target)
             if not isTanking and state == 1 and DoSpell("Попятиться", target) then
-                print("Попятиться!!")
+                chat("Попятиться!!")
                 return true
             end
         end
       end
 
 --~      Ротация для кошки
-      if enemyCount > 2 then
+      if enemyCount > 1 then
           if mana < 35 and mana > 25 and not HasBuff("Берсерк") and DoSpell("Тигриное неистовство") then return end
           DoSpell("Размах (кошка)")
           return
@@ -358,18 +362,6 @@ function Rotation()
           end
       end
 
-
-      if not HasDebuff("Волшебный огонь (зверь)", 2) and DoSpell("Волшебный огонь (зверь)", target) then return end
-
-      if HasSpell("Увечье (кошка)") and not (HasDebuff("Увечье (медведь)") or HasDebuff("Увечье (кошка)") or HasDebuff("Травма"))then
-              DoSpell("Увечье (кошка)")
-          return
-      end
-      if not HasDebuff("Глубокая рана") then
-          DoSpell("Глубокая рана")
-          return
-      end
-
       local CP = GetComboPoints("player", "target")
 
       if (CP > 3) and not HasBuff("Дикий рев", 3) and DoSpell("Дикий рев") then return end
@@ -381,6 +373,17 @@ function Rotation()
           if UnitMana("player") < 40 and HasSpell("Берсерк") and HasBuff("Дикий рев", 5) and HasDebuff("Разорвать", 5) and DoSpell("Свирепый укус", target) then return end
           if not HasDebuff("Разорвать", 0.8) and DoSpell("Разорвать", target) then return end
           if mana < 40 and HasBuff("Дикий рев", 6) and HasDebuff("Разорвать", 6) and DoSpell("Свирепый укус", target) then return end
+          return
+      end
+
+      if (UnitIsBoss(target) or pvp) and not HasDebuff("Волшебный огонь (зверь)", 2) and DoSpell("Волшебный огонь (зверь)", target) then return end
+
+      if HasSpell("Увечье (кошка)") and not (HasDebuff("Увечье (медведь)") or HasDebuff("Увечье (кошка)") or HasDebuff("Травма"))then
+              DoSpell("Увечье (кошка)")
+          return
+      end
+      if not HasDebuff("Глубокая рана") then
+          DoSpell("Глубокая рана")
           return
       end
 
