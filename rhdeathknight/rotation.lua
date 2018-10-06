@@ -194,7 +194,7 @@ function Idle()
     if frostFeverLast == 0 and HasRunes(010, HasSpell("Ледяной удар")) and UseSpell(frostFeverSpell, target) then return end
     return
   end
-  if melee and UseSpell("Рунический удар", target) then return end
+  if melee and not (IsCurrentSpell("Рунический удар") == 1) and UseSpell("Рунический удар", target) then return end
   ------------------------------------------------------------------------------
 
   if HasSpell("Ледяной удар") then --Start Frost

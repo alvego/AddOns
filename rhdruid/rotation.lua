@@ -9,7 +9,8 @@ local focus = "focus"
 local target = "target"
 local iUNITS = {"player", Teammate, "Nau"}
 local duelUnits = {"player"}
-local stance, attack, pvp, combat, combatMode, validTarget, inPlace
+local faceCPSpell = HasSpell("Увечье (кошка)") and "Увечье (кошка)" or "Цапнуть"
+local stance, attack, pvp, combat, combatMode, validTarget, inPlace, time
 function Idle()
   stance = GetShapeshiftForm()
   attack = IsAttack()
@@ -18,6 +19,7 @@ function Idle()
   combatMode = InCombatMode()
   validTarget = IsValidTarget(target)
   inPlace = PlayerInPlace()
+  time = GetTime()
   local mouse5 = IsMouse(5)
   -- Дизамаунт -----------------------------------------------------------------
   if attack or mouse5 then
@@ -248,7 +250,8 @@ function MonkRotation()
   end
   if DoSpell("Гнев", target) then return end
 end
-------------------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------
+
 function Rotation()
 
   if not combatMode then return end
@@ -258,7 +261,7 @@ function Rotation()
     return
   end
   local hp = UnitHealth100(player)
-  local mana = UnitMana100(player)
+  local mana = UnitMana(player)
   local enemyCount = GetEnemyCountInRange(8)
   if pvp and hp < 50 and TimerLess("Damage", 2) then DoSpell("Хватка природы", player) return end
   if hp < (pvp and 80 or 50) and TimerLess("Damage", 1) then DoSpell("Дубовая кожа", player) return end
@@ -290,16 +293,23 @@ function Rotation()
           DoSpell("Звериная атака - медведь")
           return
       end
-      -- if DoSpell("Оглушить") then return end
-      -- if IsReadySpell("Оглушить") then return end
-      -- if hp < 60 and DoSpell("Неистовое восстановление") then return end
-      -- if DoSpell("Увечье(Облик медведя)") then return end
-      -- if enemyCount > 1 and DoSpell("Размах(Облик медведя)") then return end
-      -- if DoSpell("Взбучка") then return end
-      -- if DoSpell("Растерзать") then return end
-      -- if not HasDebuff("Устрашающий рев",3) and DoSpell("Устрашающий рев") then return end
+      --if DoSpell("Оглушить") then return end
+      --if IsReadySpell("Оглушить") then return end
+      --if hp < 60 and DoSpell("Неистовое восстановление") then return end
+      if enemyCount > 1 and DoSpell("Размах(Облик медведя)") then return end
+      if  (UnitIsBoss(target) or pvp) and not HasDebuff("Волшебный огонь", 1, target) and DoSpell("Волшебный огонь (зверь)", target) then return end
+      if not HasMyDebuff("Увечье (медведь)", GCDDuration, target) and DoSpell("Увечье (медведь)", target) then return end
+      local  name, _, _, count = HasMyDebuff("Растерзать", GCDDuration, target);
+      if (not name or count < 5) and DoSpell("Растерзать", target) then return end
+      if not HasMyDebuff("Увечье (медведь)", GCDDuration, target) and DoSpell("Увечье (медведь)", target) then return end
+      if  (UnitIsBoss(target) or pvp) and not HasDebuff("Устрашающий рев",3) and DoSpell("Устрашающий рев") then return end
+      if DoSpell("Увечье (медведь)", target) then return end
+      if melee and mana > 25 and not (IsCurrentSpell("Трепка") == 1) and DoSpell("Трепка") then return end
+
+      return
   end
   if HasBuff("Облик кошки") then
+
       if not HasBuff("Крадущийся зверь") and HasSpell("Звериная атака - медведь") and IsAttack() and validTarget and InRange("Звериная атака - медведь", "target") and GetSpellCooldownLeft("Звериная атака - кошка") > 2 and GetSpellCooldownLeft("Звериная атака - медведь") == 0 then
           DoSpell("Облик лютого медведя(Смена облика)")
           return
@@ -351,33 +361,12 @@ function Rotation()
       end
 
       if HasBuff("Ясность мысли") then
-          if behind then
-              if DoSpell("Полоснуть", target)  then return end
-          else
-              if HasSpell("Увечье (кошка)") then
-                  if DoSpell("Увечье (кошка)", target) then return end
-              else
-                  if DoSpell("Цапнуть", target) then return end
-              end
-          end
+          if DoSpell(behind and "Полоснуть" or faceCPSpell, target) then return end
+          return
       end
 
       local CP = GetComboPoints("player", "target")
-
-      if (CP > 3) and not HasBuff("Дикий рев", 3) and DoSpell("Дикий рев") then return end
-      if (CP > 0) and not HasBuff("Дикий рев") then
-          DoSpell("Дикий рев")
-          return
-      end
-      if (CP == 5) then
-          if UnitMana("player") < 40 and HasSpell("Берсерк") and HasBuff("Дикий рев", 5) and HasDebuff("Разорвать", 5) and DoSpell("Свирепый укус", target) then return end
-          if not HasDebuff("Разорвать", 0.8) and DoSpell("Разорвать", target) then return end
-          if mana < 40 and HasBuff("Дикий рев", 6) and HasDebuff("Разорвать", 6) and DoSpell("Свирепый укус", target) then return end
-          return
-      end
-
       if (UnitIsBoss(target) or pvp) and not HasDebuff("Волшебный огонь (зверь)", 2) and DoSpell("Волшебный огонь (зверь)", target) then return end
-
       if HasSpell("Увечье (кошка)") and not (HasDebuff("Увечье (медведь)") or HasDebuff("Увечье (кошка)") or HasDebuff("Травма"))then
               DoSpell("Увечье (кошка)")
           return
@@ -386,16 +375,22 @@ function Rotation()
           DoSpell("Глубокая рана")
           return
       end
-
-      if behind then
-          if DoSpell("Полоснуть", target)  then return end
-      else
-          if HasSpell("Увечье (кошка)") then
-              if DoSpell("Увечье (кошка)", target) then return end
-          else
-              if DoSpell("Цапнуть", target) then return end
-          end
+      local expirationTime = select(7, UnitBuff(player, "Дикий рев"))
+      local savageRoarLeft = expirationTime and max(expirationTime - time, 0) or 0
+      local expirationTime, unitCaster = select(7, UnitDebuff(target, "Разорвать"))
+      local ripLast = (expirationTime and unitCaster == player) and max(expirationTime - time, 0) or 0
+      if (CP > 2) and savageRoarLeft > 0 and savageRoarLeft < 5 and DoSpell("Дикий рев") then return end
+      if (CP > 0) and savageRoarLeft == 0 then
+          DoSpell("Дикий рев")
+          return
       end
+      if (CP == 5) then
+          if ripLast < 1 and DoSpell("Разорвать", target) then return end
+          if savageRoarLeft > 5 and ripLast > 5 and DoSpell("Свирепый укус", target) then return end
+          return
+      end
+
+      if DoSpell(behind and "Полоснуть" or faceCPSpell, target) then return end
 
       if not HasDebuff("Волшебный огонь (зверь)", 7) and DoSpell("Волшебный огонь (зверь)", target) then return end
 

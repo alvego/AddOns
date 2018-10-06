@@ -264,7 +264,7 @@ function Idle()
     if stance ~= 2 and IsUsableSpell("Победный раж") and DoSpell("Победный раж", target) then return end
     if stance == 2 and IsUsableSpell("Реванш") and DoSpell("Реванш", target) then return end
     if aoe2 and HasSpell("Размашистые удары") then  DoSpell("Размашистые удары") end
-    if aoe2 then DoSpell("Рассекающий удар", nil, not pvp) end
+    if aoe2 and not (IsCurrentSpell("Рассекающий удар") == 1) then DoSpell("Рассекающий удар", nil, not pvp) end
     if aoe3 and melee and stance ~= 3 and DoSpell("Удар грома") then return end
 
     if not attack and not PlayerInPlace() and UnitIsPlayer(target) and not HasBuff("Длань свободы", 0.1, target) and not HasDebuff(myRootDebuff, 1, target) then
@@ -284,7 +284,7 @@ function Idle()
     if HasBuff("Сокрушить!") and DoSpell("Мощный удар", target, true) then return end
     if stance == 1 and IsUsableSpell("Превосходство") and DoSpell("Превосходство", target) then return end
     if not aoe2 and rage > ( HasSpell("Кровожадность") and 11 or 95) then --TODO символ на удар героя, когторый возвращает рагу
-	     if melee then DoSpell("Удар героя", target) end
+	     if melee and not (IsCurrentSpell("Удар героя") == 1) then DoSpell("Удар героя", target) end
     end
     if not attack then
       if warbringer or HasBuff("благословение могущества", 3, player) then
