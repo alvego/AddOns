@@ -6,6 +6,7 @@ local UnitDebuff = UnitDebuff
 local GetTime = GetTime
 ------------------------------------------------------------------------------------------------------------------
 -- local stack = select(4, HasMyBuff("Жизнецвет", 0.01, u))
+-- local rakeLeft = max((select(7, HasMyDebuff("Глубокая рана", 0.01, "target")) or 0) - GetTime(), 0)
 ------------------------------------------------------------------------------------------------------------------
 -- Универсальный внутренний метод, для работы с бафами и дебафами
 -- HasAura('auraName' or {'aura1', ...}, minExpiresTime(s), 'target' or {'target', 'focus', ...}, UnitDebuff or UnitBuff or UnitAura, bool AuraCaster = player)
@@ -29,14 +30,14 @@ function HasAura(aura, last, target, method, my)
                 local find = false
                 for i = 1, #aura do
                     local a = aura[i]
-                    if (sContains(name, a) or (debuffType and sContains(debuffType, a))) then
+                    if (type(a) == "number" and spellId == a) or (sContains(name, a) or (debuffType and sContains(debuffType, a))) then
                       find = true
                       break
                     end
                 end
                 if find then break end
             else
-                if (sContains(name, aura) or (debuffType and sContains(debuffType, aura))) then break end
+                if (type(aura) == "number" and spellId == aura) or (sContains(name, aura) or (debuffType and sContains(debuffType, aura))) then break end
             end
         end
     end

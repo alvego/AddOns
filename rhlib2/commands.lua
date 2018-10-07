@@ -45,6 +45,7 @@ end
 -- Используется в макросах
 -- /run DoCommand('my_command', 'focus')
 function DoCommand(cmd, ...)
+    --print('cmd: ' .. cmd, ...)
     if not Commands[cmd] then
         print("DoCommand: Ошибка! Нет такой комманды ".. cmd)
         return
@@ -52,19 +53,19 @@ function DoCommand(cmd, ...)
     local time = GetTime()
     local d = 1.55
     local t = time + d
-    local spell, _, _, _, _, endTime  = UnitCastingInfo("player")
-    if not spell then spell, _, _, _, _, endTime, _, nointerrupt = UnitChannelInfo("player") end
-    if spell and endTime then
-        t = endTime/1000 + d
-        if Commands[cmd].Timer and Commands[cmd].Timer == t then
+    local spell, left = UnitIsCasting("player")
+    if spell and not isSameSpellCommand(spell, cmd, ...) then
+        t = time + d + left
+        if Commands[cmd].Timer and math.abs(Commands[cmd].Timer - t) < 0.01 then
             StopCast("Commands")
-            t = GetTime() + d
+            t = time + d
         end
     end
     if Commands[cmd].Init and (Commands[cmd].Timer - time <= 0) and Commands[cmd].Init(...) then return end
     --print('cmd: ' .. cmd, ...)
     Commands[cmd].Timer = t
     Commands[cmd].Params = { ... }
+    --print(cmd, spell, t - time)
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -83,9 +84,10 @@ AttachEvent('CHAT_MSG_ADDON', receiveAddonMessage)
 function UpdateCommands()
     if InCombatMode() and UnitIsCasting("player") then return false end
     local ret = false
+    local time = GetTime()
     for cmd,_ in pairs(Commands) do
         if not ret then
-            if (Commands[cmd].Timer  - GetTime() > 0) then
+            if (Commands[cmd].Timer  - time > 0) then
                 ret = true
                 if Commands[cmd].Check(unpack(Commands[cmd].Params)) then
                     --print(cmd, 'Check True')
@@ -93,7 +95,7 @@ function UpdateCommands()
                 else
                    if GetTime() - Commands[cmd].Last > 0.1 and Commands[cmd].Apply(unpack(Commands[cmd].Params)) then
                         --print(cmd, 'Apply true')
-                        Commands[cmd].Last = GetTime()
+                        Commands[cmd].Last = time
                         local s = ''
                         for i = 1, select('#', unpack(Commands[cmd].Params)) do
                           s = s .. ' ' .. select(i, unpack(Commands[cmd].Params))
@@ -114,17 +116,26 @@ function UpdateCommands()
 end
 
 ------------------------------------------------------------------------------------------------------------------
+function isSameSpellCommand(cast, cmd, spell)
+  return cmd == "spell" and cast == spell
+end
 -- // /run if IsReadySpell("s") and СanMagicAttack("target") then DoCommand("spell", "s", "target") end
 SetCommand("spell",
     function(spell, target)
-        if not target then target = "target" end
-        if DoSpell(spell, target) then
-            echo(spell.."!",1)
+        if IsCurrentSpell(spell) == 1 then
+            --echo("Используем " .. spell, 1)
             return true
         end
+        if not IsSpellNotUsed(spell, 1)  then
+            return true
+        end
+        if DoSpell(spell, target) then
+            echo(spell.."!", 1)
+            return true
+        end
+        return false
     end,
     function(spell, target)
-        if not target then target = "target" end
         if not HasSpell(spell) then
             chat(spell .. " - нет спела!")
             return true
@@ -141,8 +152,7 @@ SetCommand("spell",
             chat(spell .. " - не готово!")
             return true
         end
-
-        local cast = UnitCastingInfo("player")
+        local cast = UnitIsCasting("player")
         if spell == cast then
             chat("Кастуем " .. spell)
             return true
@@ -156,8 +166,8 @@ local function hookUseAction(slot, ...)
   if actiontype and id and id ~= 0 then
       local name = nil
       if actiontype == "spell" then
-          --name = GetSpellName(id, "spell")
-          --ApplyCommand("spell", name)
+          name = GetSpellName(id, "spell")
+          DoCommand("spell", name)
       elseif actiontype == "item" then
           name = GetItemInfo(id)
       elseif actiontype == "companion" then
@@ -165,7 +175,7 @@ local function hookUseAction(slot, ...)
       elseif actiontype == "macro" then
           name = GetMacroInfo(id)
           if Commands[name] then
-            ApplyCommand(name)
+            DoCommand(name)
           end
       end
       --if name then print("UseAction", slot, name, actiontype, ...) end

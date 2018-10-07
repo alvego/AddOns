@@ -1,0 +1,14 @@
+<Bindings>
+  <Binding name="DRH_AUTOTAUNT" description="Auto Taunt" header="DRH">
+    AutoTauntToggle();
+  </Binding>
+  <Binding name="DRH_AUTOAOE" description="Toggle Auto AOE" header="DRH">
+    AutoAOEToggle();
+  </Binding>
+  <Binding name="DRH_AUTOBERS" description="Toggle Auto BERS" header="DRH">
+    AutoBersToggle();
+  </Binding>
+  <Binding name="DRH_INTERRUPT" description="Use cast interrupt" header="DRH">
+    UseInterrupt();
+  </Binding>
+</Bindings>

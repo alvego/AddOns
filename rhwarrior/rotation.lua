@@ -251,7 +251,9 @@ function Idle()
       end
     end
 
-    if (IsCtr() or pvp or UnitIsBoss(target) or aoe3) and HasBuff(procList, 5, player) then
+    --if (IsCtr() or pvp or UnitIsBoss(target) or aoe3) and HasBuff(procList, 5, player) then
+    if (IsCtr() or UnitIsBoss(target)) and HasBuff(procList, 5, player) then
+
       if HasSpell("Жажда смерти") then DoSpell("Жажда смерти", nil, true) end
       if stance == 3 then DoSpell("Безрассудство") end
     end

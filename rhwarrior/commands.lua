@@ -240,10 +240,18 @@ SetCommand("disarm",
 ---------------------------------------------------------------------------------------------------------------
 SetCommand("spell",
     function(spell, target)
-        if DoSpell(spell, target, true) then
-            chat(spell.."!",1)
+        if IsCurrentSpell(spell) == 1 then
+            --echo("Используем " .. spell, 1)
             return true
         end
+        if not IsSpellNotUsed(spell, 1)  then
+            return true
+        end
+        if DoSpell(spell, target, true) then -- единственное отличие - 3 аргумент
+            echo(spell.."!", 1)
+            return true
+        end
+        return false
     end,
     function(spell, target)
         if not HasSpell(spell) then
@@ -262,8 +270,7 @@ SetCommand("spell",
             chat(spell .. " - не готово!")
             return true
         end
-
-        local cast = UnitCastingInfo("player")
+        local cast = UnitIsCasting("player")
         if spell == cast then
             chat("Кастуем " .. spell)
             return true

@@ -181,7 +181,7 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellCreate)
 ------------------------------------------------------------------------------------------------------------------
 local function death_update_handler()
   if not UnitIsDeadOrGhost("player") then return end
-  if not (IsCtr() or IsBattleground()) then return end
+  if not IsBattleground() then return end
   oexecute('AcceptResurrect()')
   if UnitIsDead("player") then
       oexecute("RepopMe()")
@@ -205,7 +205,7 @@ function GetEnemyInRange(range, centerUnit)
   for i = 1, #TARGETS do
     local uid = TARGETS[i]
     local dist = DistanceTo(centerUnit, uid)
-    if dist <= range then
+    if dist <= range and CanAttack(uid) then
       tinsert(enemyInRange, uid)
     end
   end
@@ -220,7 +220,7 @@ function GetEnemyCountInRange(range, centerUnit)
   for i = 1, #TARGETS do
     local uid = TARGETS[i]
     local dist = DistanceTo(centerUnit, uid)
-    if dist <= range then
+    if dist <= range and CanAttack(uid) then
       count = count + 1
     end
   end

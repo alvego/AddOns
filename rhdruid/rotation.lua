@@ -296,17 +296,18 @@ function Rotation()
       --if DoSpell("Оглушить") then return end
       --if IsReadySpell("Оглушить") then return end
       --if hp < 60 and DoSpell("Неистовое восстановление") then return end
-      if enemyCount > 1 and DoSpell("Размах(Облик медведя)") then return end
-      if  (UnitIsBoss(target) or pvp) and not HasDebuff("Волшебный огонь", 1, target) and DoSpell("Волшебный огонь (зверь)", target) then return end
-      if not HasMyDebuff("Увечье (медведь)", GCDDuration, target) and DoSpell("Увечье (медведь)", target) then return end
-      local  name, _, _, count = HasMyDebuff("Растерзать", GCDDuration, target);
-      if (not name or count < 5) and DoSpell("Растерзать", target) then return end
-      if not HasMyDebuff("Увечье (медведь)", GCDDuration, target) and DoSpell("Увечье (медведь)", target) then return end
-      if  (UnitIsBoss(target) or pvp) and not HasDebuff("Устрашающий рев",3) and DoSpell("Устрашающий рев") then return end
-      if DoSpell("Увечье (медведь)", target) then return end
-      if melee and mana > 25 and not (IsCurrentSpell("Трепка") == 1) and DoSpell("Трепка") then return end
 
-      return
+      -- if enemyCount > 1 and DoSpell("Размах(Облик медведя)") then return end
+      -- if  (UnitIsBoss(target) or pvp) and not HasDebuff("Волшебный огонь", 1, target) and DoSpell("Волшебный огонь (зверь)", target) then return end
+      -- if not HasMyDebuff("Увечье (медведь)", GCDDuration, target) and DoSpell("Увечье (медведь)", target) then return end
+      -- local  name, _, _, count = HasMyDebuff("Растерзать", GCDDuration, target);
+      -- if (not name or count < 5) and DoSpell("Растерзать", target) then return end
+      -- if not HasMyDebuff("Увечье (медведь)", GCDDuration, target) and DoSpell("Увечье (медведь)", target) then return end
+      -- if  (UnitIsBoss(target) or pvp) and not HasDebuff("Устрашающий рев",3) and DoSpell("Устрашающий рев") then return end
+      -- if DoSpell("Увечье (медведь)", target) then return end
+      -- if melee and mana > 25 and not (IsCurrentSpell("Трепка") == 1) and DoSpell("Трепка") then return end
+
+      --return
   end
   if HasBuff("Облик кошки") then
 
@@ -336,15 +337,15 @@ function Rotation()
       if combat and attack and validTarget and InRange("Звериная атака - кошка", target) and DoSpell("Звериная атака - кошка", target) then return end
 
 
-      if IsInGroup() then
-        if UnitIsBoss(target) then
-            local isTanking, state, scaledPercent, rawPercent, threatValue = UnitDetailedThreatSituation("player", target)
-            if not isTanking and state == 1 and DoSpell("Попятиться", target) then
-                chat("Попятиться!!")
-                return true
-            end
-        end
+
+      if IsInGroup() and  UnitIsBoss(target) then
+          local isTanking, state, scaledPercent, rawPercent, threatValue = UnitDetailedThreatSituation("player", target)
+          if not isTanking and state == 1 and DoSpell("Попятиться", target) then
+              chat("Попятиться!!")
+              return true
+          end
       end
+
 
 --~      Ротация для кошки
       if enemyCount > 1 then
@@ -385,14 +386,14 @@ function Rotation()
           return
       end
       if (CP == 5) then
-          if ripLast < 1 and DoSpell("Разорвать", target) then return end
+          if ripLast == 0 and DoSpell("Разорвать", target) then return end
           if savageRoarLeft > 5 and ripLast > 5 and DoSpell("Свирепый укус", target) then return end
           return
       end
 
       if DoSpell(behind and "Полоснуть" or faceCPSpell, target) then return end
 
-      if not HasDebuff("Волшебный огонь (зверь)", 7) and DoSpell("Волшебный огонь (зверь)", target) then return end
+      if (UnitIsBoss(target) or pvp) and not HasDebuff("Волшебный огонь (зверь)", 7) and DoSpell("Волшебный огонь (зверь)", target) then return end
 
   else
       if (HasBuff("Знак дикой природы") or HasBuff("Дар дикой природы")) and DoSpell("Облик кошки") then return end

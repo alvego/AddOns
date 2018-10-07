@@ -218,9 +218,10 @@ function UnitIsPet(unit)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-local bosses = {"worldboss", "rareelite", "elite"}
+local worldbosses = {"worldboss", "rareelite", "elite"}
+local bosses = {"elite"}
 function UnitIsBoss(unit)
-    return tContains(bosses, UnitClassification(unit))
+    return tContains(IsInstance() and bosses or worldbosses, UnitClassification(unit))
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -257,13 +258,18 @@ end
 ------------------------------------------------------------------------------------------------------------------
 function IsBattleground()
     local inInstance, instanceType = IsInInstance()
-    return (inInstance ~= nil and instanceType =="pvp")
+    return (inInstance ~= nil and instanceType == "pvp")
 end
 
 ------------------------------------------------------------------------------------------------------------------
 function IsArena()
     local inInstance, instanceType = IsInInstance()
-    return (inInstance ~= nil and instanceType =="arena")
+    return (inInstance ~= nil and instanceType == "arena")
+end
+------------------------------------------------------------------------------------------------------------------
+function IsInstance()
+    local inInstance, instanceType = IsInInstance()
+    return (inInstance ~= nil and instanceType ~= "pvp" and instanceType ~= "arena")
 end
 
 ------------------------------------------------------------------------------------------------------------------
