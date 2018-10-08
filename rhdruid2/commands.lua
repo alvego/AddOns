@@ -6,6 +6,10 @@ SetCommand("defence",
     end,
     function()
         Defence = true
+        if IsAttack() and not AutoTaunt then
+          chat('Зажата атака, остаемся в коте')
+          return true
+        end
         chat('Защищаемся')
         return HasBuff("Облик лютого медведя")
     end

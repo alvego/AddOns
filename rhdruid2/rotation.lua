@@ -10,7 +10,7 @@ local steathClass = {"ROGUE", "DRUID"}
 local player = "player"
 local focus = "focus"
 local target = "target"
-local faceCPSpell = HasSpell("Увечье (кошка)") and "Увечье (кошка)" or "Цапнуть"
+local bearHealBuffs = {"Инстинкты выживания", "Неистовое восстановление"}
 local stance, attack, pvp, combat, combatMode, canAttackTarget, inPlace, time,
   mouse5, hp, mana, enemyCount, cat, bear, arena, mounted, vehicle, duel, melee,
   dist, stealth
@@ -46,12 +46,18 @@ function Idle()
   -- дайте поесть (побегать) спокойно
   if not attack and (mounted or vehicle or stealth
     or HasBuff(peaceBuff) or IsFishingMode()) then return end
-  ------------------------------------------------------------------------------
+
+  local bearHeal = HasBuff(bearHealBuffs)
+    ------------------------------------------------------------------------------
   if AutoTaunt then
     Defence = true
   else
     if attack then
-      Defence = false
+      if bearHeal and hp > 95 then
+        chat("Хилимся в мишке, hp: ".. hp)
+      else
+        Defence = false
+      end
     else
       if hp < (pvp and 50 or 30) then
         Defence = true
@@ -196,6 +202,7 @@ function Idle()
     end
 
     if stealth then
+
         if behind then
             if DoSpell("Накинуться", target) then return end
         else
@@ -251,7 +258,7 @@ function Idle()
         return
     end
     if HasBuff("Ясность мысли") then
-        if DoSpell(behind and "Полоснуть" or faceCPSpell, target) then return end
+        if DoSpell(behind and "Полоснуть" or (HasSpell("Увечье (кошка)") and "Увечье (кошка)" or "Цапнуть"), target) then return end
         return
     end
     local CP = GetComboPoints("player", "target")
@@ -270,12 +277,14 @@ function Idle()
         return
     end
 
-    if DoSpell(behind and "Полоснуть" or faceCPSpell, target) then return end
+    if DoSpell(behind and "Полоснуть" or (HasSpell("Увечье (кошка)") and "Увечье (кошка)" or "Цапнуть"), target) then return end
   end
   if bear then
     if not melee then
       Notify("Ближе!")
     end
+    local canBearHeal = (hp < 50) and IsReadySpell("Инстинкты выживания") and IsReadySpell("Неистовое восстановление")
+    if not attack and (canBearHeal or bearHeal) and mana < 60 then return end
     if canBers() and DoSpell("Берсерк") then return end
     if mana < 15 and DoSpell("Исступление") then return end
     if IsReadySpell("Оглушить") and isNeedStun() then

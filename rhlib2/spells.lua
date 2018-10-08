@@ -206,7 +206,7 @@ function IsVisible(target)
   if t and GetTime() - t < 0.5 then
     return false
   end
-  return true;
+  return true --UnitInLos(target);
 end
 
 function IsBehind(target)
@@ -216,7 +216,7 @@ function IsBehind(target)
   if t and GetTime() - t < 0.5 then
     return false
   end
-  return true;
+  return true --BehindUnit(target);
 end
 
 ------------------------------------------------------------------------------------------------------------------
@@ -317,45 +317,50 @@ AttachEvent('COMBAT_LOG_EVENT_UNFILTERED', updateSpellErrors)
 ------------------------------------------------------------------------------------------------------------------
 local _m = ''
 local function falseBecause(m, spell, icon, target)
+  if true then return false end
+  local spellDebug = spell == "Наскок"
+  if m == "Не готов" then return false end -- ignore
+  if m == "Уже используется" then return false end -- ignore
+  if spellDebug and  _m ~= m then
+    _m = m
+    local s = '|T'.. (icon and icon or 'Interface\\Icons\\INV_Misc_Coin_02') ..':16|t '
+    if spell then
+      s = s .. '|cff71d5ff[' .. spell .. ']|r '
+    end
+    if m and m ~= spell then
+      s = s .. '|cffff5555<' .. m .. '>|r '
+    end
+    if target then
+      s = s .. '|cffcccccc->|r ' .. (UnitIsEnemy("player", target) and '|cffff0000' or '|cff00ff00') .. (UnitName(target) or target) .. '|r'
+    end
+    print(s)
+  end
   return false
-  -- local spellDebug = spell == "Удар воина Света"
-  -- if m == "Не готов" then return false end -- ignore
-  -- if m == "Уже используется" then return false end -- ignore
-  -- if spellDebug and  _m ~= m then
-  --   _m = m
-  --   local s = '|T'.. (icon and icon or 'Interface\\Icons\\INV_Misc_Coin_02') ..':16|t '
-  --   if spell then
-  --     s = s .. '|cff71d5ff[' .. spell .. ']|r '
-  --   end
-  --   if m and m ~= spell then
-  --     s = s .. '|cffff5555<' .. m .. '>|r '
-  --   end
-  --   if target then
-  --     s = s .. '|cffcccccc->|r ' .. (UnitIsEnemy("player", target) and '|cffff0000' or '|cff00ff00') .. (UnitName(target) or target) .. '|r'
-  --   end
-  --   print(s)
-  -- end
-  -- return false
 end
 
 function UseSpell(spell, target)
   --if TimerStarted("InCast") then return falseBecause("В процессе каста") end
   if UnitIsCasting("player") then return falseBecause("В процессе каста") end
   if not spell then return falseBecause("Отсутсвует", spell) end
+
   local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spell)
   if not name then return falseBecause("Нет в книге заклинаний", spell) end
+
   if IsSpellInUse(name) then return falseBecause("Уже используется", name, icon) end
 
   local usable, nomana = IsUsableSpell(name)
   if usable ~= 1 then return falseBecause("Недоступен", name, icon) end
   if nomana == 1 then return falseBecause("Нужно больше маны", name, icon) end
   if not IsReadySpell(name, true) then return falseBecause("Не готов", name, icon)  end
+
   if target ~= nil then
     if UnitExists(target) ~= 1 then return falseBecause("Цель не существует", name, icon, target) end
+
     if IsSpellInRange(name, target) == 0 then return falseBecause("Цель не в зоне действия", name, icon, target) end
     if not IsVisible(target) then echo("UnitInLos!") return falseBecause("Цель в лосе", name, icon, target) end
     if UnitCanAttack("player", target) and FaceSpells[name] ~= nil and not PlayerFacingTarget(target) then
       FaceToTarget(target)
+
       return falseBecause("Мы не смотрим на цель", name, icon, target)
     end
 
@@ -365,6 +370,7 @@ function UseSpell(spell, target)
     castInfo.TargetName = UnitName(target)
     castInfo.TargetGUID = UnitGUID(target)
   end
+
   local cmd = "CastSpellByName('" .. spell .."'"
     -- с учетом цели
   if target then  cmd = cmd ..",'".. target .."'" end
