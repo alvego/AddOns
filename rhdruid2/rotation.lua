@@ -218,6 +218,7 @@ function Idle()
             return true
         end
     end
+
     local bersBuff = HasBuff(50334)
     --~      Ротация для кошки
     if enemyCount > 1 then
@@ -231,7 +232,7 @@ function Idle()
     local needBers = hasBers and canBers()
     local bersLeft = hasBers and GetSpellCooldownLeft("Берсерк") or 0
     if (needBers and bersLeft < 30) then canAddEnergy = false end
-    if canAddEnergy and mana < 30 and not bersBuff and DoSpell("Тигриное неистовство") then return end
+    if canAddEnergy and mana < 40 and not bersBuff and DoSpell("Тигриное неистовство") then return end
 
     local rakeLeft = max((select(7, HasMyDebuff("Глубокая рана", 0.01, target)) or 0) - time, 0)
     local bloodLeft = max((select(7, HasDebuff(bloodList, 0.01, target)) or 0) - time, 0)
@@ -262,18 +263,27 @@ function Idle()
         return
     end
     local CP = GetComboPoints("player", "target")
-    if (CP > 1) and isNeedStun() then
+    if (CP > 0) and isNeedStun() then
         DoSpell("Калечение", target)
         return
     end
-    if (CP > 3) and savageRoarLeft > 0 and savageRoarLeft < 8 and DoSpell("Дикий рев") then return end
-    if (CP > 0) and savageRoarLeft == 0 then
-        DoSpell("Дикий рев")
+
+    if (CP > 1) and savageRoarLeft == 0 then
+        if DoSpell("Дикий рев") then return end
         return
     end
+    if (CP > 3) and savageRoarLeft < 8 then
+      if DoSpell("Дикий рев") then return end
+      return
+    end
     if (CP == 5) then
-        if ripLast == 0 and DoSpell("Разорвать", target) then return end
-        if savageRoarLeft > 8 and ripLast > 5 and DoSpell("Свирепый укус", target) then return end
+        if savageRoarLeft < 8 then
+          if DoSpell("Дикий рев") then return end
+        elseif ripLast == 0 then
+            if DoSpell("Разорвать", target) then return end
+        else
+          if DoSpell("Свирепый укус", target) then return end
+        end
         return
     end
 

@@ -398,7 +398,11 @@ function PvE()
   if mana < 35 and DoSpell("Святая клятва") then return end
 
   if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
-  if (InMelee(target) or DistanceTo(player, target) < 8) and DoSpell("Божественная буря") then return end
+
+  if (InMelee(target) or DistanceTo(player, target) < 8) and (IsReadySpell("Божественная буря") or (GetSpellCooldownLeft("Божественная буря") < 0.5))
+    DoSpell("Божественная буря")
+    return
+  end
 
   if DoSpell("Удар воина Света", target) then return end
 
@@ -484,7 +488,10 @@ function PvP()
   if not isFinishHim and not HasBuff("Священный щит") and IsSpellNotUsed("Священный щит", 4) and DoSpell("Священный щит", player) then return end
   if UseEquippedItem(GetSlotItemName(10), target) then return end
   if (UnitCreatureType(target) == "Нежить") and mana > 30 and DistanceTo(player, target) < 8 and DoSpell("Гнев небес") then return end
-  if DistanceTo(player, target) < 8 and DoSpell("Божественная буря") then return end
+  if (InMelee(target) or DistanceTo(player, target) < 8) and (IsReadySpell("Божественная буря") or (GetSpellCooldownLeft("Божественная буря") < 0.5))
+    DoSpell("Божественная буря")
+    return
+  end
   if DoSpell("Удар воина Света", target) then return end
   if mana < 30 and DoSpell("Святая клятва") then return end
   if shield then
