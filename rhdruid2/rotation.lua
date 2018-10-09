@@ -11,6 +11,10 @@ local player = "player"
 local focus = "focus"
 local target = "target"
 local bearHealBuffs = {"Инстинкты выживания", "Неистовое восстановление"}
+local rakeId = GetSpellId("Глубокая рана")
+local ripId = GetSpellId("Разорвать")
+local savageRoarId = GetSpellId("Дикий рев")
+local bersId = GetSpellId("Берсерк")
 local stance, attack, pvp, combat, combatMode, canAttackTarget, inPlace, time,
   mouse5, hp, mana, enemyCount, cat, bear, arena, mounted, vehicle, duel, melee,
   dist, stealth
@@ -219,7 +223,7 @@ function Idle()
         end
     end
 
-    local bersBuff = HasBuff(50334)
+    local bersBuff = HasBuff(bersId)
     --~      Ротация для кошки
     if enemyCount > 1 then
         if mana < 45 and not bersBuff and DoSpell("Тигриное неистовство") then return end
@@ -231,20 +235,21 @@ function Idle()
     local hasBers = HasSpell("Берсерк")
     local needBers = hasBers and canBers()
     local bersLeft = hasBers and GetSpellCooldownLeft("Берсерк") or 0
-    if (needBers and bersLeft < 30) then canAddEnergy = false end
+    if (needBers and bersLeft < 28) then canAddEnergy = false end
     if canAddEnergy and mana < 40 and not bersBuff and DoSpell("Тигриное неистовство") then return end
 
-    local rakeLeft = max((select(7, HasMyDebuff("Глубокая рана", 0.01, target)) or 0) - time, 0)
+    local rakeLeft = max((select(7, HasMyDebuff(rakeId, 0.01, target)) or 0) - time, 0)
     local bloodLeft = max((select(7, HasDebuff(bloodList, 0.01, target)) or 0) - time, 0)
-    local savageRoarLeft = max((select(7, UnitBuff(player, "Дикий рев")) or 0) - time, 0)
-    local ripLast = max((select(7, HasMyDebuff("Разорвать", 0.01, target)) or 0) - time, 0)
+    local savageRoarLeft = max((select(7, HasMyBuff(savageRoarId, 0.01, player)) or 0) - time, 0)
+    local ripLast = max((select(7, HasMyDebuff(ripId, 0.01, target)) or 0) - time, 0)
     local sorcerousFireLeft = max((select(7, HasDebuff("Волшебный огонь", 0.01, target)) or 0) - time, 0)
 
     if needBers and melee and bersLeft < 1
       and (mana > 60 or IsReadySpell("Тигриное неистовство"))
-      and rakeLeft > 5 and bloodLeft > 8 then
-        if mana < 60 and  DoSpell("Тигриное неистовство") then return end
+      and rakeLeft > 5 and bloodLeft > 5 then
+        if mana < 60 and DoSpell("Тигриное неистовство") then return end
         DoSpell("Берсерк")
+        Notify("Берсерк!")
         return
     end
 
@@ -263,7 +268,7 @@ function Idle()
         return
     end
     local CP = GetComboPoints("player", "target")
-    if (CP > 0) and isNeedStun() then
+    if (CP > 0) and isNeedStun() and IsReadySpell("Калечение") then
         DoSpell("Калечение", target)
         return
     end
@@ -277,16 +282,15 @@ function Idle()
       return
     end
     if (CP == 5) then
-        if savageRoarLeft < 8 then
+        if savageRoarLeft < 5 then
           if DoSpell("Дикий рев") then return end
         elseif ripLast == 0 then
-            if DoSpell("Разорвать", target) then return end
+          if DoSpell("Разорвать", target) then return end
         else
           if DoSpell("Свирепый укус", target) then return end
         end
         return
     end
-
     if DoSpell(behind and "Полоснуть" or (HasSpell("Увечье (кошка)") and "Увечье (кошка)" or "Цапнуть"), target) then return end
   end
   if bear then
