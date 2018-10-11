@@ -218,10 +218,9 @@ function UnitIsPet(unit)
 end
 
 ------------------------------------------------------------------------------------------------------------------
-local worldbosses = {"worldboss", "rareelite", "elite"}
-local bosses = {"elite"}
 function UnitIsBoss(unit)
-    return tContains(IsInstance() and bosses or worldbosses, UnitClassification(unit))
+  local lvl = UnitLevel(unit)
+    return  lvl == -1 or lvl > UnitLevel("player")
 end
 
 ------------------------------------------------------------------------------------------------------------------

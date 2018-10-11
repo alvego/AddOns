@@ -11,13 +11,26 @@ local player = "player"
 local focus = "focus"
 local target = "target"
 local bearHealBuffs = {"Инстинкты выживания", "Неистовое восстановление"}
-local rakeId = GetSpellId("Глубокая рана")
-local ripId = GetSpellId("Разорвать")
-local savageRoarId = GetSpellId("Дикий рев")
-local bersId = GetSpellId("Берсерк")
 local stance, attack, pvp, combat, combatMode, canAttackTarget, inPlace, time,
   mouse5, hp, mana, enemyCount, cat, bear, arena, mounted, vehicle, duel, melee,
-  dist, stealth
+  dist, stealth, boss
+
+local function boolPropToOnOFFString(name, value)
+  return (value and '|cff00FF00' or '|cffFF0000') .. name .. '|r; '
+end
+local function intPropToOnOFFString(name, value)
+  local val = floor(value or 0)
+  return '|cffAAAAFF' .. name .. ':|r ' .. (val > 0 and '|cff00FF00' .. val ..'|r' or '|cffFF0000'.. val ..'|r') .. '; '
+end
+function getIdleDebugInfo()
+  local info = ''
+  info = info .. boolPropToOnOFFString('Taunt', AutoTaunt)
+  info = info .. boolPropToOnOFFString('AOE', AutoAOE)
+  info = info .. boolPropToOnOFFString('Stun', CanInterrupt)
+  info = info .. boolPropToOnOFFString('Bers', AutoBers)
+  return info
+end
+
 function Idle()
   stance = GetShapeshiftForm()
   attack = IsAttack()
@@ -188,6 +201,7 @@ function Idle()
     if not cat and DoSpell("Облик кошки") then return end
   end
   if CantAttack() then return end
+  boss = UnitIsBoss(target)
   melee = InMelee(target)
   -- IsAOE -------------------------------------------------------------------
   enemyCount = AutoAOE and GetEnemyCountInRange(bear and 8 or 5) or 1
@@ -237,31 +251,40 @@ function Idle()
     local bersLeft = hasBers and GetSpellCooldownLeft("Берсерк") or 0
     if (needBers and bersLeft < 28) then canAddEnergy = false end
     if canAddEnergy and mana < 40 and not bersBuff and DoSpell("Тигриное неистовство") then return end
-
+    local rakeId = 48574--GetSpellId("Глубокая рана")
+    local ripId = 49800--GetSpellId("Разорвать")
+    local savageRoarId = 52610--GetSpellId("Дикий рев")
+    local bersId = 50334--GetSpellId("Берсерк")
     local rakeLeft = max((select(7, HasMyDebuff(rakeId, 0.01, target)) or 0) - time, 0)
     local bloodLeft = max((select(7, HasDebuff(bloodList, 0.01, target)) or 0) - time, 0)
     local savageRoarLeft = max((select(7, HasMyBuff(savageRoarId, 0.01, player)) or 0) - time, 0)
     local ripLast = max((select(7, HasMyDebuff(ripId, 0.01, target)) or 0) - time, 0)
     local sorcerousFireLeft = max((select(7, HasDebuff("Волшебный огонь", 0.01, target)) or 0) - time, 0)
-
+    local name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId = HasMyDebuff(ripId, 0.01, target)
+    if IsCtr() then print(ripLast, name, debuffType, duration, expirationTime, unitCaster, spellId, ripId, type(spellId)) end
     if needBers and melee and bersLeft < 1
-      and (mana > 60 or IsReadySpell("Тигриное неистовство"))
-      and rakeLeft > 5 and bloodLeft > 5 then
-        if mana < 60 and DoSpell("Тигриное неистовство") then return end
-        DoSpell("Берсерк")
-        Notify("Берсерк!")
-        return
+      and (mana > 60 or IsReadySpell("Тигриное неистовство")) then
+
+        if rakeLeft > 5 and bloodLeft > 5 then
+          if mana < 60 and DoSpell("Тигриное неистовство") then return end
+          DoSpell("Берсерк")
+          Notify("Берсерк!")
+          return
+        elseif IsCtr() then
+          print("rakeLeft:",rakeLeft, "bloodLeft:", bloodLeft)
+        end
+
     end
 
-    if (UnitIsBoss(target) or pvp) and sorcerousFireLeft < 5 and DoSpell("Волшебный огонь (зверь)", target) then return end
+    if (boss or pvp) and sorcerousFireLeft < 5 and DoSpell("Волшебный огонь (зверь)", target) then return end
 
     if HasSpell("Увечье (кошка)") and bloodLeft < 3 then
         DoSpell("Увечье (кошка)", target)
-        return
+        if boss then return end
     end
     if rakeLeft == 0 then
         DoSpell("Глубокая рана", target)
-        return
+        if boss then return end
     end
     if HasBuff("Ясность мысли") then
         if DoSpell(behind and "Полоснуть" or (HasSpell("Увечье (кошка)") and "Увечье (кошка)" or "Цапнуть"), target) then return end
@@ -277,16 +300,18 @@ function Idle()
         if DoSpell("Дикий рев") then return end
         return
     end
-    if (CP > 3) and savageRoarLeft < 8 then
+    if (CP > 3) and savageRoarLeft < 5 then
       if DoSpell("Дикий рев") then return end
       return
     end
     if (CP == 5) then
-        if savageRoarLeft < 5 then
+        if not boss then
+          if DoSpell("Свирепый укус", target) then return end
+        elseif savageRoarLeft < 8 then
           if DoSpell("Дикий рев") then return end
         elseif ripLast == 0 then
           if DoSpell("Разорвать", target) then return end
-        else
+        elseif ripLast > 8 then
           if DoSpell("Свирепый укус", target) then return end
         end
         return
@@ -305,13 +330,13 @@ function Idle()
       if DoSpell("Оглушить") then return end
       return
     end
-    if enemyCount > 1 and DoSpell("Размах(Облик медведя)") then return end
-    if  (UnitIsBoss(target) or pvp) and not HasDebuff("Волшебный огонь", 1, target) and DoSpell("Волшебный огонь (зверь)", target) then return end
+    if  (boss or pvp) and not HasDebuff("Волшебный огонь", 1, target) and DoSpell("Волшебный огонь (зверь)", target) then return end
     if not HasMyDebuff("Увечье (медведь)", 5, target) and DoSpell("Увечье (медведь)", target) then return end
+    if enemyCount > 1 and DoSpell("Размах (медведь)") then return end
     local  name, _, _, count = HasMyDebuff("Растерзать", 1, target);
     if (not name or count < 5) and DoSpell("Растерзать", target) then return end
     if not HasMyDebuff("Увечье (медведь)", GCDDuration, target) and DoSpell("Увечье (медведь)", target) then return end
-    if  (UnitIsBoss(target) or pvp or enemyCount > 4) and not HasDebuff("Устрашающий рев",1) and DoSpell("Устрашающий рев") then return end
+    if  (boss or pvp or enemyCount > 4) and not HasDebuff("Устрашающий рев",1) and DoSpell("Устрашающий рев") then return end
     if DoSpell("Увечье (медведь)", target) then return end
     if melee and mana > 25 and not (IsCurrentSpell("Трепка") == 1) and DoSpell("Трепка") then return end
   end
@@ -328,7 +353,10 @@ function isNeedStun()
 end
 ----------------------------------------------------------------------------------------------------------------
 function canBers()
-  if IsCtr() then return true end
+  if IsCtr() then
+    print('canBers', boss, enemyCount)
+    return true
+  end
   if not AutoBers then return false end
-  return not not (pvp or (enemyCount > 4) or UnitIsBoss(target))
+  return pvp or (enemyCount > 4) or boss
 end

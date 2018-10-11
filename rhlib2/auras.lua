@@ -25,19 +25,26 @@ function HasAura(aura, last, target, method, my)
 
         if not name then return nil end
 
-        if (expirationTime - GetTime() >= last or expirationTime == 0) and (not my or unitCaster == "player") then
+        if (expirationTime - GetTime() >= last or expirationTime == 0) and (not my or IsOneUnit(unitCaster, "player")) then
             if (type(aura) == 'table') then
                 local find = false
                 for i = 1, #aura do
                     local a = aura[i]
-                    if (type(a) == "number" and spellId == a) or (sContains(name, a) or (debuffType and sContains(debuffType, a))) then
-                      find = true
-                      break
+                    if type(a) == "number" and spellId == a then
+                      find = true break
+                    else
+                      if sContains(name, a) then find = true break end
+                      if debuffType and sContains(debuffType, a) then find = true break end
                     end
                 end
                 if find then break end
             else
-                if (type(aura) == "number" and spellId == aura) or (sContains(name, aura) or (debuffType and sContains(debuffType, aura))) then break end
+                if type(aura) == "number" and spellId == aura then
+                  break
+                else
+                  if sContains(name, aura) then break end
+                  if debuffType and sContains(debuffType, aura) then break end
+                end
             end
         end
     end

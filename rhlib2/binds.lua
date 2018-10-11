@@ -99,7 +99,11 @@ local function updateDebugStats()
     local mem  = GetAddOnMemoryUsage("rhlib2")
     local fps = GetFramerate();
     local speed = GetUnitSpeed("player") / 7 * 100
-    debugFrame.text:SetText(format('MEM: %.1fKB, LAG: %ims, FPS: %i, SPD: %d%%',  mem, LagTime * 1000, fps, speed))
+    local idleInfo = ''
+    if getIdleDebugInfo then
+      idleInfo = ' > ' .. getIdleDebugInfo()
+    end
+    debugFrame.text:SetText(format('MEM: %.1fKB, LAG: %ims, FPS: %i, SPD: %d%%',  mem, LagTime * 1000, fps, speed) .. idleInfo)
     if not debugFrame:IsVisible() then debugFrame:Show() end
 end
 
