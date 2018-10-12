@@ -208,7 +208,7 @@ function Idle()
 
   if not bear and HasBuff("Быстрота хищника") then
       --if IsCtr() and HasDebuff("Смерч",1,"target") then DoSpell("Смерч") return end
-      if hp < (pvp or not (IsInstance() and IsInGroup()) and 95 or 50) then DoSpell("Целительное прикосновение", player) return end
+      if hp < (pvp and  95 or 50) and  DoSpell("Целительное прикосновение", player) then return end
   end
 
   if cat then
