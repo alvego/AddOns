@@ -258,10 +258,10 @@ function Idle()
     local rakeLeft = max((select(7, HasMyDebuff(rakeId, 0.01, target)) or 0) - time, 0)
     local bloodLeft = max((select(7, HasDebuff(bloodList, 0.01, target)) or 0) - time, 0)
     local savageRoarLeft = max((select(7, HasMyBuff(savageRoarId, 0.01, player)) or 0) - time, 0)
-    local ripLast = max((select(7, HasMyDebuff(ripId, 0.01, target)) or 0) - time, 0)
+    local ripLeft = max((select(7, HasMyDebuff(ripId, 0.01, target)) or 0) - time, 0)
     local sorcerousFireLeft = max((select(7, HasDebuff("Волшебный огонь", 0.01, target)) or 0) - time, 0)
     local name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId = HasMyDebuff(ripId, 0.01, target)
-    if IsCtr() then print(ripLast, name, debuffType, duration, expirationTime, unitCaster, spellId, ripId, type(spellId)) end
+    if IsCtr() then print(ripLeft, name, debuffType, duration, expirationTime, unitCaster, spellId, ripId, type(spellId)) end
     if needBers and melee and bersLeft < 1
       and (mana > 60 or IsReadySpell("Тигриное неистовство")) then
 
@@ -295,23 +295,20 @@ function Idle()
         DoSpell("Калечение", target)
         return
     end
-
-    if (CP > 1) and savageRoarLeft == 0 then
+    if (CP > 1) and (savageRoarLeft == 0) then -- or (savageRoarLeft < 8 and ripLeft < 8)
         if DoSpell("Дикий рев") then return end
         return
-    end
-    if (CP > 3) and savageRoarLeft < 5 then
-      if DoSpell("Дикий рев") then return end
-      return
-    end
-    if (CP == 5) then
+    elseif (CP > 3) and savageRoarLeft < 5 then
+         if DoSpell("Дикий рев") then return end
+         return
+    elseif (CP == 5) then
         if not boss then
           if DoSpell("Свирепый укус", target) then return end
         elseif savageRoarLeft < 8 then
           if DoSpell("Дикий рев") then return end
-        elseif ripLast == 0 then
+        elseif ripLeft == 0 then
           if DoSpell("Разорвать", target) then return end
-        elseif ripLast > 8 then
+        elseif ripLeft > 8 then
           if DoSpell("Свирепый укус", target) then return end
         end
         return

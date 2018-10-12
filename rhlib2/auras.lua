@@ -19,7 +19,7 @@ function HasAura(aura, last, target, method, my)
     local name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId
 
     if not UnitExists(target) then return nil end
-
+    local find = false
     for i = 1, 40 do
         name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId  = method(target, i)
 
@@ -27,7 +27,6 @@ function HasAura(aura, last, target, method, my)
 
         if (expirationTime - GetTime() >= last or expirationTime == 0) and (not my or IsOneUnit(unitCaster, "player")) then
             if (type(aura) == 'table') then
-                local find = false
                 for i = 1, #aura do
                     local a = aura[i]
                     if type(a) == "number" and spellId == a then
@@ -40,15 +39,15 @@ function HasAura(aura, last, target, method, my)
                 if find then break end
             else
                 if type(aura) == "number" and spellId == aura then
-                  break
+                  find = true break
                 else
-                  if sContains(name, aura) then break end
-                  if debuffType and sContains(debuffType, aura) then break end
+                  if sContains(name, aura) then find = true break end
+                  if debuffType and sContains(debuffType, aura) then find = true break end
                 end
             end
         end
     end
-
+    if not find then return nil end
     return name, rank, icon, count, debuffType, duration, expirationTime, unitCaster, isStealable, shouldConsolidate, spellId
 end
 
