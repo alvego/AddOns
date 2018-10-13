@@ -399,14 +399,14 @@ function PvE()
 
   if not IsInGroup() and not IsOneUnit(player, target .. "-"..target) and DoSpell("Длань возмездия", target) then return end
 
-  if CanMagicAttack(target) and DoSpell(IsAlt() and "Правосудие справедливости" or "Правосудие мудрости", target) then return end
+  if CanMagicAttack(target) and not HasMyDebuff("Правосудие", 5) and DoSpell(IsAlt() and "Правосудие справедливости" or "Правосудие мудрости", target) then return end
 
   if (InMelee(target) or DistanceTo(player, target) < 7) and (IsReadySpell("Божественная буря") or (GetSpellCooldownLeft("Божественная буря") < 0.35)) then
     DoSpell("Божественная буря")
     return
   end
-
   if DoSpell("Удар воина Света", target) then return end
+  if CanMagicAttack(target) and DoSpell(IsAlt() and "Правосудие справедливости" or "Правосудие мудрости", target) then return end
   if HasBuff("Искусство войны") and CanMagicAttack(target) and DoSpell("Экзорцизм", target) then return end
   --if UseEquippedItem("Перчатки ануб'арского охотника") then return end
   if InCombatLockdown() and UseEquippedItem(GetSlotItemName(10), target) then return end
