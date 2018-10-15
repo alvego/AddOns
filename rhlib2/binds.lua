@@ -390,7 +390,11 @@ function UpdateIdle(elapsed)
           end
         end
       else
-        if TimerMore("Рыбная ловля", 1) and not (IsCurrentSpell("Рыбная ловля") == 1) and UseSpell("Рыбная ловля") then TimerStart("Рыбная ловля") return end
+        if TimerMore("Рыбная ловля", 1.5) and not (IsCurrentSpell("Рыбная ловля") == 1) then
+          TimerStart("Рыбная ловля")
+          UseSpell("Рыбная ловля")
+          return
+        end
       end
     end
 
