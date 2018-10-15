@@ -390,7 +390,7 @@ function UpdateIdle(elapsed)
           end
         end
       else
-        if UseSpell("Рыбная ловля") then return end
+        if not (IsCurrentSpell("Рыбная ловля") == 1) and UseSpell("Рыбная ловля") then return end
       end
     end
 

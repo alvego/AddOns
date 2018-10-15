@@ -308,7 +308,7 @@ function Idle()
           if DoSpell("Дикий рев") then return end
         elseif ripLeft == 0 then
           if DoSpell("Разорвать", target) then return end
-        elseif ripLeft > 8 then
+        elseif ripLeft > 6 then
           if DoSpell("Свирепый укус", target) then return end
         end
         return

@@ -106,7 +106,7 @@ function Idle()
   if Defence then
     if not HasBuff("Власть льда") and DoSpell("Власть льда") then return end
   else
-    if not HasBuff("Власть крови") and DoSpell("Власть крови") then return end
+    if HasBuff("Власть льда") and DoSpell("Власть крови") then return end
   end
   --AutoTaunt-----------------------------------------------------------------
   if not pvp and AdvMode and AutoTaunt and IsInGroup() --and Defence
@@ -199,6 +199,11 @@ function Idle()
 
   if HasSpell("Ледяной удар") then --Start Frost
 
+    if HasRunes(100, true, 2) and plagueLast > 0 and plagueLast < 1.5 then
+      UseSpell("Мор", target)
+      return
+    end
+
     local enchantId = GetEnchantId(17)
     if not HasMyDebuff("Уязвимость к магии льда", 5, target) and enchantId ~= '3370' then
       SwitchEquipmentSet("жар")
@@ -210,51 +215,24 @@ function Idle()
       DoSpell("Несокрушимая броня")
       return
     end
-    --------------------------------------------------------------------------------------------------
-    ----TEST------------------------------------------------------------------------------------------
-    --------------------------------------------------------------------------------------------------
-    -- if not HasRunes(011, false, GCDDuration) and GetRuneType(1) == 1 and IsRuneReady(1, GCDDuration) then
-    --   if UseSpell("Мор", target) then return end
-    -- elseif GetRuneType(2) == 1 and IsRuneReady(1, GCDDuration) then
-    --   if IsReadySpell("Кровоотвод") then
-    --     UseSpell("Кровоотвод")
-    --     return
-    --   end
-    --   if UseSpell("Кровавый удар", target) then return end
-    --   return
-    -- elseif not HasRunes(011, true) and HasRunes(011, false) then
-    --   if UseSpell(aoe5 and "Воющий ветер" or "Уничтожение", target) then return end
-    -- elseif HasBuff("Кровоотвод") and GetRuneType(1) == 4 and GetRuneType(2) == 1 then
-    --   chat("Отмена Кровоотвод")
-    --   oexecute('CancelUnitBuff("player", "Кровоотвод")')
-    --   return
-    -- elseif HasRunes(011, false) then
-    --   if UseSpell(aoe5 and "Воющий ветер" or "Уничтожение", target) then return end
-    -- elseif not HasRunes(100, true, 2) and not HasRunes(011, false, 2) then
-    --   if rp < (HasBuff("Машина для убийств") and 90 or 32) and HasBuff("Морозная дымка") then
-    --       if UseSpell("Воющий ветер", target) then return end
-    --   else
-    --     if UseSpell("Ледяной удар", target) then return end
-    --   end
-    -- end
-    --
-    -- if true then return end
-    --------------------------------------------------------------------------------------------------
-    if GetRuneType(1) == 4 and GetRuneType(2) == 4 and IsRuneReady(1, LagTime) and IsRuneReady(2, LagTime) then
+
+    -- руны смерти сливаем в руны крови
+    if GetRuneType(1) == 4 and GetRuneType(2) == 4 and IsRuneReady(1, 1.1) and IsRuneReady(2, 1.1) then
       UseSpell(aoe5 and "Воющий ветер" or "Уничтожение", target)
       return
     end
 
-    if GetRuneType(1) == 4 and GetRuneType(2) == 1 and GetRuneCooldownLeft(1) > 0 and GetRuneCooldownLeft(2) < GCDDuration then
-      if plagueLast < 15 then
-        UseSpell("Мор", target)
-        return
-      end
+    if GetRuneType(1) == 4 and GetRuneType(2) == 1 and GetRuneCooldownLeft(1) > 0 and GetRuneCooldownLeft(2) < 1.1 then
+      -- if plagueLast < 15 then
+      --   UseSpell("Мор", target)
+      --   return
+      -- end
+      UseSpell("Мор", target)
       if IsReadySpell("Кровоотвод") then
         UseSpell("Кровоотвод")
         return
       end
-      UseSpell("Кровавый удар", target)
+      --UseSpell("Кровавый удар", target)
       return
     end
 
@@ -264,17 +242,22 @@ function Idle()
       return
     end
 
-    if HasRunes(200, true, GCDDuration) then
-      UseSpell(plagueLast > 10 and "Кровавый удар" or "Мор", target)
-      return
-    end
-
-    if plagueLast > GCDDuration  and HasRunes(011, true) then
+    if plagueLast > 2.2  and HasRunes(011, true) then
       UseSpell(aoe5 and "Воющий ветер" or "Уничтожение", target)
       return
     end
 
-    if plagueLast > GCDDuration then
+    if HasRunes(200, true) and plagueLast > 2.2 then
+      UseSpell("Кровавый удар", target)
+      return
+    end
+
+    -- if HasRunes(200, true, 2) then
+    --   UseSpell(plagueLast < 2 and "Мор" or "Кровавый удар", target)
+    --   return
+    -- end
+
+    if plagueLast > 3 then
       if rp < (HasBuff("Машина для убийств") and 90 or 32) and HasBuff("Морозная дымка") then
         UseSpell("Воющий ветер", target)
         return
