@@ -379,6 +379,7 @@ function PvE()
   if hp < 30 and DoSpell("Возложение рук", player) then return end
   if hp < 25 and DoSpell("Божественный щит", player) then return end
   if InCombatLockdown() then
+    if AdvMode and IsEquippedItemType("Удочка") and EquipItem("Темная Скорбь") then return end
     if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
     if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
     if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
@@ -458,6 +459,7 @@ function PvP()
   if not isFinishHim and mana > 30 and IsSpellNotUsed("Очищение", 5) and InInteractRange(teammate) and HasDebuff(redDispelList, 3, teammate)
     and not HasDebuff("Нестабильное колдовство", 0.1, teammate) and DoSpell("Очищение", teammate) then return end
   if InCombatLockdown() then
+    if AdvMode and IsEquippedItemType("Удочка") and EquipItem("Темная Скорбь") then return end
     if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
     if not (InDuel() or IsArena()) then
       if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end

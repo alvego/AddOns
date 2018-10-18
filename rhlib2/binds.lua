@@ -386,7 +386,8 @@ function UpdateIdle(elapsed)
           if isBobbing then
             --chat("Подсекаем")
             oexecute('InteractUnit("' ..bobber_uid .. '")')
-            StopCast("Подсекли рыбку")
+            --StopCast("Подсекли рыбку")
+            TimerStart("Рыбная ловля")
           end
         end
       else
