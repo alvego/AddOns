@@ -78,9 +78,12 @@ function Idle()
 
   if HasSpell("Живая бомба") then
     if HasBuff("Путь огня") and InRange("Огненная глыба", target) then
-      local spell, left =  UnitIsCasting("player")
-      if spell and not HasMyDebuff("Живая бомба", left + 1.5, target) then
-        StopCast("Огненная глыба - Путь огня!")
+      local spell, left =  UnitIsCasting("player", 0)
+      if spell then
+        local bombLeft = max((select(7, HasMyDebuff("Живая бомба", 0.01, target)) or 0) - GetTime(), 0)
+        if left > (bombLeft - 0.25) then
+          StopCast("Огненная глыба - Путь огня!")
+        end
       end
       DoSpell("Огненная глыба", target)
       return
@@ -100,12 +103,10 @@ function Idle()
         end
       end
     end
-   
-    if inPlace and IsSpellNotUsed("Ожог", 5) and not HasMyDebuff(unstackCritDebuff, 0.01, target) and InRange("Ожог", target) then
+    if inPlace and IsSpellNotUsed("Ожог", 5, true) and not HasMyDebuff(unstackCritDebuff, 0.01, target) and InRange("Ожог", target) then
       DoSpell("Ожог", target)
       return
     end
-
     if not HasMyDebuff("Живая бомба", 0.01, target) and InRange("Живая бомба", target) then
       DoSpell("Живая бомба", target)
       return

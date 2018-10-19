@@ -172,7 +172,8 @@ end
 ------------------------------------------------------------------------------------------------------------------
 -- using (nil if nothing casting)
 -- local spell, left, duration, channel, nointerrupt = UnitIsCasting("unit")
-function UnitIsCasting(unit)
+function UnitIsCasting(unit, last)
+    if type(last) ~= "number" then last = LagTime * 2 end
     if not unit then unit = "player" end
     local channel = false
     -- name, subText, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible = UnitCastingInfo("unit")
@@ -185,7 +186,7 @@ function UnitIsCasting(unit)
     if spell == nil or not startTime or not endTime then return nil end
     local left = endTime * 0.001 - GetTime()
     local duration = (endTime - startTime) * 0.001
-    if left < (LagTime * 2) then return nil end
+    if left < last then return nil end
     --print(unit, spell, left, duration, channel, nointerrupt)
     return spell, left, duration, channel, nointerrupt
 end
@@ -224,7 +225,7 @@ local InCast = {}
 
 local function getCastInfo(spell)
 	if spell and not InCast[spell] then
-		InCast[spell] = {StartTime = 0, LastCastTime = 0, Target = nil, TargetName = nil, TargetGUID = nil, LastError = nil }
+		InCast[spell] = {LastStartTime = 0, LastCastTime = 0, Target = nil, TargetName = nil, TargetGUID = nil, LastError = nil }
 	end
 	return InCast[spell]
 end
@@ -232,19 +233,13 @@ local function UpdateIsCast(event, ...)
     local unit, spell, rank, target = select(1,...)
     if spell and unit == "player" then
         local castInfo = getCastInfo(spell)
-        if event == "UNIT_SPELLCAST_SUCCEEDED" and castInfo.StartTime > 0 then
-            castInfo.LastCastTime = castInfo.StartTime
+        if event == "UNIT_SPELLCAST_SUCCEEDED" then
+            castInfo.LastCastTime = GetTime()
             castInfo.LastError = nil
-        end
-        if event == "UNIT_SPELLCAST_SENT" then
-           castInfo.StartTime = GetTime()
+        elseif event == "UNIT_SPELLCAST_SENT" then
+           castInfo.LastStartTime = GetTime()
            castInfo.TargetName = target
-           TimerStart('InCast')
-        else
-            castInfo.StartTime = 0
-            TimerReset('InCast')
-        end
-        if event == "UNIT_SPELLCAST_FAILED" then
+        else --event == "UNIT_SPELLCAST_FAILED"
             local error = castInfo.LastError
 
             if error == "Вы должны находиться позади цели."  and  castInfo.TargetGUID then
@@ -265,22 +260,28 @@ function GetLastSpellTarget(spell)
     return (castInfo.Target and castInfo.TargetGUID and UnitExists(castInfo.Target) and UnitGUID(castInfo.Target) == castInfo.TargetGUID) and castInfo.Target or nil
 end
 
-function GetSpellLastTime(spell)
+function GetSpellLastTime(spell, start)
     local castInfo = getCastInfo(spell)
+    if start then
+      return castInfo.LastStartTime
+    end
     return castInfo.LastCastTime
 end
 
-function IsSpellNotUsed(spell, t)
-    local last  = GetSpellLastTime(spell)
-    return GetTime() - last >= t
+function IsSpellNotUsed(spell, t, start)
+    local last  = GetSpellLastTime(spell, start)
+    return last == 0 or GetTime() - last >= t
 end
-
 
 function IsSpellInUse(spell)
     if not spell then return false end
-    local castInfo = getCastInfo(spell)
-    if (GetTime() - castInfo.StartTime <= LagTime) then return true end
-    --if IsCurrentSpell(spell) == 1 then return true end
+    -- local castInfo = getCastInfo(spell)
+    -- if (GetTime() - castInfo.LastStartTime <= LagTime) then return true end
+    if IsCurrentSpell(spell) == 1 then
+      local spell, left, duration, channel, nointerrupt = UnitIsCasting("player", 0)
+      if not spell then return true end
+      if left > (2 * LagTime) then return true end
+    end
     return false
 end
 
@@ -339,7 +340,14 @@ local function falseBecause(m, spell, icon, target)
 end
 
 function UseSpell(spell, target)
-  --if TimerStarted("InCast") then return falseBecause("В процессе каста") end
+  -- local castSpell, castLast = UnitIsCasting("player", 0)
+  -- if castSpell then
+  --    if castLast < (2 * LagTime) then
+  --      StopCast("LagTime")
+  --    else
+  --      return falseBecause("В процессе каста")
+  --    end
+  -- end
   if UnitIsCasting("player") then return falseBecause("В процессе каста") end
   if not spell then return falseBecause("Отсутсвует", spell) end
 

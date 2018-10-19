@@ -305,7 +305,7 @@ function Rotation()
       -- if not HasMyDebuff("Увечье (медведь)", GCDDuration, target) and DoSpell("Увечье (медведь)", target) then return end
       -- if  (UnitIsBoss(target) or pvp) and not HasDebuff("Устрашающий рев",3) and DoSpell("Устрашающий рев") then return end
       -- if DoSpell("Увечье (медведь)", target) then return end
-      -- if melee and mana > 25 and not (IsCurrentSpell("Трепка") == 1) and DoSpell("Трепка") then return end
+      -- if melee and mana > 25 and DoSpell("Трепка") then return end
 
       --return
   end

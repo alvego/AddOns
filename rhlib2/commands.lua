@@ -152,6 +152,10 @@ SetCommand("spell",
             chat(spell .. " - не готово!")
             return true
         end
+        if IsCurrentSpell(spell) == 1 then
+            echo("Уже используем " .. spell, 1)
+            return true
+        end
         local cast = UnitIsCasting("player")
         if spell == cast then
             chat("Кастуем " .. spell)

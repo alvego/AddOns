@@ -335,7 +335,7 @@ function Idle()
     if not HasMyDebuff("Увечье (медведь)", GCDDuration, target) and DoSpell("Увечье (медведь)", target) then return end
     if  (boss or pvp or enemyCount > 4) and not HasDebuff("Устрашающий рев",1) and DoSpell("Устрашающий рев") then return end
     if DoSpell("Увечье (медведь)", target) then return end
-    if melee and mana > 25 and not (IsCurrentSpell("Трепка") == 1) and DoSpell("Трепка") then return end
+    if melee and mana > 25 and DoSpell("Трепка") then return end
   end
 end
 ----------------------------------------------------------------------------------------------------------------
