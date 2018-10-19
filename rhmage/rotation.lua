@@ -1,6 +1,7 @@
 -- Mage Rotation Helper by Alex Tim & Co
 ------------------------------------------------------------------------------------------------------------------
 local peaceBuff = {"Пища", "Питье"}
+local unstackCritDebuff = {"ожог", "Власть над Тенями", "Зимняя стужа"}
 local reflectBuff = {"Отражение заклинания", "Эффект тотема заземления", "Рунический покров"}
 function Idle()
   local attack = IsAttack()
@@ -99,8 +100,8 @@ function Idle()
         end
       end
     end
-
-    if inPlace and IsSpellNotUsed("Ожог", 5) and (not HasMyDebuff("ожог", 0.01, target) or (not HasDebuff("Власть над Тенями", 0.01, target)) or (not HasMyDebuff("Зимняя стужа", 0.01, target))) and InRange("Ожог", target) then
+   
+    if inPlace and IsSpellNotUsed("Ожог", 5) and not HasMyDebuff(unstackCritDebuff, 0.01, target) and InRange("Ожог", target) then
       DoSpell("Ожог", target)
       return
     end
