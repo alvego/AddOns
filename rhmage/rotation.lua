@@ -63,7 +63,7 @@ function Idle()
   if HasBuff(reflectBuff, 0.1, target) and DoSpell("Ледяное копье", target) then return end
   if pvp and HasBuff("Magic", 3, target) and IsSpellNotUsed("Чарокрад", 5) and DoSpell("Чарокрад", target) then return end
   if pvp and HasDebuff("Curse", 3, player) and IsSpellNotUsed("Снятие проклятия", 5) and DoSpell("Снятие проклятия", player) then return end
-  
+
   -- local spell, left =  UnitIsCasting("player")
   -- if spell and  left < LagTime * 1.8 then
   --   StopCast("left:" .. left)
@@ -100,7 +100,7 @@ function Idle()
       end
     end
 
-    if inPlace and IsSpellNotUsed("Ожог", 5) and not HasMyDebuff("ожог", 0.01, target) and InRange("Ожог", target) then
+    if inPlace and IsSpellNotUsed("Ожог", 5) and (not HasMyDebuff("ожог", 0.01, target) or (not HasDebuff("Власть над Тенями", 0.01, target)) or (not HasMyDebuff("Зимняя стужа", 0.01, target))) and InRange("Ожог", target) then
       DoSpell("Ожог", target)
       return
     end
