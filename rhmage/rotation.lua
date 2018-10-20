@@ -105,7 +105,7 @@ function Idle()
       end
     end
 
-    local scorch = HasMyDebuff(unstackCritDebuff, 0.01, target)
+    local scorch = HasDebuff(unstackCritDebuff, 0.01, target)
     if inPlace and IsSpellNotUsed("Ожог", 1.5, true) and not scorch and InRange("Ожог", target) then
       DoSpell("Ожог", target)
       return
