@@ -19,7 +19,7 @@ local function CastLagTime(event, ...)
             sendTime = GetTime()
         else
             if not sendTime then return end
-            LagTime = (GetTime() - sendTime) / 2
+            LagTime = (GetTime() - sendTime)
             sendTime = nil
         end
     end
@@ -71,7 +71,7 @@ function GetGCDLeft()
 end
 
 function InGCD()
-    return GetGCDLeft() > (LagTime * 2)
+    return GetGCDLeft() > LagTime
 end
 
 local abs = math.abs
@@ -173,7 +173,7 @@ end
 -- using (nil if nothing casting)
 -- local spell, left, duration, channel, nointerrupt = UnitIsCasting("unit")
 function UnitIsCasting(unit, last)
-    if type(last) ~= "number" then last = LagTime * 2 end
+    if type(last) ~= "number" then last = LagTime * 0.7 end
     if not unit then unit = "player" end
     local channel = false
     -- name, subText, text, texture, startTime, endTime, isTradeSkill, castID, notInterruptible = UnitCastingInfo("unit")
@@ -280,7 +280,7 @@ function IsSpellInUse(spell)
     if IsCurrentSpell(spell) == 1 then
       local spell, left, duration, channel, nointerrupt = UnitIsCasting("player", 0)
       if not spell then return true end
-      if left > (2 * LagTime) then return true end
+      if left > LagTime then return true end
     end
     return false
 end
@@ -340,15 +340,15 @@ local function falseBecause(m, spell, icon, target)
 end
 
 function UseSpell(spell, target)
-  -- local castSpell, castLast = UnitIsCasting("player", 0)
-  -- if castSpell then
-  --    if castLast < (2 * LagTime) then
-  --      StopCast("LagTime")
-  --    else
-  --      return falseBecause("В процессе каста")
-  --    end
-  -- end
-  if UnitIsCasting("player") then return falseBecause("В процессе каста") end
+  local castSpell, castLast = UnitIsCasting("player", 0)
+  if castSpell then
+     if not UnitIsCasting("player") then
+       StopCast("LagTime")
+     else
+       return falseBecause("В процессе каста")
+     end
+  end
+  --if UnitIsCasting("player") then return falseBecause("В процессе каста") end
   if not spell then return falseBecause("Отсутсвует", spell) end
 
   local name, rank, icon, cost, isFunnel, powerType, castTime, minRange, maxRange  = GetSpellInfo(spell)

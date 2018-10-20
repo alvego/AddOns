@@ -1,6 +1,7 @@
 -- Mage Rotation Helper by Alex Tim & Co
 ------------------------------------------------------------------------------------------------------------------
 local peaceBuff = {"Пища", "Питье"}
+local intBuff = {"интеллект", "гениальность"}
 local unstackCritDebuff = {"ожог", "Власть над Тенями", "Зимняя стужа"}
 local reflectBuff = {"Отражение заклинания", "Эффект тотема заземления", "Рунический покров"}
 function Idle()
@@ -32,29 +33,29 @@ function Idle()
   -- дайте поесть (побегать) спокойно
   if not attack and (IsMounted() or CanExitVehicle() or HasBuff(peaceBuff)) then return end
   if not attack and HasBuff("Невидимость") then return end
-
-  if (not attack or not combat) then
-    if not (HasBuff("интеллект", 5) or HasBuff("гениальность", 5)) and DoSpell(IsBattleground() and (GetItemCount("Порошек чар") > 0) and "Чародейская гениальность Даларана" or "Даларанский интеллект", player) then return end
+  -- TryTarget ---------------------------------------------------------------
+  TryTarget(attack, true)
+  local validTarget = IsValidTarget(target)
+  ----------------------------------------------------------------------------
+  if not (attack and combat) then
+    if inPlace and not validTarget and mana > 90 and GetItemCount("Сапфир маны") < 1 and DoSpell("Сотворение самоцвета маны") then return end
+    if not HasBuff(intBuff, 5) and DoSpell(IsBattleground() and (GetItemCount("Порошек чар") > 0) and "Чародейская гениальность Даларана" or "Даларанский интеллект", player) then return end
     if HasSpell("Живая бомба") and not HasBuff("Раскаленный доспех", 5) and DoSpell("Раскаленный доспех", player) then return end
-    if HasSpell("Глубокая заморозка") and not HasBuff("доспех", 5) and DoSpell("Ледяной доспех", player) then return end
+    if HasSpell("Глубокая заморозка") and not HasMyBuff("доспех", 5) and DoSpell("Ледяной доспех", player) then return end
     if combatMode and HasSpell("Ледяная преграда") and not HasBuff("Ледяная преграда", 0.01) and DoSpell("Ледяная преграда", player) then return end
   end
-
   if not (combatMode or IsArena()) then return end
   -- TryProtect -----------------------------------------------------------------
   if combat then
     if hp < (TimerLess("Damage", 1) and 80 or 50) and UseEquippedItem("Проржавевший костяной ключ") then return end
+
     if not (InDuel() or IsArena()) then
       if hp < 30 and UseItem("Рунический флакон с лечебным зельем") then return end
-      if hp < 50 and UseItem("Камень здоровья из Скверны") then return end
-      if mana < 50 and UseItem("Сапфир маны") then return end
-      if mana < 25 and UseItem("Рунический флакон с зельем маны") then return end
+      if hp < 60 and UseItem("Камень здоровья из Скверны") then return end
+      if mana < 60 and UseItem("Сапфир маны") then return end
+      if mana < 25 and not sContains(UnitName(target), 'манекен') and UseItem("Рунический флакон с зельем маны") then return end
     end
   end
-  ----------------------------------------------------------------------------
-  local validTarget = IsValidTarget(target)
-  -- TryTarget ---------------------------------------------------------------
-  TryTarget(attack, true)
   ----------------------------------------------------------------------------
   if TryInterrupt() then return end
   -- Rotation ----------------------------------------------------------------
@@ -66,7 +67,7 @@ function Idle()
   if pvp and HasDebuff("Curse", 3, player) and IsSpellNotUsed("Снятие проклятия", 5) and DoSpell("Снятие проклятия", player) then return end
 
   -- local spell, left =  UnitIsCasting("player")
-  -- if spell and  left < LagTime * 1.8 then
+  -- if spell and  left < LagTime then
   --   StopCast("left:" .. left)
   -- end
   if not attack and not CanMagicAttack(target) then
@@ -81,7 +82,7 @@ function Idle()
       local spell, left =  UnitIsCasting("player", 0)
       if spell then
         local bombLeft = max((select(7, HasMyDebuff("Живая бомба", 0.01, target)) or 0) - GetTime(), 0)
-        if left > (bombLeft - 0.25) then
+        if left > (bombLeft - LagTime) then
           StopCast("Огненная глыба - Путь огня!")
         end
       end
@@ -103,10 +104,14 @@ function Idle()
         end
       end
     end
-    if inPlace and IsSpellNotUsed("Ожог", 5, true) and not HasMyDebuff(unstackCritDebuff, 0.01, target) and InRange("Ожог", target) then
+
+    local scorch = HasMyDebuff(unstackCritDebuff, 0.01, target)
+    if inPlace and IsSpellNotUsed("Ожог", 1.5, true) and not scorch and InRange("Ожог", target) then
       DoSpell("Ожог", target)
       return
     end
+    if not scorch then return end
+    --if true then return end
     if not HasMyDebuff("Живая бомба", 0.01, target) and InRange("Живая бомба", target) then
       DoSpell("Живая бомба", target)
       return
