@@ -59,34 +59,55 @@ function Idle()
   ----------------------------------------------------------------------------
   if TryInterrupt() then return end
   -- Rotation ----------------------------------------------------------------
+  if HasSpell("Живая бомба") then
+      Faer()
+      return
+   end
+   if HasSpell("Глубокая заморозка") then
+      Frost()
+      return
+   end
+end
+  -- Faer  ----------------------------------------------------------------
+  function Faer()
+    local attack = IsAttack()
+    local mouse5 = IsMouse(5)
+    local player = "player"
+    local target = "target"
+    local focus = "focus"
+    local hp = UnitHealth100(player)
+    local mana = UnitMana100(player)
+    local pvp = IsPvP() or IsAlt()
+    local combat = InCombatLockdown()
+    local combatMode = InCombatMode()
+    local inPlace = PlayerInPlace()
 
-  if CantAttack(target) then return end
+    if CantAttack(target) then return end
 
-  if HasBuff(reflectBuff, 0.1, target) and DoSpell("Ледяное копье", target) then return end
-  if pvp and HasBuff("Magic", 3, target) and IsSpellNotUsed("Чарокрад", 5) and DoSpell("Чарокрад", target) then return end
-  if pvp and HasDebuff("Curse", 3, player) and IsSpellNotUsed("Снятие проклятия", 5) and DoSpell("Снятие проклятия", player) then return end
+    if HasBuff(reflectBuff, 0.1, target) and DoSpell("Ледяное копье", target) then return end
+    if pvp and HasBuff("Magic", 3, target) and IsSpellNotUsed("Чарокрад", 5) and DoSpell("Чарокрад", target) then return end
+    if pvp and HasDebuff("Curse", 3, player) and IsSpellNotUsed("Снятие проклятия", 5) and DoSpell("Снятие проклятия", player) then return end
 
   -- local spell, left =  UnitIsCasting("player")
   -- if spell and  left < LagTime then
   --   StopCast("left:" .. left)
   -- end
-  if not attack and not CanMagicAttack(target) then
-    chat(CanMagicAttackInfo)
-    return
-  end
+    if not attack and not CanMagicAttack(target) then
+      chat(CanMagicAttackInfo)
+      return
+    end
 
-  if (IsCtr() or HasBuff("Героизм")) and DoSpell("Зеркальное изображение") then return end
+    if (IsCtr() or HasBuff("Героизм")) and DoSpell("Зеркальное изображение") then return end
 
-  if HasSpell("Живая бомба") then
     if HasBuff("Путь огня") and InRange("Огненная глыба", target) then
       local spell, left =  UnitIsCasting("player", 0)
-      if spell then
+        if spell then
         local bombLeft = max((select(7, HasMyDebuff("Живая бомба", 0.01, target)) or 0) - GetTime(), 0)
-        if left > (bombLeft - LagTime) then
-          StopCast("Огненная глыба - Путь огня!")
+          if left > (bombLeft - LagTime) then
+              StopCast("Огненная глыба - Путь огня!")
+          end
         end
-      end
-      DoSpell("Огненная глыба", target)
+          DoSpell("Огненная глыба", target)
       return
     end
 
@@ -124,51 +145,71 @@ function Idle()
     else
       if DoSpell("Огненный взрыв", target) then return end
     end
-  end
+end
+  -- Frost ----------------------------------------------------------------
+  function Frost()
+    local attack = IsAttack()
+    local mouse5 = IsMouse(5)
+    local player = "player"
+    local target = "target"
+    local focus = "focus"
+    local hp = UnitHealth100(player)
+    local mana = UnitMana100(player)
+    local pvp = IsPvP() or IsAlt()
+    local combat = InCombatLockdown()
+    local combatMode = InCombatMode()
+    local inPlace = PlayerInPlace()
+    if CantAttack(target) then return end
 
-  if HasSpell("Глубокая заморозка") then
+    if HasBuff(reflectBuff, 0.1, target) and DoSpell("Ледяное копье", target) then return end
+    if pvp and HasBuff("Magic", 3, target) and IsSpellNotUsed("Чарокрад", 5) and DoSpell("Чарокрад", target) then return end
+    if pvp and HasDebuff("Curse", 3, player) and IsSpellNotUsed("Снятие проклятия", 5) and DoSpell("Снятие проклятия", player) then return end
 
-    if DoSpell("Глубокая заморозка", target) then return end
-
-    if HasBuff("Огненный шар!") then
-      local spell, left =  UnitIsCasting("player")
-      if spell and left > 1 then
-        StopCast("Огненный шар!")
-      end
-      if DoSpell("Стрела ледяного огня", target) then return end
+    if not attack and not CanMagicAttack(target) then
+      chat(CanMagicAttackInfo)
       return
     end
 
+      if DoSpell("Глубокая заморозка", target) then return end
 
-    if IsCtr() then
-      oexecute("PetAttack()")
-      print( HasSpell("Холод") , IsUsableSpell("Холод"))
-      if not HasSpell("Холод") and not HasBuff("Стылая кровь") and not IsReadySpell("Стылая кровь") and DoSpell("Холодная хватка") then return end
-      if DoSpell("Стылая кровь") then return end
-      if DoSpell("Призыв элементаля воды") then return end
-      if DoSpell("Зеркальное изображение") then return end
-      if not HasDebuff("Обморожение", 0.01, target) and DoSpell("Холод", target) then return end
-    end
-    local enemyInRange = GetEnemyInRange(10, target)
-    --if inPlace and IsSpellNotUsed("Огненный столб", 5) and #enemyInRange > 4 and DoSpell("Огненный столб", target) then return end
-    if AutoAOE and inPlace and #enemyInRange > 4 and DoSpell("Снежная буря", target) then return end
-
-    if (pvp or UnitThreat(player, target) == 3) and TimerMore('frost1', 0.5) and inPlace and UnitAffectingCombat(target) and not HasDebuff("Ледяная стрела", 0.01, target) and InRange("Ледяная стрела") then
-      if DoSpell("Ледяная стрела(Уровень 1)", target) then
-        TimerStart("frost1")
+      if HasBuff("Огненный шар!") then
+        local spell, left =  UnitIsCasting("player")
+        if spell and left > 1 then
+          StopCast("Огненный шар!")
+        end
+        if DoSpell("Стрела ледяного огня", target) then return end
         return
       end
-      return
-    end
-    if inPlace and UseEquippedItem(GetSlotItemName(10), target) then return end
-    if inPlace and DoSpell("Ледяная стрела", target) then return end
-    if not inPlace and not HasDebuff("Обморожение", 0.01, target) then
-      if DoSpell("Огненный взрыв", target) then return end
-      if DistanceTo(player, target) < 12 then
-        if PlayerFacingTarget(target) and DoSpell("Конус холода") then return end
-        if DoSpell("Кольцо льда") then return end
+
+
+      if IsCtr() then
+        oexecute("PetAttack()")
+        print( HasSpell("Холод") , IsUsableSpell("Холод"))
+        if not HasSpell("Холод") and not HasBuff("Стылая кровь") and not IsReadySpell("Стылая кровь") and DoSpell("Холодная хватка") then return end
+        if DoSpell("Стылая кровь") then return end
+        if DoSpell("Призыв элементаля воды") then return end
+        if DoSpell("Зеркальное изображение") then return end
+        if not HasDebuff("Обморожение", 0.01, target) and DoSpell("Холод", target) then return end
       end
-      if attack and not inPlace and DoSpell("Ледяное копье", target) then return end
-    end
-  end
+      local enemyInRange = GetEnemyInRange(10, target)
+      --if inPlace and IsSpellNotUsed("Огненный столб", 5) and #enemyInRange > 4 and DoSpell("Огненный столб", target) then return end
+      if AutoAOE and inPlace and #enemyInRange > 4 and DoSpell("Снежная буря", target) then return end
+
+      if (pvp or UnitThreat(player, target) == 3) and TimerMore('frost1', 0.5) and inPlace and UnitAffectingCombat(target) and not HasDebuff("Ледяная стрела", 0.01, target) and InRange("Ледяная стрела") then
+        if DoSpell("Ледяная стрела(Уровень 1)", target) then
+          TimerStart("frost1")
+          return
+        end
+        return
+      end
+      if inPlace and UseEquippedItem(GetSlotItemName(10), target) then return end
+      if inPlace and DoSpell("Ледяная стрела", target) then return end
+      if not inPlace and not HasDebuff("Обморожение", 0.01, target) then
+        if DoSpell("Огненный взрыв", target) then return end
+          if DistanceTo(player, target) < 12 then
+            if PlayerFacingTarget(target) and DoSpell("Конус холода") then return end
+            if DoSpell("Кольцо льда") then return end
+          end
+          if attack and not inPlace and DoSpell("Ледяное копье", target) then return end
+        end
 end
