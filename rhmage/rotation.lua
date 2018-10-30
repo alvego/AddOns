@@ -43,6 +43,7 @@ function Idle()
     if HasSpell("Живая бомба") and not HasBuff("Раскаленный доспех", 5) and DoSpell("Раскаленный доспех", player) then return end
     if HasSpell("Глубокая заморозка") and not HasMyBuff("доспех", 5) and DoSpell("Ледяной доспех", player) then return end
     if combatMode and HasSpell("Ледяная преграда") and not HasBuff("Ледяная преграда", 0.01) and DoSpell("Ледяная преграда", player) then return end
+    if combatMode and HasSpell("Ледяная преграда") and not HasBuff("Ледяная преграда", 0.01) and not HasBuff("Щит маны", 0.01) and DoSpell("Щит маны", player) then return end
   end
   if not (combatMode or IsArena()) then return end
   -- TryProtect -----------------------------------------------------------------
@@ -162,7 +163,7 @@ end
     if CantAttack(target) then return end
 
     if HasBuff(reflectBuff, 0.1, target) and DoSpell("Ледяное копье", target) then return end
-    if pvp and HasBuff("Magic", 3, target) and IsSpellNotUsed("Чарокрад", 5) and DoSpell("Чарокрад", target) then return end
+    if not inPlace and pvp and HasBuff("Magic", 3, target) and IsSpellNotUsed("Чарокрад", 5) and DoSpell("Чарокрад", target) then return end
     if pvp and HasDebuff("Curse", 3, player) and IsSpellNotUsed("Снятие проклятия", 5) and DoSpell("Снятие проклятия", player) then return end
 
     if not attack and not CanMagicAttack(target) then
@@ -195,15 +196,17 @@ end
       --if inPlace and IsSpellNotUsed("Огненный столб", 5) and #enemyInRange > 4 and DoSpell("Огненный столб", target) then return end
       if AutoAOE and inPlace and #enemyInRange > 4 and DoSpell("Снежная буря", target) then return end
 
-      if (pvp or UnitThreat(player, target) == 3) and TimerMore('frost1', 0.5) and inPlace and UnitAffectingCombat(target) and not HasDebuff("Ледяная стрела", 0.01, target) and InRange("Ледяная стрела") then
+      if (pvp or UnitThreat(player, target) == 3) and IsSpellNotUsed("Ледяная стрела", 3, true) and TimerMore('frost1', 0.5) and inPlace and UnitAffectingCombat(target) and not HasDebuff("Ледяная стрела", 0.01, target) and InRange("Ледяная стрела") then
         if DoSpell("Ледяная стрела(Уровень 1)", target) then
           TimerStart("frost1")
           return
         end
         return
       end
+
       if inPlace and UseEquippedItem(GetSlotItemName(10), target) then return end
       if inPlace and DoSpell("Ледяная стрела", target) then return end
+      if (HasDebuff("Кольцо льда", 1, target) or HasDebuff("Холод", 1, target)) and not inPlace and DoSpell("Ледяное копье", target) then return end
       if not inPlace and not HasDebuff("Обморожение", 0.01, target) then
         if DoSpell("Огненный взрыв", target) then return end
           if DistanceTo(player, target) < 12 then
