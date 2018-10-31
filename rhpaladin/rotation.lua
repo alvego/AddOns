@@ -431,7 +431,7 @@ function PvP()
     if not HasMyBuff("благословение королей")
         and not HasMyBuff("благословение могущества")
         and not HasBuff("благословение королей")
-        and DoSpell("Великое благословение королей", player) then return end
+        and IsSpellNotUsed("Великое благословение королей", 10) and DoSpell("Великое благословение королей", player) then return end
     return
   end
   local hp = UnitHealth100(player)
