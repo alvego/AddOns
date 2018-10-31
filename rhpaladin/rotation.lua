@@ -467,7 +467,7 @@ function PvP()
     end
   end
   if HasBuff("Искусство войны") then
-     if hp < (shield and 90 or 50) and DoSpell("Вспышка Света", player) then return end
+     if hp < (shield and 80 or 90) and DoSpell("Вспышка Света", player) then return end
      if InInteractRange(teammate) and UnitHealth100(teammate) < 50 and DoSpell("Вспышка Света", teammate) then return end
   end
   if AdvMode then
@@ -499,7 +499,7 @@ function PvP()
   if shield then
     if DoSpell("Щит праведности", target) then return end
   else
-    if HasBuff("Искусство войны") and CanMagicAttack(target) and DoSpell("Экзорцизм", target) then return end
+    if isFinishHim and HasBuff("Искусство войны") and CanMagicAttack(target) and DoSpell("Экзорцизм", target) then return end
   end
   if mana > 50 then
     if DistanceTo(player, target) < 8 and (UnitCreatureType(target) == "Нежить") and DoSpell("Гнев небес") then return end
