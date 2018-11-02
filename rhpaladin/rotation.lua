@@ -454,7 +454,7 @@ function PvP()
   end
   if not InDuel() then
     if not IsArena() and hp < 30 and DoSpell("Возложение рук", player) then return end
-    if hp < 25 and DoSpell("Божественный щит", player) then return end
+    if not InDuel() and hp < 25 and DoSpell("Божественный щит", player) then return end
   end
   if not isFinishHim and mana > 30 and IsSpellNotUsed("Очищение", 5) and InInteractRange(teammate) and HasDebuff(redDispelList, 3, teammate)
     and not HasDebuff("Нестабильное колдовство", 0.1, teammate) and DoSpell("Очищение", teammate) then return end
