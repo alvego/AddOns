@@ -159,17 +159,19 @@ end
 --local isCC, isRoot, isSilence, isSnare, isDisarm, isImmune, isPvE = GetControlState(unit)
 function GetControlState(unit)
   if not unit then unit = 'player' end
-  local _сс, _root, _silence, _snare, _disarm, _immune, _pve = false, false, false, false, false, false, false
+  local _cc, _root, _silence, _snare, _disarm, _immune, _pve
   for i = 1, 40 do
       local name = UnitDebuff(unit, i)
     	if not name then break end
 			local controlType = controlSpellNames[name]
 			if controlType then
-				if not _сс and controlType == "CC" then
-					_сс = name
+				print(controlType, _silence, not _silence)
+				if not _cc and controlType == "CC" then
+					_cc = name
 				elseif not _root and controlType == "Root" then
 					_root = name
 				elseif not _silence and controlType == "Silence" then
+					print('!!!! Silence')
 					_silence = name
 				elseif not _snare and controlType == "Snare" then
 					_snare = name
@@ -182,7 +184,8 @@ function GetControlState(unit)
 				end
       end
   end
-  return _сс, _root, _silence, _snare, _disarm, _immune, _pve
+	print('_silence', _silence)
+  return _cc, _root, _silence, _snare, _disarm, _immune, _pve
 end
 ------------------------------------------------------------------------------------------------------------------
 -- TODO: need review

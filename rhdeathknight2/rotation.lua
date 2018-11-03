@@ -21,6 +21,13 @@ function Idle()
   local player = "player"
   local target = "target"
   local focus = "focus"
+  -- if IsCtr() then
+  --   local isCC, isRoot, isSilence, isSnare, isDisarm, isImmune, isPvE = GetControlState(player)
+  --   print(GetTime(), 'idle IsSilence', isSilence)
+  --   print(isCC, isRoot, isSilence, isSnare, isDisarm, isImmune, isPvE)
+  -- end
+  -- if true then return end
+
   local hp = UnitHealth100(player)
   local rp = UnitMana(player)
   local pvp = IsPvP()
