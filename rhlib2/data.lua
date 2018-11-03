@@ -155,33 +155,34 @@ for k, v in pairs(controlSpellIds) do
 		print("unknown spellId: " .. k)
 	end
 end
-
+-- контроль, корни, сало, замедление, обезоруживание, невосприимчивость к контролю, пве
 --local isCC, isRoot, isSilence, isSnare, isDisarm, isImmune, isPvE = GetControlState(unit)
 function GetControlState(unit)
   if not unit then unit = 'player' end
-  local isCC = false -- контроль
-  local isRoot = false -- корни
-  local isSilence = false -- сало
-  local isSnare = false -- замедление
-  local isDisarm = false -- обезоруживание
-  local isImmune = false -- обезоруживание
-  local isPvE = false -- обезоруживание
+  local _сс, _root, _silence, _snare, _disarm, _immune, _pve = false, false, false, false, false, false, false
   for i = 1, 40 do
       local name = UnitDebuff(unit, i)
-      if name then
-        local controlType = controlSpellNames[name]
-        if controlType then
-          if not IsCC and controlType == "CC" then IsCC = name end
-          if not IsRoot and controlType == "Root" then IsRoot = name end
-          if not IsSilence and controlType == "Silence" then IsSilence = name end
-          if not IsSnare and controlType == "Snare" then IsSnare = name end
-          if not isDisarm and controlType == "Disarm" then isDisarm = name end
-          if not isImmune and controlType == "Immune" then isImmune = name end
-          if not isPvE and controlType == "PvE" then isPvE = name end
-        end
+    	if not name then break end
+			local controlType = controlSpellNames[name]
+			if controlType then
+				if not _сс and controlType == "CC" then
+					_сс = name
+				elseif not _root and controlType == "Root" then
+					_root = name
+				elseif not _silence and controlType == "Silence" then
+					_silence = name
+				elseif not _snare and controlType == "Snare" then
+					_snare = name
+				elseif not _disarm and controlType == "Disarm" then
+					_disarm = name
+				elseif not _immune and controlType == "Immune" then
+					_immune = name
+				elseif not _pve and controlType == "PvE" then
+					_pve = name
+				end
       end
   end
-  return isCC, isRoot, isSilence, isSnare, isDisarm, isImmune, isPvE
+  return _сс, _root, _silence, _snare, _disarm, _immune, _pve
 end
 ------------------------------------------------------------------------------------------------------------------
 -- TODO: need review

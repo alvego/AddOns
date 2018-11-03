@@ -354,6 +354,20 @@ function GetFreeBagSlotCount()
 end
 ------------------------------------------------------------------------------------------------------------------
 -- Автоматическая покупка предметов
+-- function BuyItem(name, count)
+--   if count == nil then count = 255 end
+--   if GetFreeBagSlotCount() < 1 then return end
+--
+--   for i=1,100 do
+--       if name == GetMerchantItemInfo(i) then
+--           local s = c*GetMerchantItemMaxStack(i)
+--           if q > s then q = s end
+--           BuyMerchantItem(i,q)
+--           break
+--       end
+--   end
+-- end
+
 function BuyItem(name, count)
     ResetQueue()
     if count == nil then count = 1 end
