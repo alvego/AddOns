@@ -156,7 +156,7 @@ for k, v in pairs(controlSpellIds) do
 	end
 end
 
-local isCC, isRoot, isSilence, isSnare, isDisarmб isImmune, isPvE = GetControlState(unit)
+--local isCC, isRoot, isSilence, isSnare, isDisarm, isImmune, isPvE = GetControlState(unit)
 function GetControlState(unit)
   if not unit then unit = 'player' end
   local isCC = false -- контроль
