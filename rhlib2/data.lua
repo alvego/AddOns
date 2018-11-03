@@ -1,5 +1,189 @@
 ﻿-- Rotation Helper Library by Alex Tim
 ------------------------------------------------------------------------------------------------------------------
+local controlSpellIds = { -- form addon LoseControl (some spell id only for level 1)
+	-- Death Knight
+	[47481] = "CC",		-- Gnaw (Ghoul)
+	[51209] = "CC",		-- Hungering Cold
+	[47476] = "Silence",	-- Strangulate
+	[45524] = "Snare",	-- Chains of Ice
+	[55666] = "Snare",	-- Desecration (no duration, lasts as long as you stand in it)
+	[58617] = "Snare",	-- Glyph of Heart Strike
+	[50436] = "Snare",	-- Icy Clutch (Chilblains)
+	-- Druid
+	[5211]  = "CC",		-- Bash (also Shaman Spirit Wolf ability)
+	[33786] = "CC",		-- Cyclone
+	[2637]  = "CC",		-- Hibernate (works against Druids in most forms and Shamans using Ghost Wolf)
+	[22570] = "CC",		-- Maim
+	[9005]  = "CC",		-- Pounce
+	[339]   = "Root",	-- Entangling Roots
+	[19675] = "Root",	-- Feral Charge Effect (immobilize with interrupt [spell lockout, not silence])
+	[58179] = "Snare",	-- Infected Wounds
+	[61391] = "Snare",	-- Typhoon
+	-- Hunter
+	[60210] = "CC",		-- Freezing Arrow Effect
+	[3355]  = "CC",		-- Freezing Trap Effect
+	[24394] = "CC",		-- Intimidation
+	[1513]  = "CC",		-- Scare Beast (works against Druids in most forms and Shamans using Ghost Wolf)
+	[19503] = "CC",		-- Scatter Shot
+	[19386] = "CC",		-- Wyvern Sting
+	[34490] = "Silence",	-- Silencing Shot
+	[53359] = "Disarm",	-- Chimera Shot - Scorpid
+	[19306] = "Root",	-- Counterattack
+	[19185] = "Root",	-- Entrapment
+	[35101] = "Snare",	-- Concussive Barrage
+	[5116]  = "Snare",	-- Concussive Shot
+	[13810] = "Snare",	-- Frost Trap Aura (no duration, lasts as long as you stand in it)
+	[61394] = "Snare",	-- Glyph of Freezing Trap
+	[2974]  = "Snare",	-- Wing Clip
+	-- Hunter Pets
+	[50519] = "CC",		-- Sonic Blast (Bat)
+	[50541] = "Disarm",	-- Snatch (Bird of Prey)
+	[54644] = "Snare",	-- Froststorm Breath (Chimera)
+	[50245] = "Root",	-- Pin (Crab)
+	[50271] = "Snare",	-- Tendon Rip (Hyena)
+	[50518] = "CC",		-- Ravage (Ravager)
+	[54706] = "Root",	-- Venom Web Spray (Silithid)
+	[4167]  = "Root",	-- Web (Spider)
+	-- Mage
+	[44572] = "CC",		-- Deep Freeze
+	[31661] = "CC",		-- Dragon's Breath
+	[12355] = "CC",		-- Impact
+	[118]   = "CC",		-- Polymorph
+	[18469] = "Silence",	-- Silenced - Improved Counterspell
+	[64346] = "Disarm",	-- Fiery Payback
+	[33395] = "Root",	-- Freeze (Water Elemental)
+	[122]   = "Root",	-- Frost Nova
+	[11071] = "Root",	-- Frostbite
+	[55080] = "Root",	-- Shattered Barrier
+	[11113] = "Snare",	-- Blast Wave
+	[6136]  = "Snare",	-- Chilled (generic effect, used by lots of spells [looks weird on Improved Blizzard, might want to comment out])
+	[120]   = "Snare",	-- Cone of Cold
+	[116]   = "Snare",	-- Frostbolt
+	[47610] = "Snare",	-- Frostfire Bolt
+	[31589] = "Snare",	-- Slow
+	-- Paladin
+	[853]   = "CC",		-- Hammer of Justice
+	[2812]  = "CC",		-- Holy Wrath (works against Warlocks using Metamorphasis and Death Knights using Lichborne)
+	[20066] = "CC",		-- Repentance
+	[20170] = "CC",		-- Stun (Seal of Justice proc)
+	[10326] = "CC",		-- Turn Evil (works against Warlocks using Metamorphasis and Death Knights using Lichborne)
+	[63529] = "Silence",	-- Shield of the Templar
+	[20184] = "Snare",	-- Judgement of Justice (100% movement snare; druids and shamans might want this though)
+	-- Priest
+	[605]   = "CC",		-- Mind Control
+	[64044] = "CC",		-- Psychic Horror
+	[8122]  = "CC",		-- Psychic Scream
+	[9484]  = "CC",		-- Shackle Undead (works against Death Knights using Lichborne)
+	[15487] = "Silence",	-- Silence
+	--[64058] = "Disarm",	-- Psychic Horror (duplicate debuff names not allowed atm, need to figure out how to support this later)
+	[15407] = "Snare",	-- Mind Flay
+	-- Rogue
+	[2094]  = "CC",		-- Blind
+	[1833]  = "CC",		-- Cheap Shot
+	[1776]  = "CC",		-- Gouge
+	[408]   = "CC",		-- Kidney Shot
+	[6770]  = "CC",		-- Sap
+	[1330]  = "Silence",	-- Garrote - Silence
+	[18425] = "Silence",	-- Silenced - Improved Kick
+	[51722] = "Disarm",	-- Dismantle
+	[31125] = "Snare",	-- Blade Twisting
+	[3409]  = "Snare",	-- Crippling Poison
+	[26679] = "Snare",	-- Deadly Throw
+	-- Shaman
+	[39796] = "CC",		-- Stoneclaw Stun
+	[51514] = "CC",		-- Hex (although effectively a silence+disarm effect, it is conventionally thought of as a "CC", plus you can trinket out of it)
+	[64695] = "Root",	-- Earthgrab (Storm, Earth and Fire)
+	[63685] = "Root",	-- Freeze (Frozen Power)
+	[3600]  = "Snare",	-- Earthbind (5 second duration per pulse, but will keep re-applying the debuff as long as you stand within the pulse radius)
+	[8056]  = "Snare",	-- Frost Shock
+	[8034]  = "Snare",	-- Frostbrand Attack
+	-- Warlock
+	[710]   = "CC",		-- Banish (works against Warlocks using Metamorphasis and Druids using Tree Form)
+	[6789]  = "CC",		-- Death Coil
+	[5782]  = "CC",		-- Fear
+	[5484]  = "CC",		-- Howl of Terror
+	[6358]  = "CC",		-- Seduction (Succubus)
+	[30283] = "CC",		-- Shadowfury
+	[24259] = "Silence",	-- Spell Lock (Felhunter)
+	[18118] = "Snare",	-- Aftermath
+	[18223] = "Snare",	-- Curse of Exhaustion
+	-- Warrior
+	[7922]  = "CC",		-- Charge Stun
+	[12809] = "CC",		-- Concussion Blow
+	[20253] = "CC",		-- Intercept (also Warlock Felguard ability)
+	[5246]  = "CC",		-- Intimidating Shout
+	[12798] = "CC",		-- Revenge Stun
+	[46968] = "CC",		-- Shockwave
+	[18498] = "Silence",	-- Silenced - Gag Order
+	[676]   = "Disarm",	-- Disarm
+	[58373] = "Root",	-- Glyph of Hamstring
+	[23694] = "Root",	-- Improved Hamstring
+	[1715]  = "Snare",	-- Hamstring
+	[12323] = "Snare",	-- Piercing Howl
+	-- Other
+	[30217] = "CC",		-- Adamantite Grenade
+	[67769] = "CC",		-- Cobalt Frag Bomb
+	[30216] = "CC",		-- Fel Iron Bomb
+	[20549] = "CC",		-- War Stomp
+	[25046] = "Silence",	-- Arcane Torrent
+	[39965] = "Root",	-- Frost Grenade
+	[55536] = "Root",	-- Frostweave Net
+	[13099] = "Root",	-- Net-o-Matic
+	[29703] = "Snare",	-- Dazed
+	-- Immunities
+	[46924] = "Immune",	-- Bladestorm (Warrior)
+	[642]   = "Immune",	-- Divine Shield (Paladin)
+	[45438] = "Immune",	-- Ice Block (Mage)
+	[34692] = "Immune",	-- The Beast Within (Hunter)
+	-- PvE
+	[28169] = "PvE",	-- Mutating Injection (Grobbulus)
+	[28059] = "PvE",	-- Positive Charge (Thaddius)
+	[28084] = "PvE",	-- Negative Charge (Thaddius)
+	[27819] = "PvE",	-- Detonate Mana (Kel'Thuzad)
+	[63024] = "PvE",	-- Gravity Bomb (XT-002 Deconstructor)
+	[63018] = "PvE",	-- Light Bomb (XT-002 Deconstructor)
+	[62589] = "PvE",	-- Nature's Fury (Freya, via Ancient Conservator)
+	[63276] = "PvE",	-- Mark of the Faceless (General Vezax)
+	[66770] = "PvE",	-- Ferocious Butt (Icehowl)
+}
+local controlSpellNames = {}
+for k, v in pairs(controlSpellIds) do
+	local name = GetSpellInfo(k)
+	if name then
+		controlSpellNames[name] = v
+	else
+		print("unknown spellId: " .. k)
+	end
+end
+
+--local isCC, isRoot, isSilence, isSnare, isDisarmб isImmune, isPvE = GetControlState(unit)
+function GetControlState(unit)
+  if not unit then unit = 'player' end
+  local isCC = false -- контроль
+  local isRoot = false -- корни
+  local isSilence = false -- сало
+  local isSnare = false -- замедление
+  local isDisarm = false -- обезоруживание
+  local isImmune = false -- обезоруживание
+  local isPvE = false -- обезоруживание
+  for i = 1, 40 do
+      local name = UnitDebuff(unit, i)
+      if name then
+        local controlType = controlSpellNames[name]
+        if controlType then
+          if not IsCC and controlType == "CC" then IsCC = name end
+          if not IsRoot and controlType == "Root" then IsRoot = name end
+          if not IsSilence and controlType == "Silence" then IsSilence = name end
+          if not IsSnare and controlType == "Snare" then IsSnare = name end
+          if not isDisarm and controlType == "Disarm" then isDisarm = name end
+          if not isImmune and controlType == "Immune" then isImmune = name end
+          if not isPvE and controlType == "PvE" then isPvE = name end
+        end
+      end
+  end
+  return isCC, isRoot, isSilence, isSnare, isDisarmб isImmune, isPvE
+end
+------------------------------------------------------------------------------------------------------------------
 -- TODO: need review
 ControlList = { -- > 4
 "Ненасытная стужа", -- 10s

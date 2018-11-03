@@ -4,8 +4,10 @@
 !.gitignore
 !/rhlib2/
 !/rhpaladin/
+!/rhpaladin2/
 !/rhwarrior/
 !/rhmage/
 !/rhdeathknight/
+!/rhdeathknight2/
 !/rhdruid/
 !/rhdruid2/
