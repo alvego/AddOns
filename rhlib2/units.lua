@@ -717,7 +717,7 @@ function TryTarget(attack, focus, force)
     end
   end
 
-  if validTarget and validFocus and IsArena() then
+  if force and validTarget and validFocus and IsArena() then
       switchFocusTarget()
       return
   end
