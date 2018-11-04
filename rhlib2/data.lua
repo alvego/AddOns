@@ -165,13 +165,11 @@ function GetControlState(unit)
     	if not name then break end
 			local controlType = controlSpellNames[name]
 			if controlType then
-				print(controlType, _silence, not _silence)
 				if not _cc and controlType == "CC" then
 					_cc = name
 				elseif not _root and controlType == "Root" then
 					_root = name
 				elseif not _silence and controlType == "Silence" then
-					print('!!!! Silence')
 					_silence = name
 				elseif not _snare and controlType == "Snare" then
 					_snare = name
@@ -184,7 +182,6 @@ function GetControlState(unit)
 				end
       end
   end
-	print('_silence', _silence)
   return _cc, _root, _silence, _snare, _disarm, _immune, _pve
 end
 ------------------------------------------------------------------------------------------------------------------

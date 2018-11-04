@@ -326,7 +326,6 @@ function UpdateIdle(elapsed)
       return
     end
 
-    if InExecQueue() then return end
     if UpdateCommands() then return end
     if UnitIsDeadOrGhost("player") then return end
     if SpellIsTargeting() then

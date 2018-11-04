@@ -65,12 +65,10 @@ SetCommand("run",
 )
 ------------------------------------------------------------------------------------------------------------------
 SetCommand("defence",
-    function()
-      return DoSpell("Власть льда")
-    end,
+    nil,
     function()
         Defence = true
         chat('Защищаемся')
-        return HasBuff("Власть льда")
+        return true
     end
 )

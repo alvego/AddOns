@@ -223,40 +223,8 @@ function TrashToggle()
     print('ExcludeItemsList[',itemName,'] = ', status)
 end
 ------------------------------------------------------------------------------------------------------------------
-local execQueueList = {}
-local execQueueDelay = 0.01
-local function updateMacroFromList()
-    if TimerLess('execQueue', execQueueDelay) then return end
-    TimerStart('execQueue')
-    if #execQueueList < 1 then return end
-    local cmd = tremove(execQueueList, 1)
-    if type(cmd) == 'function' then
-      cmd()
-    else
-      oexecute(cmd)
-    end
-
-end
-AttachUpdate(updateMacroFromList, 0.1)
-
-function InExecQueue()
-  return #execQueueList > 0
-end
-
-function ResetQueue(delay)
-  execQueueDelay = delay or 0.01
-  if #execQueueList > 0 then
-    wipe(execQueueList)
-  end
-end
-
-function AddToQueue(item)
-  tinsert(execQueueList, item)
-end
-------------------------------------------------------------------------------------------------------------------
 function SellGray()
   ClearCursor()
-  ResetQueue()
   local minItemLevel = Farm and GetMinEquippedItemLevel() or nil
   for bag=0,NUM_BAG_SLOTS do
        for slot=1,GetContainerNumSlots(bag) do
@@ -265,7 +233,7 @@ function SellGray()
              if IsTrash(link, minItemLevel) then
                local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(link)
                if itemSellPrice > 0 then
-                 AddToQueue(format("RunMacroText('/use %s %s')", bag, slot))
+                 UseContainerItem(bag,slot)
                else
                  PickupContainerItem(bag, slot)
                  DeleteCursorItem()
@@ -278,7 +246,9 @@ end
 -------------------------------------------------------------------------------------------------------------------
 -- Автоматическая продажа хлама и починка
 local money = 0
+OpenMerchant = false
 local function SellGrayAndRepair()
+    OpenMerchant = true
     money = GetMoney()
     TimerStart('Sell')
     if CanMerchantRepair() then
@@ -289,44 +259,38 @@ local function SellGrayAndRepair()
 end
 AttachEvent('MERCHANT_SHOW', SellGrayAndRepair)
 local function StopSell()
-  ResetQueue()
   local m = GetMoney() - money
   if not (math.abs(m) < 1) then
     m =  (m > 0 and "+" or '-') .. GetCoinTextureString(math.abs(m))
     chat(("Итого: %s, за %s"):format(m , SecondsToTime(TimerElapsed('Sell'))), 1, 1, 1);
   end
+  OpenMerchant = false
 end
 AttachEvent('MERCHANT_CLOSED', StopSell)
 ------------------------------------------------------------------------------------------------------------------
-function SellItem(name)
-    ResetQueue()
-    if not name then name = "" end
-    for bag=0,NUM_BAG_SLOTS do
-         for slot=1,GetContainerNumSlots(bag) do
-             local link = GetContainerItemLink(bag,slot)
-             if link then
-               if string.find(link, name) then
-                 AddToQueue(format("RunMacroText('/use %s %s')", bag, slot))
-               end
-             end
-         end
-     end
-end
-------------------------------------------------------------------------------------------------------------------
-function OpenContainers()
-  ResetQueue()
+function sell(name)
+  if not OpenMerchant then
+    chat("Нужен торговец")
+    return
+  end
+  if not name then name = "" end
+  local find = false
   for bag=0,NUM_BAG_SLOTS do
-       for slot=1,GetContainerNumSlots(bag) do
-           local link = GetContainerItemLink(bag,slot)
-           if link then
-             local itemName, itemLink, itemRarity, itemLevel, itemMinLevel, itemType, itemSubType, itemStackCount, itemEquipLoc, itemTexture, itemSellPrice = GetItemInfo(link)
-             if not IsTrash(link) and (sContains(itemName, "сунд") or sContains(itemName, "ларец") or sContains(itemName, "сейф")) then
-                 AddToQueue(format("RunMacroText('/use %s %s')", bag, slot))
-             end
-           end
+     for slot=1,GetContainerNumSlots(bag) do
+       local link = GetContainerItemLink(bag,slot)
+       if link then
+         if string.find(link, name) then
+           find = true
+           UseContainerItem(bag,slot)
+         end
        end
+     end
+   end
+   if not find then
+     chat("Прeдмет " .. name .. " не найден в сумках")
    end
 end
+
 ------------------------------------------------------------------------------------------------------------------
 function DelGray()
   ClearCursor()
@@ -354,46 +318,40 @@ function GetFreeBagSlotCount()
 end
 ------------------------------------------------------------------------------------------------------------------
 -- Автоматическая покупка предметов
--- function BuyItem(name, count)
---   if count == nil then count = 255 end
---   if GetFreeBagSlotCount() < 1 then return end
---
---   for i=1,100 do
---       if name == GetMerchantItemInfo(i) then
---           local s = c*GetMerchantItemMaxStack(i)
---           if q > s then q = s end
---           BuyMerchantItem(i,q)
---           break
---       end
---   end
--- end
-
-function BuyItem(name, count)
-    ResetQueue()
-    if count == nil then count = 1 end
-    local idx, maxStack
-    for i=1,100 do
-        if name == GetMerchantItemInfo(i) then
-          idx = i
-          maxStack = GetMerchantItemMaxStack(i)
-        break
+function buy(name, count)
+  if not OpenMerchant then
+    chat("Нужен торговец")
+    return
+  end
+  if count == nil then count = 1 end
+  local merchantIndex = nil
+  for i=1,100 do
+      local itemName = GetMerchantItemInfo(i)
+      if itemName and itemName:match(name) then
+          merchantIndex = i
+          break
       end
-    end
-    --print('idx', idx)
-    if not idx then return end
-    -- необходимо докупить
-    local q = count - GetItemCount(name)
-    if q < 1 then return end
-    -- нет места
-    local x = 1
-    local max = GetFreeBagSlotCount() * maxStack
-    if max < q then q = max end
-    if q < 1 then return end
-    while q > 0 do
-      local c = (q > 255 and 255 or q)
-      q = q - c
-      --print(format("BuyMerchantItem(%s, %s)", idx, c))
-      AddToQueue(format("BuyMerchantItem(%s, %s)", idx, c))
-    end
+  end
+  if merchantIndex == nil then
+    chat("Прeдмет " .. name .. " не найден у торговца")
+    return
+  end
+  local freeBagSlots = GetFreeBagSlotCount()
+  if freeBagSlots < 1 then
+    chat("Нет свободныйх слотов в сумках")
+    return
+  end
+
+  local currentCount = GetItemCount(name)
+  local needToBuy = count - currentCount
+  if needToBuy < 1 then
+    chat("В сумках уже есть "  .. count .. " " .. name)
+    return
+  end
+  if needToBuy > 255 then
+    needToBuy = 255
+    chat("Нельзя купить больше чем 255шт. за 1 раз")
+  end
+  BuyMerchantItem(merchantIndex, needToBuy)
 end
 ------------------------------------------------------------------------------------------------------------------

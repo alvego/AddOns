@@ -1,10 +1,10 @@
 ## Author: Alex Tim & Co
-## Title:|cff0055ffRotation Helper|r|cffffe00a > |cff800000Death Knight|r 2
+## Title:|cff0055ffRH|r|cffffe00a > |cff800000Death Knight 3|r
 ## Version: 3.0
 ## DefaultState: Disabled
 ## Interface: 30300
 ## Dependencies: rhlib2
-## SavedVariables: AutoTaunt, CanInterrupt, AutoAOE
+## SavedVariables: CanInterrupt, AutoAOE
 commands.lua
 rotation.lua
 binds.lua
