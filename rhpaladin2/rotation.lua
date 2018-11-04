@@ -114,7 +114,6 @@ function Idle()
   if IsReadySpell("Длань возмездия") and UnitIsPlayer(target) and (
     (tContains(steathClass, GetClass(target)) and not InRange("Покаяние", target)) or HasBuff(reflectBuff, 1, target)
   ) and not HasDebuff("Длань возмездия", 1, target) and DoSpell("Длань возмездия", target) then return end
- print(IsSilence)
   if CanMagicAttack(target) and IsAlt() and not IsSilence and DoSpell("Правосудие справедливости", target) then return end
   if not isFinishHim and not HasBuff("Священный щит") and IsSpellNotUsed("Священный щит", 4) and not IsSilence and DoSpell("Священный щит", player) then return end
   if UseEquippedItem(GetSlotItemName(10), target) then return end
