@@ -61,6 +61,8 @@ function Idle()
         and not IsSilence and DoSpell("благословение королей", player) then return end
         return
     end
+-- TryTarget--------------------------------------------------------------------
+TryTarget(IsAttack(),true)
 -- Defence----------------------------------------------------------------------
   if not InDuel() then
     if hp < 50 and DoSpell("Священная жертва") then return end
@@ -103,7 +105,6 @@ function Idle()
       if CanMagicAttack(t) and UnitHealth100(t) < 19.99 and DoSpell("Молот гнева", t) then return end
     end
   end
-  -- TryTarget------------------------------------------------------------------
   -- Rotation-------------------------------------------------------------------
   if not CanAttack(target) then return end
   if (IsAttack() or UnitAffectingCombat(target)) then oexecute("StartAttack()") end
@@ -119,7 +120,7 @@ function Idle()
   if UseEquippedItem(GetSlotItemName(10), target) then return end
   if (UnitCreatureType(target) == "Нежить") and mana > 30 and DistanceTo(player, target) < 8 and not IsSilence and DoSpell("Гнев небес") then return end
   if not isDisarm and DoSpell("Удар воина Света", target) then return end
-  if not isDisarm and (InMelee(target) or DistanceTo(player, target) < 7) and (IsReadySpell("Божественная буря") or (GetSpellCooldownLeft("Божественная буря") < 0.5)) then
+  if not isDisarm and (InMelee(target) or DistanceTo(player, target) < 8) and (IsReadySpell("Божественная буря") or (GetSpellCooldownLeft("Божественная буря") < 0.5)) then
     DoSpell("Божественная буря")
     return
   end
