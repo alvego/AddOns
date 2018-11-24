@@ -157,3 +157,21 @@ SetCommand("aignore",
   end
 )
 ------------------------------------------------------------------------------------------------------------------
+local set_2h = 'SM'
+local set_1h_shield = 'upheal'
+local hasSheeldAtStart = false
+SetCommand("sw", --Switch Weapon Set
+  function() -- do something
+    local name = hasSheeldAtStart and set_2h or set_1h_shield
+    oexecute("UseEquipmentSet('".. name .."')")
+    return true -- true, if ready spell etc, add little cd (to avoid spell spamming)
+  end,
+  function() -- check if done
+    local hasSheeld = IsEquippedItemType("Щит") -- get currect state, for check if changed
+    return hasSheeld ~= hasSheeldAtStart -- true, if all condition done, to complete executing currect command
+  end,
+  function() -- init, call once
+    hasSheeldAtStart = IsEquippedItemType("Щит") -- save currect state
+    return false -- true stop command apply (alredy in needed state or not ready)
+  end
+)

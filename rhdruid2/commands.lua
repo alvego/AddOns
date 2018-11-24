@@ -77,13 +77,13 @@ SetCommand("run",
         return true
       end
 
-      if falling and not (combat or cat) then
+      if falling and not cat then
         chat("Падение -> кошка")
         DoCommand("spell", "Облик кошки")
         return true
       end
 
-      if swimming and outdoors and not (combat or fish) then
+      if swimming and not fish then
         chat("Вода -> рыба")
         DoCommand("spell", "Водный облик")
         return true

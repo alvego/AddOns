@@ -93,7 +93,7 @@ function UpdateCommands()
                     --print(cmd, 'Check True')
                    Commands[cmd].Timer = 0
                 else
-                   if GetTime() - Commands[cmd].Last > 0.1 and Commands[cmd].Apply(unpack(Commands[cmd].Params)) then
+                   if GetTime() - Commands[cmd].Last > 0.3 and Commands[cmd].Apply(unpack(Commands[cmd].Params)) then
                         --print(cmd, 'Apply true')
                         Commands[cmd].Last = time
                         local s = ''
